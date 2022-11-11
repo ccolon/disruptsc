@@ -1,0 +1,17 @@
+{
+"type": "FeatureCollection",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "index": 0, "name": null, "special": "ASI", "id": 0 }, "geometry": { "type": "Point", "coordinates": [ 113.737209202688305, 22.372913511573614 ] } },
+{ "type": "Feature", "properties": { "index": 1, "name": null, "special": "OCE", "id": 1 }, "geometry": { "type": "Point", "coordinates": [ 120.129589629858089, -7.864425559391449 ] } },
+{ "type": "Feature", "properties": { "index": 2, "name": null, "special": "AFR", "id": 2 }, "geometry": { "type": "Point", "coordinates": [ 6.653339960494974, 4.345480939986867 ] } },
+{ "type": "Feature", "properties": { "index": 3, "name": null, "special": "EUR", "id": 3 }, "geometry": { "type": "Point", "coordinates": [ 4.560870108435781, 52.44929336314955 ] } },
+{ "type": "Feature", "properties": { "index": 4, "name": null, "special": "NAM", "id": 4 }, "geometry": { "type": "Point", "coordinates": [ -118.147540501606102, 33.674550130113055 ] } },
+{ "type": "Feature", "properties": { "index": 5, "name": "", "special": "SAM", "id": 5 }, "geometry": { "type": "Point", "coordinates": [ -46.382722828235835, -24.121306717697369 ] } },
+{ "type": "Feature", "properties": { "index": 6, "name": "", "special": "CAR", "id": 6 }, "geometry": { "type": "Point", "coordinates": [ -71.584337749739518, -33.043046306696922 ] } },
+{ "type": "Feature", "properties": { "index": 7, "name": "Panama", "special": "PAN", "id": 7 }, "geometry": { "type": "Point", "coordinates": [ -79.507896643944662, 8.96201051529134 ] } },
+{ "type": "Feature", "properties": { "index": 8, "name": "Guayaquil", "special": "port", "id": 8 }, "geometry": { "type": "Point", "coordinates": [ -79.904905432839854, -2.282679593710411 ] } },
+{ "type": "Feature", "properties": { "index": 9, "name": null, "special": null, "id": 9 }, "geometry": { "type": "Point", "coordinates": [ -80.594540964167408, -2.939006419777952 ] } },
+{ "type": "Feature", "properties": { "index": 10, "name": "Singapore", "special": null, "id": 10 }, "geometry": { "type": "Point", "coordinates": [ 104.183, 1.412 ] } }
+]
+}

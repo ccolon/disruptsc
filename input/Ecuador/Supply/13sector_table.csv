@@ -1,0 +1,17 @@
+sector,letter,id,name,type,output,final_demand,usd_per_ton
+AGR,A,1,"Agricultura, ganadería, silvicultura y pesca",agriculture,16330371,8177560,521.0924949
+MIN,B,2,Explotación de minas y canteras,mining,11122231,8040580,305.9737261
+MAN,C,3,"Manufactura",manufacturing,42812616,26241760,1604.497003
+UTI,D-E,4,Suministro de electricidad y de agua,utility,4462148,1753454,0
+CON,F,5,"Construcción",construction,19730427,18574221,0
+TRA,G,6,"Comercio",trade,15481425,7943819,0
+ACF,I,7,Alojamiento y servicios de comida,service,15078679,8120166,0
+TIC,H-J,8,"Transporte, información y comunicaciones",service,4311060,3612420,0
+FIN,K,9,"Actividades financieras
+",service,6839774,2932800,0
+PRO,L-M-N,10,Actividades profesionales e inmobiliarias,service,17589865,6292496,0
+PUB,O,11,"Administración pública ",service,8501210,8422010,0
+EDU,P,12,"Enseñanza",service,7278895,7252179,0
+HEA,Q,13,"Salud",service,5540352,5527211,0
+OTH,R-S-T-U,14,"Otros servicios",service,3342345,2595937,0
+IMP,,15,Imports,imports,,,1184.712567
