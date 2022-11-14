@@ -2,6 +2,6 @@
 "type": "FeatureCollection",
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
 "features": [
-{ "type": "Feature", "properties": { "index": 0, "multimodes": "roads-maritime", "special": null, "capacity": null, "id": 0, "end1": null, "end2": null, "km": 0.1 }, "geometry": { "type": "LineString", "coordinates": [ [ -79.906431573999953, -2.276154864999967 ], [ -79.904905432839854, -2.282679593710411 ] ] } }
+{ "type": "Feature", "properties": { "multimodes": "roads-maritime", "special": null, "capacity": null, "id": 0, "end1": null, "end2": null, "km": 0.1 }, "geometry": { "type": "LineString", "coordinates": [ [ -79.906431573999953, -2.276154864999967 ], [ -79.904905432839854, -2.282679593710411 ] ] } }
 ]
 }

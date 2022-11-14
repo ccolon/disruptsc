@@ -1,19 +1,23 @@
 # DisruptSupplyChain Model
 
+To update
+
 ## Concepts
 
 ### Geographic structure
 
-The model focuses on a country. The country is divided into districts. Those districts are Polygons, labelled using the country-relevant classification, for instance the string `XXXXXX` where X are digits.
+The model focuses on a country. A country is divided into some administrative units (e.g., regions, districts, communes, cantones, etc.) We need to pick a relevant administrative level for which the economic data are compiled. We call it "districts" in the remainder of the text.
 
-The transport network is composed of edges and nodes. Edges are LineString, Nodes are Points. Edges are identified by an integer ID, so are nodes.
+Districts are labelled using the country-relevant classification, for instance, the string `XXXXXX` where X are digits. We call this id the district code. It should always be a string, even if it consists of digits only, e.g., `123456` as string, not as integer.
+
+The transport network is composed of edges and nodes. Edges are *LineString*, Nodes are *Points*. Edges are identified by an integer ID, so are nodes.
 
 Each district is associated with one node in the transport network.
 
 
 ### Sector structure
 
-We use one sector classification, such as ISIC Rev. 4, which depends on the data available on firms and on the input-output table available, and on their granularity. Each sector is identified by a trigram, such as `MTE` for Manufacture of Textiles.
+We use one sector classification, such as ISIC Rev. 4, which depends on the data available on firms and on the input-output table available, and on their granularity. Each sector is identified by a trigram, such as `MTE` for Manufacture of Textiles. Note that imports are labeled by `IMP`.
 
 
 ### Objects
@@ -24,6 +28,10 @@ The main objects are the economic agents. There are three classes of agents:
 - countries
 
 Firms, households, and countries are associated with nodes in the transport network. There is at most one firm per sector per district, one household per sector per district. Countries are associated to nodes which are located outside of the country.
+
+### Implementation choices
+
+- For geographical data file, we use GeoJSON and not shapefiles.
 
 
 ## Inputs
@@ -49,20 +57,23 @@ There should be two GeoJSON files per transport mode, one for nodes and one for 
 - `road_edges.geojson`
 There is only one file for the multimodal layer, which describe the edges. There is no multimodal node.
 
-The edge's geometry is LineString, the node's geometry is Point.
+The edge's geometry is *LineString*, the node's geometry is *Point*.
 
 Nodes should contains at least the following attributes:
-- id: int, one unique id per mode
+- `id`: int, one unique id per mode
 
 Edges should contains at least the following attributes:
-- id: int, one unique id per mode
-- surface: paved or unpaved
-- class: class category, for instance primary, secondary, etc.
-- km: length in km
-- multimodes (for multimodal edges only): define which type of multimodel link, for instance "roads-waterways" or "railways-maritime"
-- capacity (optional): maximum handling capacity per time step
+- `id`: int, one unique id per mode
+- `surface`: paved or unpaved. If unknown you can put everything as "paved"
+- `class`: class category, for instance primary, secondary, etc. If unknown you can leave it empty.
+- `km`: length in km
+- `multimodes` (for multimodal edges only): define which type of multimodel link, for instance "roads-waterways" or "railways-maritime"
+- `capacity`: maximum handling capacity per time step. If unknown you can leave it empty.
 
-Based on these input files, the model creates one networkx.Graph object representing the transport network.
+Nodes and Edges should not contain the following attributes:
+- `index`
+
+Based on these input files, the model creates one *networkx.Graph* object representing the transport network.
 
 
 #### Transport Parameters

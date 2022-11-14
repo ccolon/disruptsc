@@ -110,7 +110,6 @@ for mode, km in km_per_mode.items():
 logging.info('Nb of nodes: '+str(len(T.nodes))+', Nb of edges: '+str(len(T.edges)))
 
 
-
 ### Create firms, households, and countries
 if sys.argv[2] == "0":
     tmp_data = {}

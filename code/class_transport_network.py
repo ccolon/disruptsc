@@ -206,27 +206,37 @@ class TransportNetwork(nx.Graph):
 
     
     def locate_firms_on_nodes(self, firm_list, transport_nodes):
+        '''The nodes of the transport network stores the list of firms located there
+        using the attribute "firms_there".
+        There can be several firms in one node.
+        "transport_nodes" is a geodataframe of the nodes. It also contains this list in the colums
+        "firm_there" as a comma-separated string
+
+        This function reinitialize those fields and repopulate them with the adequate information
+        '''
+        # Reinitialize
         transport_nodes['firms_there'] = ""
         for node_id in self.nodes:
-            self.node[node_id]['firms_there'] = []
-            # self.node[node_id]['households_there'] = []
+            self._node[node_id]['firms_there'] = []
+        # Locate firms
         for firm in firm_list:
-            self.node[firm.odpoint]['firms_there'].append(firm.pid)
+            self._node[firm.odpoint]['firms_there'].append(firm.pid)
             transport_nodes.loc[transport_nodes['id']==firm.odpoint, "firms_there"] += (','+str(firm.pid))
-        # for household in household_list:
-        #     self.node[household.odpoint]['households_there'].append(household.pid)
-            # if firm.odpoint != -1:
-            #     try:
-            #         self.node[firm.odpoint]['firms_there'].append(firm.pid)
-            #     except KeyError:
-            #         logging.error('Transport network has no node numbered: '+str(firm.odpoint))
-    
+
+
 
     def locate_households_on_nodes(self, household_list, transport_nodes):
+        '''The nodes of the transport network stores the list of households located there
+        using the attribute "household_there".
+        There can only be one householod in one node.
+        "transport_nodes" is a geodataframe of the nodes. It also contains the id of the household.
+
+        This function reinitialize those fields and repopulate them with the adequate information
+        '''
+        # Reinitialize
         transport_nodes['household_there'] = None
         for household in household_list:
-            # self.node[household.odpoint]['household_id'] = household.pid
-            self.node[household.odpoint]['household_there'] = household.pid
+            self._node[household.odpoint]['household_there'] = household.pid
             transport_nodes.loc[transport_nodes['id']==household.odpoint, "household_there"] = household.pid
 
     

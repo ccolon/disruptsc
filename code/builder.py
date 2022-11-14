@@ -51,7 +51,7 @@ def loadTransportData(filepaths, transport_params, transport_mode, additional_ro
             new_road_edges['id'] = new_road_edges['id'] + offset_edge_id
             new_road_edges.index = new_road_edges['id']
             new_road_edges['type'] = 'road'
-            edges = edges.append(new_road_edges, ignore_index=False, 
+            edges = pd.concat([edges, new_road_edges], ignore_index=False, 
                 verify_integrity=True, sort=False)
 
         # Compute how much it costs to transport one USD worth of good on each edge
@@ -237,7 +237,7 @@ def createTransportNetwork(transport_modes, filepaths, transport_params, extra_r
 
     Returns
     -------
-    TransportNetwork, transport_edges geopandas.DataFrame
+    TransportNetwork, transport_nodes geopandas.DataFrame, transport_edges geopandas.DataFrame
     """
 
     # Create the transport network object
@@ -265,9 +265,9 @@ def createTransportNetwork(transport_modes, filepaths, transport_params, extra_r
         railways_nodes, railways_edges = offsetIds(railways_nodes, railways_edges,
             offset_node_id = nodes['id'].max()+1,
             offset_edge_id = edges['id'].max()+1)
-        nodes = nodes.append(railways_nodes, ignore_index=False, 
+        nodes = pd.concat([nodes, railways_nodes], ignore_index=False, 
             verify_integrity=True, sort=False)
-        edges = edges.append(railways_edges, ignore_index=False, 
+        edges = pd.concat([edges, railways_edges], ignore_index=False, 
             verify_integrity=True, sort=False)
 
     if "waterways" in transport_modes:
@@ -278,9 +278,9 @@ def createTransportNetwork(transport_modes, filepaths, transport_params, extra_r
         waterways_nodes, waterways_edges = offsetIds(waterways_nodes, waterways_edges,
             offset_node_id = nodes['id'].max()+1,
             offset_edge_id = edges['id'].max()+1)
-        nodes = nodes.append(waterways_nodes, ignore_index=False, 
+        nodes = pd.concat([nodes, waterways_nodes], ignore_index=False, 
             verify_integrity=True, sort=False)
-        edges = edges.append(waterways_edges, ignore_index=False, 
+        edges = pd.concat([edges, waterways_edges], ignore_index=False, 
             verify_integrity=True, sort=False)
 
     if "maritime" in transport_modes:
@@ -291,9 +291,9 @@ def createTransportNetwork(transport_modes, filepaths, transport_params, extra_r
         maritime_nodes, maritime_edges = offsetIds(maritime_nodes, maritime_edges,
             offset_node_id = nodes['id'].max()+1,
             offset_edge_id = edges['id'].max()+1)
-        nodes = nodes.append(maritime_nodes, ignore_index=False, 
+        nodes = pd.concat([nodes, maritime_nodes], ignore_index=False, 
             verify_integrity=True, sort=False)
-        edges = edges.append(maritime_edges, ignore_index=False, 
+        edges = pd.concat([edges, maritime_edges], ignore_index=False, 
             verify_integrity=True, sort=False)
 
     if len(transport_modes) >= 2:
@@ -305,7 +305,7 @@ def createTransportNetwork(transport_modes, filepaths, transport_params, extra_r
         multimodal_edges['id'] = multimodal_edges['id'] + edges['id'].max() + 1
         multimodal_edges.index = multimodal_edges['id']
         multimodal_edges.index.name = "index"
-        edges = edges.append(multimodal_edges, ignore_index=False, 
+        edges = pd.concat([edges, multimodal_edges], ignore_index=False, 
             verify_integrity=True, sort=False)
         logging.debug('Total nb of transport nodes: '+str(nodes.shape[0]))
         logging.debug('Total nb of transport edges: '+str(edges.shape[0]))
@@ -474,7 +474,7 @@ def defineFirmsFromGranularEcoData(filepath_adminunit_economic_data,
                 "absolute_size": adminunit_eco_data.loc[where_create_firm, row["supply_data"]]
             })
             new_firm_table['relative_size'] = new_firm_table['absolute_size'] / new_firm_table['absolute_size'].sum()
-            firm_table_per_adminunit = firm_table_per_adminunit.append(new_firm_table)
+            firm_table_per_adminunit = pd.concat([firm_table_per_adminunit, new_firm_table], axis=0)
 
 
     # B. Assign firms to closest road nodes
@@ -1207,7 +1207,7 @@ def addHouseholdsForFirms(firm_table, household_table,
     # C. Merge
     added_household_table['id'] = [household_table['id'].max() + 1 + i for i in range(added_household_table.shape[0])]
     added_household_table.index = added_household_table['id']
-    household_table = household_table.append(added_household_table, sort=True)
+    household_table = pd.concat([household_table, added_household_table], sort=True)
     # household_table.to_csv('tt.csv')
 
     # D. Log info
