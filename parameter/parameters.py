@@ -11,10 +11,24 @@ monetary_units_in_model = "mUSD"
 monetary_units_inputed = "kUSD"
 time_resolution = 'week'
 
+transport_modes = ['roads', 'maritime', 'airways']
+
+adminunit_to_exclude = ["2001", "2002", "2003"] #Gallapagos
+
+logistics_modes = {
+    'domestic': {
+        "accepted_modes": ['roads', 'airways', 'maritime', 'multimodal'],
+        "accepted_multimodal_links": ['roads-dom-maritime', 'roads-airways']
+    },
+    'international': {
+        "accepted_modes": ['roads', 'airways', 'maritime', 'multimodal'],
+        "accepted_multimodal_links": ['roads-maritime', 'roads-dom-maritime', 'roads-airways']
+    }
+}
+
 pop_density_cutoff = 0
 pop_cutoff = 1000
 local_demand_cutoff = 50
-
 
 # top_10_nodes = [2608, 2404, 2386, 2380, 2379, 2376, 2373, 2366, 2363, 2361]
 #top_10_nodes = [1473, 1619, 992, 1832, 1269, 428, 224]
@@ -70,7 +84,6 @@ congestion = True
 #     'value': 0.02
 # }
 io_cutoff = 0.02
-transport_modes = ['roads', 'maritime']
 
 route_optimization_weight = "agg_cost" #cost_per_ton time_cost agg_cost
 

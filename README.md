@@ -75,6 +75,9 @@ Nodes and Edges should not contain the following attributes:
 
 Based on these input files, the model creates one *networkx.Graph* object representing the transport network.
 
+Multimodal edges:
+- in multimodes, it should start with `mode1-mode2`. The order of the modes does not matter. We can write something after, e.g., 'roads-maritime-dom', but not before, e.g., 'roads-dom-maritime'.
+
 
 #### Transport Parameters
 

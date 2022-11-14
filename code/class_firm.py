@@ -264,31 +264,33 @@ class Firm(object):
     
     def choose_route(self, transport_network, 
         origin_node, destination_node, 
-        possible_transport_modes):
-        '''There are 3 types of weight to select routes
-        - 'weight': the weight itself (e.g., cost per ton)
-        - 'weight_with_capacity': same as weight, but burden added on edges on which 
-        load > capacity. Burden is arbitrary, made to force agents to avoid it
-        - 'road_weight', 'intl_road_weight', 'intl_rail_weight', 'intl_river_weight':
-        same as weight, but burden added on specific edges to force firm choose a
-        specific transport mode
-        '''
+        accepted_logistics_modes):
+        """
+        The agent choose the delivery route
 
-        # If possible_transport_modes is "roads", then simply pick the shortest road route
-        if possible_transport_modes == "roads":
+        If the simple case in which there is only one accepted_logistics_modes (as defined by the main parameter logistic_modes)
+        then it is simply the shortest_route using the appropriate weigth
+
+        If there are several accepted_logistics_modes, then the agent will investigate different route, one per
+        accepted_logistics_mode. They will then pick one, with a certain probability taking into account the weight
+        This more complex mode is used when, according to the capacity and cost data, all the exports or importzs are using
+        one route, whereas in the data, we observe still some flows using another mode of tranpsort. So we use this to "force"
+        some flow to take the other routes.
+        """
+        # If accepted_logistics_modes is a string, then simply pick the shortest route of this logistic mode
+        if isinstance(accepted_logistics_modes, str):
             route = transport_network.provide_shortest_route(origin_node,
-                destination_node, route_weight="road_weight")
-            return route, "roads"
+                destination_node, route_weight=accepted_logistics_modes+"_weight")
+            return route, accepted_logistics_modes
         
-        # If possible_transport_modes is "intl_multimodes",
-        capacity_burden = 1e5
-        if possible_transport_modes == "intl_multimodes":
+        # If it is a list, it means that the agent will chosen between different logistic corridors
+        # with a certain probability
+        elif isinstance(accepted_logistics_modes, list):
             # pick routes for each modes
-            modes = ['intl_road_shv', 'intl_road_vnm', 'intl_rail', 'intl_river']
             routes = { 
                 mode: transport_network.provide_shortest_route(origin_node,
                     destination_node, route_weight=mode+"_weight")
-                for mode in modes
+                for mode in accepted_logistics_modes
             }
             # compute associated weight and capacity_weight
             modes_weight = { 
@@ -731,7 +733,7 @@ class Firm(object):
                 transport_network=transport_network.get_undisrupted_network(), 
                 origin_node=origin_node,
                 destination_node=destination_node, 
-                possible_transport_modes=commercial_link.possible_transport_modes
+                accepted_logistics_modes=commercial_link.possible_transport_modes
             )
             # If we find a new route, we save it as the alternative one
             if route is not None:

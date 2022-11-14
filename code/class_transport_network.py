@@ -126,7 +126,7 @@ class TransportNetwork(nx.Graph):
         return congestion_time_cost
         
         
-    def defineWeights(self, route_optimization_weight):
+    def defineWeightsCambodia(self, route_optimization_weight):
         '''Define the edge weights used by firms and countries to decide routes
 
         There are 3 types of weights:
@@ -203,6 +203,39 @@ class TransportNetwork(nx.Graph):
                 if self[edge[0]][edge[1]]['multimodes'] in multimodal_links_to_exclude:
                     self[edge[0]][edge[1]][mode] = other_mode_burden
 
+
+    def defineWeights(self, route_optimization_weight, logistics_modes):
+        '''Define the edge weights used by firms and countries to decide routes
+
+        We use 3 types of weights to influence how route are decided.
+            - weight: the indicator 'route_optimization_weight' which is chosen, e.g., cost_per_ton, travel_time
+            This is the basic weight
+            - capacity_weight: it is initiliazed as 'weight', then, if the load (nb of tons on a transport edge) cross 
+            a capacity threshold (defined the input edge files), then we add capacity_burden such that this edge is not
+            chosen any more
+            - mode_weight: if a commercial link is supposed to take one type of logistic mode, then we add a weight to 
+            the edges corresponding to other modes or multimodals links
+
+        The idea is to weight more or less different part of the network to "force" agent to choose one mode or the other.
+        Since road needs always to be taken, we define a smaller burden.
+
+        We start with the "route_optimization_weight" chosen as parameter (e.g., cost_per_ton, travel_time)
+        Then, we add a hugen burden if we want agents to avoid certain edges
+        Or we set the weight to 0 if we want to favor it
+        '''
+        # record the list of mode weights (used later to update weights based on loads)
+        self.mode_weights = [logistic_mode + '_weight' for logistic_mode in list(logistics_modes.keys())]
+        # initialize the weights
+        other_mode_burden = 1e10
+        for edge in self.edges:
+            self[edge[0]][edge[1]]['weight'] = self[edge[0]][edge[1]][route_optimization_weight]
+            self[edge[0]][edge[1]]['capacity_weight'] = self[edge[0]][edge[1]][route_optimization_weight]
+            for logistic_mode, logistic_links in logistics_modes.items():
+                self[edge[0]][edge[1]][logistic_mode+'_weight'] = self[edge[0]][edge[1]][route_optimization_weight]
+                cond_type = self[edge[0]][edge[1]]['type'] not in logistic_links['accepted_modes']
+                cond_multimodes = self[edge[0]][edge[1]]['multimodes'] not in logistic_links['accepted_multimodal_links']
+                if cond_type or cond_multimodes:
+                    self[edge[0]][edge[1]][logistic_mode+'_weight'] = other_mode_burden
 
     
     def locate_firms_on_nodes(self, firm_list, transport_nodes):
@@ -376,7 +409,6 @@ class TransportNetwork(nx.Graph):
 
 
     def update_load_on_route(self, route, load):
-
         '''Affect a load to a route
 
         The current_load attribute of each edge in the route will be incread by the new load.
@@ -410,7 +442,7 @@ class TransportNetwork(nx.Graph):
                 # print("self[edge[0]][edge[1]][current_load]", self[edge[0]][edge[1]]['current_load'])
 
 
-    def reset_current_loads(self, route_optimization_weight):
+    def reset_current_loads(self, route_optimization_weight, logistics_modes):
         '''Reset current_load to 0
 
         If an edge was burdened due to capacity exceedance, we remove the burden
@@ -418,7 +450,7 @@ class TransportNetwork(nx.Graph):
         for edge in self.edges:
             self[edge[0]][edge[1]]['current_load'] = 0
 
-        self.defineWeights(route_optimization_weight)
+        self.defineWeights(route_optimization_weight, logistics_modes)
 
 
     def give_route_mode(self, route):

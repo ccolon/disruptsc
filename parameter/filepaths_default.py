@@ -27,6 +27,8 @@ filepaths = {
     "roads_edges": os.path.join('input', input_folder, 'Transport', 'roads_edges.geojson'),
     "railways_nodes": os.path.join('input', input_folder, 'Transport', 'railways_nodes.geojson'),
     "railways_edges": os.path.join('input', input_folder, 'Transport', 'railways_edges.geojson'),
+    "airways_nodes": os.path.join('input', input_folder, 'Transport', 'airways_nodes.geojson'),
+    "airways_edges": os.path.join('input', input_folder, 'Transport', 'airways_edges.geojson'),
     "waterways_nodes": os.path.join('input', input_folder, 'Transport', 'waterways_nodes.geojson'),
     "waterways_edges": os.path.join('input', input_folder, 'Transport', 'waterways_edges.geojson'),
     "multimodal_edges": os.path.join('input', input_folder, 'Transport', 'multimodal_edges.geojson'),

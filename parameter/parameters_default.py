@@ -97,6 +97,9 @@ congestion = True
 # Whether or not firms should readjust their price to changes in input prices
 propagate_input_price_change = True
 
+# Adminunit to exclude
+adminunit_to_exclude = []
+
 # Which sectors to include. Possible values:
 # - 'all': all the sectors are kept
 # - list of sectors
@@ -152,6 +155,20 @@ local_demand_cutoff = 0
 # - 'all': all the districts are kept
 # - list of countries
 countries_to_include = "all"
+
+# Defines the different parts of the transport network that a commercial link can use
+# "accepted_modes": list of "roads", "railways", "waterways", "maritime", "multimodal"
+# "accepted_multimodal_links": list of string that should correspond to the attribute "multimodes" of the multimodal_edges input file
+logistics_modes = {
+    'domestic': {
+        "accepted_modes": ['roads'],
+        "accepted_multimodal_links": []
+    },
+    'international': {
+        "accepted_modes": ['roads', 'martime', 'multimodal'],
+        "accepted_multimodal_links": ['roads-maritime']
+    }
+}
 
 # Any sector in a district that have an importance lower than this value is discarded
 # 2 exceptions apply:

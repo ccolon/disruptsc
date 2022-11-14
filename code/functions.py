@@ -608,7 +608,7 @@ def agent_decide_initial_routes(agent, graph, transport_network, transport_modes
                 cond_to = (transport_modes['to'] == edge[1].pid)
             else:
                 raise ValueError("'edge[1]' must be a Firm or a Country")
-                # we have not implemented the "sector" condition
+                # we have not implemented a "sector" condition
             transport_mode = transport_modes.loc[cond_from & cond_to, "transport_mode"].iloc[0]
             graph[agent][edge[1]]['object'].transport_mode = transport_mode
             # Choose the route and the corresponding mode
@@ -616,8 +616,10 @@ def agent_decide_initial_routes(agent, graph, transport_network, transport_modes
                 transport_network=transport_network, 
                 origin_node=origin_node, 
                 destination_node=destination_node, 
-                possible_transport_modes=transport_mode
+                accepted_logistics_modes=transport_mode
             )
+            print(agent.pid, edge[1].pid, edge[1].odpoint)
+            print(route, selected_mode)
             # Store it into commercial link object
             graph[agent][edge[1]]['object'].storeRouteInformation(
                 route=route,

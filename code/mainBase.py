@@ -99,7 +99,7 @@ else:
     logging.info('Transport network'+extra_road_log+' generated from temp file.')
 # Generate weight
 logging.info('Generating shortest-path weights on transport network')
-T.defineWeights(route_optimization_weight)
+T.defineWeights(route_optimization_weight, logistics_modes)
 # Print data on km per modes
 km_per_mode = pd.DataFrame({"km": nx.get_edge_attributes(T, "km"), "type": nx.get_edge_attributes(T, "type")})
 km_per_mode = km_per_mode.groupby('type')['km'].sum().to_dict()
@@ -113,7 +113,6 @@ logging.info('Nb of nodes: '+str(len(T.nodes))+', Nb of edges: '+str(len(T.edges
 ### Create firms, households, and countries
 if sys.argv[2] == "0":
     tmp_data = {}
-    print(filepaths['sector_table'])
     ### Filter sectors
     logging.info('Filtering the sectors based on their output. '+
         "Cutoff type is "+cutoff_sector_output['type']+
@@ -413,6 +412,7 @@ if disruption_analysis is None:
         disruptions=None,
         congestion=congestion,
         route_optimization_weight=route_optimization_weight,
+        logistics_modes=logistics_modes,
         explicit_service_firm=explicit_service_firm,
         propagate_input_price_change=propagate_input_price_change,
         rationing_mode=rationing_mode,
@@ -457,6 +457,7 @@ elif disruption_analysis['type'] == "compound":
         disruptions=None,
         congestion=congestion,
         route_optimization_weight=route_optimization_weight,
+        logistics_modes=logistics_modes,
         explicit_service_firm=explicit_service_firm,
         propagate_input_price_change=propagate_input_price_change,
         rationing_mode=rationing_mode,
@@ -511,6 +512,7 @@ elif disruption_analysis['type'] == "compound":
             disruptions=compound_disruption,
             congestion=congestion,
             route_optimization_weight=route_optimization_weight,
+            logistics_modes=logistics_modes,
             explicit_service_firm=explicit_service_firm,
             propagate_input_price_change=propagate_input_price_change,
             rationing_mode=rationing_mode,
@@ -608,6 +610,7 @@ elif disruption_analysis['type'] == 'criticality':
             disruptions=None,
             congestion=congestion,
             route_optimization_weight=route_optimization_weight,
+            logistics_modes=logistics_modes,
             explicit_service_firm=explicit_service_firm,
             propagate_input_price_change=propagate_input_price_change,
             rationing_mode=rationing_mode,
@@ -655,6 +658,7 @@ elif disruption_analysis['type'] == 'criticality':
                 disruptions=[disruption],
                 congestion=congestion,
                 route_optimization_weight=route_optimization_weight,
+                logistics_modes=logistics_modes,
                 explicit_service_firm=explicit_service_firm,
                 propagate_input_price_change=propagate_input_price_change,
                 rationing_mode=rationing_mode,

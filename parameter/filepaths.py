@@ -17,6 +17,8 @@ filepaths = {
     "multimodal_edges": os.path.join('input', input_folder, 'Transport', 'multimodal_edges.geojson'),
     "maritime_nodes": os.path.join('input', input_folder, 'Transport', 'maritime_nodes.geojson'),
     "maritime_edges": os.path.join('input', input_folder, 'Transport', 'maritime_edges.geojson'),
+    "airways_nodes": os.path.join('input', input_folder, 'Transport', 'airways_nodes.geojson'),
+    "airways_edges": os.path.join('input', input_folder, 'Transport', 'airways_edges.geojson'),
     ## Supply
     # "district_sector_importance": os.path.join('input', input_folder, 'Supply', 'district_sector_importance.csv'),
     "sector_table": os.path.join('input', input_folder, 'Supply', "13sector_table.csv"),

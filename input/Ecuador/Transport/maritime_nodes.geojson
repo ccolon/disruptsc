@@ -12,6 +12,11 @@
 { "type": "Feature", "properties": { "name": "Panama", "special": "PAN", "id": 7 }, "geometry": { "type": "Point", "coordinates": [ -79.507896643944662, 8.96201051529134 ] } },
 { "type": "Feature", "properties": { "name": "Guayaquil", "special": "port", "id": 8 }, "geometry": { "type": "Point", "coordinates": [ -79.904905432839854, -2.282679593710411 ] } },
 { "type": "Feature", "properties": { "name": null, "special": null, "id": 9 }, "geometry": { "type": "Point", "coordinates": [ -80.594540964167408, -2.939006419777952 ] } },
-{ "type": "Feature", "properties": { "name": "Singapore", "special": null, "id": 10 }, "geometry": { "type": "Point", "coordinates": [ 104.183, 1.412 ] } }
+{ "type": "Feature", "properties": { "name": "Singapore", "special": null, "id": 10 }, "geometry": { "type": "Point", "coordinates": [ 104.183, 1.412 ] } },
+{ "type": "Feature", "properties": { "name": null, "special": "Isla Isabela", "id": 11 }, "geometry": { "type": "Point", "coordinates": [ -90.967111558392148, -0.958476949644002 ] } },
+{ "type": "Feature", "properties": { "name": null, "special": "Isla Santa Cruz", "id": 12 }, "geometry": { "type": "Point", "coordinates": [ -90.312550374252581, -0.747852565059022 ] } },
+{ "type": "Feature", "properties": { "name": null, "special": "Isla San Cristobal", "id": 13 }, "geometry": { "type": "Point", "coordinates": [ -89.611014186465638, -0.900139760998888 ] } },
+{ "type": "Feature", "properties": { "name": "Isla Baltra", "special": null, "id": 14 }, "geometry": { "type": "Point", "coordinates": [ -90.277391800738869, -0.48345161299273 ] } },
+{ "type": "Feature", "properties": { "name": "Isla Santa Cruz", "special": "access airport", "id": 15 }, "geometry": { "type": "Point", "coordinates": [ -90.280395875237204, -0.487582215427942 ] } }
 ]
 }

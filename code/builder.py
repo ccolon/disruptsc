@@ -17,12 +17,10 @@ from class_country import Country
 
 def loadTransportData(filepaths, transport_params, transport_mode, additional_roads=None):
     # Determines whether there are nodes and/or edges to load
-    any_edge = False
-    any_node = False
-    if transport_mode in ["roads", "railways", "waterways", "maritime"]:
-        any_node = True
-    if transport_mode in ["roads", "railways", "waterways", "maritime", "multimodal"]:
-        any_edge = True
+    any_edge = True
+    any_node = True
+    if transport_mode == "multimodal":
+        any_node = False
 
     # Load nodes
     if any_node:
@@ -96,14 +94,14 @@ def computeCostTravelTimeEdges(edges, transport_params, edge_type):
                 (edges['surface']=='unpaved') * transport_params['transport_cost_per_tonkm']['roads']['unpaved'] +\
                 (edges['surface']=='paved') * transport_params['transport_cost_per_tonkm']['roads']['paved']
             )
-    elif edge_type in ['railways', 'waterways', 'maritime']:
+    elif edge_type in ['railways', 'waterways', 'maritime', 'airways']:
         edges['cost_per_ton'] = edges['km'] * transport_params['transport_cost_per_tonkm'][edge_type]
 
     elif edge_type == "multimodal":
         edges['cost_per_ton'] = edges['multimodes'].map(transport_params['loading_cost_per_ton'])
 
     else:
-        raise ValueError("'edge_type' should be 'roads', 'railways', 'waterways', or 'multimodal'")
+        raise ValueError("'edge_type' should be 'roads', 'railways', 'waterways', 'airways', or 'multimodal'")
 
     # A2. Forwarding charges at borders
     edges.loc[edges['special'].str.contains("custom", na=False), "cost_per_ton"] = \
@@ -119,14 +117,14 @@ def computeCostTravelTimeEdges(edges, transport_params, edge_type):
                 (edges['surface']=='unpaved') / transport_params['speeds']['roads']['unpaved'] +\
                 (edges['surface']=='paved') / transport_params['speeds']['roads']['paved']
             )
-    elif edge_type in ['railways', 'waterways', 'maritime']:
+    elif edge_type in ['railways', 'waterways', 'maritime', 'airways']:
         edges['travel_time'] = edges['km'] / transport_params['speeds'][edge_type]
 
     elif edge_type == "multimodal":
         edges['travel_time'] = edges['km'] / edges['multimodes'].map(transport_params['loading_time'])
 
     else:
-        raise ValueError("'edge_type' should be 'roads', 'railways', 'waterways', or 'multimodal'")
+        raise ValueError("'edge_type' should be 'roads', 'railways', 'waterways', 'airways', or 'multimodal'")
 
     # B.1b. Add crossing border time
     edges.loc[edges['special'].str.contains("custom", na=False), "travel_time"] = \
@@ -147,7 +145,7 @@ def computeCostTravelTimeEdges(edges, transport_params, edge_type):
                 (edges['surface']=='paved') * transport_params['variability']['roads']['paved']
             )
 
-    elif edge_type in ['railways', 'waterways', 'maritime']:
+    elif edge_type in ['railways', 'waterways', 'maritime', 'airways']:
         edges['cost_variability'] = edges['cost_travel_time'] * \
         transport_params['variability_coef'] * \
         transport_params["variability"][edge_type]
@@ -158,7 +156,7 @@ def computeCostTravelTimeEdges(edges, transport_params, edge_type):
         edges['multimodes'].map(transport_params['variability']['multimodal'])
 
     else:
-        raise ValueError("'edge_type' should be 'roads', 'railways', 'waterways', or 'multimodal'")
+        raise ValueError("'edge_type' should be 'roads', 'railways', 'waterways', 'airways', or 'multimodal'")
 
     # B.4. Finally, add up both cost to get the cost of time of each road edges
     edges['time_cost'] = edges['cost_travel_time'] + edges['cost_variability']
@@ -227,7 +225,7 @@ def createTransportNetwork(transport_modes, filepaths, transport_params, extra_r
     Parameters
     ----------
     transport_modes : list
-        List of transport modes to include, ['roads', 'railways', 'waterways']
+        List of transport modes to include, ['roads', 'railways', 'waterways', 'airways']
 
     filepaths : dic
         Dic of filepaths
@@ -294,6 +292,19 @@ def createTransportNetwork(transport_modes, filepaths, transport_params, extra_r
         nodes = pd.concat([nodes, maritime_nodes], ignore_index=False, 
             verify_integrity=True, sort=False)
         edges = pd.concat([edges, maritime_edges], ignore_index=False, 
+            verify_integrity=True, sort=False)
+
+    if "airways" in transport_modes:
+        logging.debug('Loading airways data')
+        airways_nodes, airways_edges = loadTransportData(filepaths, transport_params, "airways")
+        logging.debug(str(airways_nodes.shape[0])+" airways nodes and "+
+            str(airways_edges.shape[0])+ " airways edges")
+        airways_nodes, airways_edges = offsetIds(airways_nodes, airways_edges,
+            offset_node_id = nodes['id'].max()+1,
+            offset_edge_id = edges['id'].max()+1)
+        nodes = pd.concat([nodes, airways_nodes], ignore_index=False, 
+            verify_integrity=True, sort=False)
+        edges = pd.concat([edges, airways_edges], ignore_index=False, 
             verify_integrity=True, sort=False)
 
     if len(transport_modes) >= 2:

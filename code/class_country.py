@@ -76,11 +76,11 @@ class Country(object):
         # Select other country as supplier: transit flows
         self.create_transit_links(graph, country_list)
             
-        # Select Tanzanian suppliers
+        # Select suppliers
         ## Identify firms from each sectors
         dic_sector_to_firmid = identify_firms_in_each_sector(firm_list)
         share_exporting_firms = sector_table.set_index('sector')['share_exporting_firms'].to_dict()
-        ## Identify odpoints which exports
+        ## Identify odpoints which exports (optional)
         export_odpoints = identify_special_transport_nodes(transport_nodes, "export")
         ## Identify sectors to buy from
         present_sectors = list(set(list(dic_sector_to_firmid.keys())))
@@ -90,7 +90,7 @@ class Country(object):
         supplier_selection_mode = {
             "importance_export": {
                 "export_odpoints": export_odpoints,
-                "bonus": 10
+                "bonus": 10 #give more weight to firms located in transport node identified as "export points" (e.g., SEZs)
             }
         }
         for sector in present_sectors_to_buy_from: #only select suppliers from sectors that are present
@@ -147,23 +147,33 @@ class Country(object):
            
     def choose_route(self, transport_network, 
         origin_node, destination_node, 
-        possible_transport_modes):
-        
-        # If possible_transport_modes is "roads", then simply pick the shortest road route
-        if possible_transport_modes == "roads":
+        accepted_logistics_modes):
+        """
+        The agent choose the delivery route
+
+        If the simple case in which there is only one accepted_logistics_modes (as defined by the main parameter logistic_modes)
+        then it is simply the shortest_route using the appropriate weigth
+
+        If there are several accepted_logistics_modes, then the agent will investigate different route, one per
+        accepted_logistics_mode. They will then pick one, with a certain probability taking into account the weight
+        This more complex mode is used when, according to the capacity and cost data, all the exports or importzs are using
+        one route, whereas in the data, we observe still some flows using another mode of tranpsort. So we use this to "force"
+        some flow to take the other routes.
+        """
+        # If accepted_logistics_modes is a string, then simply pick the shortest route of this logistic mode
+        if isinstance(accepted_logistics_modes, str):
             route = transport_network.provide_shortest_route(origin_node,
-                destination_node, route_weight="road_weight")
-            return route, "roads"
+                destination_node, route_weight=accepted_logistics_modes+"_weight")
+            return route, accepted_logistics_modes
         
-        # If possible_transport_modes is "intl_multimodes",
-        capacity_burden = 1e5
-        if possible_transport_modes == "intl_multimodes":
+        # If it is a list, it means that the agent will chosen between different logistic corridors
+        # with a certain probability
+        elif isinstance(accepted_logistics_modes, list):
             # pick routes for each modes
-            modes = ['intl_road_shv', 'intl_road_vnm', 'intl_rail', 'intl_river']
             routes = { 
                 mode: transport_network.provide_shortest_route(origin_node,
                     destination_node, route_weight=mode+"_weight")
-                for mode in modes
+                for mode in accepted_logistics_modes
             }
             # compute associated weight and capacity_weight
             modes_weight = { 
@@ -176,6 +186,7 @@ class Country(object):
             }
             # print(self.pid, modes_weight)
             # remove any mode which is over capacity (where capacity_weight > capacity_burden)
+            capacity_burden = 1e5
             for mode, route in routes.items():
                 if mode != "intl_rail":
                     if transport_network.check_edge_in_route(route, (2610, 2589)):
@@ -354,7 +365,7 @@ class Country(object):
                 transport_network=transport_network.get_undisrupted_network(), 
                 origin_node=origin_node,
                 destination_node=destination_node, 
-                possible_transport_modes=commercial_link.possible_transport_modes
+                accepted_logistics_modes=commercial_link.possible_transport_modes
             )
             # We evaluate the cost of this new route
             if route is not None:

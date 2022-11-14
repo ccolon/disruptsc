@@ -39,6 +39,7 @@ def runOneTimeStep(transport_network, sc_network, firm_list,
     disruptions=None,
     congestion=False,
     route_optimization_weight="cost_per_ton",
+    logistics_modes=None,
     explicit_service_firm=True,
     propagate_input_price_change=True,
     rationing_mode="household_first",
@@ -89,7 +90,7 @@ def runOneTimeStep(transport_network, sc_network, firm_list,
     -------
     Nothing
     """
-    transport_network.reset_current_loads(route_optimization_weight)
+    transport_network.reset_current_loads(route_optimization_weight, logistics_modes)
 
     if (disruptions is not None):
         for event in disruptions:
