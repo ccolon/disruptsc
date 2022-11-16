@@ -125,84 +125,6 @@ class TransportNetwork(nx.Graph):
                     congestion_time_cost += self[segment[0]][segment[1]]['cost_travel_time'] * self[segment[0]][segment[1]]['congestion']
         return congestion_time_cost
         
-        
-    def defineWeightsCambodia(self, route_optimization_weight):
-        '''Define the edge weights used by firms and countries to decide routes
-
-        There are 3 types of weights:
-            - weight: the indicator 'route_optimization_weight' parametrized
-            - capacity_weight: same as weight, but we add capacity_burden when load
-            are over threshold
-            - mode_weight: we generate different weights for different mode of transportation 
-            defined in the commercial links. So far, we defined:
-                - dom_road_weight: domestic roads (used between national firms)
-                - intl_road_shv_weight: internatinal route using primarily roads via shv (maritime + roads)
-                - intl_road_vnm_weight: internatinal route using primarily roads via vnm (maritime + roads)
-                - intl_rail_weight: internatinal route using primarily ails (maritime + rails + roads)
-                - intl_river_weight: internatinal route using primarily waterways (maritime + river + roads)
-
-        The idea is to weight more or less different part of the network 
-        to "force" agent to choose one mode or the other.
-        Since road needs always to be taken, we define a smaller burden.
-
-        We start with the "route_optimization_weight" chosen as parameter (e.g., cost_per_ton, travel_time)
-        Then, we add a hugen burden if we want agents to avoid certain edges
-        Or we set the weight to 0 if we want to favor it
-        '''
-        road_burden = 1e6
-        other_mode_burden = 1e10
-        self.mode_weights = ['road_weight', 'intl_road_shv_weight', 
-            'intl_road_vnm_weight', 'intl_rail_weight', 'intl_river_weight']
-        for edge in self.edges:
-            self[edge[0]][edge[1]]['weight'] = self[edge[0]][edge[1]][route_optimization_weight]
-            self[edge[0]][edge[1]]['capacity_weight'] = self[edge[0]][edge[1]][route_optimization_weight]
-            self[edge[0]][edge[1]]['road_weight'] = self[edge[0]][edge[1]][route_optimization_weight]
-            self[edge[0]][edge[1]]['intl_road_shv_weight'] = self[edge[0]][edge[1]][route_optimization_weight]
-            self[edge[0]][edge[1]]['intl_road_vnm_weight'] = self[edge[0]][edge[1]][route_optimization_weight]
-            self[edge[0]][edge[1]]['intl_rail_weight'] = self[edge[0]][edge[1]][route_optimization_weight]
-            self[edge[0]][edge[1]]['intl_river_weight'] = self[edge[0]][edge[1]][route_optimization_weight]
-
-            # road_weight => burden any multimodal links
-            multimodal_links_to_exclude_dic = {
-                "road_weight": [
-                    'railways-maritime', 
-                    'waterways-maritime', 
-                    'roads-railways', 
-                    'roads-waterways',
-                    'roads-maritime-shv',
-                    'roads-maritime-vnm'
-                ],
-                "intl_road_shv_weight": [
-                    'railways-maritime', 
-                    'waterways-maritime', 
-                    'roads-railways', 
-                    'roads-waterways',
-                    'roads-maritime-vnm'
-                ],
-                "intl_road_vnm_weight": [
-                    'railways-maritime', 
-                    'waterways-maritime', 
-                    'roads-railways', 
-                    'roads-waterways',
-                    'roads-maritime-shv'
-                ],
-                "intl_rail_weight": [
-                    'waterways-maritime',
-                    'roads-maritime-shv',
-                    'roads-maritime-vnm',
-                    'roads-waterways'
-                ],
-                "intl_river_weight": [
-                    'railways-maritime',
-                    'roads-maritime-shv',
-                    'roads-maritime-vnm',
-                    'roads-railways'
-                ],                
-            }
-            for mode, multimodal_links_to_exclude in multimodal_links_to_exclude_dic.items():
-                if self[edge[0]][edge[1]]['multimodes'] in multimodal_links_to_exclude:
-                    self[edge[0]][edge[1]][mode] = other_mode_burden
-
 
     def defineWeights(self, route_optimization_weight, logistics_modes):
         '''Define the edge weights used by firms and countries to decide routes
@@ -236,6 +158,8 @@ class TransportNetwork(nx.Graph):
                 cond_multimodes = self[edge[0]][edge[1]]['multimodes'] not in logistic_links['accepted_multimodal_links']
                 if cond_type or cond_multimodes:
                     self[edge[0]][edge[1]][logistic_mode+'_weight'] = other_mode_burden
+                # if self[edge[0]][edge[1]]['type'] == "airways":
+                #     print(self[edge[0]][edge[1]]['weight'])
 
     
     def locate_firms_on_nodes(self, firm_list, transport_nodes):

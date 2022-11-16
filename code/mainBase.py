@@ -111,6 +111,7 @@ else:
     raise ValueError('Argument error')
 # Generate weight
 logging.info('Generating shortest-path weights on transport network')
+
 T.defineWeights(route_optimization_weight, logistics_modes)
 # Print data on km per modes
 km_per_mode = pd.DataFrame({"km": nx.get_edge_attributes(T, "km"), "type": nx.get_edge_attributes(T, "type")})

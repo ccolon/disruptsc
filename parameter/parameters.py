@@ -13,18 +13,18 @@ time_resolution = 'week'
 
 transport_modes = ['roads', 'maritime', 'waterways', 'airways']
 
-adminunit_to_exclude = ["2001", "2002", "2003"] #Gallapagos
-
 logistics_modes = {
     'domestic': {
         "accepted_modes": ['roads', 'airways', 'maritime', 'waterways', 'multimodal'],
-        "accepted_multimodal_links": ['roads-dom-maritime', 'roads-airways', 'roads-waterways']
+        "accepted_multimodal_links": ['roads-maritime-dom', 'roads-airways', 'roads-waterways']
     },
     'international': {
         "accepted_modes": ['roads', 'airways', 'maritime', 'waterways', 'multimodal'],
-        "accepted_multimodal_links": ['roads-maritime', 'roads-dom-maritime', 'roads-airways', 'roads-waterways']
+        "accepted_multimodal_links": ['roads-maritime', 'roads-maritime-dom', 'roads-airways', 'roads-waterways']
     }
 }
+
+route_optimization_weight = "cost_per_ton" #cost_per_ton
 
 pop_density_cutoff = 0
 pop_cutoff = 1000
@@ -66,7 +66,7 @@ disruption_analysis = {
 # }
 
 
-# disruption_analysis = None
+disruption_analysis = None
 congestion = True
 
 # cutoffs

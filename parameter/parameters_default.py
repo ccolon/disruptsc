@@ -103,9 +103,6 @@ congestion = True
 # Whether or not firms should readjust their price to changes in input prices
 propagate_input_price_change = True
 
-# Adminunit to exclude
-adminunit_to_exclude = []
-
 # Which sectors to include. Possible values:
 # - 'all': all the sectors are kept
 # - list of sectors
@@ -326,7 +323,7 @@ epsilon_stop_condition = 1e-3
 # Possible values are:
 # - time_cost
 # - cost_per_ton
-route_optimization_weight = "time_cost" 
+route_optimization_weight = "cost_per_ton" 
 
 # How to translate an increase in transport cost into increase in prices
 cost_repercussion_mode = "type1"
