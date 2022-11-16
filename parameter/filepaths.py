@@ -23,12 +23,12 @@ filepaths = {
     "waterways_edges": os.path.join('input', input_folder, 'Transport', 'waterways_edges.geojson'),
     ## Supply
     # "district_sector_importance": os.path.join('input', input_folder, 'Supply', 'district_sector_importance.csv'),
-    "sector_table": os.path.join('input', input_folder, 'Supply', "13sector_table.csv"),
-    "tech_coef": os.path.join('input', input_folder, 'Supply', "2019_13sectors_tech_coef.csv"),
-    "sector_cutoffs": os.path.join('input', input_folder, 'Supply', "13sectors_sector_firm_cutoffs.csv"),
-    "inventory_duration_targets": os.path.join('input', input_folder, 'Supply', "inventory_duration_targets.csv"),
+    "sector_table": os.path.join('input', input_folder, 'National', "13sector_table.csv"),
+    "tech_coef": os.path.join('input', input_folder, 'National', "2019_13sectors_tech_coef.csv"),
+    "sector_cutoffs": os.path.join('input', input_folder, 'National', "13sectors_sector_firm_cutoffs.csv"),
+    "inventory_duration_targets": os.path.join('input', input_folder, 'National', "inventory_duration_targets.csv"),
     # Canton data
-    "adminunit_data": os.path.join('input', input_folder, 'Subregion', "canton_data.geojson"),
+    "adminunit_data": os.path.join('input', input_folder, 'Subnational', "canton_data.geojson"),
     ## Trade
     # "entry_points": os.path.join('input', input_folder, 'Trade', "entry_points.csv"),
     "imports": os.path.join('input', input_folder, 'Trade', "import_table.csv"),

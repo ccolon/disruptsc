@@ -1,7 +1,5 @@
 # DisruptSupplyChain Model
 
-To update
-
 ## Concepts
 
 ### Geographic structure
@@ -14,11 +12,9 @@ The transport network is composed of edges and nodes. Edges are *LineString*, No
 
 Each district is associated with one node in the transport network.
 
-
 ### Sector structure
 
 We use one sector classification, such as ISIC Rev. 4, which depends on the data available on firms and on the input-output table available, and on their granularity. Each sector is identified by a trigram, such as `MTE` for Manufacture of Textiles. Note that imports are labeled by `IMP`.
-
 
 ### Objects
 
@@ -31,7 +27,7 @@ Firms, households, and countries are associated with nodes in the transport netw
 
 ### Implementation choices
 
-- For geographical data file, we use GeoJSON and not shapefiles.
+- For geographical data file, we use GeoJSON and not shapefiles. They should all be unprojected, using *epsg:4326*.
 
 
 ## Using the model
@@ -49,14 +45,12 @@ The optional argument is made to allow for some part of the initial state to be 
 
 ## Inputs
 
-Create a subdirectory in the `input` directory, whose name should correspond to the `input_folder` variable given in the `parameters.py` file. Within this subdirectory, create 5 subdirectories:
-- Transport
-- Demand
-- Disruption
-- Supply
-- Trade
-
-Each section describes what should go in this directory.
+Create a subdirectory in the `input` directory, whose name should correspond to the `input_folder` variable given in the `parameters.py` file. Usually, this name is the country under study. Within this subdirectory, create 5 subdirectories:
+- Disruption: specific list of transport nodes or edges to test (optional)
+- National: country-wide data derived from input--output tables or other country-wide data
+- Subnational: subnational data, typically, for each district, population, location of the main city, sector size
+- Trade: import, export, transit flows
+- Transport: the transport network
 
 Note that the filepath of each data files are defined in `parameter/filepaths_default.py`. These default filepaths can be overriden using the `parameter/filepaths.py` path.
 
@@ -65,9 +59,9 @@ Note that the filepath of each data files are defined in `parameter/filepaths_de
 
 #### Transport network files
 
-There should be two GeoJSON files per transport mode, one for nodes and one for edges. For instance, for roads:
-- `road_nodes.geojson`
-- `road_edges.geojson`
+There should be two GeoJSON files per transport mode, one for nodes and one for edges. Acceptable transport modes are : 'roads', 'airways', 'maritime', 'waterways', 'multimodal'. For instance, for roads:
+- `roads_nodes.geojson`
+- `roads_edges.geojson`
 There is only one file for the multimodal layer, which describe the edges. There is no multimodal node.
 
 The edge's geometry is *LineString*, the node's geometry is *Point*.
@@ -163,21 +157,24 @@ An additional file `transport_modes.csv` can be used to prevent specific supply-
 To be further described
 
 
-### Supply
+### National
 
 
 #### Sector Table
 
-A CSV file `sector_table.csv` providing, for each sector identified by its trigram:
-- the type of sector among the following list: 'agriculture', 'manufacturing', 'utility', 'transport', 'services'
-- the average monetary value, in USD, of a ton of good. This value can be computed from UN COMTRADE data, in which trade flows are both reported in tons and in USD.
-- the percentage of the firms that export per sector. This value can be derived from country-specific data.
-- the total yearly output, in USD (not kUSD, not mUSD, USD). This value can be derived from the input-output tables.
-- the total yearly final demand, in USD (not kUSD, not mUSD, USD). This value can be derived from the input-output tables.
+A CSV file `sector_table.csv`. One row = one sector. Required columns:
+- `sector`: the sector's trigram, for instance `AGR`
+- `type`: one of 'agriculture', 'mining', 'manufacturing', utility', 'transport', 'trade', 'services'
+- `output`: the total yearly output, derived from the input-output table. The unit should be the same as defined in the parameter `monetary_unit_in_model`.
+- `final_demand`: the total yearly final demand, derived from the input-output table. The unit should be the same as defined in the parameter `monetary_unit_in_model`.
+- `usd_per_ton`: the average monetary value, in USD, of a ton of good. This value can be computed from UN COMTRADE data, in which trade flows are both reported in tons and in USD. Set to 0 for sectors whose type is 'utility', 'transport', 'trade', 'services'
+- `share_exporting_firms`: the percentage of the firms that export per sector. This value can be derived from country-specific data. Without good data, we can simply use for instance the share of export per sector.
 
-sector | type | usd_per_ton | share_exporting_firms | output | final_demand
+Example:
+
+sector | type | output | final_demand | usd_per_ton | share_exporting_firms
 --- | --- | --- | ---  | ---  | --- 
-AGR | agriculture | 950 | 0.16 | 415641365| 246213152
+AGR | agriculture | 415641365| 246213152 | 950 | 0.16
 ... | ... | ... | ... | ... | ... 
 
 
@@ -188,6 +185,8 @@ Technical coefficients are derived from the symmetric industry-by-industry input
 
 For the model, a CSV file `tech_coef_matrix.csv` should be provided with the following structure. 
 
+Example:
+
 |  | AGI | FOR | ...
 --- | --- | --- | --- 
 **AGI** | 0.11 | 0 | ...
@@ -195,34 +194,30 @@ For the model, a CSV file `tech_coef_matrix.csv` should be provided with the fol
 ... | ... | ... | ...
 
 
-#### Geospatial Economic Data
-
-In this file are summarized the data on economic production for each district. For each district, there should be at least one value per sector which capture the size of the sector in this district. For instance, there could be the number of employees in the manufacturing of basic metals, the total sales of construction, and the value of production of agricultural products. Here, each district is associated to a Point, which can be the district capital city, or the Polygon's centroid.
-
-A GeoJSON file `economic_data.geojson` with Points and the following attribute table:
-
-district | nb_workers_MAN | nb_workers_ELE | crop_production
---- | --- | --- | --- 
-0101 | 124 | 12 | 465120
-... | ... | ... | ...
 
 
 #### Sector firm cutoff
 
 The model will create firms based on the geospatial economic data. To speed up computation, firms that would be too small are dropped. The CSV files `sector_firm_cutoffs.csv` define the cutoff to apply for each sector.
+- `sector`: the trigram of the sector
+- `supply_data`: the attribute of the 'district_data' file that the model will use to disaggregate the sectoral data
+- `cutoff`: the cutoff value to apply. We will not model any firm for this sector in districts whose supply_data is below the cutoff
+
+Example:
 
 sector | supply_data | cutoff
 --- | --- | --- | --- 
 CRO | ag_prod | 3.50E+06
 MIN | nb_workers_MIN | 200
-MFO | nb_workers_MFO | 200
+MFO | sales_MFO | 200
 ... | ... | ... | ...
 
 
 #### Inventory Duration Target
 
+Firms hold inventory of inputs, quantified by the number of weeks the firm can continue producing without new supply, called "inventory duration target". Those targets are defined nationally for each combination of input\*sector.
 
-A CSV file with the following strucutre.
+Example:
 
 input_sector | buying_sector | inventory_duration_target
 --- | --- | --- 
@@ -230,28 +225,24 @@ TRD | AGR | 3.5
 ... | ... | ...
 
 
+### Subnational
 
+#### District Data
 
-### Demand
+In this file are summarized the socioeconomic and spatial data on economic production for each district. A GeoJSON file is expected.
+- `district_code`: a string with the administrative code of the district
+- `geometry`: a 'Point', which represent where the firms and household modelled for this district will be located. Typically the location of the largest city in the district, or, as a second best option, the district's centroid.
+- `population`: the number of people in the district
+- economic supply data: at least one column per sector which captures the size of the sector in this district. For instance, there could be the number of employees in the manufacturing of basic metals, the total sales of construction, and the value of production of agricultural products. The column name should corresponds to the values of the 'supply_data' column in the 'sector firm cutoff' file
 
-#### Final Demand
+A GeoJSON file `economic_data.geojson` with Points and the following attribute table:
 
-A csv file with the yearly final demand per sector.
+Example:
 
-sector | final_demand
---- | --- 
-AGR | 1230489103  
-... | ... 
-
-
-#### Population
-
-A csv file with the population per district.
-
-district | population
---- | --- 
-01-01 | 123456  
-... | ... 
+district | nb_workers_MAN | nb_workers_ELE | crop_production | ... | geometry
+--- | --- | --- | --- | --- | ---
+0101 | 124 | 12 | 465120 | ... | Point(-45.15631, 0.48654)
+... | ... | ... | ... | ... | ...
 
 
 
@@ -259,18 +250,22 @@ district | population
 
 #### Country Transit Matrix
 
-A csv file representing a double-entry table. Country codes are row and column headers.
+A CSV file representing a matrix. Country codes are row and column headers. It represents the yearly trade flow from the row country to the column country that goes through the country-under-study's transport network. The unit should be the same as defined in the parameter `monetary_unit_in_model`.
 
-|  | BDI | COD | ...
+Example:
+
+... | BDI | COD | ...
 --- | --- | --- | --- 
 **BDI** | 4563 | 4516 | ...
 ... | ... | ... | ...
 
 #### Import Table
 
-A csv file representing a double-entry table. Country codes are row headers. Sector codes are column headers.
+A CSV file representing a matrix. Country codes are row headers. Sector codes are column headers. It represents the yearly imports from the different countries, in row, to the domestic sectors, in column. The unit should be the same as defined in the parameter `monetary_unit_in_model`.
 
-|  | AGR | FOR | ...
+Example:
+
+... | AGR | FOR | ...
 --- | --- | --- | --- 
 **BDI** | 132 | 0 | ...
 ... | ... | ... | ...
@@ -278,20 +273,12 @@ A csv file representing a double-entry table. Country codes are row headers. Sec
 
 #### Export Table
 
-A csv file representing a double-entry table. Country codes are row headers. Sector codes are column headers.
+A CSV file representing a matrix. Country codes are row headers. Sector codes are column headers. It represents the yearly exports from the domestic sectors, in columns, to the foreigh countries, in row. The unit should be the same as defined in the parameter `monetary_unit_in_model`.
 
-|  | AGR | FOR | ...
+Example:
+
+... | AGR | FOR | ...
 --- | --- | --- | --- 
 **BDI** | 2 | 456 | ...
 ... | ... | ... | ...
-
-
-#### Country Transit Points
-
-A csv file with the following strucutre.
-
-country | entry_point | weight
---- | --- | --- 
-BDI | 7112 | 1
-... | ... | ...
 
