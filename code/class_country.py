@@ -396,84 +396,16 @@ class Country(Agent):
         
         # It there is no alternative route
         else:
-            logging.info("Country "+str(self.pid)+": because of disruption, there is"+
+            logging.info("Country "+str(self.pid)+": because of disruption, there is "+
                 "no route between me and client "+str(commercial_link.buyer_id))
             # We do not write how the input price would have changed
             commercial_link.price = commercial_link.eq_price
             # We do not pay the transporter, so we don't increment the transport cost
 
                     
-    # def check_route_avaibility(self, commercial_link, transport_network, which_route='main'):
-    #     """
-    #     Look at the main or alternative route
-    #     at check all edges and nodes in the route
-    #     if one is marked as disrupted, then the whole route is marked as disrupted
-    #     """
-        
-    #     if which_route=='main':
-    #         route_to_check = commercial_link.route
-    #     elif which_route=='alternative':
-    #         route_to_check = commercial_link.alternative_route
-    #     else:
-    #         KeyError('Wrong value for parameter which_route, admissible values are main and alternative')
-        
-    #     res = 'available'
-    #     for route_segment in route_to_check:
-    #         if len(route_segment) == 2:
-    #             if transport_network[route_segment[0]][route_segment[1]]['disruption_duration'] > 0:
-    #                 res = 'disrupted'
-    #                 break
-    #         if len(route_segment) == 1:
-    #             if transport_network._node[route_segment[0]]['disruption_duration'] > 0:
-    #                 res = 'disrupted'
-    #                 break
-    #     return res
-
-
-                    
     def receive_products_and_pay(self, graph, transport_network):
         agent_receive_products_and_pay(self, graph, transport_network)
 
-    #     self.extra_spending = 0
-    #     self.consumption_loss = 0
-    #     for edge in graph.in_edges(self):
-    #         if (edge[0].odpoint == -1): # if buys service, get directly from commercial link
-    #             self.receive_service_and_pay(graph[edge[0]][self]['object'])
-    #         else: # else collect through transport network
-    #             self.receive_shipment_and_pay(graph[edge[0]][self]['object'], transport_network)
-
-
-    # def receive_service_and_pay(self, commercial_link):
-    #     quantity_delivered = commercial_link.delivery
-    #     commercial_link.payment = quantity_delivered * commercial_link.price
-    #     self.extra_spending += quantity_delivered * (commercial_link.price - commercial_link.eq_price)
-        
-    # def receive_shipment_and_pay(self, commercial_link, transport_network):
-    #     """Firm look for shipments in the transport nodes it is locatedd
-    #     It takes those which correspond to the commercial link 
-    #     It receives them, thereby removing them from the transport network
-    #     Then it pays the corresponding supplier along the commecial link
-    #     """
-    #     #quantity_intransit = commercial_link.delivery
-    #     quantity_delivered = 0
-    #     price = 1
-    #     if commercial_link.pid in transport_network.node[self.odpoint]['shipments'].keys():
-    #         quantity_delivered += transport_network.node[self.odpoint]['shipments'][commercial_link.pid]['quantity']
-    #         price = transport_network.node[self.odpoint]['shipments'][commercial_link.pid]['price']
-    #         transport_network.remove_shipment(commercial_link)
-    #     # Increment extra spending
-    #     self.extra_spending += quantity_delivered * (price - commercial_link.eq_price)
-    #     # Increment consumption loss
-    #     self.consumption_loss += commercial_link.delivery - quantity_delivered
-    #     # Log if quantity received does not match order
-    #     if abs(commercial_link.delivery - quantity_delivered) > 1e-6:
-    #         logging.debug("Agent "+str(self.pid)+": quantity delivered by "+
-    #             str(commercial_link.supplier_id)+" is "+str(quantity_delivered)+
-    #             ". It was supposed to be "+str(commercial_link.delivery)+".")
-    #     # Make payment
-    #     commercial_link.payment = quantity_delivered * price      
-        
-        
 
     def evaluate_commercial_balance(self, graph):
         exports = sum([graph[self][edge[1]]['object'].payment for edge in graph.out_edges(self)])

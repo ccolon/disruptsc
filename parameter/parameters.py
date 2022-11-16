@@ -37,35 +37,35 @@ tsubasa_bridge = 2001
 disruption_analysis = {
     "type": "criticality",
     "disrupt_nodes_or_edges": "edges",
-    "nodeedge_tested": [2474, 2121],
+    "nodeedge_tested": 'all',
     "start_time": 1,
     "duration": 1
 }
 
-disruption_analysis = {
-    "type": "compound",
-    "events": [
-        {
-            "disrupt_nodes_or_edges": "nodes",
-            "nodeedge_tested": ["Sihanoukville international port"],
-            #"nodeedge_tested": ["tonle sap"],
-            "identified_by": "name",
-            # "identified_by": "zone",
-            "start_time": 1,
-            "duration": 1
-        },
-        {
-            "disrupt_nodes_or_edges": "edges",
-            "nodeedge_tested": [tsubasa_bridge],
-            "identified_by": "id",
-            "start_time": 3,
-            "duration": 1
-        }
-    ]
-}
+# disruption_analysis = {
+#     "type": "compound",
+#     "events": [
+#         {
+#             "disrupt_nodes_or_edges": "nodes",
+#             "nodeedge_tested": ["Sihanoukville international port"],
+#             #"nodeedge_tested": ["tonle sap"],
+#             "identified_by": "name",
+#             # "identified_by": "zone",
+#             "start_time": 1,
+#             "duration": 1
+#         },
+#         {
+#             "disrupt_nodes_or_edges": "edges",
+#             "nodeedge_tested": [tsubasa_bridge],
+#             "identified_by": "id",
+#             "start_time": 3,
+#             "duration": 1
+#         }
+#     ]
+# }
 
 
-disruption_analysis = None
+# disruption_analysis = None
 congestion = True
 
 # cutoffs

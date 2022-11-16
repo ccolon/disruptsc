@@ -10,7 +10,6 @@ from shapely.geometry import Point, LineString
 
 from class_firm import Firm
 from class_households import Households
-from class_household import Household
 from class_transport_network import TransportNetwork
 from class_country import Country
 
@@ -1564,7 +1563,6 @@ def defineDisruptionList(disruption_analysis, transport_network,
     if disruption_analysis is None:
         raise ValueError("'disruption_analysis' is None, cannot define the disruption list")
 
-    # If 
     # If a list is provided, we suppose that it is the list of ids to be disrupted
     if isinstance(disruption_analysis['nodeedge_tested'], list):
         # If each item of the list is a list itself, it is the group of ids to be disrupted together
@@ -1592,9 +1590,9 @@ def defineDisruptionList(disruption_analysis, transport_network,
     # if 'all' is indicated, need to retrieve all node or edge ids from the transport network
     elif disruption_analysis['nodeedge_tested'] == 'all':
         actual_transport_network =  transport_network.subgraph([
-            node 
-            for node in transport_network.nodes 
-            if transport_network.nodes[node]['type']!='virtual'
+                node 
+                for node in transport_network.nodes 
+                if transport_network.nodes[node]['type']!='virtual'
             ])
         if disruption_analysis['disrupt_nodes_or_edges'] == "nodes":
             disruption_list = list(actual_transport_network.nodes)

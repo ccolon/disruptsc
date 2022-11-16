@@ -84,6 +84,103 @@ class Agent(object):
         return res
 
 
+            
+    # def agent_receive_products_and_pay(agent, graph, transport_network):
+    #     # reset variable
+    #     if agent.agent_type == 'country':
+    #         agent.extra_spending = 0
+    #         agent.consumption_loss = 0
+    #     elif agent.agent_type == 'household':
+    #         agent.reset_variables()
+
+    #     # for each incoming link, receive product and pay
+    #     # the way differs between service and shipment
+    #     for edge in graph.in_edges(agent): 
+    #         if graph[edge[0]][agent]['object'].product_type in ['services', 'utility', 'transport']:
+    #             agent_receive_service_and_pay(agent, graph[edge[0]][agent]['object'])
+    #         else:
+    #             agent_receive_shipment_and_pay(agent, graph[edge[0]][agent]['object'], transport_network)
+
+
+    # def agent_receive_service_and_pay(agent, commercial_link):
+    #     # Always available, same price
+    #     quantity_delivered = commercial_link.delivery
+    #     commercial_link.payment = quantity_delivered * commercial_link.price
+    #     if agent.agent_type == 'firm':
+    #         agent.inventory[commercial_link.product] += quantity_delivered
+    #     # Update indicator
+    #     agent_update_indicator(agent, quantity_delivered, commercial_link.price, commercial_link)
+
+
+    # def agent_update_indicator(agent, quantity_delivered, price, commercial_link):
+    #     """When receiving product, agents update some internal variables
+
+    #     Parameters
+    #     ----------
+    #     """
+    #     if agent.agent_type == "country":
+    #         agent.extra_spending += quantity_delivered * (price - commercial_link.eq_price)
+    #         agent.consumption_loss += commercial_link.delivery - quantity_delivered
+
+    #     elif agent.agent_type == 'household':
+    #         agent.consumption_per_retailer[commercial_link.supplier_id] = quantity_delivered
+    #         agent.tot_consumption += quantity_delivered
+    #         agent.spending_per_retailer[commercial_link.supplier_id] = quantity_delivered * price
+    #         agent.tot_spending += quantity_delivered * price
+    #         agent.extra_spending += quantity_delivered * (price - commercial_link.eq_price)
+    #         agent.consumption_loss = (agent.purchase_plan[commercial_link.supplier_id] - quantity_delivered) * \
+    #                     commercial_link.eq_price
+    #         # if consum_loss >= 1e-6:
+    #         #     logging.debug("Household "+agent.pid+" Firm "+
+    #         #         str(commercial_link.supplier_id)+" supposed to deliver "+
+    #         #         str(agent.purchase_plan[commercial_link.supplier_id])+
+    #         #         " but delivered "+str(quantity_delivered)
+    #         #     )
+    #     # Log if quantity received differs from what it was supposed to be
+    #     if abs(commercial_link.delivery - quantity_delivered) > 1e-6:
+    #         logging.debug("Agent "+str(agent.pid)+": quantity delivered by "+
+    #             str(commercial_link.supplier_id)+" is "+str(quantity_delivered)+
+    #             ". It was supposed to be "+str(commercial_link.delivery)+".")
+
+
+
+    # def agent_receive_shipment_and_pay(agent, commercial_link, transport_network):
+    #     """Firm look for shipments in the transport nodes it is located
+    #     It takes those which correspond to the commercial link 
+    #     It receives them, thereby removing them from the transport network
+    #     Then it pays the corresponding supplier along the commecial link
+    #     """
+    #     # Look at available shipment
+    #     available_shipments = transport_network._node[agent.odpoint]['shipments']
+    #     if commercial_link.pid in available_shipments.keys():
+    #         # Identify shipment
+    #         shipment = available_shipments[commercial_link.pid]
+    #         # Get quantity and price
+    #         quantity_delivered = shipment['quantity']
+    #         price = shipment['price']
+    #         # Remove shipment from transport
+    #         transport_network.remove_shipment(commercial_link)
+    #         # Make payment
+    #         commercial_link.payment = quantity_delivered * price
+    #         # If firm, add to inventory
+    #         if agent.agent_type == 'firm':
+    #             agent.inventory[commercial_link.product] += quantity_delivered
+
+    #     # If none is available, log it
+    #     else:
+    #         if commercial_link.delivery > 0:
+    #             logging.info("Agent "+str(agent.pid)+
+    #                 ": no shipment available for commercial link "+
+    #                 str(commercial_link.pid)+' ('+str(commercial_link.delivery)+' of '+commercial_link.product+')'
+    #             )
+    #         quantity_delivered = 0
+    #         price = 1
+
+    #     agent_update_indicator(agent, quantity_delivered, price, commercial_link)
+
+
+
+
     @staticmethod
     def transformUSDtoTons(monetary_flow, monetary_unit, usd_per_ton):
         if usd_per_ton == 0:

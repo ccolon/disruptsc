@@ -709,7 +709,7 @@ elif disruption_analysis['type'] == 'criticality':
                    (household_consumption_loss <= epsilon_stop_condition) & \
                    (country_extra_spending <= epsilon_stop_condition) & \
                    (country_consumption_loss <= epsilon_stop_condition):
-                    logging.info('Household and conutry extra spending and consumption loss are at pre-disruption value. '\
+                    logging.info('Household and country extra spending and consumption loss are at pre-disruption value. '\
                     +"Simulation stops.")
                     break
 

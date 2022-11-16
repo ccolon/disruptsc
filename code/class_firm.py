@@ -871,76 +871,10 @@ class Firm(Agent):
                     # Retransfer shipment
                     transport_network.transport_shipment(graph[self][edge[1]]['object'])
 
-
-    # def check_route_avaibility(self, commercial_link, transport_network, which_route='main'):
-        
-    #     if which_route=='main':
-    #         route_to_check = commercial_link.route
-    #     elif which_route=='alternative':
-    #         route_to_check = commercial_link.alternative_route
-    #     else:
-    #         KeyError('Wrong value for parameter which_route, admissible values are main and alternative')
-        
-    #     res = 'available'
-    #     for route_segment in route_to_check:
-    #         if len(route_segment) == 2:
-    #             if transport_network[route_segment[0]][route_segment[1]]['disruption_duration'] > 0:
-    #                 res = 'disrupted'
-    #                 break
-    #         if len(route_segment) == 1:
-    #             if transport_network._node[route_segment[0]]['disruption_duration'] > 0:
-    #                 res = 'disrupted'
-    #                 break
-    #     return res
-        
         
     def receive_products_and_pay(self, graph, transport_network):
         agent_receive_products_and_pay(self, graph, transport_network)
 
-
-    #     explicit_service_firm = True
-    #     for edge in graph.in_edges(self): 
-    #         if explicit_service_firm == True:
-    #             if graph[edge[0]][self]['object'].product_type in ['services', 'utility', 'transport']:
-    #                 self.receive_service_and_pay(graph[edge[0]][self]['object'])
-    #             else:
-    #                 self.receive_shipment_and_pay(graph[edge[0]][self]['object'], transport_network)
-    #         else:
-    #             if (edge[0].odpoint == -1) or (self.odpoint == -1): # if service, directly
-    #                 self.receive_service_and_pay(graph[edge[0]][self]['object'])
-    #             else: # else collect through transport network
-    #                 self.receive_shipment_and_pay(graph[edge[0]][self]['object'], transport_network)
-
-                
-    # def receive_service_and_pay(self, commercial_link):
-    #     quantity_delivered = commercial_link.delivery
-    #     self.inventory[commercial_link.product] += quantity_delivered
-    #     commercial_link.payment = quantity_delivered * commercial_link.price
-
-        
-    # def receive_shipment_and_pay(self, commercial_link, transport_network):
-    #     """Firm look for shipments in the transport nodes it is located
-    #     It takes those which correspond to the commercial link 
-    #     It receives them, thereby removing them from the transport network
-    #     Then it pays the corresponding supplier along the commecial link
-    #     """
-    #     # quantity_intransit = commercial_link.delivery
-    #     # Get delivery and update price
-    #     quantity_delivered = 0
-    #     price = 1
-    #     if commercial_link.pid in transport_network.node[self.odpoint]['shipments'].keys():
-    #         quantity_delivered += transport_network.node[self.odpoint]['shipments'][commercial_link.pid]['quantity']
-    #         price = transport_network.node[self.odpoint]['shipments'][commercial_link.pid]['price']
-    #         transport_network.remove_shipment(commercial_link)
-    #     # Add to inventory
-    #     self.inventory[commercial_link.product] += quantity_delivered
-    #     # Log if quantity received differs from what it was supposed to be
-    #     if abs(commercial_link.delivery - quantity_delivered) > 1e-6:
-    #         logging.debug("Agent "+str(self.pid)+": quantity delivered by "+
-    #             str(commercial_link.supplier_id)+" is "+str(quantity_delivered)+
-    #             ". It was supposed to be "+str(commercial_link.delivery)+".")
-    #     # Make payment
-    #     commercial_link.payment = quantity_delivered * price
 
     def evaluate_profit(self, graph):
         # Collect all payments received
