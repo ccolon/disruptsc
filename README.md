@@ -1,5 +1,32 @@
 # DisruptSupplyChain Model
 
+## Installation
+
+Git clone the project
+
+You need python. The required libraries are in the "dsc-environment.yml" file. To set the right environment, we recommend using an "Anaconda" or "Miniconda" distribution. Then you can create the adequate environement by doing:
+	
+	 conda create -f dsc-environment.yml
+
+Note that I observed that, in some situations, this command gets stuck in the "solving environment" step. I think we need to define in the yml the package versions. To be updated...
+
+### Calling the script
+
+Activate the right environment:
+
+	conda activate dsc
+
+The model is launched by the following command:
+
+	python code\mainBase.py <optional argument>
+
+The optional argument is made to allow for some part of the initial state to be resued in a subsequent call:
+- `same_transport_network_new_agents`: the transport network is reused, but new agents, supplier-buyer links, logistic routes are generated
+- `same_agents_new_sc_network`: the transport network and the agents are reused, but new supplier-buyer links, logistic routes are generated
+- `same_sc_network_new_logistic_routes`: the transport network, agents, supplier-buyer links, are reused, but new logistic routes are generated
+- `same_logistic_routes`: everything is reused
+
+
 ## Concepts
 
 ### Geographic structure
@@ -32,15 +59,6 @@ Firms, households, and countries are associated with nodes in the transport netw
 
 ## Using the model
 
-### Calling the script
-
-The model is launched by the following command `python code\mainBase.py <optional argument>`
-
-The optional argument is made to allow for some part of the initial state to be resued in a subsequent call:
-- `same_transport_network_new_agents`: the transport network is reused, but new agents, supplier-buyer links, logistic routes are generated
-- `same_agents_new_sc_network`: the transport network and the agents are reused, but new supplier-buyer links, logistic routes are generated
-- `same_sc_network_new_logistic_routes`: the transport network, agents, supplier-buyer links, are reused, but new logistic routes are generated
-- `same_logistic_routes`: everything is reused
 
 
 ## Inputs
