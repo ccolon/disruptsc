@@ -4,7 +4,7 @@ import pandas as pd
 import geopandas as gpd
 import logging
 
-from functions import rescale_values, congestion_function, transformUSDtoTons
+from functions import rescale_values, congestion_function
 
 
 class TransportNetwork(nx.Graph):
@@ -328,7 +328,7 @@ class TransportNetwork(nx.Graph):
 
 
     def get_undisrupted_network(self):
-        available_nodes = [node for node in self.nodes if self.node[node]['disruption_duration']==0]
+        available_nodes = [node for node in self.nodes if self._node[node]['disruption_duration']==0]
         available_subgraph = self.subgraph(available_nodes)
         available_edges = [edge for edge in self.edges if self[edge[0]][edge[1]]['disruption_duration']==0]
         available_subgraph = available_subgraph.edge_subgraph(available_edges)
@@ -350,7 +350,7 @@ class TransportNetwork(nx.Graph):
         for node_id in disruption['node']:
             logging.info('Road node '+str(node_id)+
                 ' gets disrupted for '+str(disruption['duration'])+ ' time steps')
-            self.node[node_id]['disruption_duration'] = disruption['duration']
+            self._node[node_id]['disruption_duration'] = disruption['duration']
         # Disrupting edges
         for edge in self.edges:
             if self[edge[0]][edge[1]]['type'] == 'virtual':
@@ -363,13 +363,16 @@ class TransportNetwork(nx.Graph):
             
             
     def update_road_state(self):
+        '''
+        One time step is gone
+        The remaining duration of disruption is decreased by 1
+        '''
         for node in self.nodes:
-            if self.node[node]['disruption_duration'] > 0:
-                self.node[node]['disruption_duration'] -= 1
+            if self._node[node]['disruption_duration'] > 0:
+                self._node[node]['disruption_duration'] -= 1
         for edge in self.edges:
             if self[edge[0]][edge[1]]['disruption_duration'] > 0:
                 self[edge[0]][edge[1]]['disruption_duration'] -= 1
-        #return subset of self
             
             
     def transport_shipment(self, commercial_link):
@@ -394,7 +397,7 @@ class TransportNetwork(nx.Graph):
                     "price": commercial_link.price
                 }
             elif len(route_segment) == 1: #pass shipments to nodes
-                self.node[route_segment[0]]['shipments'][commercial_link.pid] = {
+                self._node[route_segment[0]]['shipments'][commercial_link.pid] = {
                     "from": commercial_link.supplier_id,
                     "to": commercial_link.buyer_id,
                     "quantity": commercial_link.delivery,
@@ -415,15 +418,14 @@ class TransportNetwork(nx.Graph):
         A load is typically expressed in tons.
 
         If the current_load exceeds the capacity, then capacity_burden is added to both the 
-        mode_weight and the capacity_weight.
-        This will prevent firms from choosing this route
+        mode_weight and the capacity_weight. This will prevent firms from choosing this route
         '''
         # logging.info("Edge (2610, 2589): current_load "+str(self[2610][2589]['current_load']))
         capacity_burden = 1e5
-        all_edges = [item for item in route if len(item) == 2]
+        edges_along_the_route = [item for item in route if len(item) == 2]
         # if 'railways' in self.give_route_mode(route):
         #     print("self[2586][2579]['current_load']", self[2586][2579]['current_load'])
-        for edge in all_edges:
+        for edge in edges_along_the_route:
             # if (edge[0] == 2610) & (edge[1] == 2589):
             #     logging.info('Edge '+str(edge)+": current_load "+str(self[edge[0]][edge[1]]['current_load']))
             # check that the edge to be loaded is not already over capacity
@@ -484,8 +486,8 @@ class TransportNetwork(nx.Graph):
                 if commercial_link.pid in self[route_segment[0]][route_segment[1]]['shipments'].keys():
                     del self[route_segment[0]][route_segment[1]]['shipments'][commercial_link.pid]
             elif len(route_segment) == 1: #segment is a node
-                if commercial_link.pid in self.node[route_segment[0]]['shipments'].keys():
-                    del self.node[route_segment[0]]['shipments'][commercial_link.pid]
+                if commercial_link.pid in self._node[route_segment[0]]['shipments'].keys():
+                    del self._node[route_segment[0]]['shipments'][commercial_link.pid]
 
     
     def compute_flow_per_segment(self, flow_types=['total']):

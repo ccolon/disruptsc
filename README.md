@@ -34,9 +34,22 @@ Firms, households, and countries are associated with nodes in the transport netw
 - For geographical data file, we use GeoJSON and not shapefiles.
 
 
+## Using the model
+
+### Calling the script
+
+The model is launched by the following command `python code\mainBase.py <optional argument>`
+
+The optional argument is made to allow for some part of the initial state to be resued in a subsequent call:
+- `same_transport_network_new_agents`: the transport network is reused, but new agents, supplier-buyer links, logistic routes are generated
+- `same_agents_new_sc_network`: the transport network and the agents are reused, but new supplier-buyer links, logistic routes are generated
+- `same_sc_network_new_logistic_routes`: the transport network, agents, supplier-buyer links, are reused, but new logistic routes are generated
+- `same_logistic_routes`: everything is reused
+
+
 ## Inputs
 
-Create an `input` directory in the root of the project. Create a subdirectory in the `input` directory, whose name should correspond to the `input_folder` variable given in the `parameters.py` file. Within this subdirectory, create 5 subdirectories:
+Create a subdirectory in the `input` directory, whose name should correspond to the `input_folder` variable given in the `parameters.py` file. Within this subdirectory, create 5 subdirectories:
 - Transport
 - Demand
 - Disruption

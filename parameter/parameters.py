@@ -11,18 +11,18 @@ monetary_units_in_model = "mUSD"
 monetary_units_inputed = "kUSD"
 time_resolution = 'week'
 
-transport_modes = ['roads', 'maritime', 'airways']
+transport_modes = ['roads', 'maritime', 'waterways', 'airways']
 
 adminunit_to_exclude = ["2001", "2002", "2003"] #Gallapagos
 
 logistics_modes = {
     'domestic': {
-        "accepted_modes": ['roads', 'airways', 'maritime', 'multimodal'],
-        "accepted_multimodal_links": ['roads-dom-maritime', 'roads-airways']
+        "accepted_modes": ['roads', 'airways', 'maritime', 'waterways', 'multimodal'],
+        "accepted_multimodal_links": ['roads-dom-maritime', 'roads-airways', 'roads-waterways']
     },
     'international': {
-        "accepted_modes": ['roads', 'airways', 'maritime', 'multimodal'],
-        "accepted_multimodal_links": ['roads-maritime', 'roads-dom-maritime', 'roads-airways']
+        "accepted_modes": ['roads', 'airways', 'maritime', 'waterways', 'multimodal'],
+        "accepted_multimodal_links": ['roads-maritime', 'roads-dom-maritime', 'roads-airways', 'roads-waterways']
     }
 }
 
@@ -38,14 +38,6 @@ disruption_analysis = {
     "type": "criticality",
     "disrupt_nodes_or_edges": "edges",
     "nodeedge_tested": [2474, 2121],
-    # "nodeedge_tested": ["primary", "trunk"],
-    # "nodeedge_tested": [1487, 1462, 1525, 1424],
-    #"nodeedge_tested": [tsubasa_bridge],
-    # "nodeedge_tested": os.path.join('input', input_folder, 'top_hh_loss_nodes.csv'),
-    # "nodeedge_tested": ["Sihanoukville international port"],
-    #"identified_by": "name",
-    "identified_by": "id",
-    # "identified_by": "class",
     "start_time": 1,
     "duration": 1
 }
@@ -73,7 +65,7 @@ disruption_analysis = {
 }
 
 
-# disruption_analysis = None
+disruption_analysis = None
 congestion = True
 
 # cutoffs

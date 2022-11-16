@@ -2,15 +2,20 @@ import random
 import pandas as pd
 import logging
 
+from class_agent import Agent
 from class_commerciallink import CommercialLink
 
 
-class Households(object):
+class Households(Agent):
 
     def __init__(self, purchase_plan=None, final_demand_per_sector=None):
-        # Intrinsic parameters
-        self.pid = -1
-        self.odpoint = -1
+        super().__init__(
+            agent_type="household", 
+            pid=-1, 
+            odpoint=-1,
+            long=0,
+            lat=0
+        )
         # Parameters depending on data and network
         self.final_demand_per_sector = final_demand_per_sector or {}
         self.purchase_plan = purchase_plan or {}

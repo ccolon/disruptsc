@@ -1,8 +1,8 @@
 from functions import purchase_planning_function, production_function, \
                       evaluate_inventory_duration, generate_weights, \
                       compute_distance_from_arcmin, rescale_values, \
-                      transformUSDtoTons, agent_decide_initial_routes, \
                       agent_receive_products_and_pay
+from class_agent import Agent
 from class_commerciallink import CommercialLink
 import random
 import networkx as nx
@@ -11,23 +11,25 @@ import logging
 import numpy as np
 
 
-class Firm(object):
+class Firm(Agent):
     
     def __init__(self, pid, odpoint=0, sector=0, sector_type=None, input_mix=None, target_margin=0.2, utilization_rate=0.8,
                  importance=1, long=None, lat=None, geometry=None,
                  suppliers=None, clients=None, production=0, inventory_duration_target=1, reactivity_rate=1, usd_per_ton=2864):
+        super().__init__(
+            agent_type="firm", 
+            pid=pid, 
+            odpoint=odpoint,
+            long=long,
+            lat=lat
+        )
         # Parameters depending on data
-        self.agent_type = "firm"
-        self.pid = pid
-        self.odpoint = odpoint
-        self.long = long
-        self.lat = lat
+        self.usd_per_ton = usd_per_ton
         self.geometry = geometry
         self.importance = importance
         self.sector = sector
         self.sector_type = sector_type
         self.input_mix = input_mix or {}
-        self.usd_per_ton = usd_per_ton
 
         # Free parameters
         if input_mix is None:
@@ -331,53 +333,6 @@ class Firm(object):
                           does not belong to ('roads', 'intl_multimodes')")
 
 
-    def decide_initial_routes(self, graph, transport_network, transport_modes,
-        account_capacity, monetary_unit_flow):
-
-        agent_decide_initial_routes(self, graph, transport_network, transport_modes,
-        account_capacity, monetary_unit_flow)
-
-        '''for edge in graph.out_edges(self):
-            if edge[1].pid == -1: # we do not create route for households
-                continue
-            elif edge[1].odpoint == -1: # we do not create route for service firms if explicit_service_firms = False
-                continue
-            else:
-                # Get the id of the orign and destination node
-                origin_node = self.odpoint
-                destination_node = edge[1].odpoint
-                # Define the type of transport mode to use
-
-                cond_from = (transport_modes['from'] == "domestic") #self is a firm
-                cond_from = (transport_modes['from'] == self.pid) #self is a country
-                if isinstance(edge[1], Firm): #see what is the other end
-                    cond_to = (transport_modes['to'] == "domestic")
-                else:
-                    cond_to = (transport_modes['to'] == edge[1].pid)
-                    # we have not implemented the "sector" condition
-                transport_mode = transport_modes.loc[cond_from & cond_to, "transport_mode"].iloc[0]
-                graph[self][edge[1]]['object'].transport_mode = transport_mode
-                # Choose the route and the corresponding mode
-                route, selected_mode = self.choose_route(
-                    transport_network=transport_network, 
-                    origin_node=origin_node, 
-                    destination_node=destination_node, 
-                    possible_transport_modes=transport_mode
-                )
-                # Store it into commercial link object
-                graph[self][edge[1]]['object'].storeRouteInformation(
-                    route=route,
-                    transport_mode=selected_mode,
-                    main_or_alternative="main",
-                    transport_network=transport_network
-                )
-                # Update the "current load" on the transport network
-                # if current_load exceed burden, then add burden to the weight
-                if account_capacity:
-                    new_load_in_usd = graph[self][edge[1]]['object'].order
-                    new_load_in_tons = transformUSDtoTons(new_load_in_usd, monetary_unit_flow, self.usd_per_ton)
-                    transport_network.update_load_on_route(route, new_load_in_tons)'''
-    
     
     def calculate_client_share_in_sales(self):
         # Only works if the order book was computed
@@ -571,34 +526,41 @@ class Firm(object):
         return False
     
     
+    def ration_quantity_to_deliver(self):
+        print('XXX')
+        #remove rationing as attribute
+        pass
+
 
     def deliver_products(self, graph, transport_network=None, 
-        rationing_mode="equal",
-        monetary_unit_transport_cost="USD", monetary_unit_flow="mUSD",
+        rationing_mode="equal", monetary_units_in_model="mUSD",
         cost_repercussion_mode="type1", explicit_service_firm=True):
-        # print("deliver_products", 0 in transport_network.nodes)
-        # Do nothing if no orders
+
+        ## Do nothing if no orders
         if self.total_order == 0:
             # logging.warning('Firm '+str(self.pid)+' ('+self.sector+'): no one ordered to me')
             return 0
         
-        # Otherwise compute rationing factor
+        ## Otherwise compute rationing factor
+        EPSILON = 1e-6
         self.rationing = self.product_stock / self.total_order
-        if self.rationing > 1 + 1e-6:
-            logging.debug('Firm '+str(self.pid)+': I have produced too much')
+        # Check the case in which the firm has too much product to sale
+        # It should not happen, hence a warning
+        if self.rationing > 1 + EPSILON:
+            logging.warning('Firm '+str(self.pid)+': I have produced too much')
             self.rationing = 1
-        
-        elif self.rationing >= 1 - 1e-6:
+        # If rationing factor is 1, then it delivers what was ordered
+        elif self.rationing >= 1 - EPSILON:
             quantity_to_deliver = {buyer_id: order for buyer_id, order in self.order_book.items()}
-            
+        # If rationing occurs, then two rationing behavior: equal or household_first
         else:
             logging.debug('Firm '+str(self.pid)+': I have to ration my clients by '+'{:.2f}'.format((1-self.rationing)*100)+'%')
-            # Evaluate the quantity to deliver to each buyer
-            if rationing_mode=="equal":
+            # If equal, simply apply rationing factor
+            if (rationing_mode=="equal"):
                 quantity_to_deliver = {buyer_id: order * self.rationing for buyer_id, order in self.order_book.items()}
                 
             elif rationing_mode=="household_first":
-                if -1 not in self.order_book.keys(): #no household orders to this firm
+                if (-1 not in self.order_book.keys()):
                     quantity_to_deliver = {buyer_id: order * self.rationing for buyer_id, order in self.order_book.items()}
                 elif len(self.order_book.keys())==1: #only households order to this firm
                     quantity_to_deliver = {-1: self.total_order}
@@ -631,7 +593,7 @@ class Firm(object):
                 continue
             graph[self][edge[1]]['object'].delivery = quantity_to_deliver[edge[1].pid]
             graph[self][edge[1]]['object'].delivery_in_tons = \
-                transformUSDtoTons(quantity_to_deliver[edge[1].pid], monetary_unit_flow, self.usd_per_ton)
+                Firm.transformUSDtoTons(quantity_to_deliver[edge[1].pid], monetary_units_in_model, self.usd_per_ton)
             
             if explicit_service_firm:
                 # If the client is B2C
@@ -645,8 +607,7 @@ class Firm(object):
                     self.send_shipment(
                         graph[self][edge[1]]['object'], 
                         transport_network,
-                        monetary_unit_transport_cost,
-                        monetary_unit_flow,
+                        monetary_units_in_model,
                         cost_repercussion_mode
                     )
 
@@ -657,8 +618,7 @@ class Firm(object):
                     self.send_shipment(
                         graph[self][edge[1]]['object'], 
                         transport_network,
-                        monetary_unit_transport_cost,
-                        monetary_unit_flow,
+                        monetary_units_in_model,
                         cost_repercussion_mode
                     )
                 
@@ -685,14 +645,14 @@ class Firm(object):
 
                 
     def send_shipment(self, commercial_link, transport_network,
-        monetary_unit_transport_cost, monetary_unit_flow, cost_repercussion_mode):
+        monetary_units_in_model, cost_repercussion_mode):
 
         monetary_unit_factor = {
             "mUSD": 1e6,
             "kUSD": 1e3,
             "USD": 1
         }
-        factor = monetary_unit_factor[monetary_unit_flow]
+        factor = monetary_unit_factor[monetary_units_in_model]
         # print("send_shipment", 0 in transport_network.nodes)
         """Only apply to B2B flows 
         """
@@ -749,7 +709,7 @@ class Firm(object):
             commercial_link.current_route = 'alternative'
             # Calculate contribution to generalized transport cost, to usd/tons/tonkms transported
             self.generalized_transport_cost += commercial_link.alternative_route_time_cost \
-                + transformUSDtoTons(commercial_link.delivery, monetary_unit_flow, self.usd_per_ton) \
+                + Firm.transformUSDtoTons(commercial_link.delivery, monetary_units_in_model, self.usd_per_ton) \
                 * commercial_link.alternative_route_cost_per_ton
             self.usd_transported += commercial_link.delivery
             self.tons_transported += commercial_link.delivery_in_tons
@@ -912,26 +872,26 @@ class Firm(object):
                     transport_network.transport_shipment(graph[self][edge[1]]['object'])
 
 
-    def check_route_avaibility(self, commercial_link, transport_network, which_route='main'):
+    # def check_route_avaibility(self, commercial_link, transport_network, which_route='main'):
         
-        if which_route=='main':
-            route_to_check = commercial_link.route
-        elif which_route=='alternative':
-            route_to_check = commercial_link.alternative_route
-        else:
-            KeyError('Wrong value for parameter which_route, admissible values are main and alternative')
+    #     if which_route=='main':
+    #         route_to_check = commercial_link.route
+    #     elif which_route=='alternative':
+    #         route_to_check = commercial_link.alternative_route
+    #     else:
+    #         KeyError('Wrong value for parameter which_route, admissible values are main and alternative')
         
-        res = 'available'
-        for route_segment in route_to_check:
-            if len(route_segment) == 2:
-                if transport_network[route_segment[0]][route_segment[1]]['disruption_duration'] > 0:
-                    res = 'disrupted'
-                    break
-            if len(route_segment) == 1:
-                if transport_network.node[route_segment[0]]['disruption_duration'] > 0:
-                    res = 'disrupted'
-                    break
-        return res
+    #     res = 'available'
+    #     for route_segment in route_to_check:
+    #         if len(route_segment) == 2:
+    #             if transport_network[route_segment[0]][route_segment[1]]['disruption_duration'] > 0:
+    #                 res = 'disrupted'
+    #                 break
+    #         if len(route_segment) == 1:
+    #             if transport_network._node[route_segment[0]]['disruption_duration'] > 0:
+    #                 res = 'disrupted'
+    #                 break
+    #     return res
         
         
     def receive_products_and_pay(self, graph, transport_network):

@@ -49,8 +49,7 @@ def runOneTimeStep(transport_network, sc_network, firm_list,
     flow_types_to_export=['total'],
     transport_edges=None,
     export_sc_flow_analysis=False,
-    monetary_unit_transport_cost="USD",
-    monetary_unit_flow="mUSD",
+    monetary_units_in_model="mUSD",
     cost_repercussion_mode="type1"):
     """
     Run one time step
@@ -107,10 +106,16 @@ def runOneTimeStep(transport_network, sc_network, firm_list,
 
     allFirmsProduce(firm_list)
     
-    allAgentsDeliver(sc_network, firm_list, country_list, transport_network, 
-        rationing_mode, explicit_service_firm, 
-        monetary_unit_transport_cost="USD", monetary_unit_flow="mUSD",
-        cost_repercussion_mode=cost_repercussion_mode)
+    allAgentsDeliver(
+        G=sc_network, 
+        firm_list=firm_list, 
+        country_list=country_list, 
+        T=transport_network, 
+        rationing_mode=rationing_mode, 
+        explicit_service_firm=explicit_service_firm,
+        monetary_units_in_model=monetary_units_in_model,
+        cost_repercussion_mode=cost_repercussion_mode
+    )
     
     if congestion:
         if (time_step == 0):
@@ -134,8 +139,7 @@ def runOneTimeStep(transport_network, sc_network, firm_list,
         exportTransportFlows(observer, export_folder)
         exportTransportFlowsLayer(observer, export_folder, time_step=time_step, 
             transport_edges=transport_edges)
-        collect_specific_flows = True
-        if collect_specific_flows:
+        if sum([len(sublist) for sublist in observer.specific_edges_to_monitor.values()]) > 0:
             observer.collect_specific_flows(transport_network)
             exportSpecificFlows(observer, export_folder)
         if collect_shipments:

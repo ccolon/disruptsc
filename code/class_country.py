@@ -3,30 +3,32 @@ import pandas as pd
 import math
 import logging
 
-import class_commerciallink
+from class_agent import Agent
+from class_commerciallink import CommercialLink
 from functions import rescale_values, \
     generate_weights_from_list, \
     determine_suppliers_and_weights,\
     identify_firms_in_each_sector,\
     identify_special_transport_nodes,\
-    transformUSDtoTons, agent_decide_initial_routes,\
     agent_receive_products_and_pay, calculate_distance_between_agents
 
 
-class Country(object):
+class Country(Agent):
 
     def __init__(self, pid=None, qty_sold=None, qty_purchased=None, odpoint=None, long=None, lat=None,
         purchase_plan=None, transit_from=None, transit_to=None, supply_importance=None, 
         usd_per_ton=None):
         # Instrinsic parameters
-        self.agent_type = "country"
-        self.pid = pid
-        self.usd_per_ton = usd_per_ton
-        self.odpoint = odpoint
-        self.long = long
-        self.lat = lat
-        
+        super().__init__(
+            agent_type="country", 
+            pid=pid, 
+            odpoint=odpoint,
+            long=long,
+            lat=lat
+        )
+
         # Parameter based on data
+        self.usd_per_ton = usd_per_ton
         # self.entry_points = entry_points or []
         self.transit_from = transit_from or {}
         self.transit_to = transit_to or {}
@@ -60,7 +62,7 @@ class Country(object):
         for selling_country_pid, quantity in self.transit_from.items():
             selling_country_object = [country for country in country_list if country.pid==selling_country_pid][0]
             graph.add_edge(selling_country_object, self,
-                       object=class_commerciallink.CommercialLink(
+                       object=CommercialLink(
                            pid=str(selling_country_pid)+'->'+str(self.pid),
                            product='transit',
                            product_type="transit", #suppose that transit type are non service, material stuff
@@ -110,7 +112,7 @@ class Country(object):
             for supplier_id in selected_supplier_ids:
                 # For each supplier, create an edge in the economic network
                 graph.add_edge(firm_list[supplier_id], self,
-                           object=class_commerciallink.CommercialLink(
+                           object=CommercialLink(
                                pid=str(supplier_id)+'->'+str(self.pid),
                                product=sector,
                                product_type=firm_list[supplier_id].sector_type,
@@ -223,53 +225,9 @@ class Country(object):
         raise ValueError("The transport_mode attributes of the commerical link\
                           does not belong to ('roads', 'intl_multimodes')")
 
-
-    def decide_initial_routes(self, graph, transport_network, transport_modes,
-        account_capacity, monetary_unit_flow):
-
-        agent_decide_initial_routes(self, graph, transport_network, transport_modes,
-        account_capacity, monetary_unit_flow)
-        '''for edge in graph.out_edges(self):
-            if edge[1].pid == -1: # we do not create route for households
-                continue
-            elif edge[1].odpoint == -1: # we do not create route for service firms if explicit_service_firms = False
-                continue
-            else:
-                # Get the id of the orign and destination node
-                origin_node = self.odpoint
-                destination_node = edge[1].odpoint
-                # Define the type of transport mode to use
-                cond_from = (transport_modes['from'] == self.pid) #self is a country
-                if isinstance(edge[1], Firm): #see what is the other end
-                    cond_to = (transport_modes['to'] == "domestic")
-                else:
-                    cond_to = (transport_modes['to'] == edge[1].pid)
-                    # we have not implemented the "sector" condition
-                transport_mode = transport_modes.loc[cond_from & cond_to, "transport_mode"].iloc[0]
-                graph[self][edge[1]]['object'].transport_mode = transport_mode
-                route, selected_mode = self.choose_route(
-                    transport_network=transport_network, 
-                    origin_node=origin_node, 
-                    destination_node=destination_node, 
-                    possible_transport_modes=transport_mode
-                )
-                # Store it into commercial link object
-                graph[self][edge[1]]['object'].storeRouteInformation(
-                    route=route,
-                    transport_mode=selected_mode,
-                    main_or_alternative="main",
-                    transport_network=transport_network
-                )
-                # Update the "current load" on the transport network
-                # if current_load exceed burden, then add burden to the weight
-                if account_capacity:
-                    new_load_in_usd = graph[self][edge[1]]['object'].order
-                    new_load_in_tons = transformUSDtoTons(new_load_in_usd, monetary_unit_flow, self.usd_per_ton)
-                    transport_network.update_load_on_route(route, new_load_in_tons)
-'''
             
     def deliver_products(self, graph, transport_network,
-                        monetary_unit_transport_cost, monetary_unit_flow, 
+                        monetary_units_in_model, 
                         cost_repercussion_mode, explicit_service_firm):
         """ The quantity to be delivered is the quantity that was ordered (no rationning takes place)
         """
@@ -285,7 +243,7 @@ class Country(object):
                 continue
             graph[self][edge[1]]['object'].delivery = graph[self][edge[1]]['object'].order
             graph[self][edge[1]]['object'].delivery_in_tons = \
-                transformUSDtoTons(graph[self][edge[1]]['object'].order, monetary_unit_flow, self.usd_per_ton)
+                Country.transformUSDtoTons(graph[self][edge[1]]['object'].order, monetary_units_in_model, self.usd_per_ton)
 
             explicit_service_firm = True
             if explicit_service_firm:
@@ -298,8 +256,7 @@ class Country(object):
                     self.send_shipment(
                         graph[self][edge[1]]['object'], 
                         transport_network,
-                        monetary_unit_transport_cost,
-                        monetary_unit_flow,
+                        monetary_units_in_model,
                         cost_repercussion_mode
                     )
             else:
@@ -307,8 +264,7 @@ class Country(object):
                     self.send_shipment(
                         graph[self][edge[1]]['object'], 
                         transport_network,
-                        monetary_unit_transport_cost,
-                        monetary_unit_flow,
+                        monetary_units_in_model,
                         cost_repercussion_mode
                     )
                 else: # if it sends to service firms, nothing to do. price is equilibrium price
@@ -317,7 +273,7 @@ class Country(object):
 
 
     def send_shipment(self, commercial_link, transport_network,
-        monetary_unit_transport_cost, monetary_unit_flow, cost_repercussion_mode):
+        monetary_units_in_model, cost_repercussion_mode):
 
         if commercial_link.delivery_in_tons == 0:
             print("delivery", commercial_link.delivery)
@@ -329,7 +285,7 @@ class Country(object):
             "kUSD": 1e3,
             "USD": 1
         }
-        factor = monetary_unit_factor[monetary_unit_flow]
+        factor = monetary_unit_factor[monetary_units_in_model]
         """Only apply to B2B flows 
         """
         if len(commercial_link.route)==0:
@@ -447,26 +403,31 @@ class Country(object):
             # We do not pay the transporter, so we don't increment the transport cost
 
                     
-    def check_route_avaibility(self, commercial_link, transport_network, which_route='main'):
+    # def check_route_avaibility(self, commercial_link, transport_network, which_route='main'):
+    #     """
+    #     Look at the main or alternative route
+    #     at check all edges and nodes in the route
+    #     if one is marked as disrupted, then the whole route is marked as disrupted
+    #     """
         
-        if which_route=='main':
-            route_to_check = commercial_link.route
-        elif which_route=='alternative':
-            route_to_check = commercial_link.alternative_route
-        else:
-            KeyError('Wrong value for parameter which_route, admissible values are main and alternative')
+    #     if which_route=='main':
+    #         route_to_check = commercial_link.route
+    #     elif which_route=='alternative':
+    #         route_to_check = commercial_link.alternative_route
+    #     else:
+    #         KeyError('Wrong value for parameter which_route, admissible values are main and alternative')
         
-        res = 'available'
-        for route_segment in route_to_check:
-            if len(route_segment) == 2:
-                if transport_network[route_segment[0]][route_segment[1]]['disruption_duration'] > 0:
-                    res = 'disrupted'
-                    break
-            if len(route_segment) == 1:
-                if transport_network.node[route_segment[0]]['disruption_duration'] > 0:
-                    res = 'disrupted'
-                    break
-        return res
+    #     res = 'available'
+    #     for route_segment in route_to_check:
+    #         if len(route_segment) == 2:
+    #             if transport_network[route_segment[0]][route_segment[1]]['disruption_duration'] > 0:
+    #                 res = 'disrupted'
+    #                 break
+    #         if len(route_segment) == 1:
+    #             if transport_network._node[route_segment[0]]['disruption_duration'] > 0:
+    #                 res = 'disrupted'
+    #                 break
+    #     return res
 
 
                     

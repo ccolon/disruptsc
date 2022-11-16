@@ -79,6 +79,12 @@ export = {
     "sc_network_summary": True
 }
 
+# Specify edges on the transport network for which we want to observe the flows
+specific_edges_to_monitor = {
+    'multimodal': [],
+    'special': []
+}
+
 # Logging level
 logging_level = logging.INFO
 

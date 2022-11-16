@@ -1,7 +1,17 @@
-# Check that the module is used correctly
+# Check that the script is called correctly
 import sys
-if (len(sys.argv)<=2):
-    raise ValueError('Syntax: python36 code/main.py (reuse_data 1 0)')
+possible_argument = [
+    'same_transport_network_new_agents',
+    'same_agents_new_sc_network',
+    'same_sc_network_new_logistic_routes',
+    'same_logistic_routes',
+]
+if (len(sys.argv) > 2):
+    raise ValueError('The script does not take more than 1 arguments')
+if len(sys.argv) > 1:
+    if sys.argv[1] not in possible_argument:
+        raise ValueError("First argument "+sys.argv[1]+" is not valid.\
+            Possible values are: "+','.join(possible_argument))
 
 # Import modules
 import os
@@ -74,8 +84,8 @@ with open(filepaths['transport_parameters'], "r") as yamlfile:
 
 ## Creating the transport network consumes time
 ## To accelerate, we enable storing the transport network as pickle for later reuse
-## With new input data, run the model with first arg = 0, it generates the pickle
-## Then use first arg = 1, to skip network building and use directly the pickle
+## With new input data, run the model with arg = "new_transport_network", or no arg, it generates the pickle
+## Then use first arg = "reuse_transport_network, to skip network building and use directly the pickle
 pickle_suffix = '_'.join([mode[:3] for mode in transport_modes])+'_pickle'
 extra_road_log = ""
 if extra_roads:
@@ -84,7 +94,7 @@ if extra_roads:
 pickle_transNet_filename = "transNet_"+pickle_suffix
 pickle_transEdg_filename = "transEdg_"+pickle_suffix
 pickle_transNod_filename = "transNod_"+pickle_suffix
-if sys.argv[1] == "0":
+if (len(sys.argv) < 2):
     logging.info('Creating transport network'+extra_road_log)
     T, transport_nodes, transport_edges = createTransportNetwork(transport_modes, filepaths, transport_params)
     logging.info('Transport network'+extra_road_log+' created.')
@@ -92,11 +102,13 @@ if sys.argv[1] == "0":
     pickle.dump(transport_edges, open(os.path.join('tmp', pickle_transEdg_filename), 'wb'))
     pickle.dump(transport_nodes, open(os.path.join('tmp', pickle_transNod_filename), 'wb'))
     logging.info('Transport network saved in tmp folder: '+pickle_transNet_filename)
-else:
+elif (sys.argv[1] in possible_argument):
     T = pickle.load(open(os.path.join('tmp', pickle_transNet_filename), 'rb'))
     transport_edges = pickle.load(open(os.path.join('tmp', pickle_transEdg_filename), 'rb'))
     transport_nodes = pickle.load(open(os.path.join('tmp', pickle_transNod_filename), 'rb'))
     logging.info('Transport network'+extra_road_log+' generated from temp file.')
+else:
+    raise ValueError('Argument error')
 # Generate weight
 logging.info('Generating shortest-path weights on transport network')
 T.defineWeights(route_optimization_weight, logistics_modes)
@@ -111,7 +123,7 @@ logging.info('Nb of nodes: '+str(len(T.nodes))+', Nb of edges: '+str(len(T.edges
 
 
 ### Create firms, households, and countries
-if sys.argv[2] == "0":
+if (len(sys.argv) < 2) or (sys.argv[1] == "same_transport_network_new_agents"):
     tmp_data = {}
     ### Filter sectors
     logging.info('Filtering the sectors based on their output. '+
@@ -252,7 +264,7 @@ if sys.argv[2] == "0":
     pickle.dump(tmp_data, open(pickle_filename, 'wb'))
     logging.info('Firms, households, and countries saved in tmp folder: '+pickle_filename)
 
-else:
+elif sys.argv[1] in ["same_agents_new_sc_network", "same_sc_network_new_logistic_routes","same_logistic_routes"]:
     pickle_filename = os.path.join('tmp', 'firms_households_countries_pickle')
     tmp_data = pickle.load(open(pickle_filename, 'rb'))
     sector_table = tmp_data['sector_table']
@@ -268,6 +280,8 @@ else:
     logging.info("Nb households: "+str(len(household_list)))
     logging.info("Nb countries: "+str(len(country_list)))
 
+else:
+    raise ValueError('Argument error')
 
 # Loacte firms and households on transport network
 T.locate_firms_on_nodes(firm_list, transport_nodes)
@@ -288,7 +302,7 @@ households = createSingleHouseholds(firm_table)
 logging.info('Households created')'''
 
 ### Create supply chain network
-if sys.argv[3] == "0":
+if (len(sys.argv) < 2) or (sys.argv[1] in ["same_transport_network_new_agents", "same_agents_new_sc_network"]):
     logging.info('The supply chain graph is being created. nb_suppliers_per_input: '+str(nb_suppliers_per_input))
     G = nx.DiGraph()
 
@@ -320,7 +334,7 @@ if sys.argv[3] == "0":
     pickle.dump(tmp_data, open(pickle_filename, 'wb'))
     logging.info('Supply chain saved in tmp folder: '+pickle_filename)
 
-else:
+elif sys.argv[1] in ["same_sc_network_new_logistic_routes","same_logistic_routes"]:
     pickle_filename = os.path.join('tmp', 'supply_chain_pickle')
     tmp_data = pickle.load(open(pickle_filename, 'rb'))
     G = tmp_data['supply_chain_network']
@@ -329,6 +343,8 @@ else:
     country_list = tmp_data['country_list']
     logging.info('Supply chain generated from temp file.')
 
+else:
+    raise ValueError('Argument error')
 
 logging.info('Compute the orders on each supplier--buyer link')
 setInitialSCConditions(T, G, firm_list, 
@@ -336,18 +352,17 @@ setInitialSCConditions(T, G, firm_list,
 
 
 ### Coupling transportation network T and production network G
-
 logging.info('The supplier--buyer graph is being connected to the transport network')
-if sys.argv[4] == "0":
+if (len(sys.argv) < 2) or (sys.argv[1] in ["same_transport_network_new_agents", "same_agents_new_sc_network", "same_sc_network_new_logistic_routes"]):
     logging.info('Each B2B and transit edge is being linked to a route of the transport network')
     transport_modes = pd.read_csv(filepaths['transport_modes'])
     logging.info('Routes for transit flows and import flows are being selected by trading countries finding routes to their clients')
     for country in country_list:
-        country.decide_initial_routes(G, T, transport_modes, account_capacity, monetary_units_in_model)
+        country.choose_initial_routes(G, T, transport_modes, account_capacity, monetary_units_in_model)
     logging.info('Routes for export flows and B2B domestic flows are being selected by Tanzanian firms finding routes to their clients')
     for firm in firm_list:
         if firm.sector_type not in ['services', 'utility', 'transport']:
-            firm.decide_initial_routes(G, T, transport_modes, account_capacity, monetary_units_in_model)
+            firm.choose_initial_routes(G, T, transport_modes, account_capacity, monetary_units_in_model)
     # Save to tmp folder
     tmp_data['transport_network'] = T
     tmp_data['supply_chain_network'] = G
@@ -358,7 +373,7 @@ if sys.argv[4] == "0":
     pickle.dump(tmp_data, open(pickle_filename, 'wb'))
     logging.info('Embedded supply chains saved in tmp folder: '+pickle_filename)
 
-else:
+elif sys.argv[1] == "same_logistic_routes":
     pickle_filename = os.path.join('tmp', 'embedded_supply_chain_pickle')
     tmp_data = pickle.load(open(pickle_filename, 'rb'))
     G = tmp_data['supply_chain_network']
@@ -367,6 +382,10 @@ else:
     household_list = tmp_data['household_list']
     country_list = tmp_data['country_list']
     logging.info('Embdded supply chain generated from temp file.')
+
+else:
+    raise ValueError('Argument error')
+
 logging.info('The supplier--buyer graph is now connected to the transport network')
 
 logging.info("Initialization completed, "+str((time.time()-t0)/60)+" min")
@@ -386,7 +405,11 @@ if disruption_analysis is None:
     setInitialSCConditions(transport_network=T, sc_network=G, firm_list=firm_list, 
         country_list=country_list, household_list=household_list, initialization_mode="equilibrium")
 
-    obs = Observer(firm_list, 0)
+    obs = Observer(
+        firm_list=firm_list, 
+        Tfinal=0,
+        specific_edges_to_monitor=specific_edges_to_monitor
+    )
 
     # if export['district_sector_table']:
     #     exportDistrictSectorTable(filtered_district_sector_table, export_folder=exp_folder)
@@ -423,8 +446,7 @@ if disruption_analysis is None:
         flow_types_to_export = flow_types_to_export,
         transport_edges = transport_edges,
         export_sc_flow_analysis=export['sc_flow_analysis'],
-        monetary_unit_transport_cost="USD", 
-        monetary_unit_flow=monetary_units_in_model,
+        monetary_units_in_model=monetary_units_in_model,
         cost_repercussion_mode=cost_repercussion_mode)
 
     if export['agent_data']:
@@ -448,7 +470,11 @@ elif disruption_analysis['type'] == "compound":
 
     compound_duration = max([event['start_time']+event['duration'] for event in disruption_analysis['events']])
     Tfinal = duration_dic[compound_duration]
-    obs = Observer(firm_list, Tfinal)
+    obs = Observer(
+        firm_list=firm_list, 
+        Tfinal=Tfinal,
+        specific_edges_to_monitor=specific_edges_to_monitor
+    )
     obs.disruption_time = 1 # time of first disruption
 
     logging.info("Simulating the initial state")
@@ -468,8 +494,7 @@ elif disruption_analysis['type'] == "compound":
         flow_types_to_export = flow_types_to_export,
         transport_edges = transport_edges,
         export_sc_flow_analysis=export['sc_flow_analysis'],
-        monetary_unit_transport_cost="USD", 
-        monetary_unit_flow=monetary_units_in_model,
+        monetary_units_in_model=monetary_units_in_model,
         cost_repercussion_mode=cost_repercussion_mode)
 
     logging.info("Do initial exports")
@@ -523,8 +548,7 @@ elif disruption_analysis['type'] == "compound":
             flow_types_to_export=flow_types_to_export,
             transport_edges = transport_edges,
             export_sc_flow_analysis=False,
-            monetary_unit_transport_cost="USD", 
-            monetary_unit_flow=monetary_units_in_model,
+            monetary_units_in_model=monetary_units_in_model,
             cost_repercussion_mode=cost_repercussion_mode)
         logging.debug('End of t='+str(t))
 
@@ -537,7 +561,7 @@ elif disruption_analysis['type'] == "compound":
                (household_consumption_loss <= epsilon_stop_condition) & \
                (country_extra_spending <= epsilon_stop_condition) & \
                (country_consumption_loss <= epsilon_stop_condition):
-                logging.info('Household and conutry extra spending and consumption loss are at pre-disruption value. '\
+                logging.info('Household and country extra spending and consumption loss are at pre-disruption value. '\
                 +"Simulation stops.")
                 break
 
@@ -597,7 +621,11 @@ elif disruption_analysis['type'] == 'criticality':
             country_list=country_list, household_list=household_list, initialization_mode="equilibrium")
 
         Tfinal = duration_dic[disruption['duration']]
-        obs = Observer(firm_list, Tfinal)
+        obs = Observer(
+            firm_list=firm_list, 
+            Tfinal=Tfinal,
+            specific_edges_to_monitor=specific_edges_to_monitor
+        )
 
         if disruption == disruption_list[0]:
             export_flows = export['flows']
@@ -621,8 +649,7 @@ elif disruption_analysis['type'] == 'criticality':
             flow_types_to_export = flow_types_to_export,
             transport_edges = transport_edges,
             export_sc_flow_analysis=export['sc_flow_analysis'],
-            monetary_unit_transport_cost="USD", 
-            monetary_unit_flow=monetary_units_in_model,
+            monetary_units_in_model=monetary_units_in_model,
             cost_repercussion_mode=cost_repercussion_mode)
 
         if disruption == disruption_list[0]:
@@ -669,8 +696,7 @@ elif disruption_analysis['type'] == 'criticality':
                 flow_types_to_export=flow_types_to_export,
                 transport_edges = transport_edges,
                 export_sc_flow_analysis=False,
-                monetary_unit_transport_cost="USD", 
-                monetary_unit_flow=monetary_units_in_model,
+                monetary_units_in_model=monetary_units_in_model,
                 cost_repercussion_mode=cost_repercussion_mode)
             logging.debug('End of t='+str(t))
 

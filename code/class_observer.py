@@ -11,7 +11,8 @@ from functions import rescale_values
 # It does not export anything. Export functions are in export_functions.py
 class Observer(object):
     
-    def __init__(self, firm_list, Tfinal=0):
+    def __init__(self, firm_list, Tfinal=0, specific_edges_to_monitor=None):
+        self.specific_edges_to_monitor = specific_edges_to_monitor
         self.firms = []
         self.households = []
         self.countries = []
@@ -210,26 +211,19 @@ class Observer(object):
         
 
     def collect_specific_flows(self, transport_network):
+        """
+        Collect data on flows on specific edges
+        """
         self.specific_flows = {}
-        multimodal_flows_to_collect = [
-            'roads-maritime-shv',
-            'roads-maritime-vnm',
-            'railways-maritime',
-            'waterways-maritime',
-        ]
-        special_flows_to_collect = [
-            'poipet',
-            'bavet'
-        ]
         flow_types = ['import', 'export', 'transit']
         for edge in transport_network.edges:
-            if transport_network[edge[0]][edge[1]]['multimodes'] in multimodal_flows_to_collect:
+            if transport_network[edge[0]][edge[1]]['multimodes'] in self.specific_edges_to_monitor['multimodal']:
                 self.specific_flows[transport_network[edge[0]][edge[1]]['multimodes']] = {
                     flow_type:  transport_network[edge[0]][edge[1]]["flow_"+str(flow_type)] 
                     for flow_type in flow_types
                 }
             if transport_network[edge[0]][edge[1]]['special']:
-                for special in special_flows_to_collect:
+                for special in self.specific_edges_to_monitor['special']:
                     if special in transport_network[edge[0]][edge[1]]['special']:
                         self.specific_flows[special] = {
                             flow_type:  transport_network[edge[0]][edge[1]]["flow_"+str(flow_type)] 
@@ -239,13 +233,13 @@ class Observer(object):
         # code to display key metric on multimodal internatinonal flow
         df = pd.DataFrame(self.specific_flows).transpose()
         # print(df)
-        total_import = df.loc[multimodal_flows_to_collect, 'import'].sum()
+        total_import = df.loc[self.specific_edges_to_monitor['multimodal'], 'import'].sum()
         # print(total_import)
-        total_export = df.loc[multimodal_flows_to_collect, 'export'].sum()
+        total_export = df.loc[self.specific_edges_to_monitor['multimodal'], 'export'].sum()
         total = total_import + total_export
         # print(total)
         res = {}
-        for flow in multimodal_flows_to_collect:
+        for flow in specific_edges_to_monitor['multimodal']:
             # print(df.loc[flow, "import"])
             # print(df.loc[flow, "import"] / total_import)
             res[flow] = {

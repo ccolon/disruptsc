@@ -399,15 +399,15 @@ def allFirmsProduce(firm_list):
 #         firm.deliver_products(G, T, rationing_mode, route_optimization_weight)
 
 def allAgentsDeliver(G, firm_list, country_list, T, rationing_mode, explicit_service_firm,
-    monetary_unit_transport_cost="USD", monetary_unit_flow="mUSD", cost_repercussion_mode="type1"):
+    monetary_units_in_model="mUSD", cost_repercussion_mode="type1"):
     for country in country_list:
         country.deliver_products(G, T,
-            monetary_unit_transport_cost="USD", monetary_unit_flow="mUSD", 
+            monetary_units_in_model=monetary_units_in_model, 
             cost_repercussion_mode=cost_repercussion_mode, 
             explicit_service_firm=explicit_service_firm)
     for firm in firm_list:
         firm.deliver_products(G, T, rationing_mode,
-            monetary_unit_transport_cost="USD", monetary_unit_flow="mUSD", 
+            monetary_units_in_model=monetary_units_in_model, 
             cost_repercussion_mode=cost_repercussion_mode, 
             explicit_service_firm=explicit_service_firm)
         
@@ -473,18 +473,6 @@ def recover_from_sectoral_shocks(firm_list):
         firm.production_capacity = firm.eq_production_capacity
 
 
-def transformUSDtoTons(monetary_flow, monetary_unit, usd_per_ton):
-    # Load monetary units
-    monetary_unit_factor = {
-        "mUSD": 1e6,
-        "kUSD": 1e3,
-        "USD": 1
-    }
-    factor = monetary_unit_factor[monetary_unit]
-
-    #sector_to_usdPerTon = sector_table.set_index('sector')['usd_per_ton']
-
-    return monetary_flow / (usd_per_ton/factor)
 
 
 def calculate_distance_between_agents(agentA, agentB):
@@ -584,55 +572,53 @@ def select_supplier_from_list(agent, firm_list,
     return selected_supplier_id, supplier_weights
 
 
-def agent_decide_initial_routes(agent, graph, transport_network, transport_modes,
-        account_capacity, monetary_unit_flow):
-    for edge in graph.out_edges(agent):
-        if edge[1].pid == -1: # we do not create route for households
-            continue
-        elif edge[1].odpoint == -1: # we do not create route for service firms if explicit_service_firms = False
-            continue
-        else:
-            # Get the id of the orign and destination node
-            origin_node = agent.odpoint
-            destination_node = edge[1].odpoint
-            # Define the type of transport mode to use by looking in the transport_mode table
-            if agent.agent_type == 'firm':
-                cond_from = (transport_modes['from'] == "domestic")
-            elif agent.agent_type == 'country':
-                cond_from = (transport_modes['from'] == agent.pid)
-            else:
-                raise ValueError("'agent' must be a Firm or a Country")
-            if edge[1].agent_type in['firm', 'household']: #see what is the other end
-                cond_to = (transport_modes['to'] == "domestic")
-            elif edge[1].agent_type == 'country':
-                cond_to = (transport_modes['to'] == edge[1].pid)
-            else:
-                raise ValueError("'edge[1]' must be a Firm or a Country")
-                # we have not implemented a "sector" condition
-            transport_mode = transport_modes.loc[cond_from & cond_to, "transport_mode"].iloc[0]
-            graph[agent][edge[1]]['object'].transport_mode = transport_mode
-            # Choose the route and the corresponding mode
-            route, selected_mode = agent.choose_route(
-                transport_network=transport_network, 
-                origin_node=origin_node, 
-                destination_node=destination_node, 
-                accepted_logistics_modes=transport_mode
-            )
-            print(agent.pid, edge[1].pid, edge[1].odpoint)
-            print(route, selected_mode)
-            # Store it into commercial link object
-            graph[agent][edge[1]]['object'].storeRouteInformation(
-                route=route,
-                transport_mode=selected_mode,
-                main_or_alternative="main",
-                transport_network=transport_network
-            )
-            # Update the "current load" on the transport network
-            # if current_load exceed burden, then add burden to the weight
-            if account_capacity:
-                new_load_in_usd = graph[agent][edge[1]]['object'].order
-                new_load_in_tons = transformUSDtoTons(new_load_in_usd, monetary_unit_flow, agent.usd_per_ton)
-                transport_network.update_load_on_route(route, new_load_in_tons)
+# def agent_decide_initial_routes(agent, graph, transport_network, transport_modes,
+#         account_capacity, monetary_unit_flow):
+#     for edge in graph.out_edges(agent):
+#         if edge[1].pid == -1: # we do not create route for households
+#             continue
+#         elif edge[1].odpoint == -1: # we do not create route for service firms if explicit_service_firms = False
+#             continue
+#         else:
+#             # Get the id of the orign and destination node
+#             origin_node = agent.odpoint
+#             destination_node = edge[1].odpoint
+#             # Define the type of transport mode to use by looking in the transport_mode table
+#             if agent.agent_type == 'firm':
+#                 cond_from = (transport_modes['from'] == "domestic")
+#             elif agent.agent_type == 'country':
+#                 cond_from = (transport_modes['from'] == agent.pid)
+#             else:
+#                 raise ValueError("'agent' must be a Firm or a Country")
+#             if edge[1].agent_type in['firm', 'household']: #see what is the other end
+#                 cond_to = (transport_modes['to'] == "domestic")
+#             elif edge[1].agent_type == 'country':
+#                 cond_to = (transport_modes['to'] == edge[1].pid)
+#             else:
+#                 raise ValueError("'edge[1]' must be a Firm or a Country")
+#                 # we have not implemented a "sector" condition
+#             transport_mode = transport_modes.loc[cond_from & cond_to, "transport_mode"].iloc[0]
+#             graph[agent][edge[1]]['object'].transport_mode = transport_mode
+#             # Choose the route and the corresponding mode
+#             route, selected_mode = agent.choose_route(
+#                 transport_network=transport_network, 
+#                 origin_node=origin_node, 
+#                 destination_node=destination_node, 
+#                 accepted_logistics_modes=transport_mode
+#             )
+#             # Store it into commercial link object
+#             graph[agent][edge[1]]['object'].storeRouteInformation(
+#                 route=route,
+#                 transport_mode=selected_mode,
+#                 main_or_alternative="main",
+#                 transport_network=transport_network
+#             )
+#             # Update the "current load" on the transport network
+#             # if current_load exceed burden, then add burden to the weight
+#             if account_capacity:
+#                 new_load_in_usd = graph[agent][edge[1]]['object'].order
+#                 new_load_in_tons = transformUSDtoTons(new_load_in_usd, monetary_unit_flow, agent.usd_per_ton)
+#                 transport_network.update_load_on_route(route, new_load_in_tons)
 
 
         
@@ -702,7 +688,7 @@ def agent_receive_shipment_and_pay(agent, commercial_link, transport_network):
     Then it pays the corresponding supplier along the commecial link
     """
     # Look at available shipment
-    available_shipments = transport_network.node[agent.odpoint]['shipments']
+    available_shipments = transport_network._node[agent.odpoint]['shipments']
     if commercial_link.pid in available_shipments.keys():
         # Identify shipment
         shipment = available_shipments[commercial_link.pid]
