@@ -37,7 +37,8 @@ tsubasa_bridge = 2001
 disruption_analysis = {
     "type": "criticality",
     "disrupt_nodes_or_edges": "edges",
-    "nodeedge_tested": 'all',
+    "nodeedge_tested": [1],
+    "identified_by": "id",
     "start_time": 1,
     "duration": 1
 }

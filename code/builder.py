@@ -9,7 +9,7 @@ import yaml
 from shapely.geometry import Point, LineString
 
 from class_firm import Firm
-from class_households import Households
+from class_household import Household
 from class_transport_network import TransportNetwork
 from class_country import Country
 
