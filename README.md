@@ -6,7 +6,7 @@ Git clone the project
 
 You need python. The required libraries are in the "dsc-environment.yml" file. To set the right environment, we recommend using an "Anaconda" or "Miniconda" distribution. Then you can create the adequate environement by doing:
 	
-	 conda create -f dsc-environment.yml
+	 conda env create -f dsc-environment.yml
 
 Note that I observed that, in some situations, this command gets stuck in the "solving environment" step. I think we need to define in the yml the package versions. To be updated...
 
