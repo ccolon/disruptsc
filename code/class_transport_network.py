@@ -103,11 +103,13 @@ class TransportNetwork(nx.Graph):
             for logistic_mode, logistic_links in logistics_modes.items():
                 self[edge[0]][edge[1]][logistic_mode+'_weight'] = self[edge[0]][edge[1]][route_optimization_weight]
                 cond_type = self[edge[0]][edge[1]]['type'] not in logistic_links['accepted_modes']
-                cond_multimodes = self[edge[0]][edge[1]]['multimodes'] not in logistic_links['accepted_multimodal_links']
+                cond_multimodes = (self[edge[0]][edge[1]]['type'] is "multimodal") and \
+                                  (self[edge[0]][edge[1]]['multimodes'] not in logistic_links['accepted_multimodal_links'])
                 if cond_type or cond_multimodes:
                     self[edge[0]][edge[1]][logistic_mode+'_weight'] = other_mode_burden
                 # if self[edge[0]][edge[1]]['type'] == "airways":
-                #     print(self[edge[0]][edge[1]]['weight'])
+                #     toprint = {weight_type: value for weight_type, value in self[edge[0]][edge[1]].items() if "weight" in weight_type}
+                #     print(self[edge[0]][edge[1]]['type'], self[edge[0]][edge[1]]['multimodes'], edge[0], edge[1], toprint)
 
     
     def locate_firms_on_nodes(self, firm_list, transport_nodes):
@@ -206,15 +208,6 @@ class TransportNetwork(nx.Graph):
         available_subgraph = available_subgraph.edge_subgraph(available_edges)
         return TransportNetwork(available_subgraph)
         
-        
-    # def get_available_network(self):
-    #     available_edges = [
-    #         edge 
-    #         for edge in self.edges 
-    #         if self[edge[0]][edge[1]]['current_load'] < self[edge[0]][edge[1]]['capacity']
-    #     ]
-    #     available_subgraph = self.edge_subgraph(available_edges)
-    #     return TransportNetwork(available_subgraph)
 
 
     def disrupt_roads(self, disruption):
