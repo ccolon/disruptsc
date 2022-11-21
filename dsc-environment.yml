@@ -3,9 +3,9 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.10.6=h9a09f29_0_cpython
-  - geopandas=0.11.1=pyhd8ed1ab_0
-  - networkx=2.8.6=pyhd8ed1ab_0
-  - pandas=1.5.0=py310h1c4a608_0
-  - scipy=1.9.1=py310h578b7cb_0
-  - PyYAML=6.0=py310he2412df_4
+  - python=3.10.6
+  - geopandas=0.11.1
+  - networkx=2.8.6
+  - pandas=1.5.0
+  - scipy=1.9.1
+  - PyYAML=6.0

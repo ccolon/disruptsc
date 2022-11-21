@@ -41,59 +41,7 @@ class TransportNetwork(nx.Graph):
         self[end_ids[0]][end_ids[1]]['disruption_duration'] = 0
         self[end_ids[0]][end_ids[1]]['current_load'] = 0
         
-        
-    # def connect_country(self, country):
-    #     self.add_node(country.pid, **{'type':'virtual'})
-    #     for entry_point in country.entry_points: #ATT so far works for road only
-    #         self.add_edge(entry_point, country.pid, 
-    #             **{'type':'virtual', 'time_cost':1000}
-    #         ) # high time cost to avoid that algo goes through countries
-
-            
-    # def remove_countries(self, country_list):
-    #     country_node_to_remove = list(set(self.nodes) & set([country.pid for country in country_list]))
-    #     for country in country_node_to_remove:
-    #         self.remove_node(country)
-            
-        
-    # def giveRouteCost(self, route):
-    #     time_cost = 1 #cost cannot be 0
-    #     for segment in route:
-    #         if len(segment) == 2: #only edges have costs 
-    #             if self[segment[0]][segment[1]]['type'] != 'virtual':
-    #                 time_cost += self[segment[0]][segment[1]]['time_cost']
-    #     return time_cost
-        
-        
-    # def giveRouteCostAndTransportUnitCost(self, route):
-    #     time_cost = 1 #cost cannot be 0
-    #     cost_per_ton = 0
-    #     for segment in route:
-    #         if len(segment) == 2: #only edges have costs 
-    #             if self[segment[0]][segment[1]]['type'] != 'virtual':
-    #                 time_cost += self[segment[0]][segment[1]]['time_cost']
-    #                 cost_per_ton += (surface=='paved')*self.graph['unit_cost']['road']['paved']+\
-    #                              (surface=='unpaved')*self.graph['unit_cost']['road']['unpaved']
-
-    #     return time_cost, cost_per_ton
     
-    
-    def giveRouteCaracteristicsOld(self, route):
-        distance = 0 # km
-        time_cost = 1 #USD, cost cannot be 0
-        cost_per_ton = 0 #USD/ton
-        for segment in route:
-            if len(segment) == 2: #only edges have costs 
-                if self[segment[0]][segment[1]]['type'] != 'virtual':
-                    distance += self[segment[0]][segment[1]]['km']
-                    time_cost += self[segment[0]][segment[1]]['time_cost']
-                    surface = self[segment[0]][segment[1]]['surface']
-                    cost_per_ton += (surface=='paved')*self.graph['unit_cost']['roads']['paved']+\
-                                 (surface=='unpaved')*self.graph['unit_cost']['roads']['unpaved']
-                    
-        return distance, time_cost, cost_per_ton    
-    
-
     def giveRouteCaracteristics(self, route):
         distance = 0 # km
         time_cost = 1 #USD, cost cannot be 0
