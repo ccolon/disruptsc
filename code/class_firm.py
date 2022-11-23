@@ -593,7 +593,7 @@ class Firm(Agent):
                 continue
             graph[self][edge[1]]['object'].delivery = quantity_to_deliver[edge[1].pid]
             graph[self][edge[1]]['object'].delivery_in_tons = \
-                Firm.transformUSDtoTons(quantity_to_deliver[edge[1].pid], monetary_units_in_model, self.usd_per_ton)
+                Firm.transformUSD_to_tons(quantity_to_deliver[edge[1].pid], monetary_units_in_model, self.usd_per_ton)
             
             if explicit_service_firm:
                 # If the client is B2C (applied only we had one single representative agent for all households)
@@ -662,7 +662,7 @@ class Firm(Agent):
                 " is not associated to any route, I cannot send any shipment to client "+
                 str(commercial_link.buyer_id))
 
-        if self.check_route_avaibility(commercial_link, transport_network, 'main') == 'available':
+        if self.check_route_availability(commercial_link, transport_network, 'main') == 'available':
             # If the normal route is available, we can send the shipment as usual 
             # and pay the usual price
             commercial_link.price = commercial_link.eq_price * (1 + self.delta_price_input)
@@ -682,7 +682,7 @@ class Firm(Agent):
         # If there is an alternative route already discovered, 
         # and if this alternative route is available, then we use it
         if (len(commercial_link.alternative_route)>0) \
-            & (self.check_route_avaibility(commercial_link, transport_network, 'alternative') \
+            & (self.check_route_availability(commercial_link, transport_network, 'alternative') \
                 == 'available'):
             route = commercial_link.alternative_route
         # Otherwise we need to discover a new one
@@ -709,7 +709,7 @@ class Firm(Agent):
             commercial_link.current_route = 'alternative'
             # Calculate contribution to generalized transport cost, to usd/tons/tonkms transported
             self.generalized_transport_cost += commercial_link.alternative_route_time_cost \
-                + Firm.transformUSDtoTons(commercial_link.delivery, monetary_units_in_model, self.usd_per_ton) \
+                + Firm.transformUSD_to_tons(commercial_link.delivery, monetary_units_in_model, self.usd_per_ton) \
                 * commercial_link.alternative_route_cost_per_ton
             self.usd_transported += commercial_link.delivery
             self.tons_transported += commercial_link.delivery_in_tons

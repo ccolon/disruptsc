@@ -243,7 +243,7 @@ class Country(Agent):
                 continue
             graph[self][edge[1]]['object'].delivery = graph[self][edge[1]]['object'].order
             graph[self][edge[1]]['object'].delivery_in_tons = \
-                Country.transformUSDtoTons(graph[self][edge[1]]['object'].order, monetary_units_in_model, self.usd_per_ton)
+                Country.transformUSD_to_tons(graph[self][edge[1]]['object'].order, monetary_units_in_model, self.usd_per_ton)
 
             explicit_service_firm = True
             if explicit_service_firm:
@@ -294,7 +294,7 @@ class Country(Agent):
                 " is not associated to any route, I cannot send any shipment to client "+
                 str(commercial_link.pid))
     
-        if self.check_route_avaibility(commercial_link, transport_network, 'main') == 'available':
+        if self.check_route_availability(commercial_link, transport_network, 'main') == 'available':
             # If the normal route is available, we can send the shipment as usual and pay the usual price
             commercial_link.current_route = 'main'
             commercial_link.price = commercial_link.eq_price
@@ -310,7 +310,7 @@ class Country(Agent):
 
         # If there is a disruption, we try the alternative route, if there is any
         if (len(commercial_link.alternative_route)>0) & \
-           (self.check_route_avaibility(commercial_link, transport_network, 'alternative') == 'available'):
+           (self.check_route_availability(commercial_link, transport_network, 'alternative') == 'available'):
             commercial_link.current_route = 'alternative'
             route = commercial_link.alternative_route
         # Otherwise we have to find a new one

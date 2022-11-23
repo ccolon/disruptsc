@@ -6,14 +6,14 @@ class Agent(object):
         self.odpoint = odpoint
         self.long = long
         self.lat = lat
-
+        self.usd_per_ton = None
 
     def choose_initial_routes(self, sc_network, transport_network, transport_modes,
-            account_capacity, monetary_unit_flow):
+                              account_capacity, monetary_unit_flow):
         for edge in sc_network.out_edges(self):
-            if edge[1].pid == -1: # we do not create route for households
+            if edge[1].pid == -1:  # we do not create route for households
                 continue
-            elif edge[1].odpoint == -1: # we do not create route for service firms if explicit_service_firms = False
+            elif edge[1].odpoint == -1:  # we do not create route for service firms if explicit_service_firms = False
                 continue
             else:
                 # Get the id of the orign and destination node
@@ -26,7 +26,7 @@ class Agent(object):
                     cond_from = (transport_modes['from'] == self.pid)
                 else:
                     raise ValueError("'self' must be a Firm or a Country")
-                if edge[1].agent_type in['firm', 'household']: #see what is the other end
+                if edge[1].agent_type in ['firm', 'household']:  # see what is the other end
                     cond_to = (transport_modes['to'] == "domestic")
                 elif edge[1].agent_type == 'country':
                     cond_to = (transport_modes['to'] == edge[1].pid)
@@ -37,9 +37,9 @@ class Agent(object):
                 sc_network[self][edge[1]]['object'].transport_mode = transport_mode
                 # Choose the route and the corresponding mode
                 route, selected_mode = self.choose_route(
-                    transport_network=transport_network, 
-                    origin_node=origin_node, 
-                    destination_node=destination_node, 
+                    transport_network=transport_network,
+                    origin_node=origin_node,
+                    destination_node=destination_node,
                     accepted_logistics_modes=transport_mode
                 )
                 # print(str(self.pid)+" located "+str(self.odpoint)+": I choose this transport mode "+
@@ -56,24 +56,27 @@ class Agent(object):
                 # if current_load exceed burden, then add burden to the weight
                 if account_capacity:
                     new_load_in_usd = sc_network[self][edge[1]]['object'].order
-                    new_load_in_tons = Agent.transformUSDtoTons(new_load_in_usd, monetary_unit_flow, self.usd_per_ton)
+                    new_load_in_tons = Agent.transformUSD_to_tons(new_load_in_usd, monetary_unit_flow, self.usd_per_ton)
                     transport_network.update_load_on_route(route, new_load_in_tons)
 
+    def choose_route(self, transport_network, origin_node, destination_node, accepted_logistics_modes):
+        raise NotImplementedError
 
-    def check_route_avaibility(self, commercial_link, transport_network, which_route='main'):
+    @staticmethod
+    def check_route_availability(commercial_link, transport_network, which_route='main'):
         """
         Look at the main or alternative route
         at check all edges and nodes in the route
         if one is marked as disrupted, then the whole route is marked as disrupted
         """
-        
-        if which_route=='main':
+
+        if which_route == 'main':
             route_to_check = commercial_link.route
-        elif which_route=='alternative':
+        elif which_route == 'alternative':
             route_to_check = commercial_link.alternative_route
         else:
-            KeyError('Wrong value for parameter which_route, admissible values are main and alternative')
-        
+            raise KeyError('Wrong value for parameter which_route, admissible values are main and alternative')
+
         res = 'available'
         for route_segment in route_to_check:
             if len(route_segment) == 2:
@@ -86,8 +89,6 @@ class Agent(object):
                     break
         return res
 
-
-            
     # def agent_receive_products_and_pay(agent, graph, transport_network):
     #     # reset variable
     #     if agent.agent_type == 'country':
@@ -104,7 +105,6 @@ class Agent(object):
     #         else:
     #             agent_receive_shipment_and_pay(agent, graph[edge[0]][agent]['object'], transport_network)
 
-
     # def agent_receive_service_and_pay(agent, commercial_link):
     #     # Always available, same price
     #     quantity_delivered = commercial_link.delivery
@@ -113,7 +113,6 @@ class Agent(object):
     #         agent.inventory[commercial_link.product] += quantity_delivered
     #     # Update indicator
     #     agent_update_indicator(agent, quantity_delivered, commercial_link.price, commercial_link)
-
 
     # def agent_update_indicator(agent, quantity_delivered, price, commercial_link):
     #     """When receiving product, agents update some internal variables
@@ -144,8 +143,6 @@ class Agent(object):
     #         logging.debug("Agent "+str(agent.pid)+": quantity delivered by "+
     #             str(commercial_link.supplier_id)+" is "+str(quantity_delivered)+
     #             ". It was supposed to be "+str(commercial_link.delivery)+".")
-
-
 
     # def agent_receive_shipment_and_pay(agent, commercial_link, transport_network):
     #     """Firm look for shipments in the transport nodes it is located
@@ -181,11 +178,8 @@ class Agent(object):
 
     #     agent_update_indicator(agent, quantity_delivered, price, commercial_link)
 
-
-
-
     @staticmethod
-    def transformUSDtoTons(monetary_flow, monetary_unit, usd_per_ton):
+    def transformUSD_to_tons(monetary_flow, monetary_unit, usd_per_ton):
         if usd_per_ton == 0:
             return 0
         else:
@@ -196,4 +190,4 @@ class Agent(object):
                 "USD": 1
             }
             factor = monetary_unit_factor[monetary_unit]
-            return monetary_flow / (usd_per_ton/factor)
+            return monetary_flow / (usd_per_ton / factor)
