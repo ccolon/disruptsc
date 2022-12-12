@@ -1,12 +1,10 @@
-import numpy as np
-import networkx as nx
-import pandas as pd
-import geopandas as gpd
-import math
-import json
-import os
-import random
 import logging
+import math
+import random
+
+import networkx as nx
+import numpy as np
+import pandas as pd
 
 
 def identify_special_transport_nodes(transport_nodes, special):
@@ -25,14 +23,14 @@ def congestion_function(current_traffic, normal_traffic):
     elif (current_traffic == 0) & (normal_traffic > 0):
         return 0
 
-    elif (current_traffic < normal_traffic):
+    elif current_traffic < normal_traffic:
         return 0
 
-    elif (current_traffic < 1.5 * normal_traffic):
+    elif current_traffic < 1.5 * normal_traffic:
         return 0
     else:
         excess_traffic = current_traffic - 1.5 * normal_traffic
-        return 4 * (1 - math.exp(-(excess_traffic)))
+        return 4 * (1 - math.exp(-excess_traffic))
 
 
 def production_function(inputs, input_mix, function_type="Leontief"):
