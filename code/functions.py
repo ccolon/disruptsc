@@ -358,7 +358,7 @@ def allFirmsPlanProduction(firm_list, graph, price_fct_input=True):
         firm.aggregate_orders()
         firm.decide_production_plan()
         if price_fct_input:
-            firm.calculate_price(graph, firm_list)
+            firm.calculate_price(graph)
 
 
 def allFirmsPlanPurchase(firm_list):
