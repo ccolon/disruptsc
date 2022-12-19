@@ -630,7 +630,7 @@ def agent_receive_products_and_pay(agent, graph, transport_network):
     # for each incoming link, receive product and pay
     # the way differs between service and shipment
     for edge in graph.in_edges(agent):
-        if graph[edge[0]][agent]['object'].product_type in ['services', 'utility', 'transport']:
+        if graph[edge[0]][agent]['object'].product_type in ['services', 'trade', 'utility', 'transport']:
             agent_receive_service_and_pay(agent, graph[edge[0]][agent]['object'])
         else:
             agent_receive_shipment_and_pay(agent, graph[edge[0]][agent]['object'], transport_network)

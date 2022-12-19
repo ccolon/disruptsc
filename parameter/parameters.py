@@ -30,14 +30,10 @@ pop_density_cutoff = 0
 pop_cutoff = 1000
 local_demand_cutoff = 50
 
-# top_10_nodes = [2608, 2404, 2386, 2380, 2379, 2376, 2373, 2366, 2363, 2361]
-#top_10_nodes = [1473, 1619, 992, 1832, 1269, 428, 224]
-floodable_road_battambang = 3170
-tsubasa_bridge = 2001
 disruption_analysis = {
     "type": "criticality",
     "disrupt_nodes_or_edges": "edges",
-    "nodeedge_tested": [1],
+    "nodeedge_tested": "all",
     "identified_by": "id",
     "start_time": 1,
     "duration": 1
@@ -66,8 +62,8 @@ disruption_analysis = {
 # }
 
 
-disruption_analysis = None
-congestion = True
+# disruption_analysis = None
+# congestion = True
 
 # cutoffs
 #sectors_to_exclude = ['ADM']

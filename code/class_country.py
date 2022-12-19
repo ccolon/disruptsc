@@ -248,7 +248,7 @@ class Country(Agent):
             explicit_service_firm = True
             if explicit_service_firm:
                 # If send services, no use of transport network
-                if graph[self][edge[1]]['object'].product_type in ['utility', 'transport', 'services']:
+                if graph[self][edge[1]]['object'].product_type in ['utility', 'trade', 'transport', 'services']:
                     graph[self][edge[1]]['object'].price = graph[self][edge[1]]['object'].eq_price
                     self.qty_sold += graph[self][edge[1]]['object'].delivery
                 # Otherwise, send shipment through transportation network     
@@ -378,7 +378,7 @@ class Country(Agent):
                     str(commercial_link.buyer_id)+", but it is costlier by "+
                     '{:.2f}'.format(100*relative_price_change_transport)+"%, price would be "+
                     '{:.4f}'.format(commercial_link.price)+" instead of "+
-                    '{:.4f}'.format(commercial_link.eq_price*(1+self.delta_price_input))+
+                    '{:.4f}'.format(commercial_link.eq_price)+
                     ' so I decide not to send it now.'
                 )
                 commercial_link.price = commercial_link.eq_price

@@ -23,8 +23,8 @@ filepaths = {
     "waterways_edges": os.path.join('input', input_folder, 'Transport', 'waterways_edges.geojson'),
     ## Supply
     # "district_sector_importance": os.path.join('input', input_folder, 'Supply', 'district_sector_importance.csv'),
-    "sector_table": os.path.join('input', input_folder, 'National', "13sector_table.csv"),
-    "tech_coef": os.path.join('input', input_folder, 'National', "2019_13sectors_tech_coef.csv"),
+    "sector_table": os.path.join('input', input_folder, 'National', "2016_13sector_table.csv"),
+    "tech_coef": os.path.join('input', input_folder, 'National', "2016_13sectors_tech_coef.csv"),
     "sector_cutoffs": os.path.join('input', input_folder, 'National', "13sectors_sector_firm_cutoffs.csv"),
     "inventory_duration_targets": os.path.join('input', input_folder, 'National', "inventory_duration_targets.csv"),
     # Canton data

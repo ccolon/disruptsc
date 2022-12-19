@@ -590,7 +590,7 @@ class Firm(Agent):
                 if edge[1].pid == -1:
                     self.deliver_without_infrastructure(graph[self][edge[1]]['object'])
                 # If this is service flow, deliver without infrastructure
-                elif self.sector_type in ['utility', 'transport', 'services']:
+                elif self.sector_type in ['trade', 'utility', 'transport', 'services']:
                     self.deliver_without_infrastructure(graph[self][edge[1]]['object'])
                 # otherwise use infrastructure
                 else:

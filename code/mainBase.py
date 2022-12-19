@@ -362,7 +362,7 @@ if (len(sys.argv) < 2) or (sys.argv[1] in ["same_transport_network_new_agents", 
         country.choose_initial_routes(G, T, transport_modes, account_capacity, monetary_units_in_model)
     logging.info('Routes for export flows and B2B domestic flows are being selected by Tanzanian firms finding routes to their clients')
     for firm in firm_list:
-        if firm.sector_type not in ['services', 'utility', 'transport']:
+        if firm.sector_type not in ['trade', 'services', 'utility', 'transport']:
             firm.choose_initial_routes(G, T, transport_modes, account_capacity, monetary_units_in_model)
     # Save to tmp folder
     tmp_data['transport_network'] = T

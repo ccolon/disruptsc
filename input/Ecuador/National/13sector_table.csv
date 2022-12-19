@@ -3,7 +3,7 @@ AGR,A,1,"Agricultura, ganadería, silvicultura y pesca",agriculture,16330371,817
 MIN,B,2,Explotación de minas y canteras,mining,11122231,8040580,305.9737261,0.715111563
 MAN,C,3,"Manufactura",manufacturing,42812616,26241760,1604.497003,0.21009153
 UTI,D-E,4,Suministro de electricidad y de agua,utility,4462148,1753454,0,0
-CON,F,5,"Construcción",construction,19730427,18574221,0,0
+CON,F,5,"Construcción",construction,19730427,18574221,1910.470729,0
 TRA,G,6,"Comercio ",trade,15481425,7943819,0,0
 ACF,I,7,Alojamiento y servicios de comida,services,15078679,8120166,0,0
 TIC,H-J,8,"Transporte, información y comunicaciones",services,4311060,3612420,0,0

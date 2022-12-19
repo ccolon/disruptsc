@@ -719,7 +719,7 @@ def rescaleNbFirms(filepath_district_sector_importance,
 
     else: #service sector added as two firms for the whole country
         service_sectors = sector_table.loc[sector_table['type'].isin(
-                ['utility', 'transport', 'services']
+                ['utility', 'transport', 'trade', 'services']
             ), 'sector'].tolist()
         service_sectors_present = od_sector_table.loc[
                 od_sector_table['sector'].isin(service_sectors), 
