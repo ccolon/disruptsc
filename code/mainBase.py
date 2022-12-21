@@ -362,7 +362,7 @@ if (len(sys.argv) < 2) or (sys.argv[1] in ["same_transport_network_new_agents", 
         country.choose_initial_routes(G, T, transport_modes, account_capacity, monetary_units_in_model)
     logging.info('Routes for export flows and B2B domestic flows are being selected by Tanzanian firms finding routes to their clients')
     for firm in firm_list:
-        if firm.sector_type not in ['trade', 'services', 'utility', 'transport']:
+        if firm.sector_type not in sectors_no_transport_network:
             firm.choose_initial_routes(G, T, transport_modes, account_capacity, monetary_units_in_model)
     # Save to tmp folder
     tmp_data['transport_network'] = T
@@ -438,6 +438,7 @@ if disruption_analysis is None:
         route_optimization_weight=route_optimization_weight,
         logistics_modes=logistics_modes,
         explicit_service_firm=explicit_service_firm,
+        sectors_no_transport_network=sectors_no_transport_network,
         propagate_input_price_change=propagate_input_price_change,
         rationing_mode=rationing_mode,
         observer=obs,
@@ -486,6 +487,7 @@ elif disruption_analysis['type'] == "compound":
         route_optimization_weight=route_optimization_weight,
         logistics_modes=logistics_modes,
         explicit_service_firm=explicit_service_firm,
+        sectors_no_transport_network=sectors_no_transport_network,
         propagate_input_price_change=propagate_input_price_change,
         rationing_mode=rationing_mode,
         observer=obs,
@@ -540,6 +542,7 @@ elif disruption_analysis['type'] == "compound":
             route_optimization_weight=route_optimization_weight,
             logistics_modes=logistics_modes,
             explicit_service_firm=explicit_service_firm,
+            sectors_no_transport_network=sectors_no_transport_network,
             propagate_input_price_change=propagate_input_price_change,
             rationing_mode=rationing_mode,
             observer=obs,
@@ -641,6 +644,7 @@ elif disruption_analysis['type'] == 'criticality':
             route_optimization_weight=route_optimization_weight,
             logistics_modes=logistics_modes,
             explicit_service_firm=explicit_service_firm,
+            sectors_no_transport_network=sectors_no_transport_network,
             propagate_input_price_change=propagate_input_price_change,
             rationing_mode=rationing_mode,
             observer=obs,
@@ -688,6 +692,7 @@ elif disruption_analysis['type'] == 'criticality':
                 route_optimization_weight=route_optimization_weight,
                 logistics_modes=logistics_modes,
                 explicit_service_firm=explicit_service_firm,
+                sectors_no_transport_network=sectors_no_transport_network,
                 propagate_input_price_change=propagate_input_price_change,
                 rationing_mode=rationing_mode,
                 observer=obs,

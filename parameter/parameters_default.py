@@ -113,6 +113,9 @@ sectors_to_include = "all"
 # - list of sectors
 sectors_to_exclude = None
 
+# The products from those sectors do not need transport network to be transported
+sectors_no_transport_network = ['utility', 'transport', 'trade', 'service']
+
 # Filter out sectors whose output is below that cutoff value
 # - if 'type' is 'percentage', test cutoff againt the sector's relative output
 # - if 'type' is 'absolute', test cutoff againt the sector's absolute output

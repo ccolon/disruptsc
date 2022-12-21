@@ -182,10 +182,10 @@ To be further described
 
 A CSV file `sector_table.csv`. One row = one sector. Required columns:
 - `sector`: the sector's trigram, for instance `AGR`
-- `type`: one of 'agriculture', 'mining', 'manufacturing', utility', 'transport', 'trade', 'services'
+- `type`: one of 'agriculture', 'mining', 'manufacturing', utility', 'transport', 'trade', 'service'
 - `output`: the total yearly output, derived from the input-output table. The unit should be the same as defined in the parameter `monetary_unit_in_model`.
 - `final_demand`: the total yearly final demand, derived from the input-output table. The unit should be the same as defined in the parameter `monetary_unit_in_model`.
-- `usd_per_ton`: the average monetary value, in USD, of a ton of good. This value can be computed from UN COMTRADE data, in which trade flows are both reported in tons and in USD. Set to 0 for sectors whose type is 'utility', 'transport', 'trade', 'services'
+- `usd_per_ton`: the average monetary value, in USD, of a ton of good. This value can be computed from UN COMTRADE data, in which trade flows are both reported in tons and in USD. Set to 0 for sectors whose type is 'utility', 'transport', 'trade', 'service'
 - `share_exporting_firms`: the percentage of the firms that export per sector. This value can be derived from country-specific data. Without good data, we can simply use for instance the share of export per sector.
 
 Example:

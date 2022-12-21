@@ -226,7 +226,7 @@ class Country(Agent):
                           does not belong to ('roads', 'intl_multimodes')")
 
             
-    def deliver_products(self, graph, transport_network,
+    def deliver_products(self, graph, transport_network, sectors_no_transport_network,
                         monetary_units_in_model, 
                         cost_repercussion_mode, explicit_service_firm):
         """ The quantity to be delivered is the quantity that was ordered (no rationning takes place)
@@ -248,7 +248,7 @@ class Country(Agent):
             explicit_service_firm = True
             if explicit_service_firm:
                 # If send services, no use of transport network
-                if graph[self][edge[1]]['object'].product_type in ['utility', 'trade', 'transport', 'services']:
+                if graph[self][edge[1]]['object'].product_type in sectors_no_transport_network:
                     graph[self][edge[1]]['object'].price = graph[self][edge[1]]['object'].eq_price
                     self.qty_sold += graph[self][edge[1]]['object'].delivery
                 # Otherwise, send shipment through transportation network     
@@ -403,8 +403,8 @@ class Country(Agent):
             # We do not pay the transporter, so we don't increment the transport cost
 
                     
-    def receive_products_and_pay(self, graph, transport_network):
-        agent_receive_products_and_pay(self, graph, transport_network)
+    def receive_products_and_pay(self, graph, transport_network, sectors_no_transport_network):
+        agent_receive_products_and_pay(self, graph, transport_network, sectors_no_transport_network)
 
 
     def evaluate_commercial_balance(self, graph):

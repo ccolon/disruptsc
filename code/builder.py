@@ -601,167 +601,165 @@ def getIndexClosestPoint(point, df_with_points):
 
 
 
-def rescaleNbFirms(filepath_district_sector_importance,
-    sector_table, transport_nodes,
-    district_sector_cutoff, nb_top_district_per_sector, explicit_service_firm,
-    sectors_to_include="all", districts_to_include="all"):
-    """Generate the firm data
+# def rescaleNbFirms(filepath_district_sector_importance,
+#     sector_table, transport_nodes, sectors_no_transport_network,
+#     district_sector_cutoff, nb_top_district_per_sector, explicit_service_firm,
+#     sectors_to_include="all", districts_to_include="all"):
+#     """Generate the firm data
 
-    It uses the district_sector_importance table, the odpoints, the cutoff values to generate the list of firms.
-    It generates a tuple of 3 pandas.DataFrame:
-    - firm_table
-    - odpoint_table
-    - filter_district_sector_table
+#     It uses the district_sector_importance table, the odpoints, the cutoff values to generate the list of firms.
+#     It generates a tuple of 3 pandas.DataFrame:
+#     - firm_table
+#     - odpoint_table
+#     - filter_district_sector_table
 
-    Parameters
-    ----------
-    filepath_district_sector_importance : string
-        Path for the district_sector_importance table
-    transport_nodes : geopandas.DataFrame
-        Table of transport nodes
-    sector_table : pandas.DataFrame
-        Sector table
-    district_sector_cutoff : float
-        Cutoff value for selecting the combination of district and sectors. 
-        For agricultural sector it is divided by two.
-    nb_top_district_per_sector : None or integer
-        Nb of extra district to keep based on importance rank per sector
-    explicit_service_firm : Boolean
-        Whether or not to explicitely model service firms
-    sectors_to_include : list of string or 'all'
-        list of the sectors to include. Default to "all"
-    districts_to_include : list of string or 'all'
-        list of the districts to include. Default to "all"
+#     Parameters
+#     ----------
+#     filepath_district_sector_importance : string
+#         Path for the district_sector_importance table
+#     transport_nodes : geopandas.DataFrame
+#         Table of transport nodes
+#     sector_table : pandas.DataFrame
+#         Sector table
+#     district_sector_cutoff : float
+#         Cutoff value for selecting the combination of district and sectors. 
+#         For agricultural sector it is divided by two.
+#     nb_top_district_per_sector : None or integer
+#         Nb of extra district to keep based on importance rank per sector
+#     explicit_service_firm : Boolean
+#         Whether or not to explicitely model service firms
+#     sectors_to_include : list of string or 'all'
+#         list of the sectors to include. Default to "all"
+#     districts_to_include : list of string or 'all'
+#         list of the districts to include. Default to "all"
 
-    Returns
-    -------
-    tuple(pandas.DataFrame, pandas.DataFrame, pandas.DataFrame)
-    """
+#     Returns
+#     -------
+#     tuple(pandas.DataFrame, pandas.DataFrame, pandas.DataFrame)
+#     """
 
-    # Load 
-    table_district_sector_importance = pd.read_csv(filepath_district_sector_importance,
-        dtype={'district':str, 'sector':str, "importance":float})
+#     # Load 
+#     table_district_sector_importance = pd.read_csv(filepath_district_sector_importance,
+#         dtype={'district':str, 'sector':str, "importance":float})
 
-    # Filter out combination with 0 importance
-    table_district_sector_importance = \
-        table_district_sector_importance[table_district_sector_importance['importance']!=0]
+#     # Filter out combination with 0 importance
+#     table_district_sector_importance = \
+#         table_district_sector_importance[table_district_sector_importance['importance']!=0]
 
-    # Keep only selected sectors, if applicable
-    if isinstance(sectors_to_include, list):
-        table_district_sector_importance = \
-            table_district_sector_importance[table_district_sector_importance['sector'].isin(sectors_to_include)]
-    elif (sectors_to_include!='all'):
-        raise ValueError("'sectors_to_include' should be a list of string or 'all'")
+#     # Keep only selected sectors, if applicable
+#     if isinstance(sectors_to_include, list):
+#         table_district_sector_importance = \
+#             table_district_sector_importance[table_district_sector_importance['sector'].isin(sectors_to_include)]
+#     elif (sectors_to_include!='all'):
+#         raise ValueError("'sectors_to_include' should be a list of string or 'all'")
 
-    # Keep only selected districts, if applicable
-    if isinstance(districts_to_include, list):
-        table_district_sector_importance = \
-            table_district_sector_importance[table_district_sector_importance['district'].isin(districts_to_include)]
-    elif (districts_to_include!='all'):
-        raise ValueError("'districts_to_include' should be a list of string or 'all'")
+#     # Keep only selected districts, if applicable
+#     if isinstance(districts_to_include, list):
+#         table_district_sector_importance = \
+#             table_district_sector_importance[table_district_sector_importance['district'].isin(districts_to_include)]
+#     elif (districts_to_include!='all'):
+#         raise ValueError("'districts_to_include' should be a list of string or 'all'")
 
-    logging.info('Nb of combinations (district, sector) before cutoff: '+str(table_district_sector_importance.shape[0]))
+#     logging.info('Nb of combinations (district, sector) before cutoff: '+str(table_district_sector_importance.shape[0]))
 
-    # Filter district-sector combination that are above the cutoff value
-    agri_sectors = sector_table.loc[sector_table['type']=="agriculture", "sector"].tolist()
-    if len(agri_sectors)>0:
-        logging.info('Cutoff is '+str(district_sector_cutoff/2)+" for agriculture sectors, "+
-            str(district_sector_cutoff)+" otherwise")
-        boolindex_overthreshold = table_district_sector_importance['importance'] >= district_sector_cutoff
-        boolindex_agri = (table_district_sector_importance['sector'].isin(agri_sectors)) & \
-             (table_district_sector_importance['importance'] >= district_sector_cutoff/2)
-        filtered_district_sector_table = table_district_sector_importance[boolindex_overthreshold | boolindex_agri].copy()
-    else:
-        logging.info('Cutoff is '+str(district_sector_cutoff))
-        boolindex_overthreshold = table_district_sector_importance['importance']>= district_sector_cutoff
-        filtered_district_sector_table = table_district_sector_importance[boolindex_overthreshold].copy()
-    logging.info('Nb of combinations (district, sector) after cutoff: '+str(filtered_district_sector_table.shape[0]))
+#     # Filter district-sector combination that are above the cutoff value
+#     agri_sectors = sector_table.loc[sector_table['type']=="agriculture", "sector"].tolist()
+#     if len(agri_sectors)>0:
+#         logging.info('Cutoff is '+str(district_sector_cutoff/2)+" for agriculture sectors, "+
+#             str(district_sector_cutoff)+" otherwise")
+#         boolindex_overthreshold = table_district_sector_importance['importance'] >= district_sector_cutoff
+#         boolindex_agri = (table_district_sector_importance['sector'].isin(agri_sectors)) & \
+#              (table_district_sector_importance['importance'] >= district_sector_cutoff/2)
+#         filtered_district_sector_table = table_district_sector_importance[boolindex_overthreshold | boolindex_agri].copy()
+#     else:
+#         logging.info('Cutoff is '+str(district_sector_cutoff))
+#         boolindex_overthreshold = table_district_sector_importance['importance']>= district_sector_cutoff
+#         filtered_district_sector_table = table_district_sector_importance[boolindex_overthreshold].copy()
+#     logging.info('Nb of combinations (district, sector) after cutoff: '+str(filtered_district_sector_table.shape[0]))
 
-    # Add the top district of each sector
-    if isinstance(nb_top_district_per_sector, int):
-        if nb_top_district_per_sector > 0:
-            top_district_sector = pd.concat([
-                table_district_sector_importance[table_district_sector_importance['sector']==sector].nlargest(nb_top_district_per_sector, 'importance')
-                for sector in table_district_sector_importance['sector'].unique()
-            ])
-            filtered_district_sector_table = pd.concat([filtered_district_sector_table, top_district_sector]).drop_duplicates()
-        logging.info('Nb of combinations (district, sector) after adding top '+
-            str(nb_top_district_per_sector)+": "+
-            str(filtered_district_sector_table.shape[0]))
+#     # Add the top district of each sector
+#     if isinstance(nb_top_district_per_sector, int):
+#         if nb_top_district_per_sector > 0:
+#             top_district_sector = pd.concat([
+#                 table_district_sector_importance[table_district_sector_importance['sector']==sector].nlargest(nb_top_district_per_sector, 'importance')
+#                 for sector in table_district_sector_importance['sector'].unique()
+#             ])
+#             filtered_district_sector_table = pd.concat([filtered_district_sector_table, top_district_sector]).drop_duplicates()
+#         logging.info('Nb of combinations (district, sector) after adding top '+
+#             str(nb_top_district_per_sector)+": "+
+#             str(filtered_district_sector_table.shape[0]))
     
-    # Generate the OD sector table
-    # It only contains the OD points for the filtered district
-    table_odpoints = extractOdpointTableFromTransportNodes(transport_nodes)
-    od_sector_table = pd.merge(table_odpoints, filtered_district_sector_table, how='inner', on='district')
-    od_sector_table['importance'] = od_sector_table['importance'] / od_sector_table['nb_points_same_district']
-    logging.info('Initial nb of OD points: '+str(table_odpoints.shape[0]))
-    logging.info('Filtered OD points: '+str(od_sector_table["odpoint"].nunique()))
-    logging.info("Av OD point per district: {:.2g}".
-        format(od_sector_table["odpoint"].nunique()/od_sector_table["district"].nunique()))
-    logging.info("Av sector per OD point: {:.2g}".
-        format(od_sector_table.shape[0]/od_sector_table["odpoint"].nunique()))
+#     # Generate the OD sector table
+#     # It only contains the OD points for the filtered district
+#     table_odpoints = extractOdpointTableFromTransportNodes(transport_nodes)
+#     od_sector_table = pd.merge(table_odpoints, filtered_district_sector_table, how='inner', on='district')
+#     od_sector_table['importance'] = od_sector_table['importance'] / od_sector_table['nb_points_same_district']
+#     logging.info('Initial nb of OD points: '+str(table_odpoints.shape[0]))
+#     logging.info('Filtered OD points: '+str(od_sector_table["odpoint"].nunique()))
+#     logging.info("Av OD point per district: {:.2g}".
+#         format(od_sector_table["odpoint"].nunique()/od_sector_table["district"].nunique()))
+#     logging.info("Av sector per OD point: {:.2g}".
+#         format(od_sector_table.shape[0]/od_sector_table["odpoint"].nunique()))
     
-    # Create firm table
-    # Map the sector type onto the od sector table
-    od_sector_table['sector_type'] = od_sector_table['sector']\
-        .map(sector_table.set_index("sector")['type'])
+#     # Create firm table
+#     # Map the sector type onto the od sector table
+#     od_sector_table['sector_type'] = od_sector_table['sector']\
+#         .map(sector_table.set_index("sector")['type'])
 
-    # The firm table is created frmo the od_sector_table
-    # If service firm are explicitly modeled, we simply duplicate the od_sector_table to have 2 firms per od node
-    # Otherwise, we need to differentiate between service and nonservice firms
-    if explicit_service_firm:
-        # We want two firms of the same sector in the same OD point,
-        # so duplicates rows, generate a unique id
-        firm_table = pd.concat(
-            [od_sector_table, od_sector_table], 
-            axis = 0, ignore_index=True
-        )
+#     # The firm table is created frmo the od_sector_table
+#     # If service firm are explicitly modeled, we simply duplicate the od_sector_table to have 2 firms per od node
+#     # Otherwise, we need to differentiate between service and nonservice firms
+#     if explicit_service_firm:
+#         # We want two firms of the same sector in the same OD point,
+#         # so duplicates rows, generate a unique id
+#         firm_table = pd.concat(
+#             [od_sector_table, od_sector_table], 
+#             axis = 0, ignore_index=True
+#         )
 
-    else: #service sector added as two firms for the whole country
-        service_sectors = sector_table.loc[sector_table['type'].isin(
-                ['utility', 'transport', 'trade', 'services']
-            ), 'sector'].tolist()
-        service_sectors_present = od_sector_table.loc[
-                od_sector_table['sector'].isin(service_sectors), 
-                'sector'
-            ].drop_duplicates().tolist()
-        od_sector_table_noservice = od_sector_table[
-            ~od_sector_table['sector'].isin(service_sectors_present)
-        ]
-        # We want two firms of the same sector in the same OD point,
-        # so duplicates rows, generate a unique id
-        firm_table = pd.concat(
-            [od_sector_table_noservice, od_sector_table_noservice], 
-            axis = 0, ignore_index=True
-        )
-        # Add utilities, transport, and services as virtuval firms
-        if len(service_sectors_present)>1:
-            firm_table_services = pd.DataFrame({
-                'odpoint':-1,
-                'importance': 1/2,
-                "sector": service_sectors_present*2,
-                "sector_type": "services"
-            })
-            firm_table = pd.concat([firm_table, firm_table_services], 
-                axis=0, ignore_index=True, sort=True)
+#     else: #service sector added as two firms for the whole country
+#         service_sectors = sector_table.loc[sector_table['type'].isin(sectors_no_transport_network), 'sector'].tolist()
+#         service_sectors_present = od_sector_table.loc[
+#                 od_sector_table['sector'].isin(service_sectors), 
+#                 'sector'
+#             ].drop_duplicates().tolist()
+#         od_sector_table_noservice = od_sector_table[
+#             ~od_sector_table['sector'].isin(service_sectors_present)
+#         ]
+#         # We want two firms of the same sector in the same OD point,
+#         # so duplicates rows, generate a unique id
+#         firm_table = pd.concat(
+#             [od_sector_table_noservice, od_sector_table_noservice], 
+#             axis = 0, ignore_index=True
+#         )
+#         # Add utilities, transport, and services as virtuval firms
+#         if len(service_sectors_present)>1:
+#             firm_table_services = pd.DataFrame({
+#                 'odpoint':-1,
+#                 'importance': 1/2,
+#                 "sector": service_sectors_present*2,
+#                 "sector_type": "services"
+#             })
+#             firm_table = pd.concat([firm_table, firm_table_services], 
+#                 axis=0, ignore_index=True, sort=True)
 
-    # Format firm table
-    firm_table = firm_table.sort_values('importance', ascending=False)
-    firm_table = firm_table.sort_values(['district', 'sector'])
-    firm_table['id'] = list(range(firm_table.shape[0]))
-    col_to_keep = ['id', 'sector', 'sector_type', 'odpoint', 'importance', 'district', 'long', 'lat']
-    firm_table = firm_table[col_to_keep]
+#     # Format firm table
+#     firm_table = firm_table.sort_values('importance', ascending=False)
+#     firm_table = firm_table.sort_values(['district', 'sector'])
+#     firm_table['id'] = list(range(firm_table.shape[0]))
+#     col_to_keep = ['id', 'sector', 'sector_type', 'odpoint', 'importance', 'district', 'long', 'lat']
+#     firm_table = firm_table[col_to_keep]
     
-    # Create OD table
-    od_table = od_sector_table.copy()
-    od_table = od_table[['odpoint', 'district', 'nb_points_same_district', 'long', 'lat']]
-    od_table = od_table.drop_duplicates().sort_values('odpoint')
+#     # Create OD table
+#     od_table = od_sector_table.copy()
+#     od_table = od_table[['odpoint', 'district', 'nb_points_same_district', 'long', 'lat']]
+#     od_table = od_table.drop_duplicates().sort_values('odpoint')
 
-    logging.info('Nb of od points chosen: '+str(len(set(firm_table['odpoint'])))+
-        ', final nb of firms chosen: '+str(firm_table.shape[0]))
-    # logging.debug(firm_table.groupby('sector')['id'].count())
+#     logging.info('Nb of od points chosen: '+str(len(set(firm_table['odpoint'])))+
+#         ', final nb of firms chosen: '+str(firm_table.shape[0]))
+#     # logging.debug(firm_table.groupby('sector')['id'].count())
 
-    return firm_table, od_table, filtered_district_sector_table
+#     return firm_table, od_table, filtered_district_sector_table
     
     
     

@@ -41,6 +41,7 @@ def runOneTimeStep(transport_network, sc_network, firm_list,
     route_optimization_weight="cost_per_ton",
     logistics_modes=None,
     explicit_service_firm=True,
+    sectors_no_transport_network=None,
     propagate_input_price_change=True,
     rationing_mode="household_first",
     time_step=0,
@@ -111,6 +112,7 @@ def runOneTimeStep(transport_network, sc_network, firm_list,
         firm_list=firm_list, 
         country_list=country_list, 
         T=transport_network, 
+        sectors_no_transport_network=sectors_no_transport_network,
         rationing_mode=rationing_mode, 
         explicit_service_firm=explicit_service_firm,
         monetary_units_in_model=monetary_units_in_model,
@@ -151,7 +153,7 @@ def runOneTimeStep(transport_network, sc_network, firm_list,
 
     
     allAgentsReceiveProducts(sc_network, firm_list, household_list, 
-        country_list, transport_network)
+        country_list, transport_network, sectors_no_transport_network)
     
     transport_network.update_road_state()
 

@@ -114,5 +114,5 @@ class Household(Agent):
             graph[edge[0]][self]['object'].order = quantity_to_buy
 
 
-    def receive_products_and_pay(self, graph, transport_network):
-        agent_receive_products_and_pay(self, graph, transport_network)
+    def receive_products_and_pay(self, graph, transport_network, sectors_no_transport_network):
+        agent_receive_products_and_pay(self, graph, transport_network, sectors_no_transport_network)

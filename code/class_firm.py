@@ -518,8 +518,9 @@ class Firm(Agent):
         # remove rationing as attribute
         pass
 
-    def deliver_products(self, graph, transport_network=None,
-                         rationing_mode="equal", monetary_units_in_model="mUSD",
+    def deliver_products(self, graph, transport_network=None, sectors_no_transport_network=None, 
+                         rationing_mode="equal", 
+                         monetary_units_in_model="mUSD",
                          cost_repercussion_mode="type1", explicit_service_firm=True):
 
         # Do nothing if no orders
@@ -590,7 +591,7 @@ class Firm(Agent):
                 if edge[1].pid == -1:
                     self.deliver_without_infrastructure(graph[self][edge[1]]['object'])
                 # If this is service flow, deliver without infrastructure
-                elif self.sector_type in ['trade', 'utility', 'transport', 'services']:
+                elif self.sector_type in sectors_no_transport_network:
                     self.deliver_without_infrastructure(graph[self][edge[1]]['object'])
                 # otherwise use infrastructure
                 else:
@@ -899,8 +900,8 @@ class Firm(Agent):
                     # Retransfer shipment
                     transport_network.transport_shipment(graph[self][edge[1]]['object'])
 
-    def receive_products_and_pay(self, graph, transport_network):
-        agent_receive_products_and_pay(self, graph, transport_network)
+    def receive_products_and_pay(self, graph, transport_network, sectors_no_transport_network):
+        agent_receive_products_and_pay(self, graph, transport_network, sectors_no_transport_network)
 
     def evaluate_profit(self, graph):
         # Collect all payments received

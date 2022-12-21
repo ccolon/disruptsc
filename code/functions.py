@@ -398,27 +398,30 @@ def allFirmsProduce(firm_list):
 #     for firm in firm_list:
 #         firm.deliver_products(G, T, rationing_mode, route_optimization_weight)
 
-def allAgentsDeliver(G, firm_list, country_list, T, rationing_mode, explicit_service_firm,
+def allAgentsDeliver(G, firm_list, country_list, T, sectors_no_transport_network, rationing_mode, explicit_service_firm,
                      monetary_units_in_model="mUSD", cost_repercussion_mode="type1"):
     for country in country_list:
         country.deliver_products(G, T,
+                                 sectors_no_transport_network=sectors_no_transport_network,
                                  monetary_units_in_model=monetary_units_in_model,
                                  cost_repercussion_mode=cost_repercussion_mode,
                                  explicit_service_firm=explicit_service_firm)
     for firm in firm_list:
-        firm.deliver_products(G, T, rationing_mode,
+        firm.deliver_products(G, T, 
+                              sectors_no_transport_network=sectors_no_transport_network,
+                              rationing_mode=rationing_mode,
                               monetary_units_in_model=monetary_units_in_model,
                               cost_repercussion_mode=cost_repercussion_mode,
                               explicit_service_firm=explicit_service_firm)
 
 
-def allAgentsReceiveProducts(G, firm_list, household_list, country_list, T):
+def allAgentsReceiveProducts(G, firm_list, household_list, country_list, T, sectors_no_transport_network):
     for household in household_list:
-        household.receive_products_and_pay(G, T)
+        household.receive_products_and_pay(G, T, sectors_no_transport_network)
     for firm in firm_list:
-        firm.receive_products_and_pay(G, T)
+        firm.receive_products_and_pay(G, T, sectors_no_transport_network)
     for country in country_list:
-        country.receive_products_and_pay(G, T)
+        country.receive_products_and_pay(G, T, sectors_no_transport_network)
     for firm in firm_list:
         firm.evaluate_profit(G)
 
@@ -619,7 +622,7 @@ def select_supplier_from_list(agent, firm_list,
 #                 transport_network.update_load_on_route(route, new_load_in_tons)
 
 
-def agent_receive_products_and_pay(agent, graph, transport_network):
+def agent_receive_products_and_pay(agent, graph, transport_network, sectors_no_transport_network):
     # reset variable
     if agent.agent_type == 'country':
         agent.extra_spending = 0
@@ -630,7 +633,7 @@ def agent_receive_products_and_pay(agent, graph, transport_network):
     # for each incoming link, receive product and pay
     # the way differs between service and shipment
     for edge in graph.in_edges(agent):
-        if graph[edge[0]][agent]['object'].product_type in ['services', 'trade', 'utility', 'transport']:
+        if graph[edge[0]][agent]['object'].product_type in sectors_no_transport_network:
             agent_receive_service_and_pay(agent, graph[edge[0]][agent]['object'])
         else:
             agent_receive_shipment_and_pay(agent, graph[edge[0]][agent]['object'], transport_network)
