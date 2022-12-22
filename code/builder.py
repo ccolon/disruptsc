@@ -1594,8 +1594,10 @@ def defineDisruptionList(disruption_analysis, transport_network,
             ])
         if disruption_analysis['disrupt_nodes_or_edges'] == "nodes":
             disruption_list = list(actual_transport_network.nodes)
+            disruption_list.sort()
         elif disruption_analysis['disrupt_nodes_or_edges'] == "edges":
             disruption_list = list(nx.get_edge_attributes(actual_transport_network, 'id').values())
+            disruption_list.sort()
         else:
             raise ValueError("disruption_analysis['disrupt_nodes_or_edges'] should be 'nodes' or 'edges'")
 
@@ -1620,6 +1622,7 @@ def defineDisruptionList(disruption_analysis, transport_network,
     if isinstance(nodeedge_tested_skipn, int):
         disruption_list = disruption_list[nodeedge_tested_skipn:]
 
+    logging.info('disruption_list: '+str(disruption_list))
     #######
     # Then we reformat the disruption list. It is a list of dic
     # [{"node":[1,2,3], "edge":[], "duration":2, "start_time":1}, {"node":[4], "edge":[], "duration":1, "start_time":1}]
