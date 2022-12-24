@@ -1,20 +1,17 @@
-from functions import determine_nb_suppliers, select_supplier_from_list,\
-                agent_receive_products_and_pay, calculate_distance_between_agents
-
-import random
-import pandas as pd
 import logging
 
 from class_agent import Agent
 from class_commerciallink import CommercialLink
+from functions import determine_nb_suppliers, select_supplier_from_list, \
+    agent_receive_products_and_pay, calculate_distance_between_agents
 
 
 class Household(Agent):
 
     def __init__(self, pid, odpoint, long, lat, sector_consumption):
         super().__init__(
-            agent_type="household", 
-            pid=pid, 
+            agent_type="household",
+            pid=pid,
             odpoint=odpoint,
             long=long,
             lat=lat
@@ -35,7 +32,6 @@ class Household(Agent):
         self.consumption_loss = 0
         self.extra_spending = 0
 
-
     def reset_variables(self):
         self.consumption_per_retailer = {}
         self.tot_consumption = 0
@@ -46,11 +42,10 @@ class Household(Agent):
         self.extra_spending_per_sector = {}
         self.consumption_loss_per_sector = {}
 
-
     def initialize_var_on_purchase_plan(self):
         if len(self.purchase_plan) == 0:
             logging.warn("Households initialize variables based on purchase plan, "
-                +"but it is empty.")
+                         + "but it is empty.")
 
         self.consumption_per_retailer = self.purchase_plan
         self.tot_consumption = sum(list(self.purchase_plan.values()))
@@ -59,25 +54,24 @@ class Household(Agent):
         self.tot_spending = self.tot_consumption
         self.extra_spending_per_sector = {sector: 0 for sector in self.purchase_plan.keys()}
 
-
     def select_suppliers(self, graph, firm_list, firm_table, nb_retailers, weight_localization):
         for sector, amount in self.sector_consumption.items():
             # Establish list of potential firms
-            potential_firms = firm_table.loc[firm_table['sector']==sector, 'id'].tolist()
+            potential_firms = firm_table.loc[firm_table['sector'] == sector, 'id'].tolist()
             if len(potential_firms) == 0:
                 raise ValueError('No firm to select')
 
             # Determine number of suppliers to choose from
             nb_suppliers_to_choose = determine_nb_suppliers(
-                nb_suppliers_per_input=nb_retailers, 
+                nb_suppliers_per_input=nb_retailers,
                 max_nb_of_suppliers=len(potential_firms)
             )
 
             # Select based on size and distance
             retailers, retailer_weights = select_supplier_from_list(
-                self, firm_list, 
-                nb_suppliers_to_choose, potential_firms, 
-                distance=True, importance=False, 
+                self, firm_list,
+                nb_suppliers_to_choose, potential_firms,
+                distance=True, importance=False,
                 weight_localization=weight_localization, force_same_odpoint=True
             )
 
@@ -85,24 +79,23 @@ class Household(Agent):
             for retailer_id in retailers:
                 # For each retailer, create an edge in the economic network
                 graph.add_edge(firm_list[retailer_id], self,
-                            object=CommercialLink(
-                                pid=str(retailer_id)+'->'+str(self.pid),
-                                product=sector,
-                                product_type=firm_list[retailer_id].sector_type,
-                                category="domestic_B2C",
-                                supplier_id=retailer_id,
-                                buyer_id=self.pid)
-                            )
+                               object=CommercialLink(
+                                   pid=str(retailer_id) + '->' + str(self.pid),
+                                   product=sector,
+                                   product_type=firm_list[retailer_id].sector_type,
+                                   category="domestic_B2C",
+                                   supplier_id=retailer_id,
+                                   buyer_id=self.pid)
+                               )
                 # Associate a weight in the commercial link, the household's purchase plan & retailer list, in the retailer's client list
                 weight = retailer_weights.pop()
                 graph[firm_list[retailer_id]][self]['weight'] = weight
                 self.purchase_plan[retailer_id] = weight * self.sector_consumption[sector]
-                self.retailers[retailer_id] = {'sector': sector, 'weight' : weight}
+                self.retailers[retailer_id] = {'sector': sector, 'weight': weight}
                 distance = calculate_distance_between_agents(self, firm_list[retailer_id])
                 firm_list[retailer_id].clients[self.pid] = {
-                    'sector': "households", 'share':0, 'transport_share':0, "distance": distance
-                } #The share of sales cannot be calculated now.
-
+                    'sector': "households", 'share': 0, 'transport_share': 0, "distance": distance
+                }  # The share of sales cannot be calculated now.
 
     def send_purchase_orders(self, graph):
         for edge in graph.in_edges(self):
@@ -112,7 +105,6 @@ class Household(Agent):
                 print("Households: No purchase plan for supplier", edge[0].pid)
                 quantity_to_buy = 0
             graph[edge[0]][self]['object'].order = quantity_to_buy
-
 
     def receive_products_and_pay(self, graph, transport_network, sectors_no_transport_network):
         agent_receive_products_and_pay(self, graph, transport_network, sectors_no_transport_network)

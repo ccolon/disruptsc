@@ -518,8 +518,8 @@ class Firm(Agent):
         # remove rationing as attribute
         pass
 
-    def deliver_products(self, graph, transport_network=None, sectors_no_transport_network=None, 
-                         rationing_mode="equal", 
+    def deliver_products(self, graph, transport_network=None, sectors_no_transport_network=None,
+                         rationing_mode="equal",
                          monetary_units_in_model="mUSD",
                          cost_repercussion_mode="type1", explicit_service_firm=True):
 

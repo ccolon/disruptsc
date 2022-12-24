@@ -55,7 +55,7 @@ def purchase_planning_function(estimated_need, inventory, inventory_duration_tar
         return target_inventory + estimated_need - inventory
     else:
         return (1 - reactivity_rate) * estimated_need + reactivity_rate * (
-                    estimated_need + target_inventory - inventory)
+                estimated_need + target_inventory - inventory)
 
 
 def evaluate_inventory_duration(estimated_need, inventory):
@@ -407,7 +407,7 @@ def allAgentsDeliver(G, firm_list, country_list, T, sectors_no_transport_network
                                  cost_repercussion_mode=cost_repercussion_mode,
                                  explicit_service_firm=explicit_service_firm)
     for firm in firm_list:
-        firm.deliver_products(G, T, 
+        firm.deliver_products(G, T,
                               sectors_no_transport_network=sectors_no_transport_network,
                               rationing_mode=rationing_mode,
                               monetary_units_in_model=monetary_units_in_model,
