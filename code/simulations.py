@@ -1,6 +1,7 @@
 # Core function of the simulation loop
 
 
+
 def setInitialSCConditions(transport_network, sc_network, firm_list,
                            country_list, household_list, initialization_mode="equilibrium"):
     """

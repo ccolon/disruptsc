@@ -241,29 +241,10 @@ def analyzeSupplyChainFlows(sc_network, firm_list, export_folder):
         axis=1, sort=True).fillna(0)
 
     # Regional io matrix
-    # legacy, should be removed, we shall do these kind of analysis outside of the core model
-    if False:
-        dic_firmid_to_region = {firm.pid: dic_odpoint_to_region[firm.odpoint] for firm in firm_list}
-
-        domestic_b2b_flows['from_region'] = domestic_b2b_flows['supplier_id'].map(dic_firmid_to_region)
-        domestic_b2b_flows['to_region'] = domestic_b2b_flows['buyer_id'].map(dic_firmid_to_region)
-
-        domestic_b2b_flows_per_region = domestic_b2b_flows.groupby(['from_region', 'to_region'])[
-            'quantity'].sum().reset_index()
-
-        regions = pd.Series(list(set(dic_odpoint_to_region.values()))).sort_values().tolist()
-        region_to_region_io_matrix = pd.DataFrame(index=regions, columns=regions, data=0)
-        for i in range(domestic_b2b_flows_per_region.shape[0]):
-            region_to_region_io_matrix.loc[
-                domestic_b2b_flows_per_region['from_region'].iloc[i], domestic_b2b_flows_per_region['to_region'].iloc[
-                    i]] = domestic_b2b_flows_per_region['quantity'].iloc[i]
 
     # Export Report
     final_consumption.to_csv(os.path.join(export_folder, 'initial_final_consumption.csv'), index=False)
     observed_io_matrix.to_csv(os.path.join(export_folder, 'initial_sector_io_matrix.csv'), index=True)
-    if False:  # legacy, should be removed, we shall do these kind of analysis outside of the core model
-        region_to_region_io_matrix.to_csv(os.path.join(export_folder, 'initial_region_to_region_io_matrix.csv'),
-                                          index=True)
     country_to_country_transit_matrix.to_csv(os.path.join(export_folder, 'initial_transit_matrix.csv'), index=True)
     import_b2b_flows_per_country.to_csv(os.path.join(export_folder, 'initial_import_b2b_flows_per_country.csv'),
                                         index=False)
