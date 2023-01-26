@@ -4,6 +4,9 @@ output/*
 tmp/*
 !tmp/.gitkeep
 
+# Pychamr
+.idea/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

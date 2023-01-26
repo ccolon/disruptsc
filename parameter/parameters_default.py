@@ -97,6 +97,11 @@ monetary_units_in_model = "mUSD"
 # Monetary units in input files. 'USD', 'kUSD', 'mUSD'
 monetary_units_inputed = "USD"
 
+# Define the type of input data to calibrate the model
+# - 'disaggregating IO' uses national input-table (tech_coef) with business census (district_economic_data)
+# - 'supplier buyer network' uses supplier buyer network data
+firm_data_type = "disaggregating IO"
+
 # Whether or not to model congestion
 congestion = True
 

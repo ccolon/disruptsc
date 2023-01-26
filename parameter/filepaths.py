@@ -23,7 +23,7 @@ filepaths = {
     "waterways_edges": os.path.join('input', input_folder, 'Transport', 'waterways_edges.geojson'),
     ## Supply
     # "district_sector_importance": os.path.join('input', input_folder, 'Supply', 'district_sector_importance.csv'),
-    "sector_table": os.path.join('input', input_folder, 'National', "2016_13sector_table.csv"),
+    "sector_table": os.path.join('input', input_folder, 'National', "4digit_sector_table.csv"),
     "tech_coef": os.path.join('input', input_folder, 'National', "2016_13sectors_tech_coef.csv"),
     "sector_cutoffs": os.path.join('input', input_folder, 'National', "13sectors_sector_firm_cutoffs.csv"),
     "inventory_duration_targets": os.path.join('input', input_folder, 'National', "inventory_duration_targets.csv"),
@@ -31,10 +31,11 @@ filepaths = {
     "adminunit_data": os.path.join('input', input_folder, 'Subnational', "canton_data.geojson"),
     ## Trade
     # "entry_points": os.path.join('input', input_folder, 'Trade', "entry_points.csv"),
-    "imports": os.path.join('input', input_folder, 'Trade', "import_table.csv"),
-    "exports": os.path.join('input', input_folder, 'Trade', "export_table.csv"),
+    "imports": os.path.join('input', input_folder, 'Trade', "4digit_import_table.csv"),
+    "exports": os.path.join('input', input_folder, 'Trade', "4digit_export_table.csv"),
     "transit_matrix": os.path.join('input', input_folder, 'Trade', "transit_matrix.csv"),
-    ## Demand
-    # "population": os.path.join('input', input_folder, 'Demand', "population.csv"),
-    # "final_demand": os.path.join('input', input_folder, 'Demand', "final_demand.csv"),
+    ## Network
+    "firm_table": os.path.join('input', input_folder, 'Network', "firm_table.csv"),
+    "location_table": os.path.join('input', input_folder, 'Network', "location_table.geojson"),
+    "transaction_table": os.path.join('input', input_folder, 'Network', "transaction_table.csv")
 }

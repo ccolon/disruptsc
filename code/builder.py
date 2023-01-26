@@ -440,11 +440,66 @@ def extractOdpointTableFromTransportNodes(transport_nodes):
     return table_odpoints
 
 
+def defineFirmsFromNetworkData(filepath_firm_table,
+    filepath_location_table,
+    sectors_to_include, transport_nodes,
+    filepath_sector_table):
+    '''Define firms baed on the firm_table
+    The output is a dataframe, 1 row = 1 firm.
+    The instances Firms are created in the createFirm function.
+    '''
+    # Load firm table 
+    firm_table = pd.read_csv(filepath_firm_table, dtype={'adminunit':str})
+
+    # Filter out some sectors
+    if sectors_to_include != "all":
+        firm_table = firm_table[firm_table['sector'].isin(sectors_to_include)]
+
+    # Assign firms to closest road nodes
+    selected_adminunits = list(firm_table['adminunit'].unique())
+    logging.info('Select '+str(firm_table.shape[0])+
+        " firms in "+str(len(selected_adminunits))+' admin units')
+    location_table = gpd.read_file(filepath_location_table)
+    cond_selected_adminunits = location_table['admin_code'].isin(selected_adminunits)
+    dic_adminunit_to_points = location_table[cond_selected_adminunits].set_index('admin_code')['geometry'].to_dict()
+    road_nodes = transport_nodes[transport_nodes['type'] == "roads"]
+    dic_adminunit_to_roadNodeId = {
+        adminunit: road_nodes.loc[getIndexClosestPoint(point, road_nodes), 'id']
+        for adminunit, point in dic_adminunit_to_points.items()
+    }
+    firm_table['odpoint'] = firm_table['adminunit'].map(dic_adminunit_to_roadNodeId)
+
+    # Information required by the createFirms function
+    # add sector type
+    sector_table = pd.read_csv(filepath_sector_table)
+    sector_to_sectorType = sector_table.set_index('sector')['type']
+    firm_table['sector_type'] = firm_table['sector'].map(sector_to_sectorType)
+    # add long lat
+    odpoint_table = road_nodes[road_nodes['id'].isin(firm_table['odpoint'])].copy()
+    odpoint_table['long'] = odpoint_table.geometry.x
+    odpoint_table['lat'] = odpoint_table.geometry.y
+    roadNodeID_to_longlat = odpoint_table.set_index('id')[['long', 'lat']]
+    firm_table['long'] = firm_table['odpoint'].map(roadNodeID_to_longlat['long'])
+    firm_table['lat'] = firm_table['odpoint'].map(roadNodeID_to_longlat['lat'])
+    # add importance
+    firm_table['importance'] = 10
+
+    return firm_table
+
 
 def defineFirmsFromGranularEcoData(filepath_adminunit_economic_data, 
     filepath_sector_cutoffs, sectors_to_include, transport_nodes,
     filepath_sector_table):
-    '''Define firms
+    '''Define firms based on the adminunit_economic_data.
+    The output is a dataframe, 1 row = 1 firm.
+    The instances Firms are created in the createFirm function.
+
+    Steps:
+    1. Load the adminunit_economic_data
+    2. It adds a row only when the sector in one adminunit is higher than the sector_cutoffs
+    3. It identifies the node of the road network that is the closest to the adminunit point
+    4. It combines the firms of the same sector that are in the same road node (case of 2 adminunit close to the same road node)
+    5. It calculates the "importance" of each firm = their size relative to the sector size
 
     Parameters
     ----------
@@ -762,7 +817,7 @@ def getIndexClosestPoint(point, df_with_points):
 #     return firm_table, od_table, filtered_district_sector_table
     
     
-    
+
 def createFirms(firm_table, keep_top_n_firms=None, reactivity_rate=0.1, utilization_rate=0.8):
     """Create the firms
 
@@ -810,6 +865,45 @@ def createFirms(firm_table, keep_top_n_firms=None, reactivity_rate=0.1, utilizat
         
     return firm_list
     
+
+def calibrateInputMix(firm_list, firm_table, sector_table, filepath_transaction_table):
+    transaction_table = pd.read_csv(filepath_transaction_table)
+
+    domestic_B2B_sales_per_firm = transaction_table.groupby('supplier_id')['transaction'].sum()
+    firm_table['domestic_B2B_sales'] = firm_table['id'].map(domestic_B2B_sales_per_firm).fillna(0)
+    firm_table['output'] = firm_table['domestic_B2B_sales'] + firm_table['final_demand'] + firm_table['exports']
+
+    # Identify the sector of the products exchanged recorded in the transaction table and whether they are essential
+    transaction_table['product_sector'] = transaction_table['supplier_id'].map(firm_table.set_index('id')['sector'])
+    transaction_table['is_essential'] = transaction_table['product_sector'].map(sector_table.set_index('sector')['essential'])
+    
+    # Get input mix from this data
+    def getInputMix(transaction_from_unique_buyer, firm_table):
+        output = firm_table.set_index('id').loc[transaction_from_unique_buyer.name, 'output']
+        print(output)
+        cond_essential = transaction_from_unique_buyer['is_essential']
+        # for essential inputs, get total input per product type
+        input_essential = transaction_from_unique_buyer[cond_essential].groupby('product_sector')['transaction'].sum() / output
+        # for non essential inputs, get total input
+        input_nonessential = transaction_from_unique_buyer.loc[~cond_essential, 'transaction'].sum() / output
+        # get share how much is essential and evaluate how much can be produce with essential input only (beta)
+        share_essential = input_essential.sum() / transaction_from_unique_buyer['transaction'].sum()
+        max_output_with_essential_only = share_essential * output
+        # shape results
+        dic_res = input_essential.to_dict()
+        dic_res['non_essential'] = input_nonessential
+        dic_res['max_output_with_essential_only'] = max_output_with_essential_only
+        return dic_res
+
+    input_mix = transaction_table.groupby('buyer_id').apply(getInputMix, firm_table)
+
+    # Load input mix into Firms
+    for firm in firm_list:
+        firm.input_mix = input_mix[firm.pid]
+
+    return firm_table, transaction_table
+
+
     
 def loadTechnicalCoefficients(firm_list, filepath_tech_coef, io_cutoff=0.1, import_sector_name=None):
     """Load the input mix of the firms' Leontief function
@@ -1253,12 +1347,12 @@ def addHouseholdsForFirms(firm_table, household_table,
 
 
 def defineHouseholds(sector_table, filepath_adminunit_data,
-    firm_table, filtered_sectors, pop_cutoff, pop_density_cutoff, local_demand_cutoff,
+    filtered_sectors, pop_cutoff, pop_density_cutoff, local_demand_cutoff,
     transport_nodes, time_resolution, target_units, input_units):
     '''Define the nomber of households to model and their purchase plan based on input demographic data
     and filtering options
 
-    Paramters
+    Parameters
     ---------
     sector_table
 

@@ -3,13 +3,15 @@ import logging
 import os
 
 input_folder = "Ecuador"
-inventory_duration_target = "inputed"
+# inventory_duration_target = "inputed"
 
 logging_level = logging.INFO
 
 monetary_units_in_model = "mUSD"
 monetary_units_inputed = "kUSD"
 time_resolution = 'week'
+
+firm_data_type = "supplier-buyer network"
 
 transport_modes = ['roads', 'maritime', 'waterways', 'airways']
 
@@ -62,7 +64,8 @@ disruption_analysis = {
 # }
 
 
-# disruption_analysis = None
+disruption_analysis = None
+inventory_duration_target = 2
 # congestion = True
 
 # cutoffs
