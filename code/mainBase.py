@@ -41,7 +41,6 @@ project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(1, project_path)
 from parameter.parameters_default import *
 from parameter.parameters import *
-from parameter.filepaths_default import *
 from parameter.filepaths import *
 
 # Start run
