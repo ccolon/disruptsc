@@ -149,7 +149,6 @@ if (len(sys.argv) < 2) or (sys.argv[1] == "same_transport_network_new_agents"):
     logging.info('Generating the firms')
     firm_table, firm_table_per_adminunit = defineFirmsFromGranularEcoData(
         filepath_adminunit_economic_data=filepaths['adminunit_data'], 
-        filepath_sector_cutoffs=filepaths['sector_cutoffs'],
         sectors_to_include=filtered_sectors,
         transport_nodes=transport_nodes,
         filepath_sector_table=filepaths['sector_table']

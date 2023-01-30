@@ -442,7 +442,7 @@ def extractOdpointTableFromTransportNodes(transport_nodes):
 
 
 def defineFirmsFromGranularEcoData(filepath_adminunit_economic_data, 
-    filepath_sector_cutoffs, sectors_to_include, transport_nodes,
+    sectors_to_include, transport_nodes,
     filepath_sector_table):
     '''Define firms
 
@@ -450,8 +450,6 @@ def defineFirmsFromGranularEcoData(filepath_adminunit_economic_data,
     ----------
     filepath_adminunit_economic_data: string
         Path to the district_data table
-    filepath_sector_cutoffs: string
-        Path to the sector_cutoffs table
     sectors_to_include: list or 'all'
         if 'all', include all sectors, otherwise define the list of sector to include
     transport_nodes: geopandas.GeoDataFrame
@@ -463,12 +461,12 @@ def defineFirmsFromGranularEcoData(filepath_adminunit_economic_data,
     # A. Create firm table
     # A.1. load files
     adminunit_eco_data = gpd.read_file(filepath_adminunit_economic_data)
-    sector_cutoffs = pd.read_csv(filepath_sector_cutoffs).set_index('sector')
+    sector_table = pd.read_csv(filepath_sector_table)
 
     # A.2. for each sector, select adminunit where supply_data is over threshold
     # and populate firm table
     firm_table_per_adminunit = pd.DataFrame()
-    for sector, row in sector_cutoffs.iterrows():
+    for sector, row in sector_table.set_index("sector").iterrows():
         if (sectors_to_include == "all") or (sector in sectors_to_include):
             # check that the supply metric is in the data
             if row["supply_data"] not in adminunit_eco_data.columns:
@@ -516,7 +514,6 @@ def defineFirmsFromGranularEcoData(filepath_adminunit_economic_data,
 
     # D. Add information required by the createFirms function
     # add sector type
-    sector_table = pd.read_csv(filepath_sector_table)
     sector_to_sectorType = sector_table.set_index('sector')['type']
     firm_table_per_odpoint['sector_type'] = firm_table_per_odpoint['sector'].map(sector_to_sectorType)
     # add long lat
@@ -553,7 +550,7 @@ def defineFirmsFromGranularEcoData(filepath_adminunit_economic_data,
     # F. Log information
     logging.info('Create '+str(firm_table_per_odpoint.shape[0])+" firms in "+
         str(firm_table_per_odpoint['odpoint'].nunique())+' od points')
-    for sector, row in sector_cutoffs.iterrows():
+    for sector, row in sector_table.set_index("sector").iterrows():
         if (sectors_to_include == "all") or (sector in sectors_to_include):
             cond = firm_table_per_odpoint['sector'] == sector
             logging.info('Sector '+sector+": create "+
