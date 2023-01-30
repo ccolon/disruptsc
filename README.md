@@ -313,10 +313,12 @@ Example:
 **1. Prepare an initial sector table**
 
 - Prepare a *sector_csv*, with all the sector and their corresponding identifier (recommended identifier: a trigram, e.g. CER for cereal production or MTE for manufacturing of textile)
+- The column with the identifier should be called *sector*
 
 **2. Prepare the district data**
 
 - Prepare a *district_geojson*, with all district, their adequate identifier (typically the administrivate code, beware whether you want it to me string or integer), the point of their main city as geometry
+- The column with the admin code should be called *admin_code*
 - Make sure that in your *sales_csv*, the districts and sectors are adequately coded
 - Create the *district_data_geojson* (see above) from *district_geojson* and *sales_csv*, which includes population per district
 

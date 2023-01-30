@@ -23,13 +23,13 @@ filepaths = {
     "waterways_nodes": os.path.join('input', input_folder, 'Transport', 'waterways_nodes.geojson'),
     "waterways_edges": os.path.join('input', input_folder, 'Transport', 'waterways_edges.geojson'),
     # National data
-    "sector_table": os.path.join('input', input_folder, 'National', "13sector_2016_sector_table.csv"),
-    "tech_coef": os.path.join('input', input_folder, 'National', "13sector_2016_tech_coef.csv"),
+    "sector_table": os.path.join('input', input_folder, 'National', "59sector_2016_sector_table.csv"),
+    "tech_coef": os.path.join('input', input_folder, 'National', "59sector_2016_tech_coef.csv"),
     "inventory_duration_targets": os.path.join('input', input_folder, 'National', "inventory_duration_targets.csv"),
     # District data
-    "adminunit_data": os.path.join('input', input_folder, 'Subnational', "13sector_2016_canton_data.geojson"),
+    "adminunit_data": os.path.join('input', input_folder, 'Subnational', "59sector_2015_canton_data.geojson"),
     # Trade
-    "imports": os.path.join('input', input_folder, 'Trade', "13sector_2016_import_table.csv"),
-    "exports": os.path.join('input', input_folder, 'Trade', "13sector_2016_export_table.csv"),
+    "imports": os.path.join('input', input_folder, 'Trade', "59sector_2016_import_table.csv"),
+    "exports": os.path.join('input', input_folder, 'Trade', "59sector_2016_export_table.csv"),
     "transit_matrix": os.path.join('input', input_folder, 'Trade', "2016_transit_matrix.csv"),
 }
