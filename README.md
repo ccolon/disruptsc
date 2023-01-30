@@ -300,3 +300,66 @@ Example:
 **BDI** | 2 | 456 | ...
 ... | ... | ... | ...
 
+
+
+## Data prep
+
+*Requisite:*
+- Say you have sales data per sector per district, *sales_csv*, preprated from business census data. It should be coded with a relevant sector classification.
+- You should also have a list of countries, or group of countries, to represent the rest of the world. Typically, isolate the neighbooring countries, or those that very relevant in terms of trade, and then group the rest based on continents. Code the countries with a trigram. For instance, VNM for Vietnam, THA for Thailand, ASI for Asia, OCE for Oceania, AFR for Africa, EUR for Europe, AME for America.
+
+1. Prepare an initial sector table
+
+- Prepare a *sector_csv*, with all the sector and their corresponding identifier (recommended identifier: a trigram, e.g. CER for cereal production or MTE for manufacturing of textile)
+
+2. Prepare the district data
+
+- Prepare a *district_geojson*, with all district, their adequate identifier (typically the administrivate code, beware whether you want it to me string or integer), the point of their main city as geometry
+- Make sure that in your *sales_csv*, the districts and sectors are adequately coded
+- Create the *district_data_geojson* (see above) from *district_geojson* and *sales_csv*, which includes population per district
+
+3. Add the sector cutoff to the sector table
+
+- Add a column *supply_data* in the sector table: it should correspond to the name of the attribute of the district data (*district_geojson*) which contains the economic data of that sector
+- Add a column *cutoff* in the sector table: only district with data above this cutoff will be modeled as production place for that sector
+
+4. Prepare the technical coefficient matrix
+
+- Get the symmetric industry-by-industry input--output (IO) table with the adequate sector classification
+	- Note that you may need the adjust the sector classification of the IO table yourself, and/or the one of the sales data. What is important is that the same sector classification is used throughout the data
+- Open it in excel (or equivalent) and control that you get the GDP using the 3 approaches (income, production, expenditure)
+- Create the technical coefficient matrix, add the row for imports, coded IMP
+
+5. Add output, final demand, pc_export to the sector table
+
+- Use the input--output table of step 2 to retrieve total output, final demand, and % of export (exports / total output) per sector
+- Add those three columns to the sector table 
+
+6. Prepare the import and export tables
+
+- Get trade data for the relevant year, choose the country as "Partner", get the csv file, such as *comtrade_2016_EcuadorAsPartner_AG2.csv*
+- Prepare a country mapping table, which maps the 3-digit ISO code of all countries listed in the ComTrade data to your country classification
+- Prepare a sector mapping table, which maps the ComTrade commodity code (see https://unstats.un.org/unsd/classifications/Econ) into your sector classification
+- Map the trade data into your country and sector classification
+- Create the import table and the export table
+
+7. Prepare the transit matrix
+
+- Identify the pair of neighboring countries, whose physical trade flows could go through the country under study (e.g., Peru - Colombia for Ecuador)
+- For each pair, get the total import and export of good on ComTrade for the relevant year (not splitted by sector)
+- With any data available, estimate how much of these trade flows goes through the country
+- Produce the resulting transit matrix
+
+8. Add usd_per_ton to the sector table
+
+- Get comTrade data, with the country under study as reporter, splitted by commodity, for the relevant year (not split by partners)
+- Check that the trade flows are both in qty and in USD
+- Map it onto the sector classification
+- Calculate the ratio USD per ton for each sector
+- Add this column to the sector table
+
+9. Calculate the inventory target table
+
+- Get the inventory data and map ii into the sector classification
+- Calculate the inventory duration targets for each pair of supplying sector to buying sector
+- Create the inventory target table
