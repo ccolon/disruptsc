@@ -72,7 +72,7 @@ disruption_analysis = {
 #     'type': 'percentage',
 #     'value': 0.02
 # }
-io_cutoff = 0.02
+io_cutoff = 0.01
 
 route_optimization_weight = "agg_cost" #cost_per_ton time_cost agg_cost
 

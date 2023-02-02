@@ -25,7 +25,7 @@ filepaths = {
     # National data
     "sector_table": os.path.join('input', input_folder, 'National', "59sector_2016_sector_table.csv"),
     "tech_coef": os.path.join('input', input_folder, 'National', "59sector_2016_tech_coef.csv"),
-    "inventory_duration_targets": os.path.join('input', input_folder, 'National', "inventory_duration_targets.csv"),
+    "inventory_duration_targets": os.path.join('input', input_folder, 'National', "59sector_inventory_targets.csv"),
     # District data
     "adminunit_data": os.path.join('input', input_folder, 'Subnational', "59sector_2015_canton_data.geojson"),
     # Trade

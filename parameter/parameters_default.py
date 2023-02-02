@@ -119,17 +119,19 @@ sectors_no_transport_network = ['utility', 'transport', 'trade', 'service']
 # Filter out sectors whose output is below that cutoff value
 # - if 'type' is 'percentage', test cutoff againt the sector's relative output
 # - if 'type' is 'absolute', test cutoff againt the sector's absolute output
+# - if 'type' is 'relative_to_average', the cutoff is (cutoff value) * (country's total output) / (nb sectors)
 cutoff_sector_output = {
-    'type': 'percentage',
-    'value': 0.02
+    'type': 'relative_to_average',
+    'value': 0.1
 }
 
 # Filter out sectors whose final demand is below that cutoff value
 # - if 'type' is 'percentage', test cutoff againt the sector's relative output
 # - if 'type' is 'absolute', test cutoff againt the sector's absolute output
+# - if 'type' is 'relative_to_average', the cutoff is is set to (cutoff value) * (country's total demand) / (nb sectors)
 cutoff_sector_demand = {
-    'type': 'percentage',
-    'value': 0.02
+    'type': 'relative_to_average',
+    'value': 0.1
 }
 
 # How to combine the output and demand sector cutoffs

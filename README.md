@@ -318,6 +318,7 @@ Example:
 **2. Prepare the district data**
 
 - Prepare a *district_geojson*, with all district, their adequate identifier (typically the administrivate code, beware whether you want it to me string or integer), the point of their main city as geometry
+- Make sure the coordinates system is EPSG 4326 (unprojected, degrees)
 - The column with the admin code should be called *admin_code*
 - Make sure that in your *sales_csv*, the districts and sectors are adequately coded
 - Create the *district_data_geojson* (see above) from *district_geojson* and *sales_csv*, which includes population per district
@@ -334,10 +335,11 @@ Example:
 - Open it in excel (or equivalent) and control that you get the GDP using the 3 approaches (income, production, expenditure)
 - Create the technical coefficient matrix, add the row for imports, coded IMP
 
-**5. Add output, final demand, pc_export to the sector table**
+**5. Add output, final demand, share_exporting_firms to the sector table**
 
 - Use the input--output table of step 2 to retrieve total output, final demand, and % of export (exports / total output) per sector
-- Add those three columns to the sector table 
+- Add those three columns to the sector table with the following names: output, final_demand, share_exporting_firms
+	- Note that we use here % of export as a proxy for the proportion of firms that exports. If better data are available on this, use it instead of % of export
 
 **6. Prepare the import and export tables**
 

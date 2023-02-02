@@ -340,10 +340,53 @@ def createTransportNetwork(transport_modes, filepaths, transport_params, extra_r
 
     return T, nodes, edges
 
+
+def applySectorFilter(sector_table, filter_column, cut_off_dic):
+    """Filter the sector_table using the filter_column
+    The way to cut_off is defined in cut_off_dic
+
+    sector_table : pandas.DataFrame
+        Sector table
+    filter_column : string
+        'output' or 'final_demand'
+    cut_off_dic : dictionary
+        Cutoff paramters for selecting the sectors based on output
+        If type="percentage", the sector's filter_column divided by all sectors' output is used
+        If type="absolute", the sector's absolute filter_column is used
+        If type="relative_to_average", the cutoff used is (cutoff value) * (total filter_column) / (nb sectors)
+    """
+    sector_table_no_import = sector_table[sector_table['sector'] != "IMP"]
+
+    if cut_off_dic['type'] == "percentage":
+        rel_output = sector_table_no_import[filter_column] / sector_table_no_import['output'].sum()
+        filtered_sectors = sector_table_no_import.loc[
+            rel_output > cut_off_dic['value'], 
+            "sector"
+        ].tolist()
+    elif cut_off_dic['type'] == "absolute":
+        filtered_sectors = sector_table_no_import.loc[
+            sector_table_no_import[filter_column] > cut_off_dic['value'], 
+            "sector"
+        ].tolist()
+    elif cut_off_dic['type'] == "relative_to_average":
+        cutoff = cut_off_dic['value'] \
+                 * sector_table_no_import[filter_column].sum() \
+                 / sector_table_no_import.shape[0]
+        filtered_sectors = sector_table_no_import.loc[
+            sector_table_no_import['output'] > cutoff, 
+            "sector"
+        ].tolist()
+    else:
+        raise ValueError("cutoff type should be 'percentage', 'absolute', or 'relative_to_average'")
+    if len(filtered_sectors) == 0:
+        raise ValueError("The output cutoff value is so high that it filtered out all sectors")
+    return filtered_sectors
+
     
 def filterSector(sector_table, cutoff_sector_output, cutoff_sector_demand, 
     combine_sector_cutoff='and', sectors_to_include="all", sectors_to_exclude=None):
-    """Filter the sector table to sector whose output is larger than cutoff values
+    """Filter the sector table to sector whose output and/or final demand is larger than cutoff values
+    In addition to filters, we can force to exclude or include some sectors
 
     Parameters
     ----------
@@ -353,6 +396,7 @@ def filterSector(sector_table, cutoff_sector_output, cutoff_sector_demand,
         Cutoff paramters for selecting the sectors based on output
         If type="percentage", the sector's output divided by all sectors' output is used
         If type="absolute", the sector's absolute output, in USD, is used
+        If type="relative_to_average", the cutoff used is (cutoff value) * (country's total output) / (nb sectors)
     cutoff_sector_demand : dictionary
         Cutoff value for selecting the sectors based on final demand
         If type="percentage", the sector's final demand divided by all sectors' output is used
@@ -370,38 +414,8 @@ def filterSector(sector_table, cutoff_sector_output, cutoff_sector_demand,
     list of filtered sectors
     """
     # Select sectors based on output
-    if cutoff_sector_output['type'] == "percentage":
-        rel_output = sector_table['output'] / sector_table['output'].sum()
-        filtered_sectors_output = sector_table.loc[
-            rel_output > cutoff_sector_output['value'], 
-            "sector"
-        ].tolist()
-    elif cutoff_sector_output['type'] == "absolute":
-        filtered_sectors_output = sector_table.loc[
-            sector_table['output'] > cutoff_sector_output['value'], 
-            "sector"
-        ].tolist()
-    else:
-        raise ValueError("cutoff type should be 'percentage' or 'absolute'")
-    if len(filtered_sectors_output) == 0:
-        raise ValueError("The output cutoff value is so high that it filtered out all sectors")
-
-    # Select sectors based on demand
-    if cutoff_sector_demand['type'] == "percentage":
-        rel_output = sector_table['final_demand'] / sector_table['final_demand'].sum()
-        filtered_sectors_demand = sector_table.loc[
-            rel_output > cutoff_sector_demand['value'], 
-            "sector"
-        ].tolist()
-    elif cutoff_sector_demand['type'] == "absolute":
-        filtered_sectors_demand = sector_table.loc[
-            sector_table['final_demand'] > cutoff_sector_demand['value'], 
-            "sector"
-        ].tolist()
-    else:
-        raise ValueError("cutoff type should be 'percentage' or 'absolute'")  
-    if len(filtered_sectors_demand) == 0:
-        raise ValueError("The output cutoff value is so high that it filtered out all sectors") 
+    filtered_sectors_output = applySectorFilter(sector_table, 'output', cutoff_sector_output)
+    filtered_sectors_demand = applySectorFilter(sector_table, 'final_demand', cutoff_sector_output)
 
     # Merge both list
     if combine_sector_cutoff == 'and':

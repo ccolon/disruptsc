@@ -178,7 +178,7 @@ def initilize_at_equilibrium(graph, firm_list, household_list, country_list):
     Nothing
     """
 
-    # Get the wieghted connectivity matrix.
+    # Get the weighted connectivity matrix.
     # Weight is the sectoral technical coefficient, if there is only one supplier for the input
     # It there are several, the technical coefficient is multiplied by the share of input of
     # this type that the firm buys to this supplier.
@@ -307,10 +307,12 @@ def determine_suppliers_and_weights(potential_supplier_pid,
         ])
 
     # Select supplier
-    prob_to_be_selected = np.array(importance_of_each)
-    prob_to_be_selected /= prob_to_be_selected.sum()
+    prob_to_be_selected = np.array(importance_of_each) / np.array(importance_of_each).sum()
     selected_supplier_ids = np.random.choice(potential_supplier_pid,
-                                             p=prob_to_be_selected, size=nb_selected_suppliers, replace=False).tolist()
+                                             p=prob_to_be_selected, 
+                                             size=nb_selected_suppliers, 
+                                             replace=False
+                                            ).tolist()
 
     # Compute weights, based on importance only
     supplier_weights = generate_weights_from_list([
