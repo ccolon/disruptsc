@@ -3,10 +3,9 @@ import pandas as pd
 import logging
 import os
 import networkx as nx
-import math
 import numpy as np
-import yaml
 from shapely.geometry import Point, LineString
+import warnings
 
 from class_firm import Firm
 from class_household import Household
@@ -856,6 +855,12 @@ def loadTechnicalCoefficients(firm_list, filepath_tech_coef, io_cutoff=0.1, impo
     else:
         tech_coef_matrix = tech_coef_matrix.loc[sector_present, sector_present]
     
+    # Check whether all sectors have input
+    cond_sector_no_inputs = tech_coef_matrix.sum() == 0
+    if cond_sector_no_inputs.any():
+        warnings.warn('Some sectors have no inputs: '+str(cond_sector_no_inputs[cond_sector_no_inputs].index.to_list())
+                      +" Check this sector or reduce the io_coef cutoff" )
+
     # Load input mix
     for firm in firm_list:
         firm.input_mix = tech_coef_matrix.loc[tech_coef_matrix.loc[:,firm.sector] != 0, firm.sector].to_dict()

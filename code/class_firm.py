@@ -489,9 +489,17 @@ class Firm(Agent):
             self.order_book[edge[1].pid] = quantity_ordered
 
     def produce(self, mode="Leontief"):
-        max_production = production_function(self.inventory, self.input_mix, mode)
-        self.production = min([max_production, self.production_target, self.production_capacity])
+        # Produce
+        if len(self.input_mix) == 0: #if no need for inputs
+            self.production = min([self.production_target, self.production_capacity])
+        else:
+            max_production = production_function(self.inventory, self.input_mix, mode) #other check max given inventories
+            self.production = min([max_production, self.production_target, self.production_capacity])
+
+        # Add to stock of finished goods
         self.product_stock += self.production
+
+        # Remove input used from inventories
         if mode == "Leontief":
             input_used = {input_id: self.production * mix for input_id, mix in self.input_mix.items()}
             self.inventory = {input_id: quantity - input_used[input_id] for input_id, quantity in
