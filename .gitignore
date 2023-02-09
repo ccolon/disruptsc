@@ -5,7 +5,6 @@ tmp/*
 !tmp/.gitkeep
 
 # PyCharm
-
 .idea/
 
 # Byte-compiled / optimized / DLL files

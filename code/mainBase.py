@@ -148,22 +148,43 @@ if (len(sys.argv) < 2) or (sys.argv[1] == "same_transport_network_new_agents"):
     logging.info('The filtered sectors are: '+str(filtered_sectors))
 
     logging.info('Generating the firms')
-    firm_table, firm_table_per_adminunit = defineFirmsFromGranularEcoData(
-        filepath_adminunit_economic_data=filepaths['adminunit_data'], 
-        sectors_to_include=filtered_sectors,
-        transport_nodes=transport_nodes,
-        filepath_sector_table=filepaths['sector_table']
-    )
-    nb_firms = 'all'
-    logging.info('Creating firm_list. nb_firms: '+str(nb_firms)+
-        ' reactivity_rate: '+str(reactivity_rate)+
-        ' utilization_rate: '+str(utilization_rate))
-    firm_list = createFirms(
-        firm_table=firm_table, 
-        keep_top_n_firms=nb_firms, 
-        reactivity_rate=reactivity_rate, 
-        utilization_rate=utilization_rate
-    )
+    if firm_data_type == "disaggregating IO":
+        firm_table, firm_table_per_adminunit = defineFirmsFromGranularEcoData(
+            filepath_adminunit_economic_data=filepaths['adminunit_data'],
+            sectors_to_include=filtered_sectors,
+            transport_nodes=transport_nodes,
+            filepath_sector_table=filepaths['sector_table']
+        )
+        nb_firms = 'all'
+        logging.info('Creating firm_list. nb_firms: '+str(nb_firms)+
+            ' reactivity_rate: '+str(reactivity_rate)+
+            ' utilization_rate: '+str(utilization_rate))
+        firm_list = createFirms(
+            firm_table=firm_table, 
+            keep_top_n_firms=nb_firms, 
+            reactivity_rate=reactivity_rate, 
+            utilization_rate=utilization_rate
+        )
+    elif firm_data_type == "supplier-buyer network":
+        firm_table = defineFirmsFromNetworkData(
+            filepath_firm_table=filepaths['firm_table'],
+            filepath_location_table=filepaths['location_table'],
+            sectors_to_include=sectors_to_include, 
+            transport_nodes=transport_nodes,
+            filepath_sector_table=filepaths['sector_table'])
+        nb_firms = 'all'
+        logging.info('Creating firm_list. nb_firms: '+str(nb_firms)+
+            ' reactivity_rate: '+str(reactivity_rate)+
+            ' utilization_rate: '+str(utilization_rate))
+        firm_list = createFirms(
+            firm_table=firm_table, 
+            keep_top_n_firms=nb_firms, 
+            reactivity_rate=reactivity_rate, 
+            utilization_rate=utilization_rate
+        )
+    else:
+        raise ValueError(firm_data_type + " should be one of 'disaggregating', 'supplier-buyer network'")
+        
     n = len(firm_list)
     present_sectors = list(set([firm.sector for firm in firm_list]))
     present_sectors.sort()
@@ -176,7 +197,6 @@ if (len(sys.argv) < 2) or (sys.argv[1] == "same_transport_network_new_agents"):
     household_table, household_sector_consumption = defineHouseholds(
         sector_table=sector_table, 
         filepath_adminunit_data=filepaths['adminunit_data'],
-        firm_table=firm_table_per_adminunit, 
         filtered_sectors=present_sectors, 
         pop_cutoff=pop_cutoff, 
         pop_density_cutoff=pop_density_cutoff, 
@@ -205,11 +225,22 @@ if (len(sys.argv) < 2) or (sys.argv[1] == "same_transport_network_new_agents"):
     )
     logging.info('Households generated')
 
-
     # Loading the technical coefficients
-    import_code = sector_table.loc[sector_table['type']=='imports', 'sector'].iloc[0] #usually it is IMP
-    firm_list = loadTechnicalCoefficients(firm_list, filepaths['tech_coef'], io_cutoff, import_code)
-    logging.info('Technical coefficient loaded. io_cutoff: '+str(io_cutoff))
+    if firm_data_type == "disaggregating IO":
+        import_code = sector_table.loc[sector_table['type']=='imports', 'sector'].iloc[0] #usually it is IMP
+        firm_list = loadTechnicalCoefficients(firm_list, filepaths['tech_coef'], io_cutoff, import_code)
+        logging.info('Technical coefficient loaded. io_cutoff: '+str(io_cutoff))
+
+    elif firm_data_type == "supplier-buyer network":
+        firm_table, transaction_table = calibrateInputMix(
+            firm_list=firm_list, 
+            firm_table=firm_table, 
+            sector_table=sector_table,
+            filepath_transaction_table=filepaths['transaction_table']
+        )
+
+    else:
+        raise ValueError(firm_data_type + " should be one of 'disaggregating', 'supplier-buyer network'")
 
     # Loading the inventories
     firm_list = loadInventories(
@@ -242,7 +273,6 @@ if (len(sys.argv) < 2) or (sys.argv[1] == "same_transport_network_new_agents"):
     )
     logging.info('Country_list created: '+str([country.pid for country in country_list]))
 
-
     ### Specify the weight of a unit worth of good, which may differ according to sector, or even to each firm/countries
     # Note that for imports, i.e. for the goods delivered by a country, and for transit flows, we do not disentangle sectors
     # In this case, we use an average.
@@ -261,6 +291,8 @@ if (len(sys.argv) < 2) or (sys.argv[1] == "same_transport_network_new_agents"):
     tmp_data['household_table'] = household_table
     tmp_data['household_list'] = household_list
     tmp_data['country_list'] = country_list
+    if firm_data_type == "supplier-buyer network":
+        tmp_data['transaction_table'] = transaction_table
     pickle_filename = os.path.join('tmp', 'firms_households_countries_pickle')
     pickle.dump(tmp_data, open(pickle_filename, 'wb'))
     logging.info('Firms, households, and countries saved in tmp folder: '+pickle_filename)
@@ -276,6 +308,8 @@ elif sys.argv[1] in ["same_agents_new_sc_network", "same_sc_network_new_logistic
     firm_list = tmp_data['firm_list']
     household_list = tmp_data['household_list']
     country_list = tmp_data['country_list']
+    if firm_data_type == "supplier-buyer network":
+        transaction_table = tmp_data['transaction_table']
     logging.info('Firms, households, and countries generated from temp file.')
     logging.info("Nb firms: "+str(len(firm_list)))
     logging.info("Nb households: "+str(len(household_list)))
@@ -319,9 +353,22 @@ if (len(sys.argv) < 2) or (sys.argv[1] in ["same_transport_network_new_agents", 
     logging.info('Firms are selecting their domestic and international suppliers (import B2B flows) (domestic B2B flows).'+
      ' Weight localisation is '+str(weight_localization_firm))
     import_code = sector_table.loc[sector_table['type']=='imports', 'sector'].iloc[0]
-    for firm in firm_list:
-        firm.select_suppliers(G, firm_list, country_list, nb_suppliers_per_input, weight_localization_firm, 
-            import_code=import_code)
+
+    if firm_data_type == "disaggregating IO":
+        for firm in firm_list:
+            firm.select_suppliers(G, firm_list, country_list, nb_suppliers_per_input, weight_localization_firm, 
+                import_code=import_code)
+
+    elif firm_data_type == "supplier-buyer network":
+        for firm in firm_list:
+            inputed_supplier_links = transaction_table[transaction_table['buyer_id'] == firm.pid]
+            output = firm_table.set_index('id').loc[firm.pid, "output"]
+            firm.select_suppliers_from_data(G, firm_list, country_list, inputed_supplier_links, output,
+                import_code=import_code)
+
+    else:
+        raise ValueError(firm_data_type + " should be one of 'disaggregating', 'supplier-buyer network'")
+
     logging.info('The nodes and edges of the supplier--buyer have been created')
     if export['sc_network_summary']:
         exportSupplyChainNetworkSummary(G, firm_list, exp_folder)
@@ -346,7 +393,7 @@ elif sys.argv[1] in ["same_sc_network_new_logistic_routes","same_logistic_routes
 
 else:
     raise ValueError('Argument error')
-
+exit()
 logging.info('Compute the orders on each supplier--buyer link')
 setInitialSCConditions(T, G, firm_list, 
     country_list, household_list, initialization_mode="equilibrium")
