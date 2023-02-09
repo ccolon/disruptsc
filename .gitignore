@@ -4,7 +4,7 @@ output/*
 tmp/*
 !tmp/.gitkeep
 
-# Pychamr
+# PyCharm
 .idea/
 
 # Byte-compiled / optimized / DLL files

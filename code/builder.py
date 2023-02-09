@@ -3,10 +3,9 @@ import pandas as pd
 import logging
 import os
 import networkx as nx
-import math
 import numpy as np
-import yaml
 from shapely.geometry import Point, LineString
+import warnings
 
 from class_firm import Firm
 from class_household import Household
@@ -340,10 +339,53 @@ def createTransportNetwork(transport_modes, filepaths, transport_params, extra_r
 
     return T, nodes, edges
 
+
+def applySectorFilter(sector_table, filter_column, cut_off_dic):
+    """Filter the sector_table using the filter_column
+    The way to cut_off is defined in cut_off_dic
+
+    sector_table : pandas.DataFrame
+        Sector table
+    filter_column : string
+        'output' or 'final_demand'
+    cut_off_dic : dictionary
+        Cutoff paramters for selecting the sectors based on output
+        If type="percentage", the sector's filter_column divided by all sectors' output is used
+        If type="absolute", the sector's absolute filter_column is used
+        If type="relative_to_average", the cutoff used is (cutoff value) * (total filter_column) / (nb sectors)
+    """
+    sector_table_no_import = sector_table[sector_table['sector'] != "IMP"]
+
+    if cut_off_dic['type'] == "percentage":
+        rel_output = sector_table_no_import[filter_column] / sector_table_no_import['output'].sum()
+        filtered_sectors = sector_table_no_import.loc[
+            rel_output > cut_off_dic['value'], 
+            "sector"
+        ].tolist()
+    elif cut_off_dic['type'] == "absolute":
+        filtered_sectors = sector_table_no_import.loc[
+            sector_table_no_import[filter_column] > cut_off_dic['value'], 
+            "sector"
+        ].tolist()
+    elif cut_off_dic['type'] == "relative_to_average":
+        cutoff = cut_off_dic['value'] \
+                 * sector_table_no_import[filter_column].sum() \
+                 / sector_table_no_import.shape[0]
+        filtered_sectors = sector_table_no_import.loc[
+            sector_table_no_import['output'] > cutoff, 
+            "sector"
+        ].tolist()
+    else:
+        raise ValueError("cutoff type should be 'percentage', 'absolute', or 'relative_to_average'")
+    if len(filtered_sectors) == 0:
+        raise ValueError("The output cutoff value is so high that it filtered out all sectors")
+    return filtered_sectors
+
     
 def filterSector(sector_table, cutoff_sector_output, cutoff_sector_demand, 
     combine_sector_cutoff='and', sectors_to_include="all", sectors_to_exclude=None):
-    """Filter the sector table to sector whose output is larger than cutoff values
+    """Filter the sector table to sector whose output and/or final demand is larger than cutoff values
+    In addition to filters, we can force to exclude or include some sectors
 
     Parameters
     ----------
@@ -353,6 +395,7 @@ def filterSector(sector_table, cutoff_sector_output, cutoff_sector_demand,
         Cutoff paramters for selecting the sectors based on output
         If type="percentage", the sector's output divided by all sectors' output is used
         If type="absolute", the sector's absolute output, in USD, is used
+        If type="relative_to_average", the cutoff used is (cutoff value) * (country's total output) / (nb sectors)
     cutoff_sector_demand : dictionary
         Cutoff value for selecting the sectors based on final demand
         If type="percentage", the sector's final demand divided by all sectors' output is used
@@ -370,38 +413,8 @@ def filterSector(sector_table, cutoff_sector_output, cutoff_sector_demand,
     list of filtered sectors
     """
     # Select sectors based on output
-    if cutoff_sector_output['type'] == "percentage":
-        rel_output = sector_table['output'] / sector_table['output'].sum()
-        filtered_sectors_output = sector_table.loc[
-            rel_output > cutoff_sector_output['value'], 
-            "sector"
-        ].tolist()
-    elif cutoff_sector_output['type'] == "absolute":
-        filtered_sectors_output = sector_table.loc[
-            sector_table['output'] > cutoff_sector_output['value'], 
-            "sector"
-        ].tolist()
-    else:
-        raise ValueError("cutoff type should be 'percentage' or 'absolute'")
-    if len(filtered_sectors_output) == 0:
-        raise ValueError("The output cutoff value is so high that it filtered out all sectors")
-
-    # Select sectors based on demand
-    if cutoff_sector_demand['type'] == "percentage":
-        rel_output = sector_table['final_demand'] / sector_table['final_demand'].sum()
-        filtered_sectors_demand = sector_table.loc[
-            rel_output > cutoff_sector_demand['value'], 
-            "sector"
-        ].tolist()
-    elif cutoff_sector_demand['type'] == "absolute":
-        filtered_sectors_demand = sector_table.loc[
-            sector_table['final_demand'] > cutoff_sector_demand['value'], 
-            "sector"
-        ].tolist()
-    else:
-        raise ValueError("cutoff type should be 'percentage' or 'absolute'")  
-    if len(filtered_sectors_demand) == 0:
-        raise ValueError("The output cutoff value is so high that it filtered out all sectors") 
+    filtered_sectors_output = applySectorFilter(sector_table, 'output', cutoff_sector_output)
+    filtered_sectors_demand = applySectorFilter(sector_table, 'final_demand', cutoff_sector_output)
 
     # Merge both list
     if combine_sector_cutoff == 'and':
@@ -488,7 +501,7 @@ def defineFirmsFromNetworkData(filepath_firm_table,
 
 
 def defineFirmsFromGranularEcoData(filepath_adminunit_economic_data, 
-    filepath_sector_cutoffs, sectors_to_include, transport_nodes,
+    sectors_to_include, transport_nodes,
     filepath_sector_table):
     '''Define firms based on the adminunit_economic_data.
     The output is a dataframe, 1 row = 1 firm.
@@ -505,8 +518,6 @@ def defineFirmsFromGranularEcoData(filepath_adminunit_economic_data,
     ----------
     filepath_adminunit_economic_data: string
         Path to the district_data table
-    filepath_sector_cutoffs: string
-        Path to the sector_cutoffs table
     sectors_to_include: list or 'all'
         if 'all', include all sectors, otherwise define the list of sector to include
     transport_nodes: geopandas.GeoDataFrame
@@ -518,12 +529,12 @@ def defineFirmsFromGranularEcoData(filepath_adminunit_economic_data,
     # A. Create firm table
     # A.1. load files
     adminunit_eco_data = gpd.read_file(filepath_adminunit_economic_data)
-    sector_cutoffs = pd.read_csv(filepath_sector_cutoffs).set_index('sector')
+    sector_table = pd.read_csv(filepath_sector_table)
 
     # A.2. for each sector, select adminunit where supply_data is over threshold
     # and populate firm table
     firm_table_per_adminunit = pd.DataFrame()
-    for sector, row in sector_cutoffs.iterrows():
+    for sector, row in sector_table.set_index("sector").iterrows():
         if (sectors_to_include == "all") or (sector in sectors_to_include):
             # check that the supply metric is in the data
             if row["supply_data"] not in adminunit_eco_data.columns:
@@ -571,7 +582,6 @@ def defineFirmsFromGranularEcoData(filepath_adminunit_economic_data,
 
     # D. Add information required by the createFirms function
     # add sector type
-    sector_table = pd.read_csv(filepath_sector_table)
     sector_to_sectorType = sector_table.set_index('sector')['type']
     firm_table_per_odpoint['sector_type'] = firm_table_per_odpoint['sector'].map(sector_to_sectorType)
     # add long lat
@@ -608,7 +618,7 @@ def defineFirmsFromGranularEcoData(filepath_adminunit_economic_data,
     # F. Log information
     logging.info('Create '+str(firm_table_per_odpoint.shape[0])+" firms in "+
         str(firm_table_per_odpoint['odpoint'].nunique())+' od points')
-    for sector, row in sector_cutoffs.iterrows():
+    for sector, row in sector_table.set_index("sector").iterrows():
         if (sectors_to_include == "all") or (sector in sectors_to_include):
             cond = firm_table_per_odpoint['sector'] == sector
             logging.info('Sector '+sector+": create "+
@@ -939,6 +949,12 @@ def loadTechnicalCoefficients(firm_list, filepath_tech_coef, io_cutoff=0.1, impo
     else:
         tech_coef_matrix = tech_coef_matrix.loc[sector_present, sector_present]
     
+    # Check whether all sectors have input
+    cond_sector_no_inputs = tech_coef_matrix.sum() == 0
+    if cond_sector_no_inputs.any():
+        warnings.warn('Some sectors have no inputs: '+str(cond_sector_no_inputs[cond_sector_no_inputs].index.to_list())
+                      +" Check this sector or reduce the io_coef cutoff" )
+
     # Load input mix
     for firm in firm_list:
         firm.input_mix = tech_coef_matrix.loc[tech_coef_matrix.loc[:,firm.sector] != 0, firm.sector].to_dict()

@@ -41,7 +41,6 @@ project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(1, project_path)
 from parameter.parameters_default import *
 from parameter.parameters import *
-from parameter.filepaths_default import *
 from parameter.filepaths import *
 
 # Start run
@@ -149,8 +148,7 @@ if (len(sys.argv) < 2) or (sys.argv[1] == "same_transport_network_new_agents"):
     logging.info('Generating the firms')
     if firm_data_type == "disaggregating IO":
         firm_table, firm_table_per_adminunit = defineFirmsFromGranularEcoData(
-            filepath_adminunit_economic_data=filepaths['adminunit_data'], 
-            filepath_sector_cutoffs=filepaths['sector_cutoffs'],
+            filepath_adminunit_economic_data=filepaths['adminunit_data'],
             sectors_to_include=filtered_sectors,
             transport_nodes=transport_nodes,
             filepath_sector_table=filepaths['sector_table']
@@ -184,6 +182,7 @@ if (len(sys.argv) < 2) or (sys.argv[1] == "same_transport_network_new_agents"):
         )
     else:
         raise ValueError(firm_data_type + " should be one of 'disaggregating', 'supplier-buyer network'")
+        
     n = len(firm_list)
     present_sectors = list(set([firm.sector for firm in firm_list]))
     present_sectors.sort()

@@ -2,6 +2,7 @@ import random
 import pandas as pd
 import math
 import logging
+import warnings
 
 from class_agent import Agent
 from class_commerciallink import CommercialLink
@@ -99,15 +100,17 @@ class Country(Agent):
             # Identify potential suppliers
             potential_supplier_pid = dic_sector_to_firmid[sector]
             # Evaluate how much to select
-            nb_selected_suppliers = math.ceil(
-                len(dic_sector_to_firmid[sector])*share_exporting_firms[sector]
-            )
+            nb_selected_suppliers = max(1, round(len(potential_supplier_pid)*share_exporting_firms[sector]))
+            if (nb_selected_suppliers > len(potential_supplier_pid)):
+                warnings.warn("The number of supplier to select " + str(nb_selected_suppliers) 
+                              +" is larger than the number of potential supplier" + str(len(potential_supplier_pid)) + " "+str(share_exporting_firms[sector])) 
             # Select supplier and weights
             selected_supplier_ids, supplier_weights = determine_suppliers_and_weights(
                 potential_supplier_pid,
                 nb_selected_suppliers,
                 firm_list,
-                mode=supplier_selection_mode)
+                mode=supplier_selection_mode
+            )
                # Materialize the link
             for supplier_id in selected_supplier_ids:
                 # For each supplier, create an edge in the economic network
