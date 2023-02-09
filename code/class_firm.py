@@ -492,11 +492,11 @@ class Firm(Agent):
             # self.inventory_duration_old, self.reactivity_rate)
             for input_id, need in ref_input_needs.items()
         }
-        print(self.input_mix)
-        print(self.eq_needs)
-        print(self.inventory)
-        print(self.inventory_duration_target)
-        print(purchase_plan_per_sector)
+        # print(self.input_mix)
+        # print(self.eq_needs)
+        # print(self.inventory)
+        # print(self.inventory_duration_target)
+        # print(purchase_plan_per_sector)
         # Deduce the purchase plan for each supplier
         self.purchase_plan = {
             supplier_id: purchase_plan_per_sector[info['sector']] * info['weight']

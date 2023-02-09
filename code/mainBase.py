@@ -393,7 +393,7 @@ elif sys.argv[1] in ["same_sc_network_new_logistic_routes","same_logistic_routes
 
 else:
     raise ValueError('Argument error')
-exit()
+
 logging.info('Compute the orders on each supplier--buyer link')
 setInitialSCConditions(T, G, firm_list, 
     country_list, household_list, initialization_mode="equilibrium")

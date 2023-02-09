@@ -11,7 +11,7 @@ monetary_units_in_model = "mUSD"
 monetary_units_inputed = "kUSD"
 time_resolution = 'week'
 
-firm_data_type = "supplier-buyer network"
+firm_data_type = "disaggregating IO" #disaggregating IO, supplier-buyer network
 
 transport_modes = ['roads', 'maritime', 'waterways', 'airways']
 
@@ -64,8 +64,8 @@ disruption_analysis = {
 # }
 
 
-disruption_analysis = None
-inventory_duration_target = 2
+# disruption_analysis = None
+# inventory_duration_target = 2
 # congestion = True
 
 # cutoffs
