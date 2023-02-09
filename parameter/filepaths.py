@@ -10,7 +10,7 @@ else:
 import os
 ## Transport
 filepaths = {
-    # Tranort related data
+    # Transport related data
     "transport_parameters": os.path.join('input', input_folder, 'Transport', 'transport_parameters.yaml'),
     "transport_modes": os.path.join('input', input_folder, 'Transport', 'transport_modes.csv'),
     "roads_nodes": os.path.join('input', input_folder, 'Transport', 'roads_nodes.geojson'),
@@ -29,7 +29,12 @@ filepaths = {
     # District data
     "adminunit_data": os.path.join('input', input_folder, 'Subnational', "59sector_2015_canton_data.geojson"),
     # Trade
-    "imports": os.path.join('input', input_folder, 'Trade', "59sector_2016_import_table.csv"),
-    "exports": os.path.join('input', input_folder, 'Trade', "59sector_2016_export_table.csv"),
-    "transit_matrix": os.path.join('input', input_folder, 'Trade', "2016_transit_matrix.csv"),
+    "imports": os.path.join('input', input_folder, 'Trade', "4digit_import_table.csv"),
+    "exports": os.path.join('input', input_folder, 'Trade', "4digit_export_table.csv"),
+    "transit_matrix": os.path.join('input', input_folder, 'Trade', "transit_matrix.csv"),
+    ## Network
+    "firm_table": os.path.join('input', input_folder, 'Network', "firm_table.csv"),
+    "location_table": os.path.join('input', input_folder, 'Network', "location_table.geojson"),
+    "transaction_table": os.path.join('input', input_folder, 'Network', "transaction_table.csv")
+
 }

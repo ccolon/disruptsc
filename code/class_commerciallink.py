@@ -1,7 +1,7 @@
 class CommercialLink(object):
 
     def __init__(self, pid=None, supplier_id=None, buyer_id=None, product=None, 
-        product_type=None, category=None, order=0, delivery=0, payment=0, 
+        product_type=None, category=None, order=0, delivery=0, payment=0, essential=True,
         route=None):
         # Parameter
         self.pid = pid
@@ -18,6 +18,7 @@ class CommercialLink(object):
         self.buyer_id = buyer_id
         self.eq_price = 1
         self.possible_transport_modes = "roads"
+        self.essential = essential
         
         # Variable
         self.current_route = 'main'

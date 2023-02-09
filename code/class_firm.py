@@ -136,6 +136,34 @@ class Firm(Agent):
         else:
             return compute_distance_from_arcmin(self.long, self.lat, other_firm.long, other_firm.lat)
 
+
+    def select_suppliers_from_data(self, graph, firm_list: list, country_list,
+                         inputed_supplier_links, output, import_code='IMP'):
+
+        for inputed_supplier_link in list(inputed_supplier_links.transpose().to_dict().values()):
+        # Create an edge in the graph
+            supplier_id = inputed_supplier_link['supplier_id']
+            product_sector = inputed_supplier_link['product_sector']
+            supplier_object = firm_list[supplier_id]
+            graph.add_edge(supplier_object, self,
+                           object=CommercialLink(
+                               pid=str(supplier_id) + "->" + str(self.pid),
+                               product=product_sector,
+                               product_type=supplier_object.sector_type,
+                               essential=inputed_supplier_link['is_essential'],
+                               category='domestic_B2B',
+                               supplier_id=supplier_id,
+                               buyer_id=self.pid)
+                           )
+            # Associate a weight to the edge
+            weight_in_input_mix = inputed_supplier_link['transaction'] / output
+            graph[supplier_object][self]['weight'] = weight_in_input_mix
+            # The firm saves the name of the supplier, its sector, its weight among firm of the same sector (without I/O technical coefficient)
+            total_input_same_sector = inputed_supplier_links.loc[inputed_supplier_links['product_sector'] == product_sector, "transaction"].sum()
+            weight_among_same_product = inputed_supplier_link['transaction'] / total_input_same_sector
+            self.suppliers[supplier_id] = {'sector': product_sector, 'weight': weight_among_same_product}
+
+
     def select_suppliers(self, graph, firm_list: list, country_list,
                          nb_suppliers_per_input=1, weight_localization=1, import_code='IMP'):
         """
@@ -464,6 +492,11 @@ class Firm(Agent):
             # self.inventory_duration_old, self.reactivity_rate)
             for input_id, need in ref_input_needs.items()
         }
+        print(self.input_mix)
+        print(self.eq_needs)
+        print(self.inventory)
+        print(self.inventory_duration_target)
+        print(purchase_plan_per_sector)
         # Deduce the purchase plan for each supplier
         self.purchase_plan = {
             supplier_id: purchase_plan_per_sector[info['sector']] * info['weight']
