@@ -47,6 +47,8 @@ from parameter.filepaths import *
 t0 = time.time()
 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
 
+
+
 # If there is sth to export, then we create the output folder
 if any(list(export.values())):
     exp_folder = os.path.join('output', input_folder, timestamp)
