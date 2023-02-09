@@ -18,7 +18,18 @@ class TransportNetwork(nx.Graph):
         node_data['households_there'] = None
         node_data['type'] = 'road'
         self.add_node(node_id, **node_data)
-        
+
+    def log_km_per_transport_modes(self):
+        km_per_mode = pd.DataFrame({
+            "km": nx.get_edge_attributes(self, "km"),
+            "type": nx.get_edge_attributes(self, "type")
+        })
+        km_per_mode = km_per_mode.groupby('type')['km'].sum().to_dict()
+        logging.info("Total length of transport network is: " +
+                     "{:.0f} km".format(sum(km_per_mode.values())))
+        for mode, km in km_per_mode.items():
+            logging.info(mode + ": {:.0f} km".format(km))
+        logging.info('Nb of nodes: ' + str(len(self.nodes)) + ', Nb of edges: ' + str(len(self.edges)))
 
     def add_transport_edge_with_nodes(self, edge_id, all_edges_data, all_nodes_data):
         # Selecting data

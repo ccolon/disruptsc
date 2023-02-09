@@ -217,7 +217,7 @@ def createTransportNetwork(transport_modes, filepaths, transport_params, extra_r
     """Create the transport network object
 
     It uses one shapefile for the nodes and another for the edges.
-    Note that therea are strong constraints on these files, in particular on their attributes. 
+    Note that there are strong constraints on these files, in particular on their attributes.
     We can optionally use an additional edge shapefile, which contains extra road segments. Useful for scenario testing.
 
     Parameters
@@ -237,6 +237,9 @@ def createTransportNetwork(transport_modes, filepaths, transport_params, extra_r
     """
 
     # Create the transport network object
+    logging.info('Creating transport network')
+    if extra_roads:
+        logging.info('Including extra roads')
     T = TransportNetwork()
     # T.graph['unit_cost'] = transport_params['transport_cost_per_tonkm']
     
@@ -958,7 +961,9 @@ def loadTechnicalCoefficients(firm_list, filepath_tech_coef, io_cutoff=0.1, impo
     # Load input mix
     for firm in firm_list:
         firm.input_mix = tech_coef_matrix.loc[tech_coef_matrix.loc[:,firm.sector] != 0, firm.sector].to_dict()
-    
+
+    logging.info('Technical coefficient loaded. io_cutoff: ' + str(io_cutoff))
+
     return firm_list
     
 
@@ -1086,6 +1091,11 @@ def loadInventories(firm_list, inventory_duration_target=2,
     # })
     # inventory_table.to_csv('inventory_check.csv')
     # logging.info("Inventories: "+str({firm.pid: firm.inventory_duration_target for firm in firm_list}))
+    logging.info('Inventory duration targets loaded')
+    if extra_inventory_target:
+        logging.info("Extra inventory duration: " + str(extra_inventory_target) + \
+                     " for inputs " + str(inputs_with_extra_inventories) + \
+                     " for buying sectors " + str(buying_sectors_with_extra_inventories))
     return firm_list
 
 
@@ -1180,6 +1190,8 @@ def createCountries(filepath_imports, filepath_exports, filepath_transit_matrix,
     -------
     list of Countries
     """
+    logging.info('Creating country_list. Countries included: ' + str(countries_to_include))
+
     import_table = rescaleMonetaryValues(
         pd.read_csv(filepath_imports, index_col=0),
         time_resolution=time_resolution,
@@ -1266,6 +1278,9 @@ def createCountries(filepath_imports, filepath_exports, filepath_transit_matrix,
                                 transit_to=transit_to,
                                 supply_importance=supply_importance
                         )]
+
+    logging.info('Country_list created: ' + str([country.pid for country in country_list]))
+
     return country_list
 
 
@@ -1510,7 +1525,8 @@ def createHouseholds(household_table, household_sector_consumption):
         )
         for i in household_table.index.tolist()
     ]
-        
+    logging.info('Households generated')
+
     return household_list
 
 
