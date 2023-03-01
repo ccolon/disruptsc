@@ -2,6 +2,9 @@ from parameter.parameters_default import *
 import logging
 import os
 
+# TODO make it a dictionary
+# TODO create a function to merge the default param dic and the param dic
+
 input_folder = "Ecuador"
 # inventory_duration_target = "inputed"
 
@@ -45,20 +48,19 @@ disruption_analysis = {
 #     "type": "compound",
 #     "events": [
 #         {
-#             "disrupt_nodes_or_edges": "nodes",
-#             "nodeedge_tested": ["Sihanoukville international port"],
-#             #"nodeedge_tested": ["tonle sap"],
-#             "identified_by": "name",
-#             # "identified_by": "zone",
+#             "item_type": "transport_edges",
+#             "attribute": "id",
+#             "values": [101, 102, 103],
 #             "start_time": 1,
 #             "duration": 1
 #         },
 #         {
-#             "disrupt_nodes_or_edges": "edges",
-#             "nodeedge_tested": [tsubasa_bridge],
-#             "identified_by": "id",
-#             "start_time": 3,
-#             "duration": 1
+#             "item_type": "firms",
+#             "admin_units": ["0101", '0102'],
+#             "sectors": ["PES", 'MIP'],
+#             "start_time": 1,
+#             "duration": 1,
+#             "production_capacity_reduction": 0.5
 #         }
 #     ]
 # }
@@ -163,3 +165,8 @@ export = {
     # Whether or not to export a csv summarizing some topological caracteristics of the supply chain network
     "sc_network_summary": False
 }
+
+def create_dict(*args):
+    return dict(((k, eval(k)) for k in args))
+
+parameters = create_dict()

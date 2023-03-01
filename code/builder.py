@@ -548,7 +548,7 @@ def defineFirmsFromGranularEcoData(filepath_adminunit_economic_data,
             # populate firm table
             new_firm_table = pd.DataFrame({
                 "sector": sector,
-                "adminunit": adminunit_eco_data.loc[where_create_firm, "admin_code"].tolist(),
+                "admin_unit": adminunit_eco_data.loc[where_create_firm, "admin_code"].tolist(),
                 "population": adminunit_eco_data.loc[where_create_firm, "population"].tolist(),
                 "absolute_size": adminunit_eco_data.loc[where_create_firm, row["supply_data"]]
             })
@@ -559,7 +559,7 @@ def defineFirmsFromGranularEcoData(filepath_adminunit_economic_data,
     # B. Assign firms to closest road nodes
     # B.1. Create a dictionary that link a adminunit to id of the closest road node
     # Create dic that links adminunit to points
-    selected_adminunits = list(firm_table_per_adminunit['adminunit'].unique())
+    selected_adminunits = list(firm_table_per_adminunit['admin_unit'].unique())
     logging.info('Select '+str(firm_table_per_adminunit.shape[0])+
         " in "+str(len(selected_adminunits))+' admin units')
     cond = adminunit_eco_data['admin_code'].isin(selected_adminunits)
@@ -575,12 +575,12 @@ def defineFirmsFromGranularEcoData(filepath_adminunit_economic_data,
 
 
     # B.2. Map firm to closest road nodes
-    firm_table_per_adminunit['odpoint'] = firm_table_per_adminunit['adminunit'].map(dic_adminunit_to_roadNodeId)
+    firm_table_per_adminunit['odpoint'] = firm_table_per_adminunit['admin_unit'].map(dic_adminunit_to_roadNodeId)
 
 
     # C. Combine firms that are in the same odpoint and in the same sector
     # groupby odpoint and sector
-    firm_table_per_odpoint = firm_table_per_adminunit.drop(columns='adminunit').groupby(['odpoint', 'sector'], as_index=False).sum()
+    firm_table_per_odpoint = firm_table_per_adminunit.groupby(['admin_unit', 'odpoint', 'sector'], as_index=False).sum()
 
 
     # D. Add information required by the createFirms function

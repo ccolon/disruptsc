@@ -373,13 +373,17 @@ def writeCriticalityResults(criticality_export_file, observer, disruption,
 
 def writeResPerFirmResults(extra_spending_export_file, missing_consumption_export_file, 
     observer, disruption):
+    if disruption == "compound":
+        prefix = "compound"
+    else:
+        prefix = str(disruption['node']) + ',' + str(disruption['edge'])
     val = [str(x) for x in observer.households_extra_spending_per_firm.tolist()]
     extra_spending_export_file.write(
-        str(disruption['node'])+','+str(disruption['edge'])+','+",".join(val)+"\n"
+        prefix+','+",".join(val)+"\n"
     )
     val = [str(x) for x in observer.households_consumption_loss_per_firm.tolist()]
     missing_consumption_export_file.write(
-        str(disruption['node'])+','+str(disruption['edge'])+','+",".join(val)+"\n"
+        prefix+','+",".join(val)+"\n"
     )
     # pd.DataFrame({str(disruption): obs.households_extra_spending_per_firm}).transpose().to_csv(extra_spending_export_file, header=False, mode='a')
     # pd.DataFrame({str(disruption): obs.households_consumption_loss_per_firm}).transpose().to_csv(f, header=False)

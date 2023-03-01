@@ -1,5 +1,6 @@
 import logging
 
+# TODO make it a dictionary
 # Indicate the subfolder of the input folder that contains the input files
 input_folder = "Tanzania"
 
@@ -178,7 +179,7 @@ logistics_modes = {
         "accepted_multimodal_links": []
     },
     'international': {
-        "accepted_modes": ['roads', 'martime', 'multimodal'],
+        "accepted_modes": ['roads', 'maritime', 'multimodal'],
         "accepted_multimodal_links": ['roads-maritime']
     }
 }
