@@ -1,12 +1,19 @@
 # Core function of the simulation loop
 
 import logging
+
+import networkx
+import networkx as nx
+
+from code.class_observer import Observer
+from code.disruption.disruption import DisruptionList
 from functions import *
 from export_functions import *
 from check_functions import *
 
-def setInitialSCConditions(transport_network, sc_network, firm_list, 
-    country_list, household_list, initialization_mode="equilibrium"):
+
+def setInitialSCConditions(transport_network, sc_network, firm_list,
+                           country_list, household_list, initialization_mode="equilibrium"):
     """
     Set the initial supply chain conditions and reinitialize the transport network at 0.
 
@@ -30,28 +37,34 @@ def setInitialSCConditions(transport_network, sc_network, firm_list,
     logging.info("Setting initial supply-chain conditions")
     transport_network.reinitialize_flows_and_disruptions()
     set_initial_conditions(sc_network, firm_list, household_list, country_list,
-        initialization_mode)
+                           initialization_mode)
     logging.info("Initial supply-chain conditions set")
 
 
-def runOneTimeStep(transport_network, sc_network, firm_list, 
-    country_list, household_list, observer,
-    disruptions=None,
-    congestion=False,
-    route_optimization_weight="cost_per_ton",
-    logistics_modes=None,
-    explicit_service_firm=True,
-    sectors_no_transport_network=None,
-    propagate_input_price_change=True,
-    rationing_mode="household_first",
-    time_step=0,
-    export_folder=None,
-    export_flows=False, 
-    flow_types_to_export=['total'],
-    transport_edges=None,
-    export_sc_flow_analysis=False,
-    monetary_units_in_model="mUSD",
-    cost_repercussion_mode="type1"):
+def runOneTimeStep(
+        transport_network: TransportNetwork,
+        sc_network: networkx.DiGraph,
+        firm_list: list,
+        country_list: list,
+        household_list: list,
+        observer: Observer,
+        disruptions: DisruptionList | list | None = None,
+        congestion: bool = False,
+        route_optimization_weight: str = "cost_per_ton",
+        logistics_modes=None,
+        explicit_service_firm=True,
+        sectors_no_transport_network=None,
+        propagate_input_price_change=True,
+        rationing_mode="household_first",
+        time_step=0,
+        export_folder=None,
+        export_flows=False,
+        flow_types_to_export=['total'],
+        transport_edges=None,
+        export_sc_flow_analysis=False,
+        monetary_units_in_model="mUSD",
+        cost_repercussion_mode="type1"
+):
     """
     Run one time step
 
@@ -92,7 +105,9 @@ def runOneTimeStep(transport_network, sc_network, firm_list,
     """
     transport_network.reset_current_loads(route_optimization_weight, logistics_modes)
 
-    if (disruptions is not None):
+    if isinstance(disruptions, DisruptionList):
+        apply_disruption(time_step, disruptions, transport_network, firm_list)
+    elif isinstance(disruptions, list):
         for event in disruptions:
             if time_step == event['start_time']:
                 transport_network.disrupt_roads(event)
@@ -100,64 +115,66 @@ def runOneTimeStep(transport_network, sc_network, firm_list,
     allFirmsRetrieveOrders(sc_network, firm_list)
 
     allFirmsPlanProduction(firm_list, sc_network, price_fct_input=propagate_input_price_change)
-    
+
     allFirmsPlanPurchase(firm_list)
 
     allAgentsSendPurchaseOrders(sc_network, firm_list, household_list, country_list)
 
     allFirmsProduce(firm_list)
-    
+
     allAgentsDeliver(
-        G=sc_network, 
-        firm_list=firm_list, 
-        country_list=country_list, 
-        T=transport_network, 
+        G=sc_network,
+        firm_list=firm_list,
+        country_list=country_list,
+        T=transport_network,
         sectors_no_transport_network=sectors_no_transport_network,
-        rationing_mode=rationing_mode, 
+        rationing_mode=rationing_mode,
         explicit_service_firm=explicit_service_firm,
         monetary_units_in_model=monetary_units_in_model,
         cost_repercussion_mode=cost_repercussion_mode
     )
-    
+
     if congestion:
         if (time_step == 0):
             transport_network.evaluate_normal_traffic()
         else:
             transport_network.evaluate_congestion()
             if len(transport_network.congestionned_edges) > 0:
-                logging.info("Nb of congestionned segments: "+
-                    str(len(transport_network.congestionned_edges)))
+                logging.info("Nb of congestionned segments: " +
+                             str(len(transport_network.congestionned_edges)))
         for firm in firm_list:
             firm.add_congestion_malus2(sc_network, transport_network)
         for country in country_list:
             country.add_congestion_malus2(sc_network, transport_network)
 
-    if (time_step in [0,1,2]) and (export_flows): #should be done at this stage, while the goods are on their way
+    if (time_step in [0, 1, 2]) and (export_flows):  # should be done at this stage, while the goods are on their way
         collect_shipments = False
         transport_network.compute_flow_per_segment(flow_types_to_export)
-        observer.collect_transport_flows(transport_network, 
-            time_step=time_step, flow_types=flow_types_to_export,
-            collect_shipments=collect_shipments)
+        observer.collect_transport_flows(transport_network,
+                                         time_step=time_step, flow_types=flow_types_to_export,
+                                         collect_shipments=collect_shipments)
         exportTransportFlows(observer, export_folder)
-        exportTransportFlowsLayer(observer, export_folder, time_step=time_step, 
-            transport_edges=transport_edges)
+        exportTransportFlowsLayer(observer, export_folder, time_step=time_step,
+                                  transport_edges=transport_edges)
         if sum([len(sublist) for sublist in observer.specific_edges_to_monitor.values()]) > 0:
             observer.collect_specific_flows(transport_network)
             exportSpecificFlows(observer, export_folder)
         if collect_shipments:
-            exportShipmentsLayer(observer, export_folder, time_step=time_step, 
-                transport_edges=transport_edges)
-    
-    if (time_step == 0) and (export_sc_flow_analysis): #should be done at this stage, while the goods are on their way
+            exportShipmentsLayer(observer, export_folder, time_step=time_step,
+                                 transport_edges=transport_edges)
+
+    if (time_step == 0) and (export_sc_flow_analysis):  # should be done at this stage, while the goods are on their way
         analyzeSupplyChainFlows(sc_network, firm_list, export_folder)
 
-    
-    allAgentsReceiveProducts(sc_network, firm_list, household_list, 
-        country_list, transport_network, sectors_no_transport_network)
-    
+    allAgentsReceiveProducts(sc_network, firm_list, household_list,
+                             country_list, transport_network, sectors_no_transport_network)
+
     transport_network.update_road_state()
 
-    observer.collect_agent_data(firm_list, household_list, country_list, 
-        time_step=time_step)
+    for firm in firm_list:
+        firm.update_production_capacity()
+
+    observer.collect_agent_data(firm_list, household_list, country_list,
+                                time_step=time_step)
 
     compareProductionPurchasePlans(firm_list, country_list, household_list)

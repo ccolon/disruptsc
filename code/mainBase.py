@@ -11,12 +11,16 @@ from builder import *
 from simulations import *
 from export_functions import *
 from class_observer import Observer
+from paths import ROOT_FOLDER
 
 # Import parameters. It should be in this specific order.
 project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(1, project_path)
+sys.path.insert(1, ROOT_FOLDER)
+
 from parameter.parameters import *
 from parameter.filepaths import *
+from code.disruption.disruption import Disruption, DisruptionList
 
 # Check that the script is called correctly
 accepted_script_arguments = [
@@ -46,11 +50,12 @@ def extract_final_list_of_sector(firm_list: list):
     logging.info('Sectors present are: ' + str(present_sectors))
     return n, present_sectors, flow_types_to_export
 
+
 def create_export_folder(export: dict, input_folder: str, timestamp: str) -> str:
     if any(list(export.values())):
-        exp_folder = os.path.join('output', input_folder, timestamp)
-        if not os.path.isdir(os.path.join('output', input_folder)):
-            os.mkdir(os.path.join('output', input_folder))
+        exp_folder = ROOT_FOLDER / input_folder / timestamp
+        if not os.path.isdir(ROOT_FOLDER / input_folder):
+            os.mkdir(ROOT_FOLDER / input_folder)
         os.mkdir(exp_folder)
         exportParameters(exp_folder)
 
@@ -78,31 +83,31 @@ def adjust_logging_behavior(export: dict, exp_folder: str, logging_level):
 
 
 def cache_agent_data(data_dic):
-    pickle_filename = os.path.join('tmp', 'firms_households_countries_pickle')
+    pickle_filename = ROOT_FOLDER / 'tmp' / 'firms_households_countries_pickle'
     pickle.dump(data_dic, open(pickle_filename, 'wb'))
-    logging.info('Firms, households, and countries saved in tmp folder: ' + pickle_filename)
+    logging.info(f'Firms, households, and countries saved in tmp folder: {pickle_filename}')
 
 
 def cache_transport_network(data_dic):
-    pickle_filename = os.path.join('tmp', 'transport_network_pickle')
+    pickle_filename = ROOT_FOLDER / 'tmp' / 'transport_network_pickle'
     pickle.dump(data_dic, open(pickle_filename, 'wb'))
-    logging.info('Transport network saved in tmp folder: ' + pickle_filename)
+    logging.info(f'Transport network saved in tmp folder: {pickle_filename}')
 
 
 def cache_sc_network(data_dic):
-    pickle_filename = os.path.join('tmp', 'supply_chain_pickle')
+    pickle_filename = ROOT_FOLDER / 'tmp' / 'supply_chain_pickle'
     pickle.dump(data_dic, open(pickle_filename, 'wb'))
-    logging.info('Supply chain saved in tmp folder: ' + pickle_filename)
+    logging.info(f'Supply chain saved in tmp folder: {pickle_filename}')
 
 
 def cache_logistic_routes(data_dic):
-    pickle_filename = os.path.join('tmp', 'logistic_routes_pickle')
+    pickle_filename = ROOT_FOLDER / 'tmp' / 'logistic_routes_pickle'
     pickle.dump(data_dic, open(pickle_filename, 'wb'))
-    logging.info('Logistics routes saved in tmp folder: ' + pickle_filename)
+    logging.info(f'Logistics routes saved in tmp folder: {pickle_filename}')
 
 
 def load_cached_agent_data():
-    pickle_filename = os.path.join('tmp', 'firms_households_countries_pickle')
+    pickle_filename = ROOT_FOLDER / 'tmp' / 'firms_households_countries_pickle'
     tmp_data = pickle.load(open(pickle_filename, 'rb'))
     loaded_sector_table = tmp_data['sector_table']
     loaded_present_sectors = tmp_data['present_sectors']
@@ -121,14 +126,14 @@ def load_cached_agent_data():
 
 
 def load_cached_transaction_table():
-    pickle_filename = os.path.join('tmp', 'firms_households_countries_pickle')
+    pickle_filename = ROOT_FOLDER / 'tmp' / 'firms_households_countries_pickle'
     tmp_data = pickle.load(open(pickle_filename, 'rb'))
     loaded_transaction_table = tmp_data['transaction_table']
     return loaded_transaction_table
 
 
 def load_cached_transport_network():
-    pickle_filename = os.path.join('tmp', 'transport_network_pickle')
+    pickle_filename = ROOT_FOLDER / 'tmp' / 'transport_network_pickle'
     tmp_data = pickle.load(open(pickle_filename, 'rb'))
     loaded_transport_network = tmp_data['transport_network']
     loaded_transport_edges = tmp_data['transport_edges']
@@ -138,7 +143,7 @@ def load_cached_transport_network():
 
 
 def load_cached_sc_network():
-    pickle_filename = os.path.join('tmp', 'supply_chain_pickle')
+    pickle_filename = ROOT_FOLDER / 'tmp' / 'supply_chain_pickle'
     tmp_data = pickle.load(open(pickle_filename, 'rb'))
     loaded_sc_network = tmp_data['supply_chain_network']
     loaded_firm_list = tmp_data['firm_list']
@@ -149,7 +154,7 @@ def load_cached_sc_network():
 
 
 def load_cached_logistic_routes():
-    pickle_filename = os.path.join('tmp', 'logistic_routes_pickle')
+    pickle_filename = ROOT_FOLDER / 'tmp' / 'logistic_routes_pickle'
     tmp_data = pickle.load(open(pickle_filename, 'rb'))
     loaded_sc_network = tmp_data['supply_chain_network']
     loaded_transport_network = tmp_data['transport_network']
@@ -189,8 +194,7 @@ else:
 # Generate weight
 logging.info('Generating shortest-path weights on transport network')
 T.defineWeights(route_optimization_weight, logistics_modes)
-T.log_km_per_transport_modes() # Print data on km per modes
-
+T.log_km_per_transport_modes()  # Print data on km per modes
 
 # Create firms, households, and countries
 if (len(sys.argv) < 2) or (sys.argv[1] == "same_transport_network_new_agents"):
@@ -369,7 +373,6 @@ if export['transport']:
     transport_nodes.to_file(os.path.join(exp_folder, "transport_nodes.geojson"), driver='GeoJSON')
     transport_edges.to_file(os.path.join(exp_folder, "transport_edges.geojson"), driver='GeoJSON')
 
-
 # Create supply chain network
 if (len(sys.argv) < 2) or (sys.argv[1] in ["same_transport_network_new_agents", "same_agents_new_sc_network"]):
     logging.info('The supply chain graph is being created. nb_suppliers_per_input: ' + str(nb_suppliers_per_input))
@@ -534,12 +537,18 @@ elif disruption_analysis['type'] == "compound":
     logging.info('Compound events simulation')
     t0 = time.time()
 
+    disruption_list = DisruptionList.from_disruption_description(
+        disruption_analysis, transport_edges, firm_table
+    )
+
+    logging.info(f"{len(disruption_list)} disruption(s) will occur")
+    disruption_list.print_info()
+
     logging.info("Calculating the equilibrium")
     setInitialSCConditions(transport_network=T, sc_network=G, firm_list=firm_list,
                            country_list=country_list, household_list=household_list, initialization_mode="equilibrium")
 
-    compound_duration = max([event['start_time'] + event['duration'] for event in disruption_analysis['events']])
-    Tfinal = duration_dic[compound_duration]
+    Tfinal = duration_dic[disruption_list.end_time]
     obs = Observer(
         firm_list=firm_list,
         Tfinal=Tfinal,
@@ -590,26 +599,12 @@ elif disruption_analysis['type'] == "compound":
     logging.info(str(len(disruption_analysis['events'])) + ' disruption events will occur.')
     logging.info('Simulation will last at max ' + str(Tfinal) + ' time steps.')
 
-    compound_disruption = [
-        defineDisruptionList(event, transport_network=T,
-                             nodes=transport_nodes, edges=transport_edges,
-                             nodeedge_tested_topn=nodeedge_tested_topn, nodeedge_tested_skipn=nodeedge_tested_skipn
-                             )[0]
-        for event in disruption_analysis['events']
-    ]
-
-    for disruption in compound_disruption:
-        logging.info('A disruption will occur at time ' + str(disruption['start_time']) + ', it will affect ' +
-                     str(len(disruption['node'])) + ' nodes and ' +
-                     str(len(disruption['edge'])) + ' edges for ' +
-                     str(disruption['duration']) + ' time steps.')
-
     logging.info("Starting time loop")
     for t in range(1, Tfinal + 1):
         logging.info('Time t=' + str(t))
         runOneTimeStep(transport_network=T, sc_network=G, firm_list=firm_list,
                        country_list=country_list, household_list=household_list,
-                       disruptions=compound_disruption,
+                       disruptions=disruption_list,
                        congestion=congestion,
                        route_optimization_weight=route_optimization_weight,
                        logistics_modes=logistics_modes,
@@ -628,7 +623,7 @@ elif disruption_analysis['type'] == "compound":
                        cost_repercussion_mode=cost_repercussion_mode)
         logging.debug('End of t=' + str(t))
 
-        if (t > max([event['start_time'] for event in compound_disruption])) and epsilon_stop_condition:
+        if (t > max([disruption.start_time for disruption in disruption_list])) and epsilon_stop_condition:
             household_extra_spending = sum([household.extra_spending for household in household_list])
             household_consumption_loss = sum([household.consumption_loss for household in household_list])
             country_extra_spending = sum([country.extra_spending for country in country_list])
@@ -644,8 +639,8 @@ elif disruption_analysis['type'] == "compound":
     computation_time = time.time() - t0
     logging.info("Time loop completed, {:.02f} min".format(computation_time / 60))
 
-    disrupted_nodes = [event['node'] for event in compound_disruption]
-    disrupted_nodes = [item for sublist in disrupted_nodes for item in sublist]
+    disrupted_nodes = disruption_list.filter_type('transport_node').get_id_list()
+    # disrupted_nodes = [item for sublist in disrupted_nodes for item in sublist]
     obs.evaluate_results(T, household_list, disrupted_nodes,
                          epsilon_stop_condition, per_firm=export['impact_per_firm'])
 
@@ -654,7 +649,7 @@ elif disruption_analysis['type'] == "compound":
 
     if export['impact_per_firm']:
         writeResPerFirmResults(extra_spending_export_file,
-                               missing_consumption_export_file, obs, disruption)
+                               missing_consumption_export_file, obs, "compound")
 
     # if export['agent_data']:
     #     exportAgentData(obs, export_folder=exp_folder)

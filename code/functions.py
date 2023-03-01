@@ -6,31 +6,14 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 
+from code.class_transport_network import TransportNetwork
+from code.disruption.disruption import DisruptionList
+
 
 def identify_special_transport_nodes(transport_nodes, special):
     res = transport_nodes.dropna(subset=['special'])
     res = res.loc[res['special'].str.contains(special), "id"].tolist()
     return res
-
-
-def congestion_function(current_traffic, normal_traffic):
-    if (current_traffic == 0) & (normal_traffic == 0):
-        return 0
-
-    elif (current_traffic > 0) & (normal_traffic == 0):
-        return 0.5
-
-    elif (current_traffic == 0) & (normal_traffic > 0):
-        return 0
-
-    elif current_traffic < normal_traffic:
-        return 0
-
-    elif current_traffic < 1.5 * normal_traffic:
-        return 0
-    else:
-        excess_traffic = current_traffic - 1.5 * normal_traffic
-        return 4 * (1 - math.exp(-excess_traffic))
 
 
 def production_function(inputs, input_mix, function_type="Leontief"):
@@ -55,7 +38,7 @@ def purchase_planning_function(estimated_need, inventory, inventory_duration_tar
         return target_inventory + estimated_need - inventory
     else:
         return (1 - reactivity_rate) * estimated_need + reactivity_rate * (
-                    estimated_need + target_inventory - inventory)
+                estimated_need + target_inventory - inventory)
 
 
 def evaluate_inventory_duration(estimated_need, inventory):
@@ -310,10 +293,10 @@ def determine_suppliers_and_weights(potential_supplier_pid,
     # Select supplier
     prob_to_be_selected = np.array(importance_of_each) / np.array(importance_of_each).sum()
     selected_supplier_ids = np.random.choice(potential_supplier_pid,
-                                             p=prob_to_be_selected, 
-                                             size=nb_selected_suppliers, 
+                                             p=prob_to_be_selected,
+                                             size=nb_selected_suppliers,
                                              replace=False
-                                            ).tolist()
+                                             ).tolist()
 
     # Compute weights, based on importance only
     supplier_weights = generate_weights_from_list([
@@ -354,6 +337,28 @@ def allFirmsRetrieveOrders(G, firm_list):
         firm.retrieve_orders(G)
 
 
+def firms_get_disrupted(firm_list: list, firm_id_duration_reduction_dict: dict):
+    for firm in firm_list:
+        if firm.pid in list(firm_id_duration_reduction_dict.keys()):
+            firm.reduce_production_capacity(
+                firm_id_duration_reduction_dict[firm.pid]['duration'],
+                firm_id_duration_reduction_dict[firm.pid]['reduction']
+            )
+
+
+def apply_disruption(time_step: int, disruptions: DisruptionList, transport_network: TransportNetwork, firm_list: list):
+    disruptions_starting_now = disruptions.filter_start_time(time_step)
+    edge_disruptions_starting_now = disruptions_starting_now.filter_type('transport_edge')
+    if len(edge_disruptions_starting_now) > 0:
+        transport_network.disrupt_edges(
+            edge_disruptions_starting_now.get_item_id_duration_reduction_dict()
+        )
+    firm_disruptions_starting_now = disruptions_starting_now.filter_type('firm')
+    if len(edge_disruptions_starting_now) > 0:
+        firms_get_disrupted(firm_list, firm_disruptions_starting_now.get_item_id_duration_reduction_dict())
+    # node disruption not implemented
+
+
 def allFirmsPlanProduction(firm_list, graph, price_fct_input=True):
     for firm in firm_list:
         firm.aggregate_orders()
@@ -368,7 +373,7 @@ def allFirmsPlanPurchase(firm_list):
         firm.decide_purchase_plan()  # mode="reactive"
 
 
-def initializeFirmsHouseholds(G, firm_list, households):
+def initializeFirmsHouseholds(G, firm_list, households, country_list):
     '''For dynamic initialization'''
     # Initialize dictionary
     for firm in firm_list:
@@ -410,7 +415,7 @@ def allAgentsDeliver(G, firm_list, country_list, T, sectors_no_transport_network
                                  cost_repercussion_mode=cost_repercussion_mode,
                                  explicit_service_firm=explicit_service_firm)
     for firm in firm_list:
-        firm.deliver_products(G, T, 
+        firm.deliver_products(G, T,
                               sectors_no_transport_network=sectors_no_transport_network,
                               rationing_mode=rationing_mode,
                               monetary_units_in_model=monetary_units_in_model,

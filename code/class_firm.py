@@ -12,6 +12,7 @@ from functions import purchase_planning_function, production_function, \
     agent_receive_products_and_pay
 
 
+# TODO: create class FirmList, CountryList, HouseholdList from userlist as DisruptionList
 class Firm(Agent):
 
     def __init__(self, pid, odpoint=0, sector=0, sector_type=None, input_mix=None, target_margin=0.2,
@@ -75,6 +76,10 @@ class Firm(Agent):
         self.tons_transported = 0
         self.tonkm_transported = 0
 
+        # Disruption
+        self.remaining_disrupted_time = 0
+        self.production_capacity_reduction = 0
+
     def reset_variables(self):
         self.eq_finance = {"sales": 0, 'costs': {"input": 0, "transport": 0, "other": 0}}
         self.eq_profit = 0
@@ -98,6 +103,21 @@ class Firm(Agent):
         self.usd_transported = 0
         self.tons_transported = 0
         self.tonkm_transported = 0
+
+    def update_production_capacity(self):
+        is_back_to_normal = self.remaining_disrupted_time == 1  # Identify those who will be back to normal
+        if self.remaining_disrupted_time > 0:  # Update the remaining time in disruption
+            self.remaining_disrupted_time -= 1
+        if is_back_to_normal:  # Update the remaining time in disruption
+            self.production_capacity_reduction = 0
+            logging.info(f'The production capacity of firm {self.pid} is back to normal')
+
+    def reduce_production_capacity(self, disruption_duration: int, reduction: float):
+        self.remaining_disrupted_time = disruption_duration
+        self.production_capacity_reduction = reduction
+        logging.info(f'The production capacity of firm {self.pid} is reduced by {reduction} '
+                     f'for {disruption_duration} time steps')
+
 
     def initialize_ope_var_using_eq_production(self, eq_production):
         self.production_target = eq_production
@@ -136,12 +156,11 @@ class Firm(Agent):
         else:
             return compute_distance_from_arcmin(self.long, self.lat, other_firm.long, other_firm.lat)
 
-
     def select_suppliers_from_data(self, graph, firm_list: list, country_list,
-                         inputed_supplier_links, output, import_code='IMP'):
+                                   inputed_supplier_links, output, import_code='IMP'):
 
         for inputed_supplier_link in list(inputed_supplier_links.transpose().to_dict().values()):
-        # Create an edge in the graph
+            # Create an edge in the graph
             supplier_id = inputed_supplier_link['supplier_id']
             product_sector = inputed_supplier_link['product_sector']
             supplier_object = firm_list[supplier_id]
@@ -159,10 +178,10 @@ class Firm(Agent):
             weight_in_input_mix = inputed_supplier_link['transaction'] / output
             graph[supplier_object][self]['weight'] = weight_in_input_mix
             # The firm saves the name of the supplier, its sector, its weight among firm of the same sector (without I/O technical coefficient)
-            total_input_same_sector = inputed_supplier_links.loc[inputed_supplier_links['product_sector'] == product_sector, "transaction"].sum()
+            total_input_same_sector = inputed_supplier_links.loc[
+                inputed_supplier_links['product_sector'] == product_sector, "transaction"].sum()
             weight_among_same_product = inputed_supplier_link['transaction'] / total_input_same_sector
             self.suppliers[supplier_id] = {'sector': product_sector, 'weight': weight_among_same_product}
-
 
     def select_suppliers(self, graph, firm_list: list, country_list,
                          nb_suppliers_per_input=1, weight_localization=1, import_code='IMP'):
@@ -519,15 +538,17 @@ class Firm(Agent):
     def retrieve_orders(self, graph):
         for edge in graph.out_edges(self):
             quantity_ordered = graph[self][edge[1]]['object'].order
+            quantity_ordered = graph[self][edge[1]]['object'].order
             self.order_book[edge[1].pid] = quantity_ordered
 
     def produce(self, mode="Leontief"):
+        current_production_capacity = self.production_capacity * (1 - self.production_capacity_reduction)
         # Produce
-        if len(self.input_mix) == 0: #if no need for inputs
-            self.production = min([self.production_target, self.production_capacity])
+        if len(self.input_mix) == 0:  # If no need for inputs
+            self.production = min([self.production_target, current_production_capacity])
         else:
-            max_production = production_function(self.inventory, self.input_mix, mode) #other check max given inventories
-            self.production = min([max_production, self.production_target, self.production_capacity])
+            max_production = production_function(self.inventory, self.input_mix, mode)  # Max prod given inventory
+            self.production = min([max_production, self.production_target, current_production_capacity])
 
         # Add to stock of finished goods
         self.product_stock += self.production
@@ -559,8 +580,8 @@ class Firm(Agent):
         # remove rationing as attribute
         pass
 
-    def deliver_products(self, graph, transport_network=None, sectors_no_transport_network=None, 
-                         rationing_mode="equal", 
+    def deliver_products(self, graph, transport_network=None, sectors_no_transport_network=None,
+                         rationing_mode="equal",
                          monetary_units_in_model="mUSD",
                          cost_repercussion_mode="type1", explicit_service_firm=True):
 
