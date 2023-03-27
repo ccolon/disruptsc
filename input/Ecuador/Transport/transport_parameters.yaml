@@ -8,6 +8,7 @@ speeds: #km/hour
 
 loading_time: #hours 
   roads-maritime: 12
+  roads-maritime-dom: 12
   roads-airways: 12
   roads-waterways: 2
 
@@ -20,6 +21,7 @@ variability: #as fraction of travel time
   waterways: 0.02
   multimodal:
     roads-maritime: 0.1
+    roads-maritime-dom: 0.1
     roads-airways: 0.1
     roads-waterways: 0.1
 
@@ -33,6 +35,7 @@ transport_cost_per_tonkm: #USD/(ton*km)
 
 loading_cost_per_ton: #USD/ton
   roads-maritime: 2.2 #arbitrary (same than railways)
+  roads-maritime-dom: 2.2 #arbitrary (same than railways)
   roads-airways: 2.2 #arbitrary (same than railways)
   roads-waterways: 2.2 #arbitrary (same than railways)
 

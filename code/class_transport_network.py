@@ -32,7 +32,7 @@ class TransportNetwork(nx.Graph):
     def add_transport_edge_with_nodes(self, edge_id, all_edges_data, all_nodes_data):
         # Selecting data
         edge_attributes = ['id', "type", 'surface', "geometry", "class", "km", 'special', "name",
-                           "multimodes", "capacity",
+                           "multimodes", "capacity", "disruption",
                            "cost_per_ton", "travel_time", "time_cost", 'cost_travel_time', 'cost_variability',
                            'agg_cost']
         edge_data = all_edges_data.loc[edge_id, edge_attributes].to_dict()
@@ -51,7 +51,7 @@ class TransportNetwork(nx.Graph):
         self[end_ids[0]][end_ids[1]]['disruption_duration'] = 0
         self[end_ids[0]][end_ids[1]]['current_load'] = 0
 
-    def giveRouteCaracteristics(self, route):
+    def giveRouteCaracteristics(self, route, debug=False):
         distance = 0  # km
         time_cost = 1  # USD, cost cannot be 0
         cost_per_ton = 0  # USD/ton
@@ -61,6 +61,13 @@ class TransportNetwork(nx.Graph):
                     distance += self[segment[0]][segment[1]]['km']
                     time_cost += self[segment[0]][segment[1]]['time_cost']
                     cost_per_ton += self[segment[0]][segment[1]]['cost_per_ton']
+                    if debug:
+                        print(
+                            segment,
+                            self[segment[0]][segment[1]]['cost_per_ton'],
+                            self[segment[0]][segment[1]]['time_cost'],
+                            self[segment[0]][segment[1]]['km']
+                        )
 
         return distance, time_cost, cost_per_ton
 

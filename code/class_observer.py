@@ -103,6 +103,8 @@ class Observer(object):
                 'household': household.pid,
                 'spending_per_retailer': household.spending_per_retailer,
                 'consumption_per_retailer': household.consumption_per_retailer,
+                'extra_spending_per_sector': household.extra_spending_per_sector,
+                'consumption_loss_per_sector': household.consumption_loss_per_sector,
                 'extra_spending': household.extra_spending,
                 'consumption_loss': household.consumption_loss
             }

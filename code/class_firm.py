@@ -708,10 +708,11 @@ class Firm(Agent):
         """
         if len(commercial_link.route) == 0:
             raise ValueError("Firm " + str(self.pid) + " " + str(self.sector) +
-                             ": commercial link " + str(commercial_link.pid) + " (qty " + str(
-                commercial_link.order) + ")"
-                                         " is not associated to any route, I cannot send any shipment to client " +
-                             str(commercial_link.buyer_id))
+                             ": commercial link " + str(commercial_link.pid) + " (qty " +
+                             str(commercial_link.order) +
+                             ") is not associated to any route, I cannot send any shipment to client " +
+                             str(commercial_link.buyer_id)
+                             )
 
         if self.check_route_availability(commercial_link, transport_network, 'main') == 'available':
             # If the normal route is available, we can send the shipment as usual 
@@ -756,9 +757,14 @@ class Firm(Agent):
                 # Calculate relative increase in routing cost
                 new_transport_bill = commercial_link.delivery_in_tons * commercial_link.alternative_route_cost_per_ton
                 normal_transport_bill = commercial_link.delivery_in_tons * commercial_link.route_cost_per_ton
-                # print(self.pid, self.sector_type)
-                # print(commercial_link.delivery_in_tons, commercial_link.route_cost_per_ton,
-                #       commercial_link.alternative_route_cost_per_ton)
+                if commercial_link.supplier_id == 37 and commercial_link.buyer_id == 767:
+                    print(
+                        route,
+                        commercial_link.delivery_in_tons,
+                        commercial_link.route_cost_per_ton,
+                        commercial_link.alternative_route_cost_per_ton
+                    )
+                    exit()
                 # print(normal_transport_bill, new_transport_bill)
                 relative_cost_change = max(new_transport_bill - normal_transport_bill, 0) / normal_transport_bill
                 # If switched transport mode, add switching cost

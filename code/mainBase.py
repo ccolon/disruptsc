@@ -53,16 +53,16 @@ def extract_final_list_of_sector(firm_list: list):
 
 def create_export_folder(export: dict, input_folder: str, timestamp: str) -> str:
     if any(list(export.values())):
-        exp_folder = ROOT_FOLDER / input_folder / timestamp
-        if not os.path.isdir(ROOT_FOLDER / input_folder):
-            os.mkdir(ROOT_FOLDER / input_folder)
-        os.mkdir(exp_folder)
-        exportParameters(exp_folder)
+        export_folder = ROOT_FOLDER / "output" / input_folder / timestamp
+        if not os.path.isdir(ROOT_FOLDER / "output" / input_folder):
+            os.mkdir(ROOT_FOLDER / "output" / input_folder)
+        os.mkdir(export_folder)
+        exportParameters(export_folder)
 
     else:
-        exp_folder = None
+        export_folder = None
 
-    return exp_folder
+    return export_folder
 
 
 def adjust_logging_behavior(export: dict, exp_folder: str, logging_level):
@@ -549,6 +549,10 @@ elif disruption_analysis['type'] == "compound":
                            country_list=country_list, household_list=household_list, initialization_mode="equilibrium")
 
     Tfinal = duration_dic[disruption_list.end_time]
+    # for edge in G.edges:
+    #     if edge[0].pid == 'COL' and edge[1].pid == 3254:
+    #         print(G[edge[0]][edge[1]]['object'].print_info())
+
     obs = Observer(
         firm_list=firm_list,
         Tfinal=Tfinal,
@@ -651,8 +655,8 @@ elif disruption_analysis['type'] == "compound":
         writeResPerFirmResults(extra_spending_export_file,
                                missing_consumption_export_file, obs, "compound")
 
-    # if export['agent_data']:
-    #     exportAgentData(obs, export_folder=exp_folder)
+    if export['agent_data']:
+        exportAgentData(obs, export_folder=exp_folder)
 
     del obs
 
@@ -805,8 +809,8 @@ elif disruption_analysis['type'] == 'criticality':
             writeResPerFirmResults(extra_spending_export_file,
                                    missing_consumption_export_file, obs, disruption)
 
-        # if export['agent_data']:
-        #     exportAgentData(obs, export_folder=exp_folder)
+        if export['agent_data']:
+            exportAgentData(obs, export_folder=exp_folder)
 
         del obs
 

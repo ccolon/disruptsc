@@ -35,35 +35,37 @@ pop_density_cutoff = 0
 pop_cutoff = 1000
 local_demand_cutoff = 50
 
-disruption_analysis = {
-    "type": "criticality",
-    "disrupt_nodes_or_edges": "edges",
-    "nodeedge_tested": "all",
-    "identified_by": "id",
-    "start_time": 1,
-    "duration": 1
-}
-
 # disruption_analysis = {
-#     "type": "compound",
-#     "events": [
-#         {
-#             "item_type": "transport_edges",
-#             "attribute": "id",
-#             "values": [101, 102, 103],
-#             "start_time": 1,
-#             "duration": 1
-#         },
-#         {
-#             "item_type": "firms",
-#             "admin_units": ["0101", '0102'],
-#             "sectors": ["PES", 'MIP'],
-#             "start_time": 1,
-#             "duration": 1,
-#             "production_capacity_reduction": 0.5
-#         }
-#     ]
+#     "type": "criticality",
+#     "disrupt_nodes_or_edges": "edges",
+#     "nodeedge_tested": "all",
+#     "identified_by": "id",
+#     "start_time": 1,
+#     "duration": 1
 # }
+
+disruption_analysis = {
+    "type": "compound",
+    "events": [
+        {
+            "item_type": "transport_edges",
+            "attribute": "disruption",
+            # "attribute": "id",
+            "values": ["Scenario 5_20"],
+            # "values": [1200],
+            "start_time": 1,
+            "duration": 1
+        }
+        # {
+        #     "item_type": "firms",
+        #     "admin_units": ["0101", '0102'],
+        #     "sectors": ["PES", 'MIP'],
+        #     "start_time": 1,
+        #     "duration": 1,
+        #     "production_capacity_reduction": 0.5
+        # }
+    ]
+}
 
 
 # disruption_analysis = None
@@ -79,7 +81,7 @@ disruption_analysis = {
 # }
 io_cutoff = 0.01
 
-route_optimization_weight = "agg_cost" #cost_per_ton time_cost agg_cost
+route_optimization_weight = "cost_per_ton" #cost_per_ton time_cost agg_cost
 
 export = {key: True for key in export.keys()}
 # export['transport'] = True
@@ -152,11 +154,11 @@ export = {
     # Save the edgelist table
     # It creates a "edgelist_table.xlsx" file in the output folder
     # It gives, for each supplier-buyer link, the distance and amounts of good that flows
-    "edgelist_table": True,
+    "edgelist_table": False,
 
     # Save inventories per sector
     # It creates an "inventories.xlsx" file in the output folder
-    "inventories": True,
+    "inventories": False,
 
     # Save the combination of district and sector that are over the cutoffs value
     # It creates an "filtered_district_sector.xlsx" file in the output folder

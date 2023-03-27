@@ -1,3 +1,6 @@
+import pandas as pd
+
+
 class CommercialLink(object):
 
     def __init__(self, pid=None, supplier_id=None, buyer_id=None, product=None, 
@@ -44,7 +47,6 @@ class CommercialLink(object):
         attribute_to_print = [a for a in dir(self) if not a.startswith('__') and not callable(getattr(self, a))]
         for attribute in attribute_to_print:
             print(attribute+": "+str(getattr(self, attribute)))
-            print("\n")
 
         
         
@@ -64,6 +66,13 @@ class CommercialLink(object):
         main_or_alternative, transport_network):
 
         distance, route_time_cost, cost_per_ton = transport_network.giveRouteCaracteristics(route)
+        # if pd.isna(cost_per_ton):
+        #     print(route, distance, route_time_cost, cost_per_ton)
+        #     transport_network.giveRouteCaracteristics(route, debug=True)
+        #
+        # if self.supplier_id == 'COL' and self.buyer_id == 3254:
+        #     print(route, distance, route_time_cost, cost_per_ton)
+        #     transport_network.giveRouteCaracteristics(route, debug=True)
 
         if main_or_alternative == "main":
             self.route = route

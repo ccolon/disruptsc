@@ -350,7 +350,14 @@ class Country(Agent):
                 # Calculate relative increase in routing cost
                 new_transport_bill = commercial_link.delivery_in_tons * commercial_link.alternative_route_cost_per_ton
                 normal_transport_bill = commercial_link.delivery_in_tons * commercial_link.route_cost_per_ton
-                relative_cost_change = max(new_transport_bill - normal_transport_bill, 0)/normal_transport_bill
+                relative_cost_change = max(new_transport_bill - normal_transport_bill, 0) / normal_transport_bill
+                # print(
+                #     self.pid,
+                #     commercial_link.delivery_in_tons,
+                #     commercial_link.route_cost_per_ton,
+                #     commercial_link.alternative_route_cost_per_ton,
+                #     relative_cost_change
+                # )
                 # If switched transport mode, add switching cost
                 switching_cost = 0.5
                 if commercial_link.alternative_route_mode != commercial_link.route_mode:

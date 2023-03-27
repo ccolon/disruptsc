@@ -247,29 +247,27 @@ def analyzeSupplyChainFlows(sc_network, firm_list, export_folder):
 
 
 def exportFirmTS(what, observer, export_folder):
-    ts = pd.DataFrame(
-        {t: \
-            {firm_id: val[what] for firm_id, val in observer.firms[t].items()} 
-        for t in observer.firms.keys()}
-    ).transpose()
+    ts = pd.DataFrame(observer.firms).transpose()
     ts.to_csv(os.path.join(export_folder, 'firm_'+what+'_ts.csv'), sep=',')
     return ts
 
 
 def exportCountriesTS(what, observer, export_folder):
-    ts = pd.DataFrame(
-        {t: \
-            {country_id: val[what] for country_id, val in observer.countries[t].items()} 
-        for t in observer.firms.keys()}
-    ).transpose()
+    ts = pd.DataFrame(observer.countries).transpose()
+    # ts = pd.DataFrame(
+    #     {t: \
+    #         {country_id: val[what] for country_id, val in observer.countries[t].items()}
+    #     for t in observer.firms.keys()}
+    # ).transpose()
     ts.to_csv(os.path.join(export_folder, 'countries_'+what+'_ts.csv'), sep=',')
     return ts
 
 
 def exportHouseholdsTS(what, observer, export_folder):
-    ts = pd.DataFrame(
-        {t: val[what] for t, val in observer.households.items()}
-    ).transpose()
+    ts = pd.DataFrame(observer.households).transpose()
+    # ts = pd.DataFrame(
+    #     {t: val[what] for t, val in observer.households.items()}
+    # ).transpose()
     ts.to_csv(os.path.join(export_folder, 'households_'+what+'_ts.csv'), sep=',')
     return ts
 

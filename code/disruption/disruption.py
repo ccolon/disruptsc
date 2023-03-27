@@ -21,10 +21,15 @@ class Disruption:
             start_time: int,
             duration: int
     ) -> list:
-        item_ids = edges.sort_values('id').loc[
-            edges[attribute].isin(values),
-            'id'
-        ].tolist()
+        # we do a special case for the disruption attribute
+        # for which we check if the attribute contains one of the value
+        if attribute == "disruption":
+            condition = [edges[attribute].str.contains(value) for value in values]
+            condition = pandas.concat(condition, axis=1)
+            condition = condition.any(axis=1)
+        else:
+            condition = edges[attribute].isin(values)
+        item_ids = edges.sort_values('id').loc[condition, 'id'].tolist()
 
         return [
             cls(

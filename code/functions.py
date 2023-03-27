@@ -623,9 +623,13 @@ def agent_update_indicator(agent, quantity_delivered, price, commercial_link):
         agent.tot_consumption += quantity_delivered
         agent.spending_per_retailer[commercial_link.supplier_id] = quantity_delivered * price
         agent.tot_spending += quantity_delivered * price
-        agent.extra_spending += quantity_delivered * (price - commercial_link.eq_price)
-        agent.consumption_loss = (agent.purchase_plan[commercial_link.supplier_id] - quantity_delivered) * \
-                                 commercial_link.eq_price
+        new_extra_spending = quantity_delivered * (price - commercial_link.eq_price)
+        agent.extra_spending += new_extra_spending
+        add_or_increment_dict_key(agent.extra_spending_per_sector, commercial_link.product, new_extra_spending)
+        new_consumption_loss = (agent.purchase_plan[commercial_link.supplier_id] - quantity_delivered) * \
+                               commercial_link.eq_price
+        agent.consumption_loss += new_consumption_loss
+        add_or_increment_dict_key(agent.consumption_loss_per_sector, commercial_link.product, new_consumption_loss)
         # if consum_loss >= 1e-6:
         #     logging.debug("Household "+agent.pid+" Firm "+
         #         str(commercial_link.supplier_id)+" supposed to deliver "+
@@ -637,6 +641,13 @@ def agent_update_indicator(agent, quantity_delivered, price, commercial_link):
         logging.debug("Agent " + str(agent.pid) + ": quantity delivered by " +
                       str(commercial_link.supplier_id) + " is " + str(quantity_delivered) +
                       ". It was supposed to be " + str(commercial_link.delivery) + ".")
+
+
+def add_or_increment_dict_key(dic: dict, key, value: float | int):
+    if key not in dic.keys():
+        dic[key] = value
+    else:
+        dic[key] += value
 
 
 def agent_receive_shipment_and_pay(agent, commercial_link, transport_network):

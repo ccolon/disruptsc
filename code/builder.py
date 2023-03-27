@@ -1302,7 +1302,7 @@ def addHouseholdsForFirms(firm_table, household_table,
     logging.info(firm_table.loc[cond_no_household, 'odpoint'].nunique(), 'od points with firms without households')
 
     # B. Create new household table
-    added_household_table = firm_table[cond_no_household].groupby('odpoint', as_index=False)['population'].max()
+    added_household_table = firm_table[cond_no_household].groupby(['odpoint', "admin_unit"], as_index=False)['population'].max()
     odpoint_long_lat = firm_table.loc[cond_no_household, ["odpoint", 'long', "lat"]].drop_duplicates()
     added_household_table = added_household_table.merge(odpoint_long_lat, how='left', on='odpoint')
 
@@ -1438,7 +1438,7 @@ def defineHouseholds(sector_table, filepath_adminunit_data,
     # Map household to closest road nodes
     household_table['odpoint'] = household_table['admin_code'].map(dic_adminunit_to_roadNodeId)
     # Combine households that are in the same odpoint
-    household_table = household_table.drop(columns=['geometry', 'admin_code']).groupby('odpoint', as_index=False).sum()
+    household_table = household_table.drop(columns=['geometry']).groupby(['admin_code', 'odpoint'], as_index=False).sum()
     logging.info(str(household_table.shape[0])+ ' odpoint selected for demand')
 
 
