@@ -22,10 +22,9 @@ from .agent_builder_functions import \
 
 
 class Model(object):
-    def __init__(self, country_list: list, household_list:list, firm_list: list):
+    def __init__(self, parameters: ModelParameters):
         # Parameters and filepath
-        self.filepaths = None
-        self.parameters = None
+        self.parameters = parameters
         # Initialization states
         self.transport_network_initialized = False
         self.agents_initialized = False
@@ -41,7 +40,7 @@ class Model(object):
         self.transport_nodes = None
         self.transport_network = None
 
-    def setup(self, parameters: ModelParameters, filepaths: dict):
+    def setup(self):
         # Parameters
         self.parameters = parameters
         # Filepaths
@@ -70,21 +69,16 @@ class Model(object):
 
         return cls(...)
 
-    def setup_transport_network(
-            self,
-            cached: bool,
-            filepaths: dict,
-            transport_modes: list,
-            transport_params: dict,
-            route_optimization_weight: str,
-            logistics_modes: dict
-    ):
+    def setup_transport_network(self, cached: bool):
         if cached:
             self.transport_network, self.transport_nodes, self.transport_edges = \
                 load_cached_transport_network()
         else:
             self.transport_network, self.transport_nodes, self.transport_edges = \
-                create_transport_network(transport_modes, filepaths, transport_params)
+                create_transport_network(
+                    transport_modes = self.parameters.transport_modes,
+                    filepaths = self.parameters.filepaths
+                )
 
             data_to_cache = {
                 "transport_network": self.transport_network,
@@ -93,7 +87,10 @@ class Model(object):
             }
             cache_transport_network(data_to_cache)
 
-        self.transport_network.defineWeights(route_optimization_weight, logistics_modes)
+        self.transport_network.defineWeights(
+            route_optimization_weight = self.parameters.route_optimization_weight,
+            logistics_modes = self.parameters.logistics_modes
+        )
         self.transport_network.log_km_per_transport_modes()  # Print data on km per mode
 
         self.transport_network_initialized = True
@@ -259,9 +256,9 @@ class Model(object):
                 input_units=monetary_units_inputed
             )
 
-            ### Specify the weight of a unit worth of good, which may differ according to sector, or even to each firm/countries
-            # Note that for imports, i.e. for the goods delivered by a country, and for transit flows, we do not disentangle sectors
-            # In this case, we use an average.
+            # Specify the weight of a unit worth of good, which may differ according to sector, or even to each
+            # firm/countries Note that for imports, i.e. for the goods delivered by a country, and for transit flows,
+            # we do not disentangle sectors In this case, we use an average.
             firm_list, country_list, sector_to_usdPerTon = loadTonUsdEquivalence(
                 sector_table=sector_table,
                 firm_list=firm_list,

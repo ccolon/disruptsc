@@ -354,7 +354,7 @@ def apply_disruption(time_step: int, disruptions: DisruptionList, transport_netw
             edge_disruptions_starting_now.get_item_id_duration_reduction_dict()
         )
     firm_disruptions_starting_now = disruptions_starting_now.filter_type('firm')
-    if len(edge_disruptions_starting_now) > 0:
+    if len(firm_disruptions_starting_now) > 0:
         firms_get_disrupted(firm_list, firm_disruptions_starting_now.get_item_id_duration_reduction_dict())
     # node disruption not implemented
 

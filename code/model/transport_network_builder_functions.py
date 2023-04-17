@@ -1,6 +1,7 @@
 import logging
 import geopandas as gpd
 import pandas as pd
+import yaml
 
 
 def load_transport_data(filepaths, transport_params, transport_mode, additional_roads=None):
@@ -73,7 +74,7 @@ def load_transport_data(filepaths, transport_params, transport_mode, additional_
         return edges
 
 
-def create_transport_network(transport_modes, filepaths, transport_params, extra_roads=False):
+def create_transport_network(transport_modes, filepaths, extra_roads=False):
     """Create the transport network object
 
     It uses one shapefile for the nodes and another for the edges.
@@ -89,13 +90,14 @@ def create_transport_network(transport_modes, filepaths, transport_params, extra
     filepaths : dic
         Dic of filepaths
 
-    transport_params : dictionary
-        Transport parameters. Should be in a specific format.
-
     Returns
     -------
     TransportNetwork, transport_nodes geopandas.DataFrame, transport_edges geopandas.DataFrame
     """
+
+    # Load transport parameters
+    with open(filepaths['transport_parameters'], "r") as yaml_file:
+        transport_params = yaml.load(yaml_file, Loader=yaml.FullLoader)
 
     # Create the transport network object
     logging.info('Creating transport network')

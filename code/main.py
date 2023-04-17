@@ -1,24 +1,23 @@
 # Import modules
+import logging
+import os
 import sys
 import time
+from pathlib import Path
+
 import yaml
 from datetime import datetime
 import importlib
 import paths
-import pickle
+from code.export_functions import exportParameters
+from code.parameters import Parameters
 from model.model import Model
 
 # Import functions and classes
-from builder import *
-from simulations import *
-from export_functions import *
-from class_observer import Observer
+# from export_functions import *
 
 # Import parameters. It should be in this specific order.
-project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(1, project_path)
-from parameter.parameters import *
-from parameter.filepaths import *
+parameters = Parameters.load_parameters(paths.PARAMETER_FOLDER)
 
 # Check that the script is called correctly
 accepted_script_arguments = [
@@ -36,34 +35,27 @@ if len(sys.argv) > 1:
 
 # Start run
 t0 = time.time()
-timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
 
 
-def create_export_folder(
-        project_folder: str,
-        export: dict,
-        input_folder: str,
-        timestamp: str
-) -> str:
-    if any(list(export.values())):
-        exp_folder = os.path.join(project_folder, 'output', input_folder, timestamp)
-        if not os.path.isdir(os.path.join(project_folder, 'output', input_folder)):
-            os.mkdir(os.path.join(project_folder, 'output', input_folder))
-        os.mkdir(exp_folder)
-        exportParameters(exp_folder)
-
-    else:
-        exp_folder = None
-
+def create_export_folder(main_output_folder: Path, input_folder_name: str) -> Path:
+    if not os.path.isdir(main_output_folder / input_folder_name):
+        os.mkdir(main_output_folder / input_folder_name)
+    exp_folder = main_output_folder / input_folder_name / datetime.now().strftime('%Y%m%d_%H%M%S')
+    os.mkdir(exp_folder)
+    exportParameters(exp_folder)
     return exp_folder
 
 
-def adjust_logging_behavior(project_folder: str, export: dict, exp_folder: str, logging_level):
+def adjust_logging_behavior(export: dict, exp_folder: Path, selected_logging_level: str):
+    if selected_logging_level == "info":
+        logging_level = logging.INFO
+    else:
+        logging_level = logging.DEBUG
+
     if export['log']:
         importlib.reload(logging)
-        print(os.path.join(project_folder, exp_folder, 'exp.log'))
         logging.basicConfig(
-            filename=os.path.join(project_folder, exp_folder, 'exp.log'),
+            filename=exp_folder / 'exp.log',
             level=logging_level,
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         )
@@ -76,20 +68,17 @@ def adjust_logging_behavior(project_folder: str, export: dict, exp_folder: str, 
         )
 
 
-# If there is sth to export, then we create the output folder
-exp_folder = create_export_folder(paths.project_directory, export, input_folder, timestamp)
-
-# Set logging parameters
-adjust_logging_behavior(paths.project_directory, export, exp_folder, logging_level)
-
-logging.info('Simulation ' + timestamp + ' starting using ' + input_folder + ' input data.')
+# We create the output folder
+# export_folder = create_export_folder(paths.OUTPUT_FOLDER, parameters.input_folder)
+#
+# # Set logging parameters
+# adjust_logging_behavior(parameters.export, export_folder, parameters.logging_level)
+#
+# logging.info(f'Simulation starting using {parameters.input_folder} input data and {export_folder} output folder')
 
 # Create transport network
-with open(filepaths['transport_parameters'], "r") as yaml_file:
-    transport_params = yaml.load(yaml_file, Loader=yaml.FullLoader)
-
-model = Model(parameters, filepaths)
-
-model.setup_transport_network()
+model = Model(parameters)
+model.setup_transport_network(cached=False)
+exit()
 
 logging.info("End of simulation")

@@ -5,18 +5,18 @@ import yaml
 from datetime import datetime
 import importlib
 import pickle
+import os
+
+# Import parameters. It should be in this specific order.
+from paths import ROOT_FOLDER
+sys.path.insert(1, ROOT_FOLDER)
 
 # Import functions and classes
 from builder import *
 from simulations import *
 from export_functions import *
 from class_observer import Observer
-from paths import ROOT_FOLDER
 
-# Import parameters. It should be in this specific order.
-project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(1, project_path)
-sys.path.insert(1, ROOT_FOLDER)
 
 from parameter.parameters import *
 from parameter.filepaths import *

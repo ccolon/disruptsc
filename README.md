@@ -352,7 +352,7 @@ Example:
 **7. Prepare the transit matrix**
 
 - Identify the pair of neighboring countries, whose physical trade flows could go through the country under study (e.g., Peru - Colombia for Ecuador)
-- For each pair, get the total import and export of good on ComTrade for the relevant year (not splitted by sector)
+- For each pair, get the total import and export of good between the two countries of the pair on ComTrade for the relevant year (not splitted by sector)
 - With any data available, estimate how much of these trade flows goes through the country
 - Produce the resulting transit matrix
 

@@ -14,7 +14,7 @@ monetary_units_in_model = "mUSD"
 monetary_units_inputed = "kUSD"
 time_resolution = 'week'
 
-firm_data_type = "disaggregating IO" #disaggregating IO, supplier-buyer network
+firm_data_type = "disaggregating IO"  # disaggregating IO, supplier-buyer network
 
 transport_modes = ['roads', 'maritime', 'waterways', 'airways']
 
@@ -29,7 +29,7 @@ logistics_modes = {
     }
 }
 
-route_optimization_weight = "cost_per_ton" #cost_per_ton
+route_optimization_weight = "cost_per_ton"  # cost_per_ton
 
 pop_density_cutoff = 0
 pop_cutoff = 1000
@@ -44,52 +44,130 @@ local_demand_cutoff = 50
 #     "duration": 1
 # }
 
+affected_sectors = ['ALD', 'AYG', 'AZU', 'BAL', 'BNA', 'CAN', 'CAR', 'CAU', 'CEM',
+                    'CHO', 'COM', 'CON', 'CUE', 'DEM', 'EDU', 'ELE', 'FID', 'HIL',
+                    'HOT', 'LAC', 'MAD', 'MAN', 'MAQ', 'MET', 'MIP', 'MOL', 'MUE',
+                    'PAN', 'PAP', 'POS', 'PPR', 'QU1', 'QU2', 'REF', 'REP', 'RES',
+                    'TEL', 'TRA', 'VES', 'VID']
+
+utilization_rate = 1
+
 disruption_analysis = {
     "type": "compound",
     "events": [
-        {
-            "item_type": "transport_edges",
-            "attribute": "disruption",
-            # "attribute": "id",
-            "values": ["Scenario 5_20"],
-            # "values": [1200],
-            "start_time": 1,
-            "duration": 1
-        }
         # {
-        #     "item_type": "firms",
-        #     "admin_units": ["0101", '0102'],
-        #     "sectors": ["PES", 'MIP'],
+        #     "item_type": "transport_edges",
+        #     "attribute": "disruption",
+        #     # "attribute": "id",
+        #     "values": ["2016_earthquake"],
+        #     # "values": [1200],
         #     "start_time": 1,
-        #     "duration": 1,
-        #     "production_capacity_reduction": 0.5
-        # }
+        #     "duration": 1
+        # }#,
+        {
+            "item_type": "firms",
+            "admin_units": ["1309"],
+            "sectors": affected_sectors,
+            "start_time": 1,
+            "duration": 2,
+            "production_capacity_reduction": 0.004153
+        },
+        {
+            "item_type": "firms",
+            "admin_units": ["1301"],
+            "sectors": affected_sectors,
+            "start_time": 1,
+            "duration": 2,
+            "production_capacity_reduction": 0.006068
+        },
+        {
+            "item_type": "firms",
+            "admin_units": ["1308"],
+            "sectors": affected_sectors,
+            "start_time": 1,
+            "duration": 2,
+            "production_capacity_reduction": 0.007499
+        },
+        {
+            "item_type": "firms",
+            "admin_units": ["1321"],
+            "sectors": affected_sectors,
+            "start_time": 1,
+            "duration": 2,
+            "production_capacity_reduction": 0.010603
+        },
+        {
+            "item_type": "firms",
+            "admin_units": ["1303"],
+            "sectors": affected_sectors,
+            "start_time": 1,
+            "duration": 2,
+            "production_capacity_reduction": 0.013404
+        },
+        {
+            "item_type": "firms",
+            "admin_units": ["1322"],
+            "sectors": affected_sectors,
+            "start_time": 1,
+            "duration": 2,
+            "production_capacity_reduction": 0.022554
+        },
+        {
+            "item_type": "firms",
+            "admin_units": ["803"],
+            "sectors": affected_sectors,
+            "start_time": 1,
+            "duration": 2,
+            "production_capacity_reduction": 0.116392
+        },
+        {
+            "item_type": "firms",
+            "admin_units": ["1320"],
+            "sectors": affected_sectors,
+            "start_time": 1,
+            "duration": 2,
+            "production_capacity_reduction": 0.177236
+        },
+        {
+            "item_type": "firms",
+            "admin_units": ["1317"],
+            "sectors": affected_sectors,
+            "start_time": 1,
+            "duration": 2,
+            "production_capacity_reduction": 0.420373
+        }
     ]
 }
 
-
+disruption_analysis = {
+    "type": "criticality",
+    "disrupt_nodes_or_edges": "edges",
+    "nodeedge_tested": "all",
+    "identified_by": "id",
+    "start_time": 1,
+    "duration": 1
+}
 # disruption_analysis = None
 # inventory_duration_target = 2
 # congestion = True
 
 # cutoffs
-#sectors_to_exclude = ['ADM']
-#district_sector_cutoff = 0.003
+# sectors_to_exclude = ['ADM']
+# district_sector_cutoff = 0.003
 # cutoff_sector_output = {
 #     'type': 'percentage',
 #     'value': 0.02
 # }
 io_cutoff = 0.01
 
-route_optimization_weight = "cost_per_ton" #cost_per_ton time_cost agg_cost
+route_optimization_weight = "cost_per_ton"  # cost_per_ton time_cost agg_cost
 
 export = {key: True for key in export.keys()}
 # export['transport'] = True
 
 cost_repercussion_mode = "type1"
 
-#duration_dic[1] = 1
-
+# duration_dic[1] = 1
 
 
 export = {
@@ -140,7 +218,6 @@ export = {
     # It gives the properties of each firm, along with production, sales to households, to other firms, exports
     "firm_table": True,
 
-
     # Save the OD point table
     # It creates a "odpoint_table.xlsx" file in the output folder
     # It gives the properties of each OD point, along with production, sales to households, to other firms, exports
@@ -168,7 +245,9 @@ export = {
     "sc_network_summary": False
 }
 
+
 def create_dict(*args):
     return dict(((k, eval(k)) for k in args))
+
 
 parameters = create_dict()
