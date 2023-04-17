@@ -10,6 +10,8 @@ import os
 # Import parameters. It should be in this specific order.
 from paths import ROOT_FOLDER
 sys.path.insert(1, ROOT_FOLDER)
+project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(1, project_path)
 
 # Import functions and classes
 from builder import *
