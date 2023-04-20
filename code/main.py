@@ -78,7 +78,8 @@ def adjust_logging_behavior(export: dict, exp_folder: Path, selected_logging_lev
 
 # Create transport network
 model = Model(parameters)
-model.setup_transport_network(cached=False)
+model.setup_transport_network(cached=True)
+model.setup_agents(cached=False)
 exit()
 
 logging.info("End of simulation")

@@ -19,7 +19,7 @@ filepaths:
   "tech_coef": "National/59sector_2016_tech_coef.csv"
   "inventory_duration_targets": "National/59sector_inventory_targets.csv"
   # District data
-  "adminunit_data": "Subnational/59sector_2015_canton_data.geojson"
+  "admin_unit_data": "Subnational/59sector_2015_canton_data.geojson"
   # Trade
   "imports": "Trade/59sector_2016_import_table.csv"
   "exports": "Trade/59sector_2016_export_table.csv"

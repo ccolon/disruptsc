@@ -37,9 +37,9 @@ class Parameters:
     extra_inventory_target: None | int
     inputs_with_extra_inventories: str | list
     buying_sectors_with_extra_inventories: str | list
-    reactivity_rate: str
-    utilization_rate: str
-    io_cutoff: str
+    reactivity_rate: float
+    utilization_rate: float
+    io_cutoff: float
     rationing_mode: str
     nb_suppliers_per_input: float
     weight_localization_firm: float
@@ -78,10 +78,10 @@ class Parameters:
         # Adjust path
         parameters = cls(**parameters)
         # Adjust filepath
+        parameters.build_full_filepath()
 
-        return cls(**parameters)
+        return parameters
 
-    @staticmethod
-    def build_full_filepath(input_folder, filepaths):
-        for key, val in filepaths:
-            filepaths[key] = paths.INPUT_FOLDER / input_folder / val
+    def build_full_filepath(self):
+        for key, val in self.filepaths.items():
+            self.filepaths[key] = paths.INPUT_FOLDER / self.input_folder / val

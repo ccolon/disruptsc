@@ -31,12 +31,15 @@ class TransportNetwork(nx.Graph):
         logging.info('Nb of nodes: ' + str(len(self.nodes)) + ', Nb of edges: ' + str(len(self.edges)))
 
     def add_transport_edge_with_nodes(self, edge_id: int,
-                                      all_edges_data: geopandas.GeoDataFrame, all_nodes_data: geopandas.GeoDataFrame):
+                                      all_edges_data: geopandas.GeoDataFrame,
+                                      all_nodes_data: geopandas.GeoDataFrame):
         # Selecting data
         edge_attributes = ['id', "type", 'surface', "geometry", "class", "km", 'special', "name",
-                           "multimodes", "capacity", "disruption",
+                           "capacity", "disruption",
                            "cost_per_ton", "travel_time", "time_cost", 'cost_travel_time', 'cost_variability',
                            'agg_cost']
+        if all_edges_data['type'].nunique() > 1:  # if there are multiple modes
+            edge_attributes += ['multimodes']
         edge_data = all_edges_data.loc[edge_id, edge_attributes].to_dict()
         end_ids = all_edges_data.loc[edge_id, ["end1", "end2"]].tolist()
         # Creating the start and end nodes

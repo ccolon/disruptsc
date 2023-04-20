@@ -1,11 +1,16 @@
 import warnings
 import logging
+from pathlib import Path
+
+import geopandas
+import pandas
 import pandas as pd
 import geopandas as gpd
 import numpy as np
 
-from class_firm import Firm
-from class_household import Household
+from code.agents.firm import Firm
+from code.agents.household import Household
+from code.agents.country import Country
 
 
 def filter_sector(sector_table, cutoff_sector_output, cutoff_sector_demand,
@@ -111,9 +116,9 @@ def apply_sector_filter(sector_table, filter_column, cut_off_dic):
     return filtered_sectors
 
 
-def define_firms_from_local_economic_data(filepath_admin_unit_economic_data,
-                                          sectors_to_include, transport_nodes,
-                                          filepath_sector_table):
+def define_firms_from_local_economic_data(filepath_admin_unit_economic_data: Path,
+                                          sectors_to_include: list, transport_nodes: geopandas.GeoDataFrame,
+                                          filepath_sector_table: Path):
     '''Define firms based on the admin_unit_economic_data.
     The output is a dataframe, 1 row = 1 firm.
     The instances Firms are created in the createFirm function.
@@ -384,7 +389,7 @@ def extract_final_list_of_sector(firm_list: list):
 
 def define_households(
         sector_table: pd.DataFrame,
-        filepath_admin_unit_data: str,
+        filepath_admin_unit_data: Path,
         filtered_sectors: list,
         pop_cutoff: float,
         pop_density_cutoff: float,
@@ -562,7 +567,7 @@ def rescale_monetary_values(
         time_resolution: str = "week",
         target_units: str = "mUSD",
         input_units: str = "USD"
-) -> object:
+) -> pd.Series | pd.DataFrame | float:
     """Rescale monetary values using the appropriate timescale and monetary units
 
     Parameters
@@ -754,7 +759,7 @@ def calibrate_input_mix(
         firm_table: pd.DataFrame,
         sector_table: pd.DataFrame,
         filepath_transaction_table: str
-    ):
+):
     transaction_table = pd.read_csv(filepath_transaction_table)
 
     domestic_B2B_sales_per_firm = transaction_table.groupby('supplier_id')['transaction'].sum()
@@ -792,3 +797,296 @@ def calibrate_input_mix(
         firm.input_mix = input_mix[firm.pid]
 
     return firm_table, transaction_table
+
+
+def load_inventories(firm_list: list, inventory_duration_target: int | str,
+                     filepath_inventory_duration_targets: Path, extra_inventory_target: int | None = None,
+                     inputs_with_extra_inventories: None | list = None,
+                     buying_sectors_with_extra_inventories: None | list = None,
+                     min_inventory: int = 1, random_mean_sd: float | None = None):
+    """Load inventory duration target
+
+    If inventory_duration_target is an integer, it is uniformly applied to all firms.
+    If it its "inputed", then we use the targets defined in the file filepath_inventory_duration_targets. In that case,
+    targets are sector specific, i.e., it varies according to the type of input and the sector of the buying firm.
+    If both cases, we can add extra units of inventories:
+    - uniformly, e.g., all firms have more inventories of all inputs,
+    - to specific inputs, all firms have extra agricultural inputs,
+    - to specific buying firms, e.g., all manufacturing firms have more of all inputs,
+    - to a combination of both. e.g., all manufacturing firms have more of agricultural inputs.
+    We can also add some noise on the distribution of inventories. Not yet imlemented.
+
+    Parameters
+    ----------
+    firm_list : pandas.DataFrame
+        the list of Firms generated from the createFirms function
+
+    inventory_duration_target : "inputed" or integer
+        Inventory duration target uniformly applied to all firms and all inputs.
+        If 'inputed', uses the specific values from the file specified by
+        filepath_inventory_duration_targets
+
+    extra_inventory_target : None or integer
+        If specified, extra inventory duration target.
+
+    inputs_with_extra_inventories : None or list of sector
+        For which inputs do we add inventories.
+
+    buying_sectors_with_extra_inventories : None or list of sector
+        For which sector we add inventories.
+
+    min_inventory : int
+        Set a minimum inventory level
+
+    random_mean_sd: None
+        Not yet implemented.
+
+    Returns
+    -------
+        list of Firms
+    """
+
+    if isinstance(inventory_duration_target, int):
+        for firm in firm_list:
+            firm.inventory_duration_target = {input_sector: inventory_duration_target for input_sector in
+                                              firm.input_mix.keys()}
+
+    elif inventory_duration_target == 'inputed':
+        dic_sector_inventory = \
+            pd.read_csv(filepath_inventory_duration_targets).set_index(['buying_sector', 'input_sector'])[
+                'inventory_duration_target'].to_dict()
+        for firm in firm_list:
+            firm.inventory_duration_target = {
+                input_sector: dic_sector_inventory[(firm.sector, input_sector)]
+                for input_sector in firm.input_mix.keys()
+            }
+
+    else:
+        raise ValueError("Unknown value entered for 'inventory_duration_target'")
+
+    # if random_mean_sd:
+    #     if random_draw:
+    #         for firm in firm_list:
+    #             firm.inventory_duration_target = {}
+    #             for input_sector in firm.input_mix.keys():
+    #                 mean = dic_sector_inventory[(firm.sector, input_sector)]['mean']
+    #                 sd = dic_sector_inventory[(firm.sector, input_sector)]['sd']
+    #                 mu = math.log(mean/math.sqrt(1+sd**2/mean**2))
+    #                 sigma = math.sqrt(math.log(1+sd**2/mean**2))
+    #                 safety_day = np.random.log(mu, sigma)
+    #                 firm.inventory_duration_target[input_sector] = safety_day
+
+    # Add extra inventories if needed. Not the best programming maybe...
+    if isinstance(extra_inventory_target, int):
+        if isinstance(inputs_with_extra_inventories, list) and (buying_sectors_with_extra_inventories == 'all'):
+            for firm in firm_list:
+                firm.inventory_duration_target = {
+                    input_sector: firm.inventory_duration_target[input_sector] + extra_inventory_target
+                    if (input_sector in inputs_with_extra_inventories) else firm.inventory_duration_target[input_sector]
+                    for input_sector in firm.input_mix.keys()
+                }
+
+        elif (inputs_with_extra_inventories == 'all') and isinstance(buying_sectors_with_extra_inventories, list):
+            for firm in firm_list:
+                firm.inventory_duration_target = {
+                    input_sector: firm.inventory_duration_target[input_sector] + extra_inventory_target
+                    if (firm.sector in buying_sectors_with_extra_inventories) else firm.inventory_duration_target[
+                        input_sector]
+                    for input_sector in firm.input_mix.keys()
+                }
+
+        elif isinstance(inputs_with_extra_inventories, list) and isinstance(buying_sectors_with_extra_inventories,
+                                                                            list):
+            for firm in firm_list:
+                firm.inventory_duration_target = {
+                    input_sector: firm.inventory_duration_target[input_sector] + extra_inventory_target
+                    if ((input_sector in inputs_with_extra_inventories) and (
+                            firm.sector in buying_sectors_with_extra_inventories)) else
+                    firm.inventory_duration_target[input_sector]
+                    for input_sector in firm.input_mix.keys()
+                }
+
+        elif (inputs_with_extra_inventories == 'all') and (buying_sectors_with_extra_inventories == 'all'):
+            for firm in firm_list:
+                firm.inventory_duration_target = {
+                    input_sector: firm.inventory_duration_target[input_sector] + extra_inventory_target
+                    for input_sector in firm.input_mix.keys()
+                }
+
+        else:
+            raise ValueError("Unknown value given for 'inputs_with_extra_inventories' or 'buying_sectors_with_extra_inventories'.\
+                Should be a list of string or 'all'")
+
+    if min_inventory > 0:
+        for firm in firm_list:
+            firm.inventory_duration_target = {
+                input_sector: max(min_inventory, inventory)
+                for input_sector, inventory in firm.inventory_duration_target.items()
+            }
+    # inventory_table = pd.DataFrame({
+    #     'id': [firm.pid for firm in firm_list],
+    #     'buying_sector': [firm.sector for firm in firm_list],
+    #     'inventories': [firm.inventory_duration_target for firm in firm_list]
+    # })
+    # inventory_table.to_csv('inventory_check.csv')
+    # logging.info("Inventories: "+str({firm.pid: firm.inventory_duration_target for firm in firm_list}))
+    logging.info('Inventory duration targets loaded')
+    if extra_inventory_target:
+        logging.info("Extra inventory duration: " + str(extra_inventory_target) + \
+                     " for inputs " + str(inputs_with_extra_inventories) + \
+                     " for buying sectors " + str(buying_sectors_with_extra_inventories))
+    return firm_list
+
+
+def create_countries(filepath_imports: Path, filepath_exports: Path, filepath_transit_matrix: Path,
+                     transport_nodes: geopandas.GeoDataFrame, present_sectors: list,
+                     countries_to_include: list | str = 'all', time_resolution: str = "week",
+                     target_units: str = "mUSD", input_units: str = "USD"):
+    """Create the countries
+
+    Parameters
+    ----------
+    filepath_imports : string
+        path to import table csv
+
+    filepath_exports : string
+        path to export table csv
+
+    filepath_transit_matrix : string
+        path to transit matrix csv
+
+    transport_nodes : pandas.DataFrame
+        transport nodes
+
+    present_sectors : list of string
+        list which sectors are included. Output of the rescaleFirms functions.
+
+    countries_to_include : list of string or "all"
+        List of countries to include. Default to "all", which select all sectors.
+
+    time_resolution : see rescaleMonetaryValues
+    target_units : see rescaleMonetaryValues
+    input_units : see rescaleMonetaryValues
+
+    Returns
+    -------
+    list of Countries
+    """
+    logging.info('Creating country_list. Countries included: ' + str(countries_to_include))
+
+    import_table = rescale_monetary_values(
+        pd.read_csv(filepath_imports, index_col=0),
+        time_resolution=time_resolution,
+        target_units=target_units,
+        input_units=input_units
+    )
+    export_table = rescale_monetary_values(
+        pd.read_csv(filepath_exports, index_col=0),
+        time_resolution=time_resolution,
+        target_units=target_units,
+        input_units=input_units
+    )
+    transit_matrix = rescale_monetary_values(
+        pd.read_csv(filepath_transit_matrix, index_col=0),
+        time_resolution=time_resolution,
+        target_units=target_units,
+        input_units=input_units
+    )
+    # entry_point_table = pd.read_csv(filepath_entry_points)
+
+    # Keep only selected countries, if applicable
+    if isinstance(countries_to_include, list):
+        import_table = import_table.loc[countries_to_include, present_sectors]
+        export_table = export_table.loc[countries_to_include, present_sectors]
+        transit_matrix = transit_matrix.loc[countries_to_include, countries_to_include]
+    elif countries_to_include == 'all':
+        import_table = import_table.loc[:, present_sectors]
+        export_table = export_table.loc[:, present_sectors]
+    else:
+        raise ValueError("'countries_to_include' should be a list of string or 'all'")
+
+    logging.info("Total imports per " + time_resolution + " is " +
+                 "{:.01f} ".format(import_table.sum().sum()) + target_units)
+    logging.info("Total exports per " + time_resolution + " is " +
+                 "{:.01f} ".format(export_table.sum().sum()) + target_units)
+    logging.info("Total transit per " + time_resolution + " is " +
+                 "{:.01f} ".format(transit_matrix.sum().sum()) + target_units)
+
+    country_list = []
+    total_imports = import_table.sum().sum()
+    for country in import_table.index.tolist():
+        # transit points
+        # entry_points = entry_point_table.loc[
+        #     entry_point_table['country']==country, 'entry_point'
+        # ].astype(int).tolist()
+        # odpoint
+        cond_country = transport_nodes['special'] == country
+        odpoint = transport_nodes.loc[cond_country, "id"]
+        lon = transport_nodes.geometry.x
+        lat = transport_nodes.geometry.y
+        if len(odpoint) == 0:
+            raise ValueError('No odpoint found for ' + country)
+        elif len(odpoint) > 2:
+            raise ValueError('More than 1 odpoint for ' + country)
+        else:
+            odpoint = odpoint.iloc[0]
+            lon = lon.iloc[0]
+            lat = lat.iloc[0]
+
+        # imports, i.e., sales of countries
+        qty_sold = import_table.loc[country, :]
+        qty_sold = qty_sold[qty_sold > 0].to_dict()
+        supply_importance = sum(qty_sold.values()) / total_imports
+
+        # exports, i.e., purchases from countries
+        qty_purchased = export_table.loc[country, :]
+        qty_purchased = qty_purchased[qty_purchased > 0].to_dict()
+
+        # transits
+        # Note that transit are not given per sector, so, if we only consider a few sector, the full transit flows will still be used
+        transit_from = transit_matrix.loc[:, country]
+        transit_from = transit_from[transit_from > 0].to_dict()
+        transit_to = transit_matrix.loc[country, :]
+        transit_to = transit_to[transit_to > 0].to_dict()
+
+        # create the list of Country object
+        country_list += [Country(pid=country,
+                                 qty_sold=qty_sold,
+                                 qty_purchased=qty_purchased,
+                                 odpoint=odpoint,
+                                 long=lon,
+                                 lat=lat,
+                                 transit_from=transit_from,
+                                 transit_to=transit_to,
+                                 supply_importance=supply_importance
+                                 )]
+
+    logging.info('Country_list created: ' + str([country.pid for country in country_list]))
+
+    return country_list
+
+
+def load_ton_usd_equivalence(sector_table: pd.DataFrame, firm_list: list, country_list: list):
+    """Load equivalence between usd and ton
+
+    It updates the firm_list and country_list.
+    It updates the 'usd_per_ton' attribute of firms, based on their sector.
+    It updates the 'usd_per_ton' attribute of countries, it gives the average.
+    Note that this will be applied only to goods that are delivered by those agents.
+
+    sector_table : pandas.DataFrame
+        Sector table
+    firm_list : list(Firm objects)
+        list of firms
+    country_list : list(Country objects)
+        list of countries
+
+    :return: (list(Firm objects), list(Country objects))
+    """
+    sector_to_usd_per_ton = sector_table.set_index('sector')['usd_per_ton']
+    for firm in firm_list:
+        firm.usd_per_ton = sector_to_usd_per_ton[firm.sector]
+    for country in country_list:
+        country.usd_per_ton = sector_to_usd_per_ton.mean()
+    return firm_list, country_list, sector_to_usd_per_ton  # Should disappear, we want only sector_to_usdPerTon
+
