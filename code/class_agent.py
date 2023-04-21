@@ -29,6 +29,8 @@ class Agent(object):
                     destination_node=destination_node,
                     accepted_logistics_modes=transport_mode
                 )
+                if route is None:
+                    print(self.pid, route, origin_node, destination_node, transport_mode)
                 # print(str(self.pid)+" located "+str(self.odpoint)+": I choose this transport mode "+
                 #     str(transport_network.give_route_mode(route))+ " to connect to "+
                 #     str(edge[1].pid)+" located "+str(edge[1].odpoint))

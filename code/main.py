@@ -74,12 +74,21 @@ def adjust_logging_behavior(export: dict, exp_folder: Path, selected_logging_lev
 # # Set logging parameters
 # adjust_logging_behavior(parameters.export, export_folder, parameters.logging_level)
 #
-# logging.info(f'Simulation starting using {parameters.input_folder} input data and {export_folder} output folder')
+importlib.reload(logging)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
-# Create transport network
+logging.info(f'Simulation starting using {parameters.input_folder}')
+
+# Initialize model
 model = Model(parameters)
 model.setup_transport_network(cached=True)
-model.setup_agents(cached=False)
+model.setup_agents(cached=True)
+model.setup_sc_network(cached=True)
+model.set_initial_conditions()
+model.setup_logistic_routes(cached=False)
 exit()
 
 logging.info("End of simulation")

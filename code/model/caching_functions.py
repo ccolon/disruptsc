@@ -33,8 +33,8 @@ def load_cached_agent_data():
     pickle_filename = TMP_FOLDER / 'firms_households_countries_pickle'
     tmp_data = pickle.load(open(pickle_filename, 'rb'))
     loaded_sector_table = tmp_data['sector_table']
-    loaded_present_sectors = tmp_data['present_sectors']
-    loaded_flow_types_to_export = tmp_data['flow_types_to_export']
+    # loaded_present_sectors = tmp_data['present_sectors']
+    # loaded_flow_types_to_export = tmp_data['flow_types_to_export']
     loaded_firm_table = tmp_data['firm_table']
     loaded_household_table = tmp_data['household_table']
     loaded_firm_list = tmp_data['firm_list']
@@ -44,8 +44,8 @@ def load_cached_agent_data():
     logging.info("Nb firms: " + str(len(loaded_firm_list)))
     logging.info("Nb households: " + str(len(loaded_household_list)))
     logging.info("Nb countries: " + str(len(loaded_country_list)))
-    return loaded_sector_table, loaded_firm_table, loaded_present_sectors, loaded_flow_types_to_export, \
-        loaded_firm_list, loaded_household_table, loaded_household_list, loaded_country_list
+    return loaded_sector_table, loaded_firm_list, loaded_firm_table, \
+        loaded_household_list, loaded_household_table, loaded_country_list
 
 
 def load_cached_transaction_table():
