@@ -11,7 +11,7 @@ BNA,bebidas no alcohólicas,non-alcoholic beverages,Elaboración bebidas no alco
 CAN,comida para animales,food for animals,Elaboración de alimentos preparados para animales,agriculture,3071697,209023,0.037780393,1340.624275,CAN,153584.85
 CAR,carne,meat processing and conservation/packing,Procesamiento y conservación de carne,manufacturing,5015872,2291591,0.004671034,901.3930519,CAR,250793.6
 CAU,caucho,rubber,Fabricación de productos de caucho,manufacturing,1376520,129166,0.279605226,3483.704493,CAU,68826
-CEM,cemento/hormigón/piedra,cement/stone ,"Fabricación de cemento, artículos de hormigón y piedra",mining,1325291,-86321,0.012100361,217.2395585,CEM,66264.55
+CEM,cemento/hormigón/piedra,cement/stone ,"Fabricación de cemento, artículos de hormigón y piedra",mining,1325291,0,0.012100361,217.2395585,CEM,66264.55
 CER,cereales,cereals,Cultivo de cereales,agriculture,1320503,74854,0.006346269,272.8370528,CER,66025.15
 CHO,cacao/chocolate,chocolates and sweets,"Elaboración de cacao, chocolate y productos de confitería",manufacturing,1020270,530519,0.272831042,2404.664941,CHO,51013.5
 CIN,cultivos industriales,industrial crops,Cultivo oleaginosas e industriales,agriculture,144200,172363,0.065572666,2513.549895,CIN,7210
