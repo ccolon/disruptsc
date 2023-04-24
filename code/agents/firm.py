@@ -4,13 +4,13 @@ import random
 import numpy as np
 from shapely.geometry import Point
 
-from class_agent import Agent
-from class_commerciallink import CommercialLink
-from functions import purchase_planning_function, production_function, \
+from .agent_functions import purchase_planning_function, production_function, \
     evaluate_inventory_duration, generate_weights, \
     compute_distance_from_arcmin, rescale_values, \
     agent_receive_products_and_pay
 
+from code.agents.agent import Agent
+from code.network.commercial_link import CommercialLink
 
 # TODO: create class FirmList, CountryList, HouseholdList from userlist as DisruptionList
 class Firm(Agent):
@@ -316,76 +316,76 @@ class Firm(Agent):
                 supplier_object.clients[self.pid] = {'sector': self.sector, 'share': 0, 'transport_share': 0,
                                                      'distance': distance}
 
-    def choose_route(self, transport_network,
-                     origin_node, destination_node,
-                     accepted_logistics_modes, capacity_burden=None):
-        """
-        The agent choose the delivery route
-
-        If the simple case in which there is only one accepted_logistics_modes
-        (as defined by the main parameter logistic_modes)
-        then it is simply the shortest_route using the appropriate weigth
-
-        If there are several accepted_logistics_modes, then the agent will investigate different route,
-        one per accepted_logistics_mode. They will then pick one, with a certain probability taking into account the
-        weight This more complex mode is used when, according to the capacity and cost data, all the exports or
-        importzs are using one route, whereas in the data, we observe still some flows using another mode of
-
-        tranpsort. So we use this to "force" some flow to take the other routes.
-        """
-        # If accepted_logistics_modes is a string, then simply pick the shortest route of this logistic mode
-        if isinstance(accepted_logistics_modes, str):
-            route = transport_network.provide_shortest_route(origin_node,
-                                                             destination_node,
-                                                             route_weight=accepted_logistics_modes + "_weight")
-            return route, accepted_logistics_modes
-
-        # If it is a list, it means that the agent will chosen between different logistic corridors
-        # with a certain probability
-        elif isinstance(accepted_logistics_modes, list):
-            # pick routes for each modes
-            routes = {
-                mode: transport_network.provide_shortest_route(origin_node,
-                                                               destination_node, route_weight=mode + "_weight")
-                for mode in accepted_logistics_modes
-            }
-            # compute associated weight and capacity_weight
-            modes_weight = {
-                mode: {
-                    mode + "_weight": transport_network.sum_indicator_on_route(route, mode + "_weight"),
-                    "weight": transport_network.sum_indicator_on_route(route, "weight"),
-                    "capacity_weight": transport_network.sum_indicator_on_route(route, "capacity_weight")
-                }
-                for mode, route in routes.items()
-            }
-            # remove any mode which is over capacity (where capacity_weight > capacity_burden)
-            for mode, route in routes.items():
-                if mode != "intl_rail":
-                    if transport_network.check_edge_in_route(route, (2610, 2589)):
-                        print("(2610, 2589) in", mode)
-            modes_weight = {
-                mode: weight_dic['weight']
-                for mode, weight_dic in modes_weight.items()
-                if weight_dic['capacity_weight'] < capacity_burden
-            }
-            if len(modes_weight) == 0:
-                logging.warning("All transport modes are over capacity, no route selected!")
-                return None
-            # and select one route choosing random weighted choice
-            selection_weights = rescale_values(list(modes_weight.values()), minimum=0, maximum=0.5)
-            selection_weights = [1 - w for w in selection_weights]
-            selected_mode = random.choices(
-                list(modes_weight.keys()),
-                weights=selection_weights,
-                k=1
-            )[0]
-            # print("Firm "+str(self.pid)+" chooses "+selected_mode+
-            #     " to serve a client located "+str(destination_node))
-            route = routes[selected_mode]
-            return route, selected_mode
-
-        raise ValueError("The transport_mode attributes of the commerical link\
-                          does not belong to ('roads', 'intl_multimodes')")
+    # def choose_route(self, transport_network,
+    #                  origin_node, destination_node,
+    #                  accepted_logistics_modes, capacity_burden=None):
+    #     """
+    #     The agent choose the delivery route
+    #
+    #     If the simple case in which there is only one accepted_logistics_modes
+    #     (as defined by the main parameter logistic_modes)
+    #     then it is simply the shortest_route using the appropriate weigth
+    #
+    #     If there are several accepted_logistics_modes, then the agent will investigate different route,
+    #     one per accepted_logistics_mode. They will then pick one, with a certain probability taking into account the
+    #     weight This more complex mode is used when, according to the capacity and cost data, all the exports or
+    #     importzs are using one route, whereas in the data, we observe still some flows using another mode of
+    #
+    #     tranpsort. So we use this to "force" some flow to take the other routes.
+    #     """
+    #     # If accepted_logistics_modes is a string, then simply pick the shortest route of this logistic mode
+    #     if isinstance(accepted_logistics_modes, str):
+    #         route = transport_network.provide_shortest_route(origin_node,
+    #                                                          destination_node,
+    #                                                          route_weight=accepted_logistics_modes + "_weight")
+    #         return route, accepted_logistics_modes
+    #
+    #     # If it is a list, it means that the agent will chosen between different logistic corridors
+    #     # with a certain probability
+    #     elif isinstance(accepted_logistics_modes, list):
+    #         # pick routes for each modes
+    #         routes = {
+    #             mode: transport_network.provide_shortest_route(origin_node,
+    #                                                            destination_node, route_weight=mode + "_weight")
+    #             for mode in accepted_logistics_modes
+    #         }
+    #         # compute associated weight and capacity_weight
+    #         modes_weight = {
+    #             mode: {
+    #                 mode + "_weight": transport_network.sum_indicator_on_route(route, mode + "_weight"),
+    #                 "weight": transport_network.sum_indicator_on_route(route, "weight"),
+    #                 "capacity_weight": transport_network.sum_indicator_on_route(route, "capacity_weight")
+    #             }
+    #             for mode, route in routes.items()
+    #         }
+    #         # remove any mode which is over capacity (where capacity_weight > capacity_burden)
+    #         for mode, route in routes.items():
+    #             if mode != "intl_rail":
+    #                 if transport_network.check_edge_in_route(route, (2610, 2589)):
+    #                     print("(2610, 2589) in", mode)
+    #         modes_weight = {
+    #             mode: weight_dic['weight']
+    #             for mode, weight_dic in modes_weight.items()
+    #             if weight_dic['capacity_weight'] < capacity_burden
+    #         }
+    #         if len(modes_weight) == 0:
+    #             logging.warning("All transport modes are over capacity, no route selected!")
+    #             return None
+    #         # and select one route choosing random weighted choice
+    #         selection_weights = rescale_values(list(modes_weight.values()), minimum=0, maximum=0.5)
+    #         selection_weights = [1 - w for w in selection_weights]
+    #         selected_mode = random.choices(
+    #             list(modes_weight.keys()),
+    #             weights=selection_weights,
+    #             k=1
+    #         )[0]
+    #         # print("Firm "+str(self.pid)+" chooses "+selected_mode+
+    #         #     " to serve a client located "+str(destination_node))
+    #         route = routes[selected_mode]
+    #         return route, selected_mode
+    #
+    #     raise ValueError("The transport_mode attributes of the commerical link\
+    #                       does not belong to ('roads', 'intl_multimodes')")
 
     def calculate_client_share_in_sales(self):
         # Only works if the order book was computed

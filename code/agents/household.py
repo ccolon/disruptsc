@@ -1,12 +1,12 @@
-from functions import determine_nb_suppliers, select_supplier_from_list,\
+from .agent_functions import determine_nb_suppliers, select_supplier_from_list,\
                 agent_receive_products_and_pay, calculate_distance_between_agents
 
 import random
 import pandas as pd
 import logging
 
-from class_agent import Agent
-from class_commerciallink import CommercialLink
+from code.agents.agent import Agent
+from code.network.commercial_link import CommercialLink
 
 
 class Household(Agent):

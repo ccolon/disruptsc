@@ -29,7 +29,7 @@ class Parameters:
     pop_cutoff: float
     local_demand_cutoff: float
     countries_to_include: str | list
-    logistics_modes: str
+    logistic_modes: str
     district_sector_cutoff: str
     nb_top_district_per_sector: None | int
     explicit_service_firm: bool
