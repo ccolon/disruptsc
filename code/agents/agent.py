@@ -1,3 +1,6 @@
+import logging
+from collections import UserList
+
 import networkx
 import pandas
 
@@ -84,7 +87,7 @@ class Agent(object):
         Keeping here the comments of the Cambodian version
         If the simple case in which there is only one accepted_logistics_modes
         (as defined by the main parameter logistic_modes)
-        then it is simply the shortest_route using the appropriate weigth
+        then it is simply the shortest_route using the appropriate weigh
 
         If there are several accepted_logistics_modes, then the agent will investigate different route,
         one per accepted_logistics_mode. They will then pick one, with a certain probability taking into account the
@@ -99,6 +102,9 @@ class Agent(object):
                                                              route_weight="weight")
             return route, accepted_logistics_modes
 
+        else:
+            logging.error(f'accepted_logistics_modes is {accepted_logistics_modes}')
+            raise ValueError("The only implemented accepted_logistics_modes is 'any'")
         # TODO: to reimplement
         # # If it is a list, it means that the agent will chosen between different logistic corridors
         # # with a certain probability
@@ -187,3 +193,28 @@ class Agent(object):
             }
             factor = monetary_unit_factor[monetary_unit]
             return monetary_flow / (usd_per_ton / factor)
+
+
+class AgentList(UserList):
+    def __init__(self, agent_list: list[Agent]):
+        super().__init__(agent for agent in agent_list if isinstance(agent, Agent))
+
+    def send_purchase_orders(self, sc_network: networkx.DiGraph):
+        for agent in self:
+            agent.send_purchase_orders(sc_network)
+
+    def deliver(self, sc_network: networkx.DiGraph, transport_network: TransportNetwork,
+                sectors_no_transport_network: list, rationing_mode: str, explicit_service_firm: bool,
+                monetary_units_in_model: str, cost_repercussion_mode: str):
+        for agent in self:
+            agent.deliver_products(sc_network, transport_network,
+                                   sectors_no_transport_network=sectors_no_transport_network,
+                                   rationing_mode=rationing_mode,
+                                   monetary_units_in_model=monetary_units_in_model,
+                                   cost_repercussion_mode=cost_repercussion_mode,
+                                   explicit_service_firm=explicit_service_firm)
+
+    def receive_products(self, sc_network: networkx.DiGraph, transport_network: TransportNetwork,
+                         sectors_no_transport_network: list):
+        for agent in self:
+            agent.receive_products_and_pay(sc_network, transport_network, sectors_no_transport_network)

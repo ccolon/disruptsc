@@ -1,4 +1,6 @@
 import random
+from collections import UserList
+
 import pandas as pd
 import math
 import logging
@@ -11,7 +13,7 @@ from .agent_functions import rescale_values, \
     identify_special_transport_nodes, \
     agent_receive_products_and_pay, calculate_distance_between_agents
 
-from code.agents.agent import Agent
+from code.agents.agent import Agent, AgentList
 from code.network.commercial_link import CommercialLink
 
 
@@ -229,8 +231,7 @@ class Country(Agent):
     #                       does not belong to ('roads', 'intl_multimodes')")
 
     def deliver_products(self, graph, transport_network, sectors_no_transport_network,
-                         monetary_units_in_model,
-                         cost_repercussion_mode, explicit_service_firm):
+                         rationing_mode, monetary_units_in_model, cost_repercussion_mode, explicit_service_firm):
         """ The quantity to be delivered is the quantity that was ordered (no rationning takes place)
         """
         self.generalized_transport_cost = 0
@@ -439,3 +440,9 @@ class Country(Agent):
                 if len(set(route_to_check) & set(transport_network.congestionned_edges)) > 0:
                     # if it is, we add its cost to the generalized cost model
                     self.generalized_transport_cost += transport_network.giveCongestionCostOfTime(route_to_check)
+
+
+class CountryList(AgentList):
+    pass
+    # def __init__(self, country_list: list[Country]):
+    #     super().__init__(country for country in country_list if isinstance(country, Country))

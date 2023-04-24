@@ -6,36 +6,45 @@ from typing import List
 from code.paths import TMP_FOLDER
 
 
-def generate_cache_parameters_from_command_line(argument: str):
-    accepted_script_arguments: list[str] = [
-        'same_transport_network_new_agents',
-        'same_agents_new_sc_network',
-        'same_sc_network_new_logistic_routes',
-        'same_logistic_routes',
-    ]
-    if argument not in accepted_script_arguments:
-        raise ValueError(f"Argument {argument} is not valid.\
-            Possible values are: " + ','.join(accepted_script_arguments))
+def generate_cache_parameters_from_command_line_argument(arguments: list[str]):
+    # Generate cache parameters
     cache_parameters: dict[str, bool] = {
         "transport_network": False,
         "agents": False,
         "sc_network": False,
         "logistic_routes": False
     }
-    if argument == accepted_script_arguments[0]:
-        cache_parameters['transport_network'] = True
-    if argument == accepted_script_arguments[1]:
-        cache_parameters['transport_network'] = True
-        cache_parameters['agents'] = True
-    if argument == accepted_script_arguments[2]:
-        cache_parameters['transport_network'] = True
-        cache_parameters['agents'] = True
-        cache_parameters['sc_network'] = True
-    if argument == accepted_script_arguments[3]:
-        cache_parameters['transport_network'] = True
-        cache_parameters['agents'] = True
-        cache_parameters['sc_network'] = True
-        cache_parameters['same_logistic_routes'] = True
+    if len(arguments) > 1:
+        accepted_script_arguments: list[str] = [
+            'same_transport_network_new_agents',
+            'same_agents_new_sc_network',
+            'same_sc_network_new_logistic_routes',
+            'same_logistic_routes',
+        ]
+        argument = arguments[1]
+        if argument not in accepted_script_arguments:
+            raise ValueError(f"Argument {argument} is not valid.\
+                Possible values are: " + ','.join(accepted_script_arguments))
+        cache_parameters: dict[str, bool] = {
+            "transport_network": False,
+            "agents": False,
+            "sc_network": False,
+            "logistic_routes": False
+        }
+        if argument == accepted_script_arguments[0]:
+            cache_parameters['transport_network'] = True
+        if argument == accepted_script_arguments[1]:
+            cache_parameters['transport_network'] = True
+            cache_parameters['agents'] = True
+        if argument == accepted_script_arguments[2]:
+            cache_parameters['transport_network'] = True
+            cache_parameters['agents'] = True
+            cache_parameters['sc_network'] = True
+        if argument == accepted_script_arguments[3]:
+            cache_parameters['transport_network'] = True
+            cache_parameters['agents'] = True
+            cache_parameters['sc_network'] = True
+            cache_parameters['logistic_routes'] = True
     return cache_parameters
 
 

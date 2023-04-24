@@ -1,6 +1,8 @@
 import logging
 import random
+from collections import UserList
 
+import networkx
 import numpy as np
 from shapely.geometry import Point
 
@@ -9,8 +11,9 @@ from .agent_functions import purchase_planning_function, production_function, \
     compute_distance_from_arcmin, rescale_values, \
     agent_receive_products_and_pay
 
-from code.agents.agent import Agent
+from code.agents.agent import Agent, AgentList
 from code.network.commercial_link import CommercialLink
+
 
 # TODO: create class FirmList, CountryList, HouseholdList from userlist as DisruptionList
 class Firm(Agent):
@@ -117,7 +120,6 @@ class Firm(Agent):
         self.production_capacity_reduction = reduction
         logging.info(f'The production capacity of firm {self.pid} is reduced by {reduction} '
                      f'for {disruption_duration} time steps')
-
 
     def initialize_ope_var_using_eq_production(self, eq_production):
         self.production_target = eq_production
@@ -595,10 +597,10 @@ class Firm(Agent):
         self.rationing = self.product_stock / self.total_order
         # Check the case in which the firm has too much product to sale
         # It should not happen, hence a warning
-        quantity_to_deliver = None
         if self.rationing > 1 + epsilon:
-            logging.warning(f'Firm {self.pid}: I have produced too much')
+            logging.warning(f'Firm {self.pid}: I have produced too much. {self.product_stock} vs. {self.total_order}')
             self.rationing = 1
+            quantity_to_deliver = {buyer_id: order for buyer_id, order in self.order_book.items()}
         # If rationing factor is 1, then it delivers what was ordered
         elif self.rationing >= 1 - epsilon:
             quantity_to_deliver = {buyer_id: order for buyer_id, order in self.order_book.items()}
@@ -1019,3 +1021,44 @@ class Firm(Agent):
         print("production:", self.production, "; production target:", self.production_target, "; product stock:",
               self.product_stock)
         print("profit:", self.profit, ";", self.finance)
+
+
+class FirmList(AgentList):
+    # def __init__(self, firm_list: list[Firm]):
+    #     super().__init__(firm for firm in firm_list if isinstance(firm, Firm))
+
+    def retrieve_orders(self, sc_network: networkx.DiGraph):
+        for firm in self:
+            firm.retrieve_orders(sc_network)
+
+    def plan_production(self, sc_network: networkx.DiGraph, propagate_input_price_change: bool = True):
+        for firm in self:
+            firm.aggregate_orders()
+            firm.decide_production_plan()
+            if propagate_input_price_change:
+                firm.calculate_price(sc_network)
+
+    def plan_purchase(self):
+        for firm in self:
+            firm.evaluate_input_needs()
+            firm.decide_purchase_plan()  # mode="reactive"
+
+    def produce(self):
+        for firm in self:
+            firm.produce()
+
+    def evaluate_profit(self, sc_network: networkx.DiGraph):
+        for firm in self:
+            firm.evaluate_profit(sc_network)
+
+    def update_production_capacity(self):
+        for firm in self:
+            firm.update_production_capacity()
+
+    def get_disrupted(self, firm_id_duration_reduction_dict: dict):
+        for firm in self:
+            if firm.pid in list(firm_id_duration_reduction_dict.keys()):
+                firm.reduce_production_capacity(
+                    firm_id_duration_reduction_dict[firm.pid]['duration'],
+                    firm_id_duration_reduction_dict[firm.pid]['reduction']
+                )

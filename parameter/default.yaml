@@ -32,7 +32,10 @@ filepaths:
   "location_table": "Network/location_table.geojson"
   "transaction_table": "Network/transaction_table.csv"
 
-export:
+# Whether to export files
+export_files: False
+
+export_details:
   # Save a log file in the output folder, called "exp.log"
   "log": True
 
@@ -302,7 +305,10 @@ weight_localization_firm: 1
 # It is 1 / (distance)^w where w is the weight_localization parameter
 weight_localization_household: 4
 
-# Determines the type of disruption analysis to be done
+# The type of simulation to run
+simulation_type: initial_state
+
+# Determines the type of disruption analysis to be done : TODO to review
 # Possible values are:
 # - None: no disruption is made. The model is only initialized at t=0, and stops.
 # Metrics describing the initial state are exported.
@@ -317,7 +323,7 @@ weight_localization_household: 4
 #       - "all": test all nodes or edges, ordered by their ID. Criticality exports.
 #       - a path to a list of node or edges. Criticality exports.
 #   - "duration" determines" the duration of a disruption
-disruption_analysis: None
+disruption_description: None
 
 # What time interval does a time step represents
 # Possible values are: 'day', 'week', 'month', 'year'

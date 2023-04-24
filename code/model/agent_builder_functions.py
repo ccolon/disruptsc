@@ -8,9 +8,9 @@ import pandas as pd
 import geopandas as gpd
 import numpy as np
 
-from code.agents.firm import Firm
-from code.agents.household import Household
-from code.agents.country import Country
+from code.agents.firm import Firm, FirmList
+from code.agents.household import Household, HouseholdList
+from code.agents.country import Country, CountryList
 
 
 def filter_sector(sector_table, cutoff_sector_output, cutoff_sector_demand,
@@ -285,7 +285,7 @@ def create_firms(
     logging.debug('Creating firm_list')
     ids = firm_table['id'].tolist()
     firm_table = firm_table.set_index('id')
-    firm_list = [
+    firm_list = FirmList([
         Firm(i,
              sector=firm_table.loc[i, "sector"],
              sector_type=firm_table.loc[i, "sector_type"],
@@ -298,7 +298,7 @@ def create_firms(
              reactivity_rate=reactivity_rate
              )
         for i in ids
-    ]
+    ])
     # We add a bit of noise to the long and lat coordinates
     # It allows to visually disentangle firms located at the same od-point when plotting the map.
     for firm in firm_list:
@@ -548,7 +548,7 @@ def create_households(
 
     logging.debug('Creating household_list')
     household_table = household_table.set_index('id')
-    household_list = [
+    household_list = HouseholdList([
         Household('hh_' + str(i),
                   odpoint=household_table.loc[i, "od_point"],
                   long=float(household_table.loc[i, 'long']),
@@ -556,7 +556,7 @@ def create_households(
                   sector_consumption=household_sector_consumption[i]
                   )
         for i in household_table.index.tolist()
-    ]
+    ])
     logging.info('Households generated')
 
     return household_list
@@ -1060,6 +1060,7 @@ def create_countries(filepath_imports: Path, filepath_exports: Path, filepath_tr
                                  transit_to=transit_to,
                                  supply_importance=supply_importance
                                  )]
+    country_list = CountryList(country_list)
 
     logging.info('Country_list created: ' + str([country.pid for country in country_list]))
 

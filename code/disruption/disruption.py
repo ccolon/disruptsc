@@ -75,6 +75,7 @@ class Disruption:
             edges: geopandas.GeoDataFrame,
             firm_table: pandas.DataFrame
     ) -> list:
+        print()
         disruption_list_transport_edges = [
             Disruption.from_sector_admin_unit(
                 firm_table=firm_table,
