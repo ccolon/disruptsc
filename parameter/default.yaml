@@ -1,6 +1,9 @@
 # Indicate the subfolder of the input folder that contains the input files
 input_folder: "Tanzania"
 
+# Logging level
+logging_level: "info"
+
 filepaths:
   # Transport related data
   "transport_parameters": "Transport/transport_parameters.yaml"
@@ -111,9 +114,6 @@ specific_edges_to_monitor:
   'special': []
 
 
-# Logging level
-logging_level: logging.INFO
-
 # List of transport modes to include
 transport_modes: ['roads']
 
@@ -195,16 +195,21 @@ local_demand_cutoff: 0
 # - list of countries
 countries_to_include: "all"
 
-# Defines the different parts of the transport network that a commercial link can use
+# Defines the different parts of the transport network that a commercial link can use TODO: deprecated
 # "accepted_modes": list of "roads", "railways", "waterways", "maritime", "multimodal"
 # "accepted_multimodal_links": list of string that should correspond to the attribute "multimodes" of the multimodal_edges input file
-logistics_modes:
-  'domestic':
-    "accepted_modes": ['roads']
-    "accepted_multimodal_links": []
-  'international':
-    "accepted_modes": ['roads', 'maritime', 'multimodal']
-    "accepted_multimodal_links": ['roads-maritime']
+#logistics_modes:
+#  'domestic':
+#    "accepted_modes": ['roads']
+#    "accepted_multimodal_links": []
+#  'international':
+#    "accepted_modes": ['roads', 'maritime', 'multimodal']
+#    "accepted_multimodal_links": ['roads-maritime']
+
+# Can all types of goods take any route?
+# If "any", then yes
+# If "specific", then it is described in a 'transport_mode' file, to be added in the filepaths
+logistic_modes: "any"
 
 
 # Any sector in a district that have an importance lower than this value is discarded
@@ -362,7 +367,7 @@ route_optimization_weight: "cost_per_ton"
 # How to translate an increase in transport cost into increase in prices
 cost_repercussion_mode: "type1"
 
-# Whether or not to account for transport network capacity
+# Whether to account for transport network capacity
 # If True, then each shipment adds a "load" on transport edges
 # it the load exceed the capacity, then the edges cannot be used anymore
 account_capacity: True

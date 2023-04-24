@@ -1,6 +1,6 @@
 # Indicate the subfolder of the input folder that contains the input files
 input_folder: "Ecuador"
-transport_modes: ['roads', 'maritime']
+transport_modes: ['roads', 'maritime', 'waterways', 'airways']
 monetary_units_in_model: "mUSD"
 monetary_units_inputed: "kUSD"
 time_resolution: 'week'

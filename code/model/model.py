@@ -73,9 +73,8 @@ class Model(object):
             }
             cache_transport_network(data_to_cache)
 
-        self.transport_network.defineWeights(
-            route_optimization_weight=self.parameters.route_optimization_weight,
-            logistics_modes=self.parameters.logistics_modes
+        self.transport_network.define_weights(
+            route_optimization_weight=self.parameters.route_optimization_weight
         )
         self.transport_network.log_km_per_transport_modes()  # Print data on km per mode
         self.transport_network_initialized = True
@@ -325,16 +324,19 @@ class Model(object):
         else:
             logging.info('The supplier--buyer graph is being connected to the transport network')
             logging.info('Each B2B and transit edge is being linked to a route of the transport network')
-            transport_modes = pd.read_csv(self.parameters.filepaths['transport_modes'])
+            if self.parameters.logistic_modes == "specific":
+                logistics_modes = pd.read_csv(self.parameters.filepaths['transport_modes'])
+            else:
+                logistics_modes = "any"
             logging.info('Routes for transit and import flows are being selected by trading countries')
             for country in self.country_list:
-                country.choose_initial_routes(self.sc_network, self.transport_network, transport_modes,
+                country.choose_initial_routes(self.sc_network, self.transport_network, logistics_modes,
                                               self.parameters.account_capacity,
                                               self.parameters.monetary_units_in_model)
             logging.info('Routes for exports and B2B domestic flows are being selected by domestic firms')
             for firm in self.firm_list:
                 if firm.sector_type not in self.parameters.sectors_no_transport_network:
-                    firm.choose_initial_routes(self.sc_network, self.transport_network, transport_modes,
+                    firm.choose_initial_routes(self.sc_network, self.transport_network, logistics_modes,
                                                self.parameters.account_capacity,
                                                self.parameters.monetary_units_in_model)
             # Save to tmp folder
