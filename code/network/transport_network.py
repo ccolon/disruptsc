@@ -95,6 +95,12 @@ class TransportNetwork(nx.Graph):
                                             self[segment[0]][segment[1]]['congestion']
         return congestion_time_cost
 
+    def define_weights(self, route_optimization_weight):
+        logging.info('Generating shortest-path weights on transport network')
+        for edge in self.edges:
+            self[edge[0]][edge[1]]['weight'] = self[edge[0]][edge[1]][route_optimization_weight]
+            self[edge[0]][edge[1]]['capacity_weight'] = self[edge[0]][edge[1]][route_optimization_weight]
+
     def defineWeights(self, route_optimization_weight, logistics_modes):
         '''Define the edge weights used by firms and countries to decide routes
 
