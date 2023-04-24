@@ -255,7 +255,7 @@ class TransportNetwork(nx.Graph):
                              ' time steps')
                 self[edge[0]][edge[1]]['disruption_duration'] = edge_id_duration_reduction_dict[edge_id]['duration']
 
-    def update_road_state(self):
+    def update_road_disruption_state(self):
         '''
         One time step is gone
         The remaining duration of disruption is decreased by 1
@@ -334,21 +334,21 @@ class TransportNetwork(nx.Graph):
                     self[edge[0]][edge[1]][mode_weight] += capacity_burden
                 # print("self[edge[0]][edge[1]][current_load]", self[edge[0]][edge[1]]['current_load'])
 
-    def reset_current_loads(self, route_optimization_weight, logistics_modes):
-        '''Reset current_load to 0
-
-        If an edge was burdened due to capacity exceedance, we remove the burden
-        '''
+    def reset_current_loads(self, route_optimization_weight):
+        """
+        Reset current_load to 0
+        If an edge was burdened due to capacity exceed, we remove the burden
+        """
         for edge in self.edges:
             self[edge[0]][edge[1]]['current_load'] = 0
 
-        self.defineWeights(route_optimization_weight, logistics_modes)
+        self.define_weights(route_optimization_weight)
 
     def give_route_mode(self, route):
-        '''Which mode is used on the route?
-
+        """
+        Which mode is used on the route?
         Return the list of transport mode used along the route
-        '''
+        """
         modes = []
         all_edges = [item for item in route if len(item) == 2]
         for edge in all_edges:

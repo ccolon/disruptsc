@@ -1,3 +1,7 @@
+import importlib
+import logging
+import os
+from datetime import datetime
 from pathlib import Path
 
 import yaml
@@ -9,7 +13,7 @@ from code import paths
 @dataclass
 class Parameters:
     input_folder: str
-    export: dict
+    export_details: dict
     specific_edges_to_monitor: dict
     logging_level: str
     transport_modes: list
@@ -44,7 +48,7 @@ class Parameters:
     nb_suppliers_per_input: float
     weight_localization_firm: float
     weight_localization_household: float
-    disruption_analysis: None | dict
+    disruption_description: dict
     time_resolution: str
     nodeedge_tested_topn: None | int
     nodeedge_tested_skipn: None | int
@@ -57,6 +61,9 @@ class Parameters:
     account_capacity: bool
     firm_sampling_mode: str
     filepaths: dict
+    export_files: bool
+    simulation_type: str
+    export_folder: Path | str = ""
 
     @classmethod
     def load_default_parameters(cls, parameter_folder: Path):
@@ -79,9 +86,45 @@ class Parameters:
         parameters = cls(**parameters)
         # Adjust filepath
         parameters.build_full_filepath()
+        # Create export folder
+
+        # Cast datatype
+        parameters.epsilon_stop_condition = float(parameters.epsilon_stop_condition)
+        parameters.duration_dic = {int(key): val for key, val in parameters.duration_dic.items()}
 
         return parameters
 
     def build_full_filepath(self):
         for key, val in self.filepaths.items():
             self.filepaths[key] = paths.INPUT_FOLDER / self.input_folder / val
+
+    def export(self):
+        with open(self.export_folder / 'parameters.yaml', 'w') as file:
+            yaml.dump(self, file)
+
+    def create_export_folder(self):
+        if not os.path.isdir(paths.OUTPUT_FOLDER / self.input_folder):
+            os.mkdir(paths.OUTPUT_FOLDER / self.input_folder)
+        self.export_folder = paths.OUTPUT_FOLDER / self.input_folder / datetime.now().strftime('%Y%m%d_%H%M%S')
+        os.mkdir(self.export_folder)
+
+    def adjust_logging_behavior(self):
+        if self.logging_level == "info":
+            logging_level = logging.INFO
+        else:
+            logging_level = logging.DEBUG
+
+        if self.export_files:
+            importlib.reload(logging)
+            logging.basicConfig(
+                filename=self.export_folder / 'exp.log',
+                level=logging_level,
+                format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            )
+            logging.getLogger().addHandler(logging.StreamHandler())
+        else:
+            importlib.reload(logging)
+            logging.basicConfig(
+                level=logging_level,
+                format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            )

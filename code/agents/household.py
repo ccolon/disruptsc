@@ -1,3 +1,5 @@
+from collections import UserList
+
 from .agent_functions import determine_nb_suppliers, select_supplier_from_list,\
                 agent_receive_products_and_pay, calculate_distance_between_agents
 
@@ -5,7 +7,7 @@ import random
 import pandas as pd
 import logging
 
-from code.agents.agent import Agent
+from code.agents.agent import Agent, AgentList
 from code.network.commercial_link import CommercialLink
 
 
@@ -116,3 +118,11 @@ class Household(Agent):
 
     def receive_products_and_pay(self, graph, transport_network, sectors_no_transport_network):
         agent_receive_products_and_pay(self, graph, transport_network, sectors_no_transport_network)
+
+
+class HouseholdList(AgentList):
+    # def __init__(self, household_list: list[Household]):
+    #     super().__init__(household for household in household_list if isinstance(household, Household))
+    pass
+
+

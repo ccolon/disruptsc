@@ -1,3 +1,4 @@
+import networkx
 import networkx as nx
 import numpy as np
 import pandas as pd
@@ -8,6 +9,7 @@ from .caching_functions import \
     load_cached_transaction_table, \
     cache_transport_network, \
     cache_agent_data, load_cached_sc_network, cache_sc_network, load_cached_logistic_routes, cache_logistic_routes
+from .check_functions import compare_production_purchase_plans
 from .transport_network_builder_functions import \
     create_transport_network
 from .agent_builder_functions import \
@@ -21,6 +23,8 @@ from .agent_builder_functions import \
     create_households, \
     load_technical_coefficients, calibrate_input_mix, load_inventories, create_countries, load_ton_usd_equivalence
 from code.parameters import Parameters
+from code.disruption.disruption import DisruptionList
+from code.simulation.simulation import Simulation
 
 
 class Model(object):
@@ -47,6 +51,8 @@ class Model(object):
         self.transaction_table = None
         # Supply-chain network variables
         self.sc_network = None
+        # Disruption variable
+        self.disruption_list = None
 
     def is_initialized(self):
         if all([self.transport_network_initialized, self.agents_initialized,
@@ -501,3 +507,182 @@ class Model(object):
                     final_demand_vector[(supplier_id, 0)] += quantity
 
         return final_demand_vector
+
+    def run_static(self):
+        simulation = Simulation("initial_state")
+        logging.info("Simulating the initial state")
+        self.run_one_time_step(time_step=0, current_simulation=simulation)
+        return simulation
+
+    def run_disruption(self):
+        # Get disruptions
+        self.disruption_list = DisruptionList.from_disruption_description(self.parameters.disruption_description,
+                                                                          self.transport_edges, self.firm_table)
+        logging.info(f"{len(self.disruption_list)} disruption(s) will occur")
+        self.disruption_list.print_info()
+
+        # Adjust t_final
+        t_final = self.parameters.duration_dic[self.disruption_list.end_time]
+        logging.info('Simulation will last at max ' + str(t_final) + ' time steps.')
+
+        # Initialize the model
+        simulation = Simulation("disruption")
+        logging.info("Simulating the initial state")
+        self.run_one_time_step(time_step=0, current_simulation=simulation)
+
+        logging.info("Starting time loop")
+        for t in range(1, t_final + 1):
+            logging.info(f'Time t={t}')
+            self.run_one_time_step(time_step=t, current_simulation=simulation)
+
+            if (t > max([disruption.start_time for disruption in
+                         self.disruption_list])) and self.parameters.epsilon_stop_condition:
+                if self.is_back_to_equilibrium:
+                    logging.info("Simulation stops")
+                    break
+        return simulation
+
+    def run_one_time_step(self, time_step: int, current_simulation: Simulation):
+        if time_step > 0:
+            self.transport_network.reset_current_loads(self.parameters.route_optimization_weight)
+
+        self.apply_disruption(time_step)
+
+        self.firm_list.retrieve_orders(self.sc_network)
+        self.firm_list.plan_production(self.sc_network, self.parameters.propagate_input_price_change)
+        self.firm_list.plan_purchase()
+        self.household_list.send_purchase_orders(self.sc_network)
+        self.country_list.send_purchase_orders(self.sc_network)
+        self.firm_list.send_purchase_orders(self.sc_network)
+        self.firm_list.produce()
+        self.country_list.deliver(self.sc_network, self.transport_network, self.parameters.sectors_no_transport_network,
+                                  self.parameters.rationing_mode, self.parameters.explicit_service_firm,
+                                  self.parameters.monetary_units_in_model, self.parameters.cost_repercussion_mode)
+        self.firm_list.deliver(self.sc_network, self.transport_network, self.parameters.sectors_no_transport_network,
+                               self.parameters.rationing_mode, self.parameters.explicit_service_firm,
+                               self.parameters.monetary_units_in_model, self.parameters.cost_repercussion_mode)
+        # if congestion: TODO reevaluate modeling of congestion
+        #     if (time_step == 0):
+        #         transport_network.evaluate_normal_traffic()
+        #     else:
+        #         transport_network.evaluate_congestion()
+        #         if len(transport_network.congestionned_edges) > 0:
+        #             logging.info("Nb of congestionned segments: " +
+        #                          str(len(transport_network.congestionned_edges)))
+        #     for firm in firm_list:
+        #         firm.add_congestion_malus2(sc_network, transport_network)
+        #     for country in country_list:
+        #         country.add_congestion_malus2(sc_network, transport_network)
+        #
+
+        # TODO: store transport data, depending on current_simulation type and time step
+        # TODO: store supply chain data, depending on current_simulation type and time step
+        # if (time_step in [0, 1, 2]) and (
+        # export_flows):  # should be done at this stage, while the goods are on their way
+        #     collect_shipments = False
+        #     transport_network.compute_flow_per_segment(flow_types_to_export)
+        #     observer.collect_transport_flows(transport_network,
+        #                                      time_step=time_step, flow_types=flow_types_to_export,
+        #                                      collect_shipments=collect_shipments)
+        #     exportTransportFlows(observer, export_folder)
+        #     exportTransportFlowsLayer(observer, export_folder, time_step=time_step,
+        #                               transport_edges=transport_edges)
+        #     if sum([len(sublist) for sublist in observer.specific_edges_to_monitor.values()]) > 0:
+        #         observer.collect_specific_flows(transport_network)
+        #         exportSpecificFlows(observer, export_folder)
+        #     if collect_shipments:
+        #         exportShipmentsLayer(observer, export_folder, time_step=time_step,
+        #                              transport_edges=transport_edges)
+        #
+        # if (time_step == 0) and (
+        # export_sc_flow_analysis):  # should be done at this stage, while the goods are on their way
+        #     analyzeSupplyChainFlows(sc_network, firm_list, export_folder)
+        #
+        self.household_list.receive_products(self.sc_network, self.transport_network,
+                                             self.parameters.sectors_no_transport_network)
+        self.country_list.receive_products(self.sc_network, self.transport_network,
+                                           self.parameters.sectors_no_transport_network)
+        self.firm_list.receive_products(self.sc_network, self.transport_network,
+                                        self.parameters.sectors_no_transport_network)
+        self.firm_list.evaluate_profit(self.sc_network)
+
+        self.transport_network.update_road_disruption_state()
+        self.firm_list.update_production_capacity()
+        #
+        self.store_agent_data(time_step, current_simulation)
+
+        compare_production_purchase_plans(self.firm_list, self.country_list, self.household_list)
+
+    def apply_disruption(self, time_step: int):
+        disruptions_starting_now = self.disruption_list.filter_start_time(time_step)
+        edge_disruptions_starting_now = disruptions_starting_now.filter_type('transport_edge')
+        if len(edge_disruptions_starting_now) > 0:
+            self.transport_network.disrupt_edges(
+                edge_disruptions_starting_now.get_item_id_duration_reduction_dict()
+            )
+        firm_disruptions_starting_now = disruptions_starting_now.filter_type('firm')
+        if len(firm_disruptions_starting_now) > 0:
+            self.firm_list.get_disrupted(firm_disruptions_starting_now.get_item_id_duration_reduction_dict())
+        # node disruption not implemented
+        
+    @property
+    def is_back_to_equilibrium(self):
+        household_extra_spending = sum([household.extra_spending for household in self.household_list])
+        household_consumption_loss = sum([household.consumption_loss for household in self.household_list])
+        country_extra_spending = sum([country.extra_spending for country in self.country_list])
+        country_consumption_loss = sum([country.consumption_loss for country in self.country_list])
+        if (household_extra_spending <= self.parameters.epsilon_stop_condition) & \
+                (household_consumption_loss <= self.parameters.epsilon_stop_condition) & \
+                (country_extra_spending <= self.parameters.epsilon_stop_condition) & \
+                (country_consumption_loss <= self.parameters.epsilon_stop_condition):
+            logging.info('Household and country extra spending and consumption loss are at pre-disruption values.')
+            return True
+        else:
+            return False
+
+    def store_agent_data(self, time_step: int, simulation: Simulation):
+        # TODO: could create agent-level method to export stuff
+        simulation.firm_data += [
+            {
+                'time_step': time_step,
+                'firm': firm.pid,
+                'production': firm.production,
+                'profit': firm.profit,
+                'transport_cost': firm.finance['costs']['transport'],
+                'input_cost': firm.finance['costs']['input'],
+                'other_cost': firm.finance['costs']['other'],
+                'inventory_duration': firm.current_inventory_duration,
+                'generalized_transport_cost': firm.generalized_transport_cost,
+                'usd_transported': firm.usd_transported,
+                'tons_transported': firm.tons_transported,
+                'tonkm_transported': firm.tonkm_transported
+            }
+            for firm in self.firm_list
+        ]
+        simulation.country_data += [
+            {
+                'time_step': time_step,
+                'country': country.pid,
+                'generalized_transport_cost': country.generalized_transport_cost,
+                'usd_transported': country.usd_transported,
+                'tons_transported': country.tons_transported,
+                'tonkm_transported': country.tonkm_transported,
+                'extra_spending': country.extra_spending,
+                'consumption_loss': country.consumption_loss,
+                'spending': sum(list(country.qty_purchased.values()))
+            }
+            for country in self.country_list
+        ]
+        simulation.household_data += [
+            {
+                'time_step': time_step,
+                'household': household.pid,
+                'spending_per_retailer': household.spending_per_retailer,
+                'consumption_per_retailer': household.consumption_per_retailer,
+                'extra_spending_per_sector': household.extra_spending_per_sector,
+                'consumption_loss_per_sector': household.consumption_loss_per_sector,
+                'extra_spending': household.extra_spending,
+                'consumption_loss': household.consumption_loss
+            }
+            for household in self.household_list
+        ]
