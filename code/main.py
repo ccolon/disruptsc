@@ -10,6 +10,7 @@ from datetime import datetime
 import importlib
 import paths
 from code.export_functions import exportParameters
+from code.model.caching_functions import generate_cache_parameters_from_command_line
 from code.parameters import Parameters
 from model.model import Model
 
@@ -20,7 +21,7 @@ from model.model import Model
 parameters = Parameters.load_parameters(paths.PARAMETER_FOLDER)
 
 # Check that the script is called correctly
-accepted_script_arguments = [
+accepted_script_arguments: list[str] = [
     'same_transport_network_new_agents',
     'same_agents_new_sc_network',
     'same_sc_network_new_logistic_routes',
@@ -32,6 +33,16 @@ if len(sys.argv) > 1:
     if sys.argv[1] not in accepted_script_arguments:
         raise ValueError("First argument " + sys.argv[1] + " is not valid.\
             Possible values are: " + ','.join(accepted_script_arguments))
+
+# Generate cache parameters
+cache_parameters: dict[str, bool] = {
+    "transport_network": False,
+    "agents": False,
+    "sc_network": False,
+    "logistic_routes": False
+}
+if len(sys.argv) > 1:
+    cache_parameters = generate_cache_parameters_from_command_line(sys.argv[1])
 
 # Start run
 t0 = time.time()
@@ -69,26 +80,20 @@ def adjust_logging_behavior(export: dict, exp_folder: Path, selected_logging_lev
 
 
 # We create the output folder
-# export_folder = create_export_folder(paths.OUTPUT_FOLDER, parameters.input_folder)
-#
-# # Set logging parameters
-# adjust_logging_behavior(parameters.export, export_folder, parameters.logging_level)
-#
-importlib.reload(logging)
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+export_folder = create_export_folder(paths.OUTPUT_FOLDER, parameters.input_folder)
 
-logging.info(f'Simulation starting using {parameters.input_folder}')
+# Set logging parameters
+adjust_logging_behavior(parameters.export, export_folder, parameters.logging_level)
+
+logging.info(f'Simulation starting using {parameters.input_folder}, output folder is {export_folder}')
 
 # Initialize model
 model = Model(parameters)
-model.setup_transport_network(cached=True)
-model.setup_agents(cached=True)
-model.setup_sc_network(cached=True)
+model.setup_transport_network(cached=cache_parameters['transport_network'])
+model.setup_agents(cached=cache_parameters['agents'])
+model.setup_sc_network(cached=cache_parameters['sc_network'])
 model.set_initial_conditions()
-model.setup_logistic_routes(cached=False)
+model.setup_logistic_routes(cached=cache_parameters['logistic_routes'])
 exit()
 
 logging.info("End of simulation")
