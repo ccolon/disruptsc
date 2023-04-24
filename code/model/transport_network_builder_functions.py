@@ -2,12 +2,11 @@ import logging
 
 import geopandas
 import geopandas as gpd
-import pandas
 import pandas as pd
 import yaml
 from shapely.geometry import Point
 
-from code.transport_network import TransportNetwork
+from code.network.transport_network import TransportNetwork
 
 
 def load_transport_data(filepaths, transport_params, transport_mode, additional_roads=None):
