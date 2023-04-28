@@ -18,7 +18,7 @@ Activate the right environment:
 
 The model is launched by the following command:
 
-	python code\mainBase.py <optional argument>
+	python code/main.py <optional argument>
 
 The optional argument is made to allow for some part of the initial state to be resued in a subsequent call:
 - `same_transport_network_new_agents`: the transport network is reused, but new agents, supplier-buyer links, logistic routes are generated
