@@ -1,0 +1,7 @@
+buying_sector,input_sector,inventory_duration_target
+ACF,AGR,1
+AGR,MAN,3
+AGR,IMP,2
+MAN,AGR,3
+MAN,MAN,7
+MAN,IMP,3

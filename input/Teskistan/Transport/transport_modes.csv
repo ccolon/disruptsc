@@ -1,0 +1,6 @@
+from,to,sector,transport_mode
+domestic,domestic,all,domestic
+domestic,VO1,all,international
+domestic,VO2,all,international
+VO1,domestic,all,international
+VO2,domestic,all,international
