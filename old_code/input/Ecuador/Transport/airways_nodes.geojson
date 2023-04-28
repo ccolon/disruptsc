@@ -1,0 +1,9 @@
+{
+"type": "FeatureCollection",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "name": "Aeropuerto Ecologico Galapagos Seymour", "special": null, "id": 0 }, "geometry": { "type": "Point", "coordinates": [ -90.265042389645828, -0.455064320303812 ] } },
+{ "type": "Feature", "properties": { "name": "Aeropuerto Guayaquil", "special": null, "id": 1 }, "geometry": { "type": "Point", "coordinates": [ -79.887127865440874, -2.158955994634486 ] } },
+{ "type": "Feature", "properties": { "name": "Aeropuerto Quito Mariscal Sucre", "special": null, "id": 2 }, "geometry": { "type": "Point", "coordinates": [ -78.356212738836987, -0.127184124654724 ] } }
+]
+}

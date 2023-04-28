@@ -1,0 +1,50 @@
+speeds: #km/hour
+  roads: #this is a comment
+    paved: 31.4 #from JICA (2016) International Logistics Function Strengthening Table p4-47-48
+    unpaved: 15 #arbitrary, half of paved
+  maritime: 35 #https://www.quora.com/Merchant-Navy-What-is-the-average-speed-of-a-ship?share=1
+  airways: 800
+  waterways: 7
+
+loading_time: #hours 
+  roads-maritime: 12
+  roads-airways: 12
+  roads-waterways: 2
+
+variability: #as fraction of travel time
+  roads:
+    paved: 0.01 
+    unpaved: 0.075
+  maritime: 0.005
+  airways: 0.005
+  waterways: 0.02
+  multimodal:
+    roads-maritime: 0.1
+    roads-airways: 0.1
+    roads-waterways: 0.1
+
+transport_cost_per_tonkm: #USD/(ton*km)
+  roads:
+    paved: 0.053 #from JICA (2016) International Logistics Function Strengthening. See excel
+    unpaved: 0.1 #for Tanzania
+  maritime: 0.0017 #see excel
+  airways: 10000 #guess
+  waterways: 0.029 #guess
+
+loading_cost_per_ton: #USD/ton
+  roads-maritime: 2.2 #arbitrary (same than railways)
+  roads-airways: 2.2 #arbitrary (same than railways)
+  roads-waterways: 2.2 #arbitrary (same than railways)
+
+custom_cost: #USD/ton
+  roads: 27 #from JICA (2016) International Logistics Function Strengthening. See excel
+  maritime: 27 #from JICA (2016) International Logistics Function Strengthening. See excel
+
+custom_time: #hours
+  roads: 1.5 #from JICA (2016) International Logistics Function Strengthening. See excel
+  maritime: 2
+  multimodal: 2
+
+travel_cost_of_time: 0.49 #USD/hour
+
+variability_coef: 0.44 #USD/hour

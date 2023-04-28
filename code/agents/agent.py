@@ -4,7 +4,7 @@ from collections import UserList
 import networkx
 import pandas
 
-from code.class_transport_network import TransportNetwork
+from old_code.class_transport_network import TransportNetwork
 
 
 class Agent(object):

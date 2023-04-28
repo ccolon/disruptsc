@@ -1,0 +1,61 @@
+﻿sector,trigram_desc,trigram_desc_en,description,type,output,final_demand,share_exporting_firms,usd_per_ton,supply_data,cutoff
+ADM,act. profesionales/tecnicas/admin,"professional, technical and admin. activities","Actividades profesionales, técnicas y administrativas",service,3443209,630490,0.000781964,,ADM,172160.45
+ADP,admin. pública,"public admin, defense, social security","Administración pública, defensa; planes de seguridad social obligatoria",service,914238,8329369,0.00016111,,ADP,45711.9
+AGU,agua,water ,"Captación, depuración y distribución de agua; y saneamiento",utility,2359305,215956,0.00031586,680.7432305,AGU,117965.25
+ALD,alimentos diversos,diverse food products,Elaboración de otros productos alimenticios diversos,manufacturing,1899389,845013,0.470638403,822.1983301,ALD,94969.45
+ASO,actividades asociativas,"associations, leisure, sports, culture",Servicios de asociaciones; esparcimiento; culturales y deportivos,service,368324,2079120,0.018601646,,ASO,18416.2
+AYG,aceites y grasas,vegetable/animal oils and fats,Elaboración de aceites y grasas origen vegetal y animal,agriculture,2587150,911581,0.234080871,870.6725082,AYG,129357.5
+AZU,azúcar,sugars,Elaboración y refinación de azúcar,agriculture,7739942,361961,0.12964447,831.4161104,AZU,386997.1
+BAL,bebidas alcohólicas,,Elaboración bebidas alcohólicas ,manufacturing,308595,1310987,0.12326034,1298.267257,BAL,15429.75
+BNA,bebidas no alcohólicas,non-alcoholic beverages,Elaboración bebidas no alcohólicas,manufacturing,362450,736151,0.004591706,3032.433087,BNA,18122.5
+CAN,comida para animales,food for animals,Elaboración de alimentos preparados para animales,agriculture,3071697,209023,0.037780393,1340.624275,CAN,153584.85
+CAR,carne,meat processing and conservation/packing,Procesamiento y conservación de carne,manufacturing,5015872,2291591,0.004671034,901.3930519,CAR,250793.6
+CAU,caucho,rubber,Fabricación de productos de caucho,manufacturing,1376520,129166,0.279605226,3483.704493,CAU,68826
+CEM,cemento/hormigón/piedra,cement/stone ,"Fabricación de cemento, artículos de hormigón y piedra",mining,1325291,0,0.012100361,217.2395585,CEM,66264.55
+CER,cereales,cereals,Cultivo de cereales,agriculture,1320503,74854,0.006346269,272.8370528,CER,66025.15
+CHO,cacao/chocolate,chocolates and sweets,"Elaboración de cacao, chocolate y productos de confitería",manufacturing,1020270,530519,0.272831042,2404.664941,CHO,51013.5
+CIN,cultivos industriales,industrial crops,Cultivo oleaginosas e industriales,agriculture,144200,172363,0.065572666,2513.549895,CIN,7210
+COM,comercio,retail,Comercio al por mayor y al por menor; incluido comercio de vehículos automotores y motocicletas,trade,510364,6861686,0.05705224,,COM,25518.2
+CON,construcción,construction,Construcción,service,816498,19071683,0.000288725,,CON,40824.9
+CUE,Cueros,leather products,"Fabricación de cuero, productos de cuero y calzado",manufacturing,537951,283927,0.071039624,4909.827217,CUE,26897.55
+CUL,apoyo a cultivos,support activities for agriculture,Actividades de apoyo a los cultivos,service,899339,7406,0.002218156,,CUL,44966.95
+DEM,derivados de metales,"manufacturing of products derived from metals, except equipment","Fabricación de productos derivados del metal, excepto maquinaria y equipo",manufacturing,1160944,847874,0.043856688,4218.405831,DEM,58047.2
+DOM,servicio doméstico,private homes with domestic service,Hogares privados con servicio doméstico,service,1051819,503284,0,,DOM,52590.95
+EDU,educación,education,Servicios de enseñanza público (no de mercado),service,101033,6329676,2.99173E-05,,EDU,5051.65
+ELE,electricidad,electricity generation/distribution,"Generación, captación y distribución de energía eléctrica",utility,808123,1446645,0.010093159,,ELE,40406.15
+FID,fideos,noodles and other flour products,Elaboración de  fideos y de otros productos farináceos,manufacturing,878871,123029,0.064646773,3651.114766,FID,43943.55
+FIN,finanzas,finance,Actividades de servicios financieros,service,390246,1649266,0.002882777,,FIN,19512.3
+FRT,fruta tropical,tropical fruit,"Cultivo de banano, café y cacao",agriculture,1505343,3031709,0.758853442,446.9009605,FRT,75267.15
+FRV,frutas y vegetales,fruits and vegetables,"Cultivo de tubérculos, vegetales, melones y frutas",agriculture,1315281,2233676,0.430861207,2263.52426,FRV,65764.05
+GAN,ganado ,livestock,"Cría de ganado, otros animales; productos animales; y actividades de apoyo",agriculture,3431665,1040174,0.000599501,31112.57177,GAN,171583.25
+HIL,hilados,fabrics and thread,"Fabricación de hilos, hilados; tejidos y confecciones",manufacturing,429096,362490,0.106355097,3187.624698,HIL,21454.8
+HOT,alojamiento/hotelería,hotels and accomodation,Alojamiento,service,1939713,349327,0.016326012,,HOT,96985.65
+IMP,importaciones,imports,imports,imports,18884441,7967855,,3516.061166,IMP,
+INM,bienes inmuebles,real estate,Actividades inmobiliarias ,service,178026,5323485,0.000161125,3115.139067,INM,8901.3
+LAC,lácteos,dairy,Elaboración de productos lácteos,agriculture,1124070,1181730,0.016084015,456.9726079,LAC,56203.5
+MAD,maderas,wood,Producción de madera y de productos de madera,manufacturing,499309,169449,0.206479325,5174.883605,MAD,24965.45
+MAN,otras industrias manufactureras,other unclassified manufacturing,Industrias manufactureras ncp,manufacturing,1673916,130386,0.026551589,11522.42331,MAN,83695.8
+MAQ,maquinaria y equipo,manuf. of equipment,Fabricación de maquinaria y equipo,manufacturing,1277639,1786649,0.158028166,1147.052083,MAQ,63881.95
+MET,metales comunes,common metals manufacturing,Fabricación de metales comunes ,manufacturing,1273809,432163,0.326540851,289.6850659,MET,63690.45
+MIP,"Gas, petróleo y minería","Gas, oil and mining",Explotación de minerales no metálicos y actividades de apoyo a las minas y canteras,mining,2442458,5156991,0.606299237,574.6868933,MIP,122122.9
+MOL,molinería,grain milling,Elaboración de productos de molinería,manufacturing,997723,981510,0.00445436,3962.158922,MOL,49886.15
+MUE,muebles,furniture,Fabricación de muebles,manufacturing,964801,918736,0.009715112,2135.838403,MUE,48240.05
+PAN,panadería,bread/baking,Elaboración de productos de la panadería,manufacturing,3689925,949606,0.017360111,1202.909534,PAN,184496.25
+PAP,papel,paper,Fabricación de papel y productos de papel,manufacturing,576204,355679,0.045175172,2431.393186,PAP,28810.2
+PES,pesca,fishing,Acuicultura y pesca de camarón,agriculture,20202643,404886,0.036889813,2886.142636,PES,1010132.15
+PLS,plásticos,plastics,Fabricación de productos de plástico,manufacturing,13269891,223781,0.099217219,3200.58078,PLS,663494.55
+POS,postales/correo,post/mail,Actividades postales y de correo,service,1204852,174107,0,5559.097267,POS,60242.6
+PPR,pescado procesado,processing of fish and similar,Procesamiento de pescado y otros productos acuáticos elaborados,agriculture,590285,4418772,0.768387477,821.0123491,PPR,29514.25
+QU1,química primarios,"basic chemical products, fertilizers","Fabricación de sustancias químicas básicas, abonos y plásticos primarios",manufacturing,3141529,35791,0.106218655,5438.605441,QU1,157076.45
+QU2,química otros,other chemical products,Fabricación de otros productos químicos,manufacturing,9588321,975110,0.056090772,5438.605441,QU2,479416.05
+REF,refinados de petróleo,refined petroleum products,Fabricación de productos refinados de petróleo y de otros,manufacturing,280832,1530715,0.146312067,5438.605441,REF,14041.6
+REP,reparación,motor vehicle reparations,Servicios de reparación y mantenimiento de vehículos de motor y motocicletas,service,3652601,465998,0.001048262,,REP,182630.05
+RES,alimento y bebida (restauración),food and drink (restaurants),Servicio de alimento y bebida,service,4102296,2748841,0.000560873,,RES,205114.8
+SAL,salud,health,Servicios sociales y de salud no de mercado,service,1363527,4894576,0.000271435,,SAL,68176.35
+SEG,seguros,insurance,"Financiación de planes de seguro, excepto seguridad social",service,6653216,618239,0,,SEG,332660.8
+SIL,silvicultura,forestry,"Silvicultura, extracción de madera y actividades relacionadas",agriculture,8435168,523135,0.039038348,11125.79431,SIL,421758.4
+TAB,tabaco,tobacco,Elaboración de productos de tabaco,agriculture,8391776,101033,0.174279691,4578.501561,TAB,419588.8
+TEL,comunicación/información,communication and information,Comunicaciones e información,utility,6350849,2905382,0.017593216,,TEL,317542.45
+TRA,transporte,transport,Transporte y almacenamiento,transport,4910932,4208200,0.041931955,12192.43743,TRA,245546.6
+VES,prendas de vestir,clothing,Fabricación de prendas de vestir ,manufacturing,2725404,758144,0.045238721,801.6783896,VES,136270.2
+VID,vidrios/cerámicas,glasses and ceramics,"Fabricación de vidrio, productos refractarios y de cerámica ",manufacturing,503284,62475,0.076407748,719.8854359,VID,25164.2

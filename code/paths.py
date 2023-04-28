@@ -8,6 +8,7 @@ OUTPUT_FOLDER = ROOT_FOLDER / "output"
 INPUT_FOLDER = ROOT_FOLDER / "input"
 TMP_FOLDER = ROOT_FOLDER / "tmp"
 
+sys.path.insert(1, str(ROOT_FOLDER))
 # if __file__ == "__main__":
 #     print(ROOT_FOLDER)
 

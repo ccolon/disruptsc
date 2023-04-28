@@ -3,7 +3,6 @@ import logging
 import sys
 import time
 import paths
-from code.export_functions import exportParameters
 from code.model.caching_functions import generate_cache_parameters_from_command_line_argument
 from code.parameters import Parameters
 from code.simulation.handling_functions import check_script_call

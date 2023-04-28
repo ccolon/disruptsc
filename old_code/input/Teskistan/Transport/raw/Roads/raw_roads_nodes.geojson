@@ -1,0 +1,11 @@
+{
+"type": "FeatureCollection",
+"name": "raw_roads_nodes_2",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "id": 110, "name": "VO1", "special": "VO1" }, "geometry": { "type": "Point", "coordinates": [ 0.028381579465763, 0.958680364037506 ] } },
+{ "type": "Feature", "properties": { "id": 1, "name": null, "special": null }, "geometry": { "type": "Point", "coordinates": [ -0.268221574344023, 0.431486880466472 ] } },
+{ "type": "Feature", "properties": { "id": 10, "name": null, "special": null }, "geometry": { "type": "Point", "coordinates": [ 0.361516034985423, 0.087463556851312 ] } },
+{ "type": "Feature", "properties": { "id": 11, "name": null, "special": null }, "geometry": { "type": "Point", "coordinates": [ -0.329446064139942, -0.288629737609329 ] } }
+]
+}

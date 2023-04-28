@@ -6,7 +6,7 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 
-from code.class_transport_network import TransportNetwork
+from old_code.class_transport_network import TransportNetwork
 from code.disruption.disruption import DisruptionList
 
 # TODO: should be integrated into the agent class

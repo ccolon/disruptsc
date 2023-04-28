@@ -1,5 +1,13 @@
 # Indicate the subfolder of the input folder that contains the input files
 input_folder: Ecuador
+filepaths:
+  "sector_table": "National/59sector_2016_sector_table.csv"
+  "tech_coef": "National/59sector_2016_tech_coef.csv"
+  "inventory_duration_targets": "National/59sector_inventory_targets.csv"
+  "admin_unit_data": "Subnational/59sector_2015_canton_data.geojson"
+  "imports": "Trade/59sector_2016_import_table.csv"
+  "exports": "Trade/59sector_2016_export_table.csv"
+  "transit_matrix": "Trade/2016_transit_matrix.csv"
 transport_modes: [roads, maritime, waterways, airways]
 monetary_units_in_model: mUSD
 monetary_units_inputed: kUSD

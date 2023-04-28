@@ -1,5 +1,5 @@
 # Indicate the subfolder of the input folder that contains the input files
-input_folder: "Tanzania"
+input_folder: "Teskistan"
 
 # Logging level
 logging_level: "info"
@@ -15,18 +15,20 @@ filepaths:
   "maritime_edges": "Transport/maritime_edges.geojson"
   "airways_nodes": "Transport/airways_nodes.geojson"
   "airways_edges": "Transport/airways_edges.geojson"
+  "railways_nodes": "Transport/railways_nodes.geojson"
+  "railways_edges": "Transport/railways_edges.geojson"
   "waterways_nodes": "Transport/waterways_nodes.geojson"
   "waterways_edges": "Transport/waterways_edges.geojson"
   # National data
-  "sector_table": "National/59sector_2016_sector_table.csv"
-  "tech_coef": "National/59sector_2016_tech_coef.csv"
-  "inventory_duration_targets": "National/59sector_inventory_targets.csv"
+  "sector_table": "National/sector_table.csv"
+  "tech_coef": "National/tech_coef.csv"
+  "inventory_duration_targets": "National/inventory_targets.csv"
   # District data
-  "admin_unit_data": "Subnational/59sector_2015_canton_data.geojson"
+  "admin_unit_data": "Subnational/admin_unit_data.geojson"
   # Trade
-  "imports": "Trade/59sector_2016_import_table.csv"
-  "exports": "Trade/59sector_2016_export_table.csv"
-  "transit_matrix": "Trade/2016_transit_matrix.csv"
+  "imports": "Trade/import_table.csv"
+  "exports": "Trade/export_table.csv"
+  "transit_matrix": "Trade/transit_matrix.csv"
   ## Network
   "firm_table": "Network/firm_table.csv"
   "location_table": "Network/location_table.geojson"

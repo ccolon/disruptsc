@@ -1,0 +1,4 @@
+sector,type,essential,usd_per_ton,output,final_demand,share_exporting_firms,cutoff,supply_data
+AGR,agriculture,true,50,100,50,0,1,AGR
+MAN,manufacturing,true,150,50,30,0,1,MAN
+IMP,imports,true,100,,,,,IMP

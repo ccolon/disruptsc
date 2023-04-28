@@ -81,7 +81,10 @@ class Parameters:
         # Merge both
         for key, val in parameters.items():
             if key in overriding_parameters:
-                parameters[key] = overriding_parameters[key]
+                if isinstance(val, dict):
+                    cls.merge_dict_with_priority(parameters[key], overriding_parameters[key])
+                else:
+                    parameters[key] = overriding_parameters[key]
         # Adjust path
         parameters = cls(**parameters)
         # Adjust filepath
@@ -93,6 +96,12 @@ class Parameters:
         parameters.duration_dic = {int(key): val for key, val in parameters.duration_dic.items()}
 
         return parameters
+
+    @staticmethod
+    def merge_dict_with_priority(default_dict: dict, overriding_dict: dict):
+        for key, val in default_dict.items():
+            if key in overriding_dict:
+                default_dict[key] = overriding_dict[key]
 
     def build_full_filepath(self):
         for key, val in self.filepaths.items():
