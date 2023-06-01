@@ -305,7 +305,7 @@ class TransportNetwork(nx.Graph):
     def update_load_on_route(self, route, load):
         '''Affect a load to a route
 
-        The current_load attribute of each edge in the route will be incread by the new load.
+        The current_load attribute of each edge in the route will be increased by the new load.
         A load is typically expressed in tons.
 
         If the current_load exceeds the capacity, then capacity_burden is added to both the 

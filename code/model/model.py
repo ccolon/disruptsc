@@ -225,7 +225,7 @@ class Model(object):
             self.country_list = create_countries(
                 filepath_imports=self.parameters.filepaths['imports'],
                 filepath_exports=self.parameters.filepaths['exports'],
-                filepath_transit_matrix=self.parameters.filepaths['transit_matrix'],
+                filepath_transit=self.parameters.filepaths['transit'],
                 transport_nodes=self.transport_nodes,
                 present_sectors=present_sectors,
                 countries_to_include=self.parameters.countries_to_include,

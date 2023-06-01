@@ -14,14 +14,14 @@ def generate_cache_parameters_from_command_line_argument(arguments: list[str]):
         "sc_network": False,
         "logistic_routes": False
     }
-    if len(arguments) > 1:
+    if len(arguments) > 2:
         accepted_script_arguments: list[str] = [
             'same_transport_network_new_agents',
             'same_agents_new_sc_network',
             'same_sc_network_new_logistic_routes',
             'same_logistic_routes',
         ]
-        argument = arguments[1]
+        argument = arguments[2]
         if argument not in accepted_script_arguments:
             raise ValueError(f"Argument {argument} is not valid.\
                 Possible values are: " + ','.join(accepted_script_arguments))

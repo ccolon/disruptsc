@@ -14,12 +14,15 @@ t0 = time.time()
 # Check that the script is called correctly
 check_script_call(sys.argv)
 
+# Retrieve region
+region = sys.argv[1]
+logging.info(f'Simulation starting for {region}')
+
 # Generate cache parameters
 cache_parameters = generate_cache_parameters_from_command_line_argument(sys.argv)
 
 # Import parameters
-parameters = Parameters.load_parameters(paths.PARAMETER_FOLDER)
-logging.info(f'Simulation starting using {parameters.input_folder}')
+parameters = Parameters.load_parameters(paths.PARAMETER_FOLDER, region)
 
 # Create the output folder and adjust logging behavior
 if parameters.export_files:

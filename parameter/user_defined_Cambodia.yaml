@@ -7,7 +7,7 @@ filepaths:
   "admin_unit_data": "Subnational/59sector_2015_canton_data.geojson"
   "imports": "Trade/59sector_2016_import_table.csv"
   "exports": "Trade/59sector_2016_export_table.csv"
-  "transit_matrix": "Trade/2016_transit_matrix.csv"
+  "transit": "Trade/2016_transit_matrix.csv"
 transport_modes: [roads, maritime, waterways, airways]
 monetary_units_in_model: mUSD
 monetary_units_inputed: kUSD

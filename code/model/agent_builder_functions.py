@@ -938,7 +938,7 @@ def load_inventories(firm_list: list, inventory_duration_target: int | str,
     return firm_list
 
 
-def create_countries(filepath_imports: Path, filepath_exports: Path, filepath_transit_matrix: Path,
+def create_countries(filepath_imports: Path, filepath_exports: Path, filepath_transit: Path,
                      transport_nodes: geopandas.GeoDataFrame, present_sectors: list,
                      countries_to_include: list | str = 'all', time_resolution: str = "week",
                      target_units: str = "mUSD", input_units: str = "USD"):
@@ -952,7 +952,7 @@ def create_countries(filepath_imports: Path, filepath_exports: Path, filepath_tr
     filepath_exports : string
         path to export table csv
 
-    filepath_transit_matrix : string
+    filepath_transit : string
         path to transit matrix csv
 
     transport_nodes : pandas.DataFrame
@@ -987,7 +987,7 @@ def create_countries(filepath_imports: Path, filepath_exports: Path, filepath_tr
         input_units=input_units
     )
     transit_matrix = rescale_monetary_values(
-        pd.read_csv(filepath_transit_matrix, index_col=0),
+        pd.read_csv(filepath_transit, index_col=0),
         time_resolution=time_resolution,
         target_units=target_units,
         input_units=input_units

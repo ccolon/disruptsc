@@ -12,7 +12,7 @@ from code import paths
 
 @dataclass
 class Parameters:
-    input_folder: str
+    region: str
     export_details: dict
     specific_edges_to_monitor: dict
     logging_level: str
@@ -72,11 +72,11 @@ class Parameters:
         return cls(**default_parameters)
 
     @classmethod
-    def load_parameters(cls, parameter_folder: Path):
+    def load_parameters(cls, parameter_folder: Path, region: str):
         # Load default and user_defined parameters
         with open(parameter_folder / "default.yaml", 'r') as f:
             parameters = yaml.safe_load(f)
-        with open(parameter_folder / "user_defined.yaml", 'r') as f:
+        with open(parameter_folder / f"user_defined_{region}.yaml", 'r') as f:
             overriding_parameters = yaml.safe_load(f)
         # Merge both
         for key, val in parameters.items():
@@ -85,7 +85,9 @@ class Parameters:
                     cls.merge_dict_with_priority(parameters[key], overriding_parameters[key])
                 else:
                     parameters[key] = overriding_parameters[key]
-        # Adjust path
+        # Load region
+        parameters['region'] = region
+        # Create parameters
         parameters = cls(**parameters)
         # Adjust filepath
         parameters.build_full_filepath()
@@ -105,16 +107,16 @@ class Parameters:
 
     def build_full_filepath(self):
         for key, val in self.filepaths.items():
-            self.filepaths[key] = paths.INPUT_FOLDER / self.input_folder / val
+            self.filepaths[key] = paths.INPUT_FOLDER / self.region / val
 
     def export(self):
         with open(self.export_folder / 'parameters.yaml', 'w') as file:
             yaml.dump(self, file)
 
     def create_export_folder(self):
-        if not os.path.isdir(paths.OUTPUT_FOLDER / self.input_folder):
-            os.mkdir(paths.OUTPUT_FOLDER / self.input_folder)
-        self.export_folder = paths.OUTPUT_FOLDER / self.input_folder / datetime.now().strftime('%Y%m%d_%H%M%S')
+        if not os.path.isdir(paths.OUTPUT_FOLDER / self.region):
+            os.mkdir(paths.OUTPUT_FOLDER / self.region)
+        self.export_folder = paths.OUTPUT_FOLDER / self.region / datetime.now().strftime('%Y%m%d_%H%M%S')
         os.mkdir(self.export_folder)
 
     def adjust_logging_behavior(self):

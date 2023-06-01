@@ -146,6 +146,21 @@ disruption_analysis = {
     "start_time": 1,
     "duration": 1
 }
+
+disruption_analysis = {
+    "type": "compound",
+    "events": [
+        {
+            "item_type": "transport_edges",
+            "attribute": "disruption",
+            # "attribute": "id",
+            "values": ["Scenario 5_20"],
+            # "values": [1200],
+            "start_time": 1,
+            "duration": 1
+        }
+    ]
+}
 # disruption_analysis = None
 # inventory_duration_target = 2
 # congestion = True
