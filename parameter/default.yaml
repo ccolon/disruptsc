@@ -166,6 +166,8 @@ cutoff_sector_demand:
   'type': 'relative_to_average'
   'value': 0.1
 
+# How much firms of filtered sectors should at least be modeled
+min_nb_firms_per_sector: 5
 
 # How to combine the output and demand sector cutoffs
 combine_sector_cutoff: "and"

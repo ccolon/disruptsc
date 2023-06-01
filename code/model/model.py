@@ -130,7 +130,8 @@ class Model(object):
                     filepath_admin_unit_economic_data=self.parameters.filepaths['admin_unit_data'],
                     sectors_to_include=filtered_sectors,
                     transport_nodes=self.transport_nodes,
-                    filepath_sector_table=self.parameters.filepaths['sector_table']
+                    filepath_sector_table=self.parameters.filepaths['sector_table'],
+                    min_nb_firms_per_sector=self.parameters.min_nb_firms_per_sector
                 )
             elif self.parameters.firm_data_type == "supplier-buyer network":
                 self.firm_table = define_firms_from_network_data(

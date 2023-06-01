@@ -107,10 +107,10 @@ There is only one file for the multimodal layer, which describe the edges. There
 
 The edge's geometry is *LineString*, the node's geometry is *Point*.
 
-Nodes should contains at least the following attributes:
+Nodes should contain at least the following attributes:
 - `id`: int, one unique id per mode
 
-Edges should contains at least the following attributes:
+Edges should contain at least the following attributes:
 - `id`: int, one unique id per mode
 - `surface`: paved or unpaved. If unknown you can put everything as "paved"
 - `class`: class category, for instance primary, secondary, etc. If unknown you can leave it empty.
@@ -118,6 +118,7 @@ Edges should contains at least the following attributes:
 - `multimodes` (for multimodal edges only): define which type of multimodel link, 
 - for instance "roads-waterways" or "railways-maritime"
 - `capacity`: maximum handling capacity per time step. If unknown you can leave it empty.
+- `disruption`: flag here the disruption scenarios that affect this edge. Leave empty if unused.
 
 Nodes and Edges should not contain the following attributes:
 - `index`

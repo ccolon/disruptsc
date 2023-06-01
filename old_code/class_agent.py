@@ -35,7 +35,7 @@ class Agent(object):
                 #     str(transport_network.give_route_mode(route))+ " to connect to "+
                 #     str(edge[1].pid)+" located "+str(edge[1].odpoint))
                 # Store it into commercial link object
-                sc_network[self][edge[1]]['object'].storeRouteInformation(
+                sc_network[self][edge[1]]['object'].store_route_information(
                     route=route,
                     transport_mode=selected_mode,
                     main_or_alternative="main",

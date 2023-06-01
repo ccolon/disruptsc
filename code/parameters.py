@@ -31,6 +31,7 @@ class Parameters:
     districts_to_include: str | list
     pop_density_cutoff: float
     pop_cutoff: float
+    min_nb_firms_per_sector: int
     local_demand_cutoff: float
     countries_to_include: str | list
     logistic_modes: str

@@ -169,22 +169,26 @@ class TransportNetwork(nx.Graph):
         we transform it into a route, which contains nodes and edges:
         [(1,), (1,5), (5,), (5,8), (8,)]
         '''
-        if (origin_node not in self.nodes):
-            logging.debug("Origin node " + str(origin_node) + " not in the available transport network")
+        if origin_node not in self.nodes:
+            logging.info("Origin node " + str(origin_node) + " not in the available transport network")
+            print('1')
             return None
 
-        elif (destination_node not in self.nodes):
-            logging.debug("Destination node " + str(destination_node) + " not in the available transport network")
+        elif destination_node not in self.nodes:
+            print('2')
+            logging.info("Destination node " + str(destination_node) + " not in the available transport network")
             return None
 
         elif nx.has_path(self, origin_node, destination_node):
+            print('ok')
             sp = nx.shortest_path(self, origin_node, destination_node, weight=route_weight)
             route = [[(sp[0],)]] + [[(sp[i], sp[i + 1]), (sp[i + 1],)] for i in range(0, len(sp) - 1)]
             route = [item for item_tuple in route for item in item_tuple]
             return route
 
         else:
-            logging.debug("There is no path between " + str(origin_node) + " and " + str(destination_node))
+            print('3')
+            logging.info("There is no path between " + str(origin_node) + " and " + str(destination_node))
             return None
 
     def sum_indicator_on_route(self, route, indicator, detail_type=False):

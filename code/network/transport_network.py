@@ -56,8 +56,7 @@ class TransportNetwork(nx.Graph):
         self[end_ids[0]][end_ids[1]]['disruption_duration'] = 0
         self[end_ids[0]][end_ids[1]]['current_load'] = 0
 
-
-    def giveRouteCaracteristics(self, route, debug=False):
+    def get_route_features(self, route, debug=False):
         distance = 0  # km
         time_cost = 1  # USD, cost cannot be 0
         cost_per_ton = 0  # USD/ton
@@ -178,12 +177,12 @@ class TransportNetwork(nx.Graph):
         we transform it into a route, which contains nodes and edges:
         [(1,), (1,5), (5,), (5,8), (8,)]
         '''
-        if (origin_node not in self.nodes):
-            logging.debug("Origin node " + str(origin_node) + " not in the available transport network")
+        if origin_node not in self.nodes:
+            logging.info("Origin node " + str(origin_node) + " not in the available transport network")
             return None
 
-        elif (destination_node not in self.nodes):
-            logging.debug("Destination node " + str(destination_node) + " not in the available transport network")
+        elif destination_node not in self.nodes:
+            logging.info("Destination node " + str(destination_node) + " not in the available transport network")
             return None
 
         elif nx.has_path(self, origin_node, destination_node):
@@ -193,7 +192,7 @@ class TransportNetwork(nx.Graph):
             return route
 
         else:
-            logging.debug("There is no path between " + str(origin_node) + " and " + str(destination_node))
+            logging.info("There is no path between " + str(origin_node) + " and " + str(destination_node))
             return None
 
     def sum_indicator_on_route(self, route, indicator, detail_type=False):

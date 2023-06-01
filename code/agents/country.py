@@ -329,7 +329,7 @@ class Country(Agent):
             )
             # We evaluate the cost of this new route
             if route is not None:
-                commercial_link.storeRouteInformation(
+                commercial_link.store_route_information(
                     route=route,
                     transport_mode=selected_mode,
                     main_or_alternative="alternative",

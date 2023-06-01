@@ -3,8 +3,9 @@ from collections import UserList
 
 import networkx
 import pandas
+import pandas as pd
 
-from old_code.class_transport_network import TransportNetwork
+from code.network.transport_network import TransportNetwork
 
 
 class Agent(object):
@@ -43,7 +44,7 @@ class Agent(object):
                 #     str(transport_network.give_route_mode(route))+ " to connect to "+
                 #     str(edge[1].pid)+" located "+str(edge[1].odpoint))
                 # Store it into commercial link object
-                sc_network[self][edge[1]]['object'].storeRouteInformation(
+                sc_network[self][edge[1]]['object'].store_route_information(
                     route=route,
                     transport_mode=selected_mode,
                     main_or_alternative="main",
@@ -96,16 +97,23 @@ class Agent(object):
 
         transport. So we use this to "force" some flow to take the other routes.
         """
-        if accepted_logistics_modes == "any":
-            route = transport_network.provide_shortest_route(origin_node,
-                                                             destination_node,
-                                                             route_weight="weight")
-            return route, accepted_logistics_modes
-
+        route = transport_network.provide_shortest_route(origin_node,
+                                                         destination_node,
+                                                         route_weight="weight")
+        if route is None:
+            raise ValueError(f"Agent {self.pid} - No route found from {origin_node} to {destination_node}")
         else:
-            logging.error(f'accepted_logistics_modes is {accepted_logistics_modes}')
-            raise ValueError("The only implemented accepted_logistics_modes is 'any'")
-        # TODO: to reimplement
+            return route, accepted_logistics_modes
+        # TODO: check if I want to reimplement this complex route choice procedure
+        # if accepted_logistics_modes == "any":
+        #     route = transport_network.provide_shortest_route(origin_node,
+        #                                                      destination_node,
+        #                                                      route_weight="weight")
+        #     return route, accepted_logistics_modes
+        #
+        # else:
+        #     logging.error(f'accepted_logistics_modes is {accepted_logistics_modes}')
+        #     raise ValueError("The only implemented accepted_logistics_modes is 'any'")
         # # If it is a list, it means that the agent will chosen between different logistic corridors
         # # with a certain probability
         # elif isinstance(accepted_logistics_modes, list):

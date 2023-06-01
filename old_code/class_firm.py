@@ -871,7 +871,7 @@ class Firm(Agent):
         )
         # If we find a new route, we save it as the alternative one
         if route is not None:
-            commercial_link.storeRouteInformation(
+            commercial_link.store_route_information(
                 route=route,
                 transport_mode=selected_mode,
                 main_or_alternative="alternative",

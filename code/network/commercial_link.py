@@ -59,10 +59,10 @@ class CommercialLink(object):
         self.alternative_route_cost_per_ton = 0
         self.price = 1
 
-    def storeRouteInformation(self, route, transport_mode,
-                              main_or_alternative, transport_network):
+    def store_route_information(self, route, transport_mode,
+                                main_or_alternative, transport_network):
 
-        distance, route_time_cost, cost_per_ton = transport_network.giveRouteCaracteristics(route)
+        distance, route_time_cost, cost_per_ton = transport_network.get_route_features(route)
         # if pd.isna(cost_per_ton):
         #     print(route, distance, route_time_cost, cost_per_ton)
         #     transport_network.giveRouteCaracteristics(route, debug=True)

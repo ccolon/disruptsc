@@ -118,8 +118,8 @@ def apply_sector_filter(sector_table, filter_column, cut_off_dic):
 
 def define_firms_from_local_economic_data(filepath_admin_unit_economic_data: Path,
                                           sectors_to_include: list, transport_nodes: geopandas.GeoDataFrame,
-                                          filepath_sector_table: Path):
-    '''Define firms based on the admin_unit_economic_data.
+                                          filepath_sector_table: Path, min_nb_firms_per_sector: int):
+    """Define firms based on the admin_unit_economic_data.
     The output is a dataframe, 1 row = 1 firm.
     The instances Firms are created in the createFirm function.
 
@@ -132,6 +132,7 @@ def define_firms_from_local_economic_data(filepath_admin_unit_economic_data: Pat
 
     Parameters
     ----------
+    min_nb_firms_per_sector
     filepath_admin_unit_economic_data: string
         Path to the district_data table
     sectors_to_include: list or 'all'
@@ -140,7 +141,7 @@ def define_firms_from_local_economic_data(filepath_admin_unit_economic_data: Pat
         transport nodes resulting from createTransportNetwork
     filepath_sector_table: string
         Path to the sector table
-    '''
+    """
 
     # A. Create firm table
     # A.1. load files
@@ -154,17 +155,32 @@ def define_firms_from_local_economic_data(filepath_admin_unit_economic_data: Pat
         if (sectors_to_include == "all") or (sector in sectors_to_include):
             # check that the supply metric is in the data
             if row["supply_data"] not in admin_unit_eco_data.columns:
-                raise KeyError(row["supply_data"] + " for sector " + sector +
-                               " is missing from the economic data")
-            # create one firm where economic metric is over threshold
-            where_create_firm = admin_unit_eco_data[row["supply_data"]] > row["cutoff"]
-            # populate firm table
-            new_firm_table = pd.DataFrame({
-                "sector": sector,
-                "admin_unit": admin_unit_eco_data.loc[where_create_firm, "admin_code"].tolist(),
-                "population": admin_unit_eco_data.loc[where_create_firm, "population"].tolist(),
-                "absolute_size": admin_unit_eco_data.loc[where_create_firm, row["supply_data"]]
-            })
+                one_tenth_of_admin_unit = int(admin_unit_eco_data.shape[0] / 5)
+                logging.warning(f"{row['supply_data']} for sector {sector} is missing from the economic data. "
+                                f"We will create by default firms in the {min_nb_firms_per_sector} "
+                                f"most populated admin units")
+                where_create_firm = admin_unit_eco_data["population"].nlargest(min_nb_firms_per_sector).index
+                # populate firm table
+                new_firm_table = pd.DataFrame({
+                    "sector": sector,
+                    "admin_unit": admin_unit_eco_data.loc[where_create_firm, "admin_code"].tolist(),
+                    "population": admin_unit_eco_data.loc[where_create_firm, "population"].tolist(),
+                    "absolute_size": admin_unit_eco_data.loc[where_create_firm, "population"].tolist()
+                })
+            else:
+                # create one firm where economic metric is over threshold
+                where_create_firm = admin_unit_eco_data[row["supply_data"]] > row["cutoff"]
+                # if it results in less than 5 firms, we go below the cutoff to get at least 5 firms
+                if where_create_firm.sum() < min_nb_firms_per_sector:
+                    where_create_firm = admin_unit_eco_data[row["supply_data"]].nlargest(min_nb_firms_per_sector).index
+                # populate firm table
+                new_firm_table = pd.DataFrame({
+                    "sector": sector,
+                    "admin_unit": admin_unit_eco_data.loc[where_create_firm, "admin_code"].tolist(),
+                    "population": admin_unit_eco_data.loc[where_create_firm, "population"].tolist(),
+                    "absolute_size": admin_unit_eco_data.loc[where_create_firm, row["supply_data"]]
+                })
+
             new_firm_table['relative_size'] = new_firm_table['absolute_size'] / new_firm_table['absolute_size'].sum()
             firm_table_per_admin_unit = pd.concat([firm_table_per_admin_unit, new_firm_table], axis=0)
 
@@ -234,21 +250,19 @@ def define_firms_from_local_economic_data(filepath_admin_unit_economic_data: Pat
                  str(firm_table_per_od_point['od_point'].nunique()) + ' od points')
     for sector, row in sector_table.set_index("sector").iterrows():
         if (sectors_to_include == "all") or (sector in sectors_to_include):
-            cond = firm_table_per_od_point['sector'] == sector
-            logging.info('Sector ' + sector + ": create " +
-                         str(cond.sum()) + " firms that covers " +
-                         "{:.0f}%".format(
-                             firm_table_per_od_point.loc[cond, 'absolute_size'].sum() \
-                             / admin_unit_eco_data[row["supply_data"]].sum() * 100
-                         ) + " of total " + row["supply_data"]
-                         # "{:.0f}%".format(
-                         #     firm_table.loc[cond, 'final_demand'].sum()\
-                         #     / sector_table.set_index('sector').loc[sector, "final_demand"] * 100
-                         # )+" of final demand"+" and "+
-                         # "{:.0f}%".format(
-                         #     firm_table.loc[cond, 'population'].sum() / total_population * 100
-                         # )+" of population"
-                         )
+            if row["supply_data"] in admin_unit_eco_data.columns:
+                cond = firm_table_per_od_point['sector'] == sector
+                logging.info(f"Sector {sector}: create {cond.sum()} firms that covers " +
+                             "{:.0f}%".format(firm_table_per_od_point.loc[cond, 'absolute_size'].sum()
+                                              / admin_unit_eco_data[row['supply_data']].sum() * 100) +
+                             f" of total {row['supply_data']}")
+            else:
+                cond = firm_table_per_od_point['sector'] == sector
+                logging.info(f"Sector {sector}: since {row['supply_data']} is not in the admin data, "
+                             f"create {cond.sum()} firms that covers " +
+                             "{:.0f}%".format(firm_table_per_od_point.loc[cond, 'population'].sum()
+                                              / admin_unit_eco_data["population"].sum() * 100) +
+                             f" of population")
 
     return firm_table_per_od_point, firm_table_per_admin_unit
 
@@ -1090,4 +1104,3 @@ def load_ton_usd_equivalence(sector_table: pd.DataFrame, firm_list: list, countr
     for country in country_list:
         country.usd_per_ton = sector_to_usd_per_ton.mean()
     return firm_list, country_list, sector_to_usd_per_ton  # Should disappear, we want only sector_to_usdPerTon
-
