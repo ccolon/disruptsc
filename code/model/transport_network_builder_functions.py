@@ -137,8 +137,7 @@ def create_transport_network(transport_modes: list, filepaths: dict, extra_roads
     logging.debug('Loading roads data')
     nodes, edges = load_transport_data(filepaths, transport_params,
                                        transport_mode="roads", additional_roads=extra_roads)
-    print(f"{nodes.shape[0]} roads nodes and {edges.shape[0]} roads edges")
-    print(transport_modes)
+    logging.info(f"Transport modes modeled: {transport_modes}")
     if "railways" in transport_modes:
         nodes, edges = add_transport_mode("railways", nodes, edges, filepaths, transport_params)
 
