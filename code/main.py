@@ -50,7 +50,8 @@ elif parameters.simulation_type == "disruption":
 else:
     raise ValueError('Unimplemented simulation type chosen')
 
-simulation.export_agent_data(parameters.export_folder)
+if parameters.export_files:
+    simulation.export_agent_data(parameters.export_folder)
 # TODO add simulation.calculate_and_export_results()
 
 logging.info("End of simulation")

@@ -547,7 +547,8 @@ class Model(object):
         if time_step > 0:
             self.transport_network.reset_current_loads(self.parameters.route_optimization_weight)
 
-        self.apply_disruption(time_step)
+        if self.disruption_list:
+            self.apply_disruption(time_step)
 
         self.firm_list.retrieve_orders(self.sc_network)
         self.firm_list.plan_production(self.sc_network, self.parameters.propagate_input_price_change)
