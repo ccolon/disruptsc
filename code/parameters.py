@@ -77,15 +77,21 @@ class Parameters:
         # Load default and user_defined parameters
         with open(parameter_folder / "default.yaml", 'r') as f:
             parameters = yaml.safe_load(f)
-        with open(parameter_folder / f"user_defined_{region}.yaml", 'r') as f:
-            overriding_parameters = yaml.safe_load(f)
-        # Merge both
-        for key, val in parameters.items():
-            if key in overriding_parameters:
-                if isinstance(val, dict):
-                    cls.merge_dict_with_priority(parameters[key], overriding_parameters[key])
-                else:
-                    parameters[key] = overriding_parameters[key]
+        user_defined_parameter_filepath = parameter_folder / f"user_defined_{region}.yaml"
+        if os.path.exists(user_defined_parameter_filepath):
+            logging.info(f'User defined parameter file found for {region}')
+            with open(parameter_folder / f"user_defined_{region}.yaml", 'r') as f:
+                overriding_parameters = yaml.safe_load(f)
+            # Merge both
+            for key, val in parameters.items():
+                if key in overriding_parameters:
+                    if isinstance(val, dict):
+                        cls.merge_dict_with_priority(parameters[key], overriding_parameters[key])
+                    else:
+                        parameters[key] = overriding_parameters[key]
+        else:
+            logging.info(f'No user defined parameter file found named user_defined_{region}.yaml, '
+                         f'using default parameters')
         # Load region
         parameters['region'] = region
         # Create parameters
