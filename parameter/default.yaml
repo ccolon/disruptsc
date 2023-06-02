@@ -117,7 +117,7 @@ specific_edges_to_monitor:
 
 
 # List of transport modes to include
-transport_modes: ['roads']
+transport_modes: ['roads', "maritime"]
 
 # Monetary units to use in model. 'USD', 'kUSD', 'mUSD'
 monetary_units_in_model: "mUSD"
