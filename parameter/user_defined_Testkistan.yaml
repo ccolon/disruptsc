@@ -1,0 +1,25 @@
+# Indicate the subfolder of the input folder that contains the input files
+filepaths:
+  "sector_table": "National/sector_table.csv"
+  "tech_coef": "National/tech_coef.csv"
+  "inventory_duration_targets": "National/inventory_targets.csv"
+  "admin_unit_data": "Subnational/admin_unit_data.geojson"
+  "imports": "Trade/import_table.csv"
+  "exports": "Trade/export_table.csv"
+  "transit": "Trade/transit_matrix.csv"
+transport_modes: [roads, maritime]
+monetary_units_in_model: mUSD
+monetary_units_inputed: USD
+time_resolution: week
+io_cutoff: 0.02
+countries_to_include: ['VO1', 'VO2']
+simulation_type: disruption
+export_files: True
+disruption_description:
+  type: compound
+  events:
+    - item_type: transport_edges
+      attribute: id
+      values: [0]
+      start_time: 1
+      duration: 1
