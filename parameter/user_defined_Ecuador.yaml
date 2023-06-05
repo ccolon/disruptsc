@@ -7,12 +7,15 @@ filepaths:
   "imports": "Trade/59sector_2016_import_table.csv"
   "exports": "Trade/59sector_2016_export_table.csv"
   "transit": "Trade/2016_transit_matrix.csv"
+  "roads_nodes": "Transport/roads_nodes.geojson"
+  "roads_edges": "Transport/roads_edges.geojson"
+  "multimodal_edges": "Transport/multimodal_edges.geojson"
 transport_modes: [roads, maritime, waterways, airways]
 monetary_units_in_model: mUSD
 monetary_units_inputed: kUSD
 time_resolution: week
-io_cutoff: 0.01
-simulation_type: disruption
+io_cutoff: 0.01  # 0.01
+simulation_type: initial_state
 export_files: True
 disruption_description:
   type: compound
