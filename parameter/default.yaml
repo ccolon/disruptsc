@@ -109,12 +109,10 @@ export_details:
   # Whether or not to export a csv summarizing some topological caracteristics of the supply chain network
   "sc_network_summary": True
 
-
 # Specify edges on the transport network for which we want to observe the flows
 specific_edges_to_monitor:
   'multimodal': []
   'special': []
-
 
 # List of transport modes to include
 transport_modes: ['roads', "maritime"]
@@ -129,6 +127,17 @@ monetary_units_inputed: "USD"
 # - 'disaggregating IO' uses national input-table (tech_coef) with business census (district_economic_data)
 # - 'supplier buyer network' uses supplier buyer network data
 firm_data_type: "disaggregating IO"
+
+# Define how cost_per_ton are calculated for the different transport mode
+# - edge-specific: there is a column called transport_cost_per_tonkm in the road edges layer
+# - surface-specific: for roads, depends on whethehr paved or not
+# - mode-specific: there is a parameter called transport_cost_per_tonkm in the transport_params.yaml
+transport_cost_data:
+  roads: surface-specific
+  railways: mode-specific
+  waterways: mode-specific
+  airways: mode-specific
+  maritime: mode-specific
 
 # Whether or not to model congestion
 congestion: True
@@ -156,7 +165,6 @@ sectors_no_transport_network: ['utility', 'transport', 'trade', 'service']
 cutoff_sector_output:
   'type': 'relative_to_average'
   'value': 0.1
-
 
 # Filter out sectors whose final demand is below that cutoff value
 # - if 'type' is 'percentage', test cutoff againt the sector's relative output

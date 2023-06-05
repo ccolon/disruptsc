@@ -64,6 +64,7 @@ class Parameters:
     filepaths: dict
     export_files: bool
     simulation_type: str
+    transport_cost_data: dict
     export_folder: Path | str = ""
 
     @classmethod

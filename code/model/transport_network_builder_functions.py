@@ -9,7 +9,7 @@ from shapely.geometry import Point
 from code.network.transport_network import TransportNetwork
 
 
-def load_transport_data(filepaths, transport_params, transport_mode, additional_roads=None):
+def load_transport_data(filepaths, transport_params, transport_mode, transport_cost_data, additional_roads=None):
     # Determines whether there are nodes and/or edges to load
     any_edge = True
     any_node = True
@@ -47,7 +47,7 @@ def load_transport_data(filepaths, transport_params, transport_mode, additional_
                               verify_integrity=True, sort=False)
 
         # Compute how much it costs to transport one USD worth of good on each edge
-        edges = compute_cost_travel_time_edges(edges, transport_params, edge_type=transport_mode)
+        edges = compute_cost_travel_time_edges(edges, transport_params, transport_mode, transport_cost_data)
 
         # Adapt capacity (given in year) to time resolution
         periods = {'day': 365, 'week': 52, 'month': 12, 'year': 1}
@@ -95,7 +95,7 @@ def offset_ids(nodes, edges, offset_node_id, offset_edge_id):
     return nodes, edges
 
 
-def create_transport_network(transport_modes: list, filepaths: dict, extra_roads=False):
+def create_transport_network(transport_modes: list, filepaths: dict, transport_cost_data: dict, extra_roads=False):
     """Create the transport network object
 
     It uses one shapefile for the nodes and another for the edges.
@@ -104,6 +104,7 @@ def create_transport_network(transport_modes: list, filepaths: dict, extra_roads
 
     Parameters
     ----------
+    transport_cost_data
     extra_roads
     transport_modes : list
         List of transport modes to include, ['roads', 'railways', 'waterways', 'airways']
@@ -136,23 +137,25 @@ def create_transport_network(transport_modes: list, filepaths: dict, extra_roads
     # the nodes ids in "end1", "end2" of edges are also offseted
     logging.debug('Loading roads data')
     nodes, edges = load_transport_data(filepaths, transport_params,
-                                       transport_mode="roads", additional_roads=extra_roads)
+                                       transport_mode="roads",
+                                       transport_cost_data=transport_cost_data,
+                                       additional_roads=extra_roads)
     logging.info(f"Transport modes modeled: {transport_modes}")
     if "railways" in transport_modes:
-        nodes, edges = add_transport_mode("railways", nodes, edges, filepaths, transport_params)
+        nodes, edges = add_transport_mode("railways", nodes, edges, filepaths, transport_params, transport_cost_data)
 
     if "waterways" in transport_modes:
-        nodes, edges = add_transport_mode("waterways", nodes, edges, filepaths, transport_params)
+        nodes, edges = add_transport_mode("waterways", nodes, edges, filepaths, transport_params, transport_cost_data)
 
     if "maritime" in transport_modes:
-        nodes, edges = add_transport_mode("maritime", nodes, edges, filepaths, transport_params)
+        nodes, edges = add_transport_mode("maritime", nodes, edges, filepaths, transport_params, transport_cost_data)
 
     if "airways" in transport_modes:
-        nodes, edges = add_transport_mode("airways", nodes, edges, filepaths, transport_params)
+        nodes, edges = add_transport_mode("airways", nodes, edges, filepaths, transport_params, transport_cost_data)
 
     if len(transport_modes) >= 2:
         logging.debug('Loading multimodal data')
-        multimodal_edges = load_transport_data(filepaths, transport_params, "multimodal")
+        multimodal_edges = load_transport_data(filepaths, transport_params, "multimodal", transport_cost_data)
         multimodal_edges = select_multimodal_edges_needed(multimodal_edges, transport_modes)
         logging.debug(str(multimodal_edges.shape[0]) + " multimodal edges")
         multimodal_edges = assign_endpoints(multimodal_edges, nodes)
@@ -190,10 +193,11 @@ def add_transport_mode(
         nodes: geopandas.GeoDataFrame,
         edges: geopandas.GeoDataFrame,
         filepaths: dict,
-        transport_params: dict
+        transport_params: dict,
+        transport_cost_data: dict
 ):
     logging.debug(f'Loading {mode} data')
-    new_mode_nodes, new_mode_edges = load_transport_data(filepaths, transport_params, mode)
+    new_mode_nodes, new_mode_edges = load_transport_data(filepaths, transport_params, mode, transport_cost_data)
     logging.debug(f"{new_mode_nodes.shape[0]} {mode} nodes and {new_mode_edges.shape[0]} {mode} edges")
     new_mode_nodes, new_mode_edges = offset_ids(new_mode_nodes, new_mode_edges,
                                                 offset_node_id=nodes['id'].max() + 1,
@@ -237,17 +241,29 @@ def get_index_closest_point(point, df_with_points):
 
 
 def compute_cost_travel_time_edges(edges: geopandas.GeoDataFrame, transport_params: dict,
-                                   edge_type: str) -> geopandas.GeoDataFrame:
+                                   edge_type: str, transport_cost_data: dict) -> geopandas.GeoDataFrame:
     # A. Compute price per ton to be paid to transporter
     # A1. Cost per km
     if edge_type == "roads":
         # Differentiate between paved and unpaved roads
-        edges['cost_per_ton'] = edges['km'] * (
-                (edges['surface'] == 'unpaved') * transport_params['transport_cost_per_tonkm']['roads']['unpaved'] + \
-                (edges['surface'] == 'paved') * transport_params['transport_cost_per_tonkm']['roads']['paved']
-        )
+        if transport_cost_data['roads'] == "edge-specific":
+            edges['cost_per_ton'] = edges['km'] * edges['transport_cost_per_tonkm']
+        elif transport_cost_data['roads'] == "mode-specific":
+            edges['cost_per_ton'] = edges['km'] * transport_params['transport_cost_per_tonkm']['roads']
+        elif transport_cost_data['roads'] == "surface-specific":
+            edges['cost_per_ton'] = edges['km'] * (
+                    (edges['surface'] == 'unpaved') * transport_params['transport_cost_per_tonkm']['roads']['unpaved']
+                    + (edges['surface'] == 'paved') * transport_params['transport_cost_per_tonkm']['roads']['paved']
+            )
+        else:
+            raise ValueError("Parameters transport_cost_data for roads should be one of: "
+                             "edge-specific, mode-specific, surface-specific")
     elif edge_type in ['railways', 'waterways', 'maritime', 'airways']:
-        edges['cost_per_ton'] = edges['km'] * transport_params['transport_cost_per_tonkm'][edge_type]
+        if transport_cost_data[edge_type] == "mode-specific":
+            edges['cost_per_ton'] = edges['km'] * transport_params['transport_cost_per_tonkm'][edge_type]
+        else:
+            raise ValueError("Parameters transport_cost_data for railways, waterways, maritime, airways "
+                             "can only be mode-specific")
 
     elif edge_type == "multimodal":
         edges['cost_per_ton'] = edges['multimodes'].map(transport_params['loading_cost_per_ton'])

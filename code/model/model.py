@@ -69,7 +69,8 @@ class Model(object):
             self.transport_network, self.transport_nodes, self.transport_edges = \
                 create_transport_network(
                     transport_modes=self.parameters.transport_modes,
-                    filepaths=self.parameters.filepaths
+                    filepaths=self.parameters.filepaths,
+                    transport_cost_data=self.parameters.transport_cost_data
                 )
 
             data_to_cache = {
@@ -421,8 +422,12 @@ class Model(object):
         # Solve the input--output equation
         eq_production_vector = np.linalg.solve(
             np.eye(n) - firm_connectivity_matrix,
-            final_demand_vector
+            final_demand_vector + 0.01
         )
+        np.savetxt("final_demand_vector.csv", final_demand_vector, delimiter=',')
+        np.savetxt("eq_production_vector.csv", eq_production_vector, delimiter=',')
+        #np.savetxt("firm_connectivity_matrix.csv", firm_connectivity_matrix, delimiter=',')
+        exit()
 
         # Initialize households variables
         for household in self.household_list:
@@ -576,7 +581,8 @@ class Model(object):
         #     for country in country_list:
         #         country.add_congestion_malus2(sc_network, transport_network)
         #
-
+        if time_step in [0, 1]:
+            current_simulation.transport_network_data += self.transport_network.compute_flow_per_segment(time_step)
         # TODO: store transport data, depending on current_simulation type and time step
         # TODO: store supply chain data, depending on current_simulation type and time step
         # if (time_step in [0, 1, 2]) and (
@@ -688,3 +694,11 @@ class Model(object):
             }
             for household in self.household_list
         ]
+
+    def export_transport_nodes_edges(self):
+        self.transport_nodes.to_file(
+            self.parameters.export_folder / 'transport_nodes.geojson',
+            driver="GeoJSON", index=False)
+        self.transport_edges.to_file(
+            self.parameters.export_folder / 'transport_edges.geojson',
+            driver="GeoJSON", index=False)
