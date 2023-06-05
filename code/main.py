@@ -35,6 +35,9 @@ parameters.adjust_logging_behavior()
 # Initialize model
 model = Model(parameters)
 model.setup_transport_network(cached=cache_parameters['transport_network'])
+if parameters.export_files:
+    pass
+    #model.export_transport_nodes_edges()
 model.setup_agents(cached=cache_parameters['agents'])
 model.setup_sc_network(cached=cache_parameters['sc_network'])
 model.set_initial_conditions()
@@ -52,6 +55,7 @@ else:
 
 if parameters.export_files:
     simulation.export_agent_data(parameters.export_folder)
+    simulation.export_transport_network_data(model.transport_edges, parameters.export_folder)
 # TODO add simulation.calculate_and_export_results()
 
 logging.info("End of simulation")
