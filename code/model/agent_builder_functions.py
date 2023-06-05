@@ -155,7 +155,6 @@ def define_firms_from_local_economic_data(filepath_admin_unit_economic_data: Pat
         if (sectors_to_include == "all") or (sector in sectors_to_include):
             # check that the supply metric is in the data
             if row["supply_data"] not in admin_unit_eco_data.columns:
-                one_tenth_of_admin_unit = int(admin_unit_eco_data.shape[0] / 5)
                 logging.warning(f"{row['supply_data']} for sector {sector} is missing from the economic data. "
                                 f"We will create by default firms in the {min_nb_firms_per_sector} "
                                 f"most populated admin units")
@@ -170,9 +169,11 @@ def define_firms_from_local_economic_data(filepath_admin_unit_economic_data: Pat
             else:
                 # create one firm where economic metric is over threshold
                 where_create_firm = admin_unit_eco_data[row["supply_data"]] > row["cutoff"]
-                # if it results in less than 5 firms, we go below the cutoff to get at least 5 firms
+                # if it results in less than 5 firms, we go below the cutoff to get at least 5 firms,
+                # only if there are enough admin_units with positive supply_data
                 if where_create_firm.sum() < min_nb_firms_per_sector:
-                    where_create_firm = admin_unit_eco_data[row["supply_data"]].nlargest(min_nb_firms_per_sector).index
+                    cond_positive_supply_data = admin_unit_eco_data[row["supply_data"]] > 0
+                    where_create_firm = admin_unit_eco_data.loc[cond_positive_supply_data, row["supply_data"]].nlargest(min_nb_firms_per_sector).index
                 # populate firm table
                 new_firm_table = pd.DataFrame({
                     "sector": sector,

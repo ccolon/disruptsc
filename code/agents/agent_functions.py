@@ -6,8 +6,9 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 
-from old_code.class_transport_network import TransportNetwork
+from code.network.transport_network import TransportNetwork
 from code.disruption.disruption import DisruptionList
+
 
 # TODO: should be integrated into the agent class
 
@@ -199,7 +200,7 @@ def initilize_at_equilibrium(graph, firm_list, household_list, country_list):
         household.initialize_var_on_purchase_plan()
 
     # Compute costs
-    ## Input costs
+    # Input costs
     domestic_input_cost_vector = np.multiply(
         firm_connectivity_matrix.sum(axis=0).reshape((n, 1)),
         eq_production_vector
@@ -209,13 +210,12 @@ def initilize_at_equilibrium(graph, firm_list, household_list, country_list):
         eq_production_vector
     )
     input_cost_vector = domestic_input_cost_vector + import_input_cost_vector
-    ## Transport costs
+    # Transport costs
     proportion_of_transport_cost_vector = 0.2 * np.ones((n, 1))  # XXX
     transport_cost_vector = np.multiply(eq_production_vector, proportion_of_transport_cost_vector)
-    ## Compute other costs based on margin
+    # Compute other costs based on margin
     margin = np.array([firm.target_margin for firm in firm_list]).reshape((n, 1))
-    other_cost_vector = np.multiply(eq_production_vector, (1 - margin)) \
-                        - input_cost_vector - transport_cost_vector
+    other_cost_vector = np.multiply(eq_production_vector, (1 - margin)) - input_cost_vector - transport_cost_vector
 
     # Based on these calculus, update agents variables
     ## Firm operational variables
@@ -362,7 +362,7 @@ def apply_disruption(time_step: int, disruptions: DisruptionList, transport_netw
 
 def allFirmsPlanProduction(firm_list, graph, price_fct_input=True):
     for firm in firm_list:
-        firm.aggregate_orders()
+        firm.aggregate_orders(print_info=True)
         firm.decide_production_plan()
         if price_fct_input:
             firm.calculate_price(graph)
