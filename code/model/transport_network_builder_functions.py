@@ -256,8 +256,10 @@ def compute_cost_travel_time_edges(edges: geopandas.GeoDataFrame, transport_para
         raise ValueError("'edge_type' should be 'roads', 'railways', 'waterways', 'airways', or 'multimodal'")
 
     # A2. Forwarding charges at borders
-    edges.loc[edges['special'].str.contains("custom", na=False), "cost_per_ton"] = \
-        edges.loc[edges['special'].str.contains("custom", na=False), "type"].map(transport_params['custom_cost'])
+    if not edges['special'].isnull().all():
+        boolean_custom_edge = edges['special'].str.contains("custom", na=False)
+        edges.loc[boolean_custom_edge, "cost_per_ton"] = edges.loc[boolean_custom_edge, "type"] \
+            .map(transport_params['custom_cost'])
 
     # B. Compute generalized cost of transport
     # B.1a. Compute travel time
@@ -277,9 +279,10 @@ def compute_cost_travel_time_edges(edges: geopandas.GeoDataFrame, transport_para
         raise ValueError("'edge_type' should be 'roads', 'railways', 'waterways', 'airways', or 'multimodal'")
 
     # B.1b. Add crossing border time
-    edges.loc[edges['special'].str.contains("custom", na=False), "travel_time"] = \
-        edges.loc[edges['special'].str.contains("custom", na=False), "type"] \
-            .map(transport_params['custom_time'])
+    if not edges['special'].isnull().all():
+        boolean_custom_edge = edges['special'].str.contains("custom", na=False)
+        edges.loc[boolean_custom_edge, "travel_time"] = edges.loc[boolean_custom_edge, "type"] \
+                .map(transport_params['custom_time'])
 
     # B.2. Compute cost of travel time
     edges['cost_travel_time'] = edges['travel_time'] * transport_params["travel_cost_of_time"]
