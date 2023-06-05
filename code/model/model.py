@@ -424,10 +424,6 @@ class Model(object):
             np.eye(n) - firm_connectivity_matrix,
             final_demand_vector + 0.01
         )
-        np.savetxt("final_demand_vector.csv", final_demand_vector, delimiter=',')
-        np.savetxt("eq_production_vector.csv", eq_production_vector, delimiter=',')
-        #np.savetxt("firm_connectivity_matrix.csv", firm_connectivity_matrix, delimiter=',')
-        exit()
 
         # Initialize households variables
         for household in self.household_list:
