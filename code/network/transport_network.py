@@ -397,7 +397,6 @@ class TransportNetwork(nx.Graph):
             new_data = {"time_step": time_step, 'id': self[edge[0]][edge[1]]['id'], 'flow_total': 0}
             # For each shipment, add quantities to relevant categories
             for shipment in self[edge[0]][edge[1]]["shipments"].values():
-                print(shipment)
                 flow_name = 'flow_' + shipment['flow_category'] + '_' + shipment['product_type']
                 add_or_append_to_dict(new_data, flow_name, shipment['quantity'])
                 add_or_append_to_dict(new_data, "flow_"+shipment['flow_category'], shipment['quantity'])
