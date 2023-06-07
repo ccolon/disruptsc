@@ -17,8 +17,10 @@ from .agent_builder_functions import \
     define_firms_from_local_economic_data, \
     create_firms, \
     define_firms_from_network_data, \
+    define_firms_from_mrio_data, \
     extract_final_list_of_sector, \
     define_households, \
+    define_households_from_mrio_data, \
     add_households_for_firms, \
     create_households, \
     load_technical_coefficients, calibrate_input_mix, load_inventories, create_countries, load_ton_usd_equivalence
@@ -115,6 +117,7 @@ class Model(object):
             output_selected = self.sector_table.loc[self.sector_table['sector'].isin(filtered_sectors), 'output'].sum()
             final_demand_selected = self.sector_table.loc[
                 self.sector_table['sector'].isin(filtered_sectors), 'final_demand'].sum()
+            #print("final_demand_selected: " + str(self.sector_table['final_demand']))
             logging.info(
                 str(len(filtered_sectors)) + ' sectors selected over ' + str(
                     self.sector_table.shape[0]) + ' representing ' +
@@ -139,7 +142,14 @@ class Model(object):
                     filepath_location_table=self.parameters.filepaths['location_table'],
                     sectors_to_include=filtered_sectors,
                     transport_nodes=self.transport_nodes,
-                    filepath_sector_table=self.parameters.filepaths['sector_table'])
+                    filepath_sector_table=self.parameters.filepaths['sector_table']
+                )
+            elif self.parameters.firm_data_type == "mrio":
+                self.firm_table = define_firms_from_mrio_data(
+                    filepath_country_sector_table=self.parameters.filepaths['sector_table'],
+                    filepath_region_table=self.parameters.filepaths['admin_unit_data'],
+                    transport_nodes=self.transport_nodes
+                )
             else:
                 raise ValueError(
                     self.parameters.firm_data_type + " should be one of 'disaggregating', 'supplier-buyer network'"
@@ -159,31 +169,43 @@ class Model(object):
 
             # Create households
             logging.info('Defining the number of households to generate and their purchase plan')
-            self.household_table, household_sector_consumption = define_households(
-                sector_table=self.sector_table,
-                filepath_admin_unit_data=self.parameters.filepaths['admin_unit_data'],
-                filtered_sectors=present_sectors,
-                pop_cutoff=self.parameters.pop_cutoff,
-                pop_density_cutoff=self.parameters.pop_density_cutoff,
-                local_demand_cutoff=self.parameters.local_demand_cutoff,
-                transport_nodes=self.transport_nodes,
-                time_resolution=self.parameters.time_resolution,
-                target_units=self.parameters.monetary_units_in_model,
-                input_units=self.parameters.monetary_units_inputed
-            )
-            cond_no_household = ~self.firm_table['od_point'].isin(self.household_table['od_point'])
-            if cond_no_household.sum() > 0:
-                logging.info('We add local households for firms')
-                self.household_table, household_sector_consumption = add_households_for_firms(
-                    firm_table=self.firm_table,
-                    household_table=self.household_table,
-                    filepath_admin_unit_data=self.parameters.filepaths['admin_unit_data'],
+            if self.parameters.firm_data_type == "mrio":
+                self.household_table, household_sector_consumption = define_households_from_mrio_data(
                     sector_table=self.sector_table,
+                    filepath_region_table=self.parameters.filepaths['admin_unit_data'],
                     filtered_sectors=present_sectors,
+                    local_demand_cutoff=self.parameters.local_demand_cutoff,
+                    transport_nodes=self.transport_nodes,
                     time_resolution=self.parameters.time_resolution,
                     target_units=self.parameters.monetary_units_in_model,
                     input_units=self.parameters.monetary_units_inputed
                 )
+            else:
+                self.household_table, household_sector_consumption = define_households(
+                    sector_table=self.sector_table,
+                    filepath_admin_unit_data=self.parameters.filepaths['admin_unit_data'],
+                    filtered_sectors=present_sectors,
+                    pop_cutoff=self.parameters.pop_cutoff,
+                    pop_density_cutoff=self.parameters.pop_density_cutoff,
+                    local_demand_cutoff=self.parameters.local_demand_cutoff,
+                    transport_nodes=self.transport_nodes,
+                    time_resolution=self.parameters.time_resolution,
+                    target_units=self.parameters.monetary_units_in_model,
+                    input_units=self.parameters.monetary_units_inputed
+                )
+                cond_no_household = ~self.firm_table['od_point'].isin(self.household_table['od_point'])
+                if cond_no_household.sum() > 0:
+                    logging.info('We add local households for firms')
+                    self.household_table, household_sector_consumption = add_households_for_firms(
+                        firm_table=self.firm_table,
+                        household_table=self.household_table,
+                        filepath_admin_unit_data=self.parameters.filepaths['admin_unit_data'],
+                        sector_table=self.sector_table,
+                        filtered_sectors=present_sectors,
+                        time_resolution=self.parameters.time_resolution,
+                        target_units=self.parameters.monetary_units_in_model,
+                        input_units=self.parameters.monetary_units_inputed
+                    )
             self.household_list = create_households(
                 household_table=self.household_table,
                 household_sector_consumption=household_sector_consumption
@@ -197,7 +219,7 @@ class Model(object):
                     self.firm_list, self.parameters.filepaths['tech_coef'], self.parameters.io_cutoff,
                     import_code_in_table
                 )
-
+            # TODO: adjust for mrio
             elif self.parameters.firm_data_type == "supplier-buyer network":
                 self.firm_table, self.transaction_table = calibrate_input_mix(
                     firm_list=self.firm_list,

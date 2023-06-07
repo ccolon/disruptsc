@@ -89,6 +89,8 @@ def offset_ids(nodes, edges, offset_node_id, offset_edge_id):
     edges.index = edges['id']
     edges.index.name = "index"
     # offset end1, end2
+    #print(edges['end1'])
+    #print(offset_node_id)
     edges['end1'] = edges['end1'] + offset_node_id
     edges['end2'] = edges['end2'] + offset_node_id
 

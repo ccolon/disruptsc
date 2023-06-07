@@ -321,6 +321,47 @@ def create_firms(
     return firm_list
 
 
+def define_firms_from_mrio_data(
+        filepath_country_sector_table: str,
+        filepath_region_table: str,
+        transport_nodes: pd.DataFrame):
+
+    # Load firm table
+    firm_table = pd.read_csv(filepath_country_sector_table)
+
+    # TODO: duplicate lines
+    # Duplicate the lines by concatenating the DataFrame with itself
+    firm_table = pd.concat([firm_table] * 2, ignore_index=True)
+    # Assign firms to closest road nodes
+    selected_admin_units = list(firm_table['country_ISO'].unique())
+    logging.info('Select ' + str(firm_table.shape[0]) +
+                 " firms in " + str(len(selected_admin_units)) + ' admin units')
+    location_table = gpd.read_file(filepath_region_table)
+    cond_selected_admin_units = location_table['country_ISO'].isin(selected_admin_units)
+    dic_admin_unit_to_points = location_table[cond_selected_admin_units].set_index('country_ISO')['geometry'].to_dict()
+    road_nodes = transport_nodes[transport_nodes['type'] == "roads"]
+    dic_admin_unit_to_road_node_id = {
+        admin_unit: road_nodes.loc[get_index_closest_point(point, road_nodes), 'id']
+        for admin_unit, point in dic_admin_unit_to_points.items()
+    }
+    firm_table['od_point'] = firm_table['country_ISO'].map(dic_admin_unit_to_road_node_id)
+
+    # Information required by the createFirms function
+    # add long lat
+    od_point_table = road_nodes[road_nodes['id'].isin(firm_table['od_point'])].copy()
+    od_point_table['long'] = od_point_table.geometry.x
+    od_point_table['lat'] = od_point_table.geometry.y
+    road_node_id_to_longlat = od_point_table.set_index('id')[['long', 'lat']]
+    firm_table['long'] = firm_table['od_point'].map(road_node_id_to_longlat['long'])
+    firm_table['lat'] = firm_table['od_point'].map(road_node_id_to_longlat['lat'])
+    # add importance
+    firm_table['importance'] = 10
+
+    # add id (where is it created otherwise?)
+    firm_table = firm_table.reset_index().rename(columns={"index":"id"})
+
+    return firm_table
+
 def define_firms_from_network_data(
         filepath_firm_table: str,
         filepath_location_table: str,
@@ -401,6 +442,124 @@ def extract_final_list_of_sector(firm_list: list):
     return n, present_sectors, flow_types_to_export
 
 
+def define_households_from_mrio_data(
+        sector_table: pd.DataFrame,
+        filepath_region_table: Path,
+        filtered_sectors: list,
+        local_demand_cutoff: float,
+        transport_nodes: gpd.GeoDataFrame,
+        time_resolution: str,
+        target_units: str,
+        input_units: str
+):
+    #household_table = gpd.read_file(filepath_region_table)
+    #household_table = location_table.copy(deep=False)
+    #TODO ajouter la demande finale par secteur country_sector_table
+    #print(household_table)
+    final_demand = sector_table["final_demand"]
+    #household_table = household_table.stack() #.transpose()
+
+    #TEST
+
+    household_table = gpd.read_file(filepath_region_table)
+
+    # Add final demand
+    final_demand = sector_table.loc[sector_table['sector'].isin(filtered_sectors), ['sector', 'final_demand']]
+    final_demand_as_row = final_demand.set_index('sector').transpose()
+
+    # Duplicate rows
+    household_table = pd.concat([household_table] * len(final_demand_as_row))
+
+    # Align index and concat
+    household_table.index = final_demand_as_row.index
+    household_table = pd.concat([household_table, final_demand_as_row], axis=1)
+
+    # Reshape the household table
+    household_table = household_table.stack().reset_index()
+    household_table.columns = ['admin_code', 'column', 'value']
+
+    print(household_table)
+
+    ## Fin TEST
+
+    # C. Create one household per OD point
+    logging.info('Assigning households to od-points')
+    dic_select_admin_unit_to_points = household_table.set_index('admin_code')['geometry'].to_dict()
+    # Select road node points
+    road_nodes = transport_nodes[transport_nodes['type'] == "roads"]
+    # Create dic
+    dic_admin_unit_to_road_node_id = {
+        admin_unit: road_nodes.loc[get_index_closest_point(point, road_nodes), 'id']
+        for admin_unit, point in dic_select_admin_unit_to_points.items()
+    }
+    # Map household to closest road nodes
+    household_table['od_point'] = household_table['admin_code'].map(dic_admin_unit_to_road_node_id)
+
+    # Combine households that are in the same od-point
+    household_table = household_table \
+        .drop(columns=['geometry', 'admin_code']) \
+        .groupby('od_point', as_index=False) \
+        .sum()
+    logging.info(str(household_table.shape[0]) + ' od-point selected for demand')
+
+    # D. Filter out small demand
+    if local_demand_cutoff > 0:
+        household_table[filtered_sectors] = household_table[filtered_sectors].mask(
+            household_table[filtered_sectors] < local_demand_cutoff
+        )
+    # info
+    logging.info('Create ' + str(household_table.shape[0]) + " households in " +
+                 str(household_table['od_point'].nunique()) + ' od points')
+    for sector in filtered_sectors:
+        logging.info('Sector ' + sector + ": create " +
+                     str((~household_table[sector].isnull()).sum()) +
+                     " buying households that covers " +
+                     "{:.0f}%".format(
+                         household_table[sector].sum() \
+                         / sector_table.set_index('sector').loc[sector, 'final_demand'] * 100
+                     ) + " of total final demand"
+                     )
+    if (household_table[filtered_sectors].sum(axis=1) == 0).any():
+        logging.warning('Some households have no purchase plan because of all their sectoral demand below cutoff!')
+
+    # E. Add information required by the createHouseholds function
+    # add long lat
+    od_point_table = road_nodes[road_nodes['id'].isin(household_table['od_point'])].copy()
+    od_point_table['long'] = od_point_table.geometry.x
+    od_point_table['lat'] = od_point_table.geometry.y
+    road_node_id_to_longlat = od_point_table.set_index('id')[['long', 'lat']]
+    household_table['long'] = household_table['od_point'].map(road_node_id_to_longlat['long'])
+    household_table['lat'] = household_table['od_point'].map(road_node_id_to_longlat['lat'])
+    # add id
+    household_table['id'] = list(range(household_table.shape[0]))
+
+
+
+
+    # F. Create purchase plan per household
+    # rescale according to time resolution
+    household_table[filtered_sectors] = rescale_monetary_values(
+        household_table[filtered_sectors],
+        time_resolution=time_resolution,
+        target_units=target_units,
+        input_units=input_units
+    )
+    # to dict
+    household_sector_consumption = household_table.set_index('id')[filtered_sectors].to_dict(orient='index')
+    # remove nan values
+    household_sector_consumption = {
+        i: {
+            sector: amount
+            for sector, amount in purchase_plan.items()
+            if ~np.isnan(amount)
+        }
+        for i, purchase_plan in household_sector_consumption.items()
+    }
+
+    return household_table, household_sector_consumption
+
+
+
 def define_households(
         sector_table: pd.DataFrame,
         filepath_admin_unit_data: Path,
@@ -466,6 +625,8 @@ def define_households(
     final_demand_each_household = final_demand_each_household.multiply(rel_pop, axis='index')
     # add to household table
     household_table = pd.concat([household_table, final_demand_each_household], axis=1)
+
+    print(household_table.keys())
 
     # C. Create one household per OD point
     logging.info('Assigning households to od-points')
