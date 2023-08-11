@@ -407,21 +407,21 @@ def allFirmsProduce(firm_list):
 #     for firm in firm_list:
 #         firm.deliver_products(G, T, rationing_mode, route_optimization_weight)
 
-def allAgentsDeliver(G, firm_list, country_list, T, sectors_no_transport_network, rationing_mode, explicit_service_firm,
+def allAgentsDeliver(G, firm_list, country_list, T, sectors_no_transport_network, rationing_mode, account_capacity,
                      monetary_units_in_model="mUSD", cost_repercussion_mode="type1"):
     for country in country_list:
         country.deliver_products(G, T,
                                  sectors_no_transport_network=sectors_no_transport_network,
                                  monetary_units_in_model=monetary_units_in_model,
                                  cost_repercussion_mode=cost_repercussion_mode,
-                                 explicit_service_firm=explicit_service_firm)
+                                 account_capacity=account_capacity)
     for firm in firm_list:
         firm.deliver_products(G, T,
                               sectors_no_transport_network=sectors_no_transport_network,
                               rationing_mode=rationing_mode,
                               monetary_units_in_model=monetary_units_in_model,
                               cost_repercussion_mode=cost_repercussion_mode,
-                              explicit_service_firm=explicit_service_firm)
+                              account_capacity=account_capacity)
 
 
 def allAgentsReceiveProducts(G, firm_list, household_list, country_list, T, sectors_no_transport_network):

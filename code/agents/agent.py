@@ -38,6 +38,7 @@ class Agent(object):
                     transport_network=transport_network,
                     origin_node=origin_node,
                     destination_node=destination_node,
+                    account_capacity=account_capacity,
                     accepted_logistics_modes=logistic_modes
                 )
                 # print(str(self.pid)+" located "+str(self.odpoint)+": I choose this transport mode "+
@@ -79,7 +80,7 @@ class Agent(object):
         transport_network.update_load_on_route(route, new_load_in_tons)
 
     def choose_route(self, transport_network: TransportNetwork, origin_node: int, destination_node: int,
-                     accepted_logistics_modes: str | list):
+                     account_capacity: bool, accepted_logistics_modes: str | list):
         """
         The agent choose the delivery route
 
@@ -97,9 +98,13 @@ class Agent(object):
 
         transport. So we use this to "force" some flow to take the other routes.
         """
+        if account_capacity:
+            weight_considered = "capacity_weight"
+        else:
+            weight_considered = "weight"
         route = transport_network.provide_shortest_route(origin_node,
                                                          destination_node,
-                                                         route_weight="weight")
+                                                         route_weight=weight_considered)
         if route is None:
             raise ValueError(f"Agent {self.pid} - No route found from {origin_node} to {destination_node}")
         else:
@@ -212,7 +217,7 @@ class AgentList(UserList):
             agent.send_purchase_orders(sc_network)
 
     def deliver(self, sc_network: networkx.DiGraph, transport_network: TransportNetwork,
-                sectors_no_transport_network: list, rationing_mode: str, explicit_service_firm: bool,
+                sectors_no_transport_network: list, rationing_mode: str, account_capacity: bool,
                 monetary_units_in_model: str, cost_repercussion_mode: str):
         for agent in self:
             agent.deliver_products(sc_network, transport_network,
@@ -220,7 +225,7 @@ class AgentList(UserList):
                                    rationing_mode=rationing_mode,
                                    monetary_units_in_model=monetary_units_in_model,
                                    cost_repercussion_mode=cost_repercussion_mode,
-                                   explicit_service_firm=explicit_service_firm)
+                                   account_capacity=account_capacity)
 
     def receive_products(self, sc_network: networkx.DiGraph, transport_network: TransportNetwork,
                          sectors_no_transport_network: list):

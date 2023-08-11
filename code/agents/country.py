@@ -231,7 +231,7 @@ class Country(Agent):
     #                       does not belong to ('roads', 'intl_multimodes')")
 
     def deliver_products(self, graph, transport_network, sectors_no_transport_network,
-                         rationing_mode, monetary_units_in_model, cost_repercussion_mode, explicit_service_firm):
+                         rationing_mode, monetary_units_in_model, cost_repercussion_mode, account_capacity):
         """ The quantity to be delivered is the quantity that was ordered (no rationning takes place)
         """
         self.generalized_transport_cost = 0
@@ -261,7 +261,8 @@ class Country(Agent):
                         graph[self][edge[1]]['object'],
                         transport_network,
                         monetary_units_in_model,
-                        cost_repercussion_mode
+                        cost_repercussion_mode,
+                        account_capacity
                     )
             else:
                 if (edge[
@@ -270,14 +271,15 @@ class Country(Agent):
                         graph[self][edge[1]]['object'],
                         transport_network,
                         monetary_units_in_model,
-                        cost_repercussion_mode
+                        cost_repercussion_mode,
+                        account_capacity
                     )
                 else:  # if it sends to service firms, nothing to do. price is equilibrium price
                     graph[self][edge[1]]['object'].price = graph[self][edge[1]]['object'].eq_price
                     self.qty_sold += graph[self][edge[1]]['object'].delivery
 
     def send_shipment(self, commercial_link, transport_network,
-                      monetary_units_in_model, cost_repercussion_mode):
+                      monetary_units_in_model, cost_repercussion_mode, account_capacity):
 
         if commercial_link.delivery_in_tons == 0:
             print("delivery", commercial_link.delivery)
@@ -325,6 +327,7 @@ class Country(Agent):
                 transport_network=transport_network.get_undisrupted_network(),
                 origin_node=origin_node,
                 destination_node=destination_node,
+                account_capacity=account_capacity,
                 accepted_logistics_modes=commercial_link.possible_transport_modes
             )
             # We evaluate the cost of this new route
@@ -423,24 +426,6 @@ class Country(Agent):
         imports = sum([graph[edge[0]][self]['object'].payment for edge in graph.in_edges(self)])
         print("Country " + self.pid + ": imports " + str(imports) + " from Tanzania and export " + str(
             exports) + " to Tanzania")
-
-    def add_congestion_malus2(self, graph, transport_network):
-        """Congestion cost are perceived costs, felt by firms, but they do not influence prices paid to transporter, hence do not change price
-        """
-        if len(transport_network.congestionned_edges) > 0:
-            # for each client
-            for edge in graph.out_edges(self):
-                if graph[self][edge[1]]['object'].current_route == 'main':
-                    route_to_check = graph[self][edge[1]]['object'].route
-                elif graph[self][edge[1]]['object'].current_route == 'alternative':
-                    route_to_check = graph[self][edge[1]]['object'].alternative_route
-                else:
-                    continue
-                # check if the route currently used is congestionned
-                if len(set(route_to_check) & set(transport_network.congestionned_edges)) > 0:
-                    # if it is, we add its cost to the generalized cost model
-                    self.generalized_transport_cost += transport_network.giveCongestionCostOfTime(route_to_check)
-
 
 class CountryList(AgentList):
     pass

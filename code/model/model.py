@@ -25,6 +25,7 @@ from .agent_builder_functions import \
 from code.parameters import Parameters
 from code.disruption.disruption import DisruptionList
 from code.simulation.simulation import Simulation
+from code.network.sc_network import ScNetwork
 
 
 class Model(object):
@@ -273,7 +274,7 @@ class Model(object):
             logging.info(
                 f'The supply chain graph is being created. nb_suppliers_per_input: '
                 f'{self.parameters.nb_suppliers_per_input}')
-            self.sc_network = nx.DiGraph()
+            self.sc_network = ScNetwork()
 
             logging.info('Households are selecting their retailers (domestic B2C flows)')
             for household in self.household_list:
@@ -559,10 +560,10 @@ class Model(object):
         self.firm_list.send_purchase_orders(self.sc_network)
         self.firm_list.produce()
         self.country_list.deliver(self.sc_network, self.transport_network, self.parameters.sectors_no_transport_network,
-                                  self.parameters.rationing_mode, self.parameters.explicit_service_firm,
+                                  self.parameters.rationing_mode, self.parameters.account_capacity,
                                   self.parameters.monetary_units_in_model, self.parameters.cost_repercussion_mode)
         self.firm_list.deliver(self.sc_network, self.transport_network, self.parameters.sectors_no_transport_network,
-                               self.parameters.rationing_mode, self.parameters.explicit_service_firm,
+                               self.parameters.rationing_mode, self.parameters.account_capacity,
                                self.parameters.monetary_units_in_model, self.parameters.cost_repercussion_mode)
         # if congestion: TODO reevaluate modeling of congestion
         #     if (time_step == 0):

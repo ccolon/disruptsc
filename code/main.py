@@ -36,8 +36,7 @@ parameters.adjust_logging_behavior()
 model = Model(parameters)
 model.setup_transport_network(cached=cache_parameters['transport_network'])
 if parameters.export_files:
-    pass
-    #model.export_transport_nodes_edges()
+    model.export_transport_nodes_edges()
 model.setup_agents(cached=cache_parameters['agents'])
 model.setup_sc_network(cached=cache_parameters['sc_network'])
 model.set_initial_conditions()

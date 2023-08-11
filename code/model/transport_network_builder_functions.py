@@ -49,14 +49,14 @@ def load_transport_data(filepaths, transport_params, transport_mode, transport_c
         # Compute how much it costs to transport one USD worth of good on each edge
         edges = compute_cost_travel_time_edges(edges, transport_params, transport_mode, transport_cost_data)
 
-        # Adapt capacity (given in year) to time resolution
-        periods = {'day': 365, 'week': 52, 'month': 12, 'year': 1}
+        # Adapt capacity (given in tons per day) to time resolution
+        time_resolution_in_days = {'day': 1, 'week': 7, 'month': 365.25/12, 'year': 365}
         time_resolution = "week"
         edges['capacity'] = pd.to_numeric(edges['capacity'], errors="coerce")
-        edges['capacity'] = edges['capacity'] / periods[time_resolution]
+        edges['capacity'] = edges['capacity'] * time_resolution_in_days[time_resolution]
 
         # When there is no capacity, it means that there is no limitation
-        unlimited_capacity = 1e9 * periods[time_resolution]  # tons per year
+        unlimited_capacity = 1e9 * time_resolution_in_days[time_resolution]  # tons per year
         no_capacity_cond = (edges['capacity'].isnull()) | (edges['capacity'] == 0)
         edges.loc[no_capacity_cond, 'capacity'] = unlimited_capacity
         # dic_capacity = {

@@ -251,8 +251,7 @@ class Firm(Agent):
                 if sector_id == self.sector:
                     potential_supplier_pid.remove(self.pid)  # remove oneself
                 if len(potential_supplier_pid) == 0:
-                    raise ValueError("Firm " + str(self.pid) +
-                                     ": no potential supplier for input " + str(sector_id))
+                    raise ValueError(f"Firm {self.pid}: no potential supplier for input {sector_id}")
                 # print("\n", self.pid, ":", str(len(potential_supplier_pid)), "for sector", sector_id)
                 # print([
                 #     self.distance_to_other(firm_list[firm_pid])
@@ -513,7 +512,7 @@ class Firm(Agent):
     def deliver_products(self, graph, transport_network=None, sectors_no_transport_network=None,
                          rationing_mode="equal",
                          monetary_units_in_model="mUSD",
-                         cost_repercussion_mode="type1", explicit_service_firm=True):
+                         cost_repercussion_mode="type1", account_capacity=True):
 
         # Do nothing if no orders
         if self.total_order == 0:
@@ -578,40 +577,21 @@ class Firm(Agent):
             graph[self][edge[1]]['object'].delivery_in_tons = \
                 Firm.transformUSD_to_tons(quantity_to_deliver[edge[1].pid], monetary_units_in_model, self.usd_per_ton)
 
-            if explicit_service_firm:
-                # If the client is B2C (applied only we had one single representative agent for all households)
-                if edge[1].pid == -1:
-                    self.deliver_without_infrastructure(graph[self][edge[1]]['object'])
-                # If this is service flow, deliver without infrastructure
-                elif self.sector_type in sectors_no_transport_network:
-                    self.deliver_without_infrastructure(graph[self][edge[1]]['object'])
-                # otherwise use infrastructure
-                else:
-                    self.send_shipment(
-                        graph[self][edge[1]]['object'],
-                        transport_network,
-                        monetary_units_in_model,
-                        cost_repercussion_mode
-                    )
-
+            # If the client is B2C (applied only we had one single representative agent for all households)
+            if edge[1].pid == -1:
+                self.deliver_without_infrastructure(graph[self][edge[1]]['object'])
+            # If this is service flow, deliver without infrastructure
+            elif self.sector_type in sectors_no_transport_network:
+                self.deliver_without_infrastructure(graph[self][edge[1]]['object'])
+            # otherwise use infrastructure
             else:
-                # If it's B2B and no service client, we send to the transport network,
-                # price will be adjusted according to transport conditions
-                if (self.odpoint != -1) and (edge[1].odpoint != -1) and (edge[1].pid != -1):
-                    self.send_shipment(
-                        graph[self][edge[1]]['object'],
-                        transport_network,
-                        monetary_units_in_model,
-                        cost_repercussion_mode
-                    )
-
-                # If it's B2C, or B2B with service client, we send directly,
-                # and adjust price with input costs. There is still transport costs.
-                elif (self.odpoint == -1) or (edge[1].odpoint == -1) or (edge[1].pid == -1):
-                    self.deliver_without_infrastructure(graph[self][edge[1]]['object'])
-
-                else:
-                    logging.error('There should not be this other case.')
+                self.send_shipment(
+                    graph[self][edge[1]]['object'],
+                    transport_network,
+                    monetary_units_in_model,
+                    cost_repercussion_mode,
+                    account_capacity
+                )
 
     def deliver_without_infrastructure(self, commercial_link):
         """ The firm deliver its products without using transportation infrastructure
@@ -625,7 +605,7 @@ class Firm(Agent):
                                                self.eq_finance['costs']['transport'])
 
     def send_shipment(self, commercial_link, transport_network,
-                      monetary_units_in_model, cost_repercussion_mode):
+                      monetary_units_in_model, cost_repercussion_model, account_capacity):
 
         monetary_unit_factor = {
             "mUSD": 1e6,
@@ -668,7 +648,7 @@ class Firm(Agent):
             route = commercial_link.alternative_route
         # Otherwise we need to discover a new one
         else:
-            route = self.discover_new_route(commercial_link, transport_network)
+            route = self.discover_new_route(commercial_link, transport_network, account_capacity)
 
         # If the alternative route is available, or if we discovered one, we proceed
         if route is not None:
@@ -790,13 +770,14 @@ class Firm(Agent):
             # We set delivery to 0
             commercial_link.delivery = 0
 
-    def discover_new_route(self, commercial_link, transport_network):
+    def discover_new_route(self, commercial_link, transport_network, account_capacity):
         origin_node = self.odpoint
         destination_node = commercial_link.route[-1][0]
         route, selected_mode = self.choose_route(
             transport_network=transport_network.get_undisrupted_network(),
             origin_node=origin_node,
             destination_node=destination_node,
+            account_capacity=account_capacity,
             accepted_logistics_modes=commercial_link.possible_transport_modes
         )
         # If we find a new route, we save it as the alternative one
@@ -808,95 +789,6 @@ class Firm(Agent):
                 transport_network=transport_network
             )
         return route
-
-    def add_congestion_malus2(self, graph, transport_network):
-        """Congestion cost are perceived costs, felt by firms, but they do not influence
-        prices paid to transporter, hence do not change price
-        """
-        if len(transport_network.congestionned_edges) > 0:
-            # for each client
-            for edge in graph.out_edges(self):
-                if graph[self][edge[1]]['object'].current_route == 'main':
-                    route_to_check = graph[self][edge[1]]['object'].route
-                elif graph[self][edge[1]]['object'].current_route == 'alternative':
-                    route_to_check = graph[self][edge[1]]['object'].alternative_route
-                else:
-                    continue
-                # check if the route currently used is congestionned
-                if len(set(route_to_check) & set(transport_network.congestionned_edges)) > 0:
-                    # if it is, we add its cost to the generalized cost model
-                    self.generalized_transport_cost += transport_network.giveCongestionCostOfTime(route_to_check)
-
-    def add_congestion_malus(self, graph, transport_network):
-        if len(transport_network.congestionned_edges) > 0:
-            # for each client
-            for edge in graph.out_edges(self):
-                if graph[self][edge[1]]['object'].current_route == 'main':
-                    route_to_check = graph[self][edge[1]]['object'].route
-                elif graph[self][edge[1]]['object'].current_route == 'alternative':
-                    route_to_check = graph[self][edge[1]]['object'].alternative_route
-                else:
-                    continue
-                # check if the route currently used is congestionned
-                if len(set(route_to_check) & set(transport_network.congestionned_edges)) > 0:
-                    # if it is, compare actual cost with normal cost
-                    actual_route_time_cost = transport_network.giveRouteCostWithCongestion(route_to_check)
-
-                    # If it is on the main route, then there was no previous price increase due to transport
-                    if graph[self][edge[1]]['object'].current_route == 'main':
-                        relative_cost_change_no_congestion = 0
-                        relative_cost_change_with_congestion = (actual_route_time_cost - graph[self][edge[1]][
-                            'object'].route_time_cost) / graph[self][edge[1]]['object'].route_time_cost
-                        self.finance['costs']['transport'] += (self.eq_finance['costs']['transport'] *
-                                                               self.clients[edge[1].pid]['share'] *
-                                                               (1 + relative_cost_change_with_congestion))
-
-                    # Otherwise, we need to incremen the added price increase due to transport
-                    elif graph[self][edge[1]]['object'].current_route == 'alternative':
-                        relative_cost_change_no_congestion = (graph[self][edge[1]][
-                                                                  'object'].alternative_route_time_cost -
-                                                              graph[self][edge[1]]['object'].route_time_cost) / \
-                                                             graph[self][edge[1]]['object'].route_time_cost
-                        relative_cost_change_with_congestion = (actual_route_time_cost - graph[self][edge[1]][
-                            'object'].route_time_cost) / graph[self][edge[1]]['object'].route_time_cost
-
-                    else:
-                        route_type = graph[self][edge[1]]['object'].current_route
-                        raise NotImplementedError(f"Route {route_type} not recognised")
-
-                    # We increment financial costs
-                    self.finance['costs']['transport'] += (self.eq_finance['costs']['transport']
-                                                           * self.clients[edge[1].pid]['share'] * (
-                                                                   1 + relative_cost_change_with_congestion
-                                                                   - relative_cost_change_no_congestion))
-
-                    # We compute the new price increase due to transport and congestion
-                    relative_price_change_transport_no_congestion = (self.eq_finance['costs']['transport']
-                                                                     * relative_cost_change_no_congestion / (
-                                                                             (1 - self.target_margin) *
-                                                                             self.eq_finance['sales']))
-                    relative_price_change_transport_with_congestion = (self.eq_finance['costs']['transport']
-                                                                       * relative_cost_change_with_congestion / (
-                                                                               (1 - self.target_margin) *
-                                                                               self.eq_finance['sales']))
-                    total_relative_price_change = (self.delta_price_input
-                                                   + relative_price_change_transport_with_congestion)
-                    new_price = graph[self][edge[1]]['object'].eq_price * (1 + total_relative_price_change)
-                    delta_p_congestion = (relative_price_change_transport_with_congestion
-                                          - relative_price_change_transport_no_congestion)
-                    logging_msg = f"Firm {self.pid}: price of transport to {edge[1].pid} is impacted by congestion." \
-                                  f"New price {new_price} vs. {graph[self][edge[1]]['object'].price}." \
-                                  f"Route cost with congestion: {actual_route_time_cost} vs." \
-                                  f" normal: {graph[self][edge[1]]['object'].route_time_cost}," \
-                                  f" delta input: {self.delta_price_input}, delta transport no congestion:" \
-                                  f"{relative_price_change_transport_with_congestion}, delta congestion:" \
-                                  f"{delta_p_congestion} "
-
-                    logging.debug(logging_msg)
-                    graph[self][edge[1]]['object'].price = new_price
-
-                    # Retransfer shipment
-                    transport_network.transport_shipment(graph[self][edge[1]]['object'])
 
     def receive_products_and_pay(self, graph, transport_network, sectors_no_transport_network):
         agent_receive_products_and_pay(self, graph, transport_network, sectors_no_transport_network)
