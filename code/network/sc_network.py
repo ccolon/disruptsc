@@ -25,6 +25,12 @@ class ScNetwork(nx.DiGraph):
         io_table = pd.Series(io).unstack().fillna(0)
         return io_table
 
+    def generate_edge_list(self):
+        edge_list = [(source.pid, source.agent_type, target.pid, target.agent_type) for source, target in self.edges()]
+        edge_list = pd.DataFrame(edge_list)
+        edge_list.columns = ['source_id', 'source_type', 'target_id', 'target_type']
+        return edge_list
+
 
 def add_or_append_to_dict(dictionary, key, value_to_add):
     if key in dictionary.keys():
