@@ -26,10 +26,13 @@ filepaths:
   "imports": "Trade/import_table.csv"
   "exports": "Trade/export_table.csv"
   "transit": "Trade/transit_matrix.csv"
-  ## Network
+  # Network
   "firm_table": "Network/firm_table.csv"
   "location_table": "Network/location_table.geojson"
   "transaction_table": "Network/transaction_table.csv"
+  # MRIO
+  "mrio": "Network/mrio.csv"
+
 
 # Whether to export files
 export_files: False

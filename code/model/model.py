@@ -23,7 +23,8 @@ from .agent_builder_functions import \
     define_households_from_mrio_data, \
     add_households_for_firms, \
     create_households, \
-    load_technical_coefficients, calibrate_input_mix, load_inventories, create_countries, load_ton_usd_equivalence
+    load_technical_coefficients, calibrate_input_mix, load_inventories, create_countries, load_ton_usd_equivalence, \
+    define_firms_from_mrio, define_households_from_mrio, load_mrio_tech_coefs, create_countries_from_mrio
 from code.parameters import Parameters
 from code.disruption.disruption import DisruptionList
 from code.simulation.simulation import Simulation
@@ -145,8 +146,9 @@ class Model(object):
                     transport_nodes=self.transport_nodes,
                     filepath_sector_table=self.parameters.filepaths['sector_table'])
             elif self.parameters.firm_data_type == "mrio":
-                self.firm_table = define_firms_from_mrio_data(
-                    filepath_country_sector_table=self.parameters.filepaths['sector_table'],
+                self.firm_table = define_firms_from_mrio(
+                    filepath_mrio=self.parameters.filepaths['mrio'],
+                    filepath_sector_table=self.parameters.filepaths['sector_table'],
                     filepath_region_table=self.parameters.filepaths['admin_unit_data'],
                     transport_nodes=self.transport_nodes
                 )
@@ -170,11 +172,9 @@ class Model(object):
             # Create households
             logging.info('Defining the number of households to generate and their purchase plan')
             if self.parameters.firm_data_type == "mrio":
-                self.household_table, household_sector_consumption = define_households_from_mrio_data(
-                    sector_table=self.sector_table,
+                self.household_table, household_sector_consumption = define_households_from_mrio(
+                    filepath_mrio=self.parameters.filepaths['mrio'],
                     filepath_region_table=self.parameters.filepaths['admin_unit_data'],
-                    filtered_sectors=present_sectors,
-                    local_demand_cutoff=self.parameters.local_demand_cutoff,
                     transport_nodes=self.transport_nodes,
                     time_resolution=self.parameters.time_resolution,
                     target_units=self.parameters.monetary_units_in_model,
@@ -228,9 +228,16 @@ class Model(object):
                     filepath_transaction_table=self.parameters.filepaths['transaction_table']
                 )
 
+            elif self.parameters.firm_data_type == "mrio":
+                self.firm_table = load_mrio_tech_coefs(
+                    firm_list=self.firm_list,
+                    filepath_mrio=self.parameters.filepaths['mrio']
+                )
+
             else:
                 raise ValueError(
-                    self.parameters.firm_data_type + " should be one of 'disaggregating', 'supplier-buyer network'"
+                    f"{self.parameters.firm_data_type} should be "
+                    f"one of 'disaggregating', 'supplier-buyer network', 'mrio'"
                 )
 
             # Loading the inventories
@@ -245,17 +252,26 @@ class Model(object):
             )
 
             # Create agents: Countries
-            self.country_list = create_countries(
-                filepath_imports=self.parameters.filepaths['imports'],
-                filepath_exports=self.parameters.filepaths['exports'],
-                filepath_transit=self.parameters.filepaths['transit'],
-                transport_nodes=self.transport_nodes,
-                present_sectors=present_sectors,
-                countries_to_include=self.parameters.countries_to_include,
-                time_resolution=self.parameters.time_resolution,
-                target_units=self.parameters.monetary_units_in_model,
-                input_units=self.parameters.monetary_units_inputed
-            )
+            if self.parameters.firm_data_type == "mrio":
+                self.country_list = create_countries_from_mrio(
+                    filepath_mrio=self.parameters.filepaths['mrio'],
+                    transport_nodes=self.transport_nodes,
+                    time_resolution=self.parameters.time_resolution,
+                    target_units=self.parameters.monetary_units_in_model,
+                    input_units=self.parameters.monetary_units_inputed
+                )
+            else:
+                self.country_list = create_countries(
+                    filepath_imports=self.parameters.filepaths['imports'],
+                    filepath_exports=self.parameters.filepaths['exports'],
+                    filepath_transit=self.parameters.filepaths['transit'],
+                    transport_nodes=self.transport_nodes,
+                    present_sectors=present_sectors,
+                    countries_to_include=self.parameters.countries_to_include,
+                    time_resolution=self.parameters.time_resolution,
+                    target_units=self.parameters.monetary_units_in_model,
+                    input_units=self.parameters.monetary_units_inputed
+                )
 
             # Specify the weight of a unit worth of good, which may differ according to sector, or even to each
             # firm/countries Note that for imports, i.e. for the goods delivered by a country, and for transit flows,

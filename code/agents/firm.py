@@ -18,7 +18,7 @@ from code.network.commercial_link import CommercialLink
 # TODO: create class FirmList, CountryList, HouseholdList from userlist as DisruptionList
 class Firm(Agent):
 
-    def __init__(self, pid, odpoint=0, sector=0, sector_type=None, input_mix=None, target_margin=0.2,
+    def __init__(self, pid, odpoint=0, sector=0, sector_type=None, name=None, input_mix=None, target_margin=0.2,
                  utilization_rate=0.8,
                  importance=1, long=None, lat=None, geometry=None,
                  suppliers=None, clients=None, production=0, inventory_duration_target=1, reactivity_rate=1,
@@ -26,6 +26,7 @@ class Firm(Agent):
         super().__init__(
             agent_type="firm",
             pid=pid,
+            name=name,
             odpoint=odpoint,
             long=long,
             lat=lat

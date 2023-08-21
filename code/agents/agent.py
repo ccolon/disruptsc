@@ -9,11 +9,12 @@ from code.network.transport_network import TransportNetwork
 
 
 class Agent(object):
-    def __init__(self, agent_type, pid, odpoint=0,
+    def __init__(self, agent_type, pid, odpoint=0, name=None,
                  long=None, lat=None):
         self.agent_type = agent_type
         self.pid = pid
         self.odpoint = odpoint
+        self.name = name
         self.long = long
         self.lat = lat
         self.usd_per_ton = None

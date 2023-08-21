@@ -13,7 +13,7 @@ monetary_units_inputed: USD
 time_resolution: week
 io_cutoff: 0.02
 countries_to_include: ['AFR', 'AME', 'ASI', 'EUR', 'OCE', 'THA', 'VNM']
-simulation_type: disruption
+simulation_type: initial_state #disruption
 export_files: True
 disruption_description:
   type: compound

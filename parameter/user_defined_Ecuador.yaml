@@ -4,16 +4,20 @@ filepaths:
   "tech_coef": "National/59sector_2016_tech_coef.csv"
   "inventory_duration_targets": "National/59sector_inventory_targets.csv"
   "admin_unit_data": "Subnational/59sector_2015_canton_data.geojson"
+  "mrio": "Network/mrio_2015.csv"
   "imports": "Trade/59sector_2016_import_table.csv"
   "exports": "Trade/59sector_2016_export_table.csv"
   "transit": "Trade/2016_transit_matrix.csv"
-  "roads_nodes": "Transport/roads_nodes.geojson"
-  "roads_edges": "Transport/roads_edges.geojson"
-  "multimodal_edges": "Transport/multimodal_edges.geojson"
+  "roads_nodes": "Transport/roads_nodes_ximena.geojson"
+  "roads_edges": "Transport/roads_edges_ximena.geojson"
+  "multimodal_edges": "Transport/multimodal_edges_jose.geojson"
 transport_modes: [roads, maritime, waterways, airways]
+transport_cost_data:
+  roads: edge-specific
 monetary_units_in_model: mUSD
 monetary_units_inputed: kUSD
 time_resolution: week
+firm_data_type: mrio
 io_cutoff: 0.01  # 0.01
 simulation_type: initial_state
 export_files: True

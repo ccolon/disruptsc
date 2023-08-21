@@ -1,12 +1,14 @@
 import warnings
 import logging
 from pathlib import Path
+from typing import Dict
 
 import geopandas
 import pandas
 import pandas as pd
 import geopandas as gpd
 import numpy as np
+from pandas import Series
 
 from code.agents.firm import Firm, FirmList
 from code.agents.household import Household, HouseholdList
@@ -307,6 +309,7 @@ def create_firms(
              sector_type=firm_table.loc[i, "sector_type"],
              odpoint=firm_table.loc[i, "od_point"],
              importance=firm_table.loc[i, 'importance'],
+             name=firm_table.loc[i, 'name'],
              # geometry=firm_table.loc[i, 'geometry'],
              long=float(firm_table.loc[i, 'long']),
              lat=float(firm_table.loc[i, 'lat']),
@@ -362,6 +365,83 @@ def define_firms_from_mrio_data(
     firm_table = firm_table.reset_index().rename(columns={"index": "id"})
 
     return firm_table
+
+
+def define_firms_from_mrio(
+        filepath_mrio: Path,
+        filepath_sector_table: Path,
+        filepath_region_table: Path,
+        transport_nodes: gpd.GeoDataFrame):
+    # Load mrio
+    mrio = pd.read_csv(filepath_mrio, index_col=0)
+    # Extract region_sectors
+    region_sectors = list(set(mrio.index) | set(mrio.columns))
+    region_sectors = [region_sector for region_sector in region_sectors if len(region_sector) == 8]  # format 1011-FRE... :TODO a bit specific to Ecuador, change
+    # For region-sector with internal flows, need two firms
+    region_sectors_internal_flows = list(set(mrio.index) & set(mrio.columns))
+    region_sectors_internal_flows = [col for col in region_sectors_internal_flows if mrio.loc[col, col] > 0]
+    region_sectors = region_sectors + [region_sector + '-bis' for region_sector in region_sectors_internal_flows]
+
+    # Create firm_table
+    firm_table = pd.DataFrame({"name": region_sectors})
+    firm_table['region'] = firm_table['name'].str.extract('([0-9]*)-[A-Z]*')
+    firm_table['main_sector'] = firm_table['name'].str.extract('[0-9]*-([A-Z]*)')
+    firm_table['sector'] = firm_table['name']
+    logging.info(f"Select {firm_table.shape[0]} firms in {firm_table['region'].nunique()} admin units")
+
+    # Assign firms to the nearest road node
+    firm_table['od_point'] = get_closest_road_nodes(firm_table['region'], transport_nodes, filepath_region_table)
+
+    # Add long lat
+    long_lat = get_long_lat(firm_table['od_point'], transport_nodes)
+    firm_table['long'] = long_lat['long']
+    firm_table['lat'] = long_lat['lat']
+
+    # Add importance
+    row_intermediary = [row for row in mrio.index if len(row) == 8]
+    tot_outputs_per_region_sector = mrio.loc[row_intermediary].sum(axis=1)
+    firm_table['importance'] = 0
+    rows_with_original_region_sectors = firm_table['name'].isin(region_sectors)
+    firm_table.loc[rows_with_original_region_sectors, "importance"] = tot_outputs_per_region_sector
+    rows_with_region_sector_duplicated = firm_table['name'].isin(region_sectors_internal_flows)
+    firm_table.loc[rows_with_region_sector_duplicated, "importance"] = \
+        firm_table.loc[rows_with_region_sector_duplicated, "importance"] / 2
+    rows_with_region_sector_duplicated_bis = \
+        firm_table['name'].isin([region_sector + '-bis' for region_sector in region_sectors_internal_flows])
+    firm_table.loc[rows_with_region_sector_duplicated_bis, "importance"] = \
+        firm_table.loc[rows_with_region_sector_duplicated_bis, "importance"] / 2
+
+    # Add sector type
+    sector_table = gpd.read_file(filepath_sector_table)
+    firm_table['sector_type'] = firm_table['main_sector'].map(sector_table.set_index('sector')['type'])
+
+    # Add id (where is it created otherwise?)
+    firm_table = firm_table.reset_index().rename(columns={"index": "id"})
+
+    return firm_table
+
+
+def get_closest_road_nodes(admin_unit_ids: pd.Series,
+                           transport_nodes: geopandas.GeoDataFrame, filepath_region_table: Path) -> pd.Series:
+    region_table = gpd.read_file(filepath_region_table)
+    dic_region_to_points = region_table.set_index('admin_code')['geometry'].to_dict()  #:TODO change admin to region
+    road_nodes = transport_nodes[transport_nodes['type'] == "roads"]
+    dic_region_to_road_node_id = {
+        admin_unit: road_nodes.loc[get_index_closest_point(point, road_nodes), 'id']
+        for admin_unit, point in dic_region_to_points.items()
+    }
+    return admin_unit_ids.map(dic_region_to_road_node_id)
+
+
+def get_long_lat(nodes_ids: pd.Series, transport_nodes: geopandas.GeoDataFrame) -> dict[str, Series]:
+    od_point_table = transport_nodes[transport_nodes['id'].isin(nodes_ids)].copy()
+    od_point_table['long'] = od_point_table.geometry.x
+    od_point_table['lat'] = od_point_table.geometry.y
+    road_node_id_to_long_lat = od_point_table.set_index('id')[['long', 'lat']]
+    return {
+        'long': nodes_ids.map(road_node_id_to_long_lat['long']),
+        'lat': nodes_ids.map(road_node_id_to_long_lat['long'])
+    }
 
 
 def define_firms_from_network_data(
@@ -454,14 +534,14 @@ def define_households_from_mrio_data(
         target_units: str,
         input_units: str
 ):
-    #household_table = gpd.read_file(filepath_region_table)
-    #household_table = location_table.copy(deep=False)
-    #TODO ajouter la demande finale par secteur country_sector_table
-    #print(household_table)
+    # household_table = gpd.read_file(filepath_region_table)
+    # household_table = location_table.copy(deep=False)
+    # TODO ajouter la demande finale par secteur country_sector_table
+    # print(household_table)
     final_demand = sector_table["final_demand"]
-    #household_table = household_table.stack() #.transpose()
+    # household_table = household_table.stack() #.transpose()
 
-    #TEST
+    # TEST
 
     household_table = gpd.read_file(filepath_region_table)
 
@@ -535,9 +615,6 @@ def define_households_from_mrio_data(
     # add id
     household_table['id'] = list(range(household_table.shape[0]))
 
-
-
-
     # F. Create purchase plan per household
     # rescale according to time resolution
     household_table[filtered_sectors] = rescale_monetary_values(
@@ -557,6 +634,60 @@ def define_households_from_mrio_data(
         }
         for i, purchase_plan in household_sector_consumption.items()
     }
+
+    return household_table, household_sector_consumption
+
+
+def define_households_from_mrio(
+        filepath_mrio: Path,
+        filepath_region_table: Path,
+        transport_nodes: gpd.GeoDataFrame,
+        time_resolution: str,
+        target_units: str,
+        input_units: str
+):
+    # Load mrio
+    mrio = pd.read_csv(filepath_mrio, index_col=0)
+    # Extract region_households
+    region_households = [col for col in mrio.columns if col[-2:] == "-H"]  # format -H... :TODO a bit specific to Ecuador, change
+
+    # Create household table
+    household_table = pd.DataFrame({"name": region_households})
+    household_table['region'] = household_table['name'].str.extract('([0-9]*)-H')
+    logging.info(f"Select {household_table.shape[0]} firms in {household_table['region'].nunique()} admin units")
+
+    # Identify OD point
+    household_table['od_point'] = get_closest_road_nodes(household_table['region'], transport_nodes, filepath_region_table)
+
+    # Add long lat
+    long_lat = get_long_lat(household_table['od_point'], transport_nodes)
+    household_table['long'] = long_lat['long']
+    household_table['lat'] = long_lat['lat']
+
+    # Add id
+    household_table['id'] = list(range(household_table.shape[0]))
+
+    # Identify final demand per region_sector
+    mrio = rescale_monetary_values(
+        mrio,
+        time_resolution=time_resolution,
+        target_units=target_units,
+        input_units=input_units
+    )
+    col_final_demand = [col for col in mrio.columns if col[-2:] == "-H"]
+    household_sector_consumption = mrio[col_final_demand].stack().reset_index()\
+        .groupby('level_1')\
+        .apply(lambda df: df.set_index('level_0')[0].to_dict())\
+        .to_dict()
+    # Replace name by id :TODO use name as id to makes this unecessary
+    dic_name_to_id = household_table.set_index('name')['id']
+    household_sector_consumption = {
+        dic_name_to_id[name]: value
+        for name, value in household_sector_consumption.items()
+    }
+
+    # Info
+    logging.info(f"Create {household_table.shape[0]} households in {household_table['od_point'].nunique()} od points")
 
     return household_table, household_sector_consumption
 
@@ -724,6 +855,7 @@ def create_households(
     household_table = household_table.set_index('id')
     household_list = HouseholdList([
         Household('hh_' + str(i),
+                  name=household_table.loc[i, "name"],
                   odpoint=household_table.loc[i, "od_point"],
                   long=float(household_table.loc[i, 'long']),
                   lat=float(household_table.loc[i, 'lat']),
@@ -924,6 +1056,39 @@ def load_technical_coefficients(
         firm.input_mix = tech_coef_matrix.loc[tech_coef_matrix.loc[:, firm.sector] != 0, firm.sector].to_dict()
 
     logging.info('Technical coefficient loaded. io_cutoff: ' + str(io_cutoff))
+
+    return firm_list
+
+
+def load_mrio_tech_coefs(
+        firm_list: list,
+        filepath_mrio: Path
+):
+    # Load mrio
+    mrio = pd.read_csv(filepath_mrio, index_col=0)
+    # Extract region_sectors
+    region_sectors = list(set(mrio.index) | set(mrio.columns))
+    region_sectors = [region_sector for region_sector in region_sectors if
+                      len(region_sector) == 8]  # format 1011-FRE... :TODO a bit specific to Ecuador, change
+
+    # Load technical coefficient matrix from data
+    region_sectors_with_inputs = [col for col in mrio.columns if len(col) == 8]
+    tot_outputs = mrio.loc[region_sectors_with_inputs].sum(axis=1)
+    matrix_output = pd.concat([tot_outputs] * mrio.shape[0], axis=1).transpose()
+    matrix_output.index = mrio[region_sectors_with_inputs].index
+    tech_coef_matrix = mrio[region_sectors_with_inputs] / matrix_output
+    tech_coef_dict = tech_coef_matrix.stack().reset_index()\
+        .groupby('level_1').apply(lambda df: df.set_index('level_0')[0].to_dict())\
+        .to_dict()
+
+    # Load into firm_list
+    for firm in firm_list:
+        if firm.name in region_sectors_with_inputs:
+            firm.input_mix = tech_coef_dict[firm.name]
+        else:
+            firm.input_mix = {}
+
+    logging.info('Technical coefficient loaded.')
 
     return firm_list
 
@@ -1241,6 +1406,104 @@ def create_countries(filepath_imports: Path, filepath_exports: Path, filepath_tr
     return country_list
 
 
+def create_countries_from_mrio(filepath_mrio: Path,
+                     transport_nodes: geopandas.GeoDataFrame, time_resolution: str,
+                     target_units: str, input_units: str):
+
+    logging.info('Creating country_list.')
+
+    # Load mrio
+    mrio = pd.read_csv(filepath_mrio, index_col=0)
+    # Extract region_sectors
+    region_sectors = list(set(mrio.index) | set(mrio.columns))
+    region_sectors = [region_sector for region_sector in region_sectors if
+                      len(region_sector) == 8]  # format 1011-FRE... :TODO a bit specific to Ecuador, change
+
+    countries = [col for col in mrio.columns if len(col) == 3]  # TODO a bit specific to Ecuador, change
+    # I WAS HERE! not all countries are in the rows or columns, so need to do a set union
+    # Create country table
+    country_table = pd.DataFrame({"pid": countries})
+    logging.info(f"Select {country_table.shape[0]} countries")
+
+    # Extract import, export, and transit matrices
+    importing_region_sectors = [col for col in mrio.columns if len(col) == 8]
+    import_table = rescale_monetary_values(
+        mrio.loc[countries, importing_region_sectors],
+        time_resolution=time_resolution,
+        target_units=target_units,
+        input_units=input_units
+    )
+    exporting_region_sectors = [row for row in mrio.index if len(row) == 8]
+    export_table = rescale_monetary_values(
+        mrio.loc[exporting_region_sectors, countries],
+        time_resolution=time_resolution,
+        target_units=target_units,
+        input_units=input_units
+    )
+    transit_matrix = rescale_monetary_values(
+        mrio.loc[countries, countries],
+        time_resolution=time_resolution,
+        target_units=target_units,
+        input_units=input_units
+    )
+
+    logging.info("Total imports per " + time_resolution + " is " +
+                 "{:.01f} ".format(import_table.sum().sum()) + target_units)
+    logging.info("Total exports per " + time_resolution + " is " +
+                 "{:.01f} ".format(export_table.sum().sum()) + target_units)
+    logging.info("Total transit per " + time_resolution + " is " +
+                 "{:.01f} ".format(transit_matrix.sum().sum()) + target_units)
+
+    country_list = []
+    total_imports = import_table.sum().sum()
+    for country in countries:
+        cond_country = transport_nodes['special'] == country
+        od_point = transport_nodes.loc[cond_country, "id"]
+        lon = transport_nodes.geometry.x
+        lat = transport_nodes.geometry.y
+        if len(od_point) == 0:
+            raise ValueError('No odpoint found for ' + country)
+        elif len(od_point) > 2:
+            raise ValueError('More than 1 odpoint for ' + country)
+        else:
+            od_point = od_point.iloc[0]
+            lon = lon.iloc[0]
+            lat = lat.iloc[0]
+
+        # imports, i.e., sales of countries
+        qty_sold = import_table.loc[country, :]
+        qty_sold = qty_sold[qty_sold > 0].to_dict()
+        supply_importance = sum(qty_sold.values()) / total_imports
+
+        # exports, i.e., purchases from countries
+        qty_purchased = export_table.loc[country, :]
+        qty_purchased = qty_purchased[qty_purchased > 0].to_dict()
+
+        # transits
+        # Note that transit are not given per sector, so, if we only consider a few sector, the full transit flows will still be used
+        transit_from = transit_matrix.loc[:, country]
+        transit_from = transit_from[transit_from > 0].to_dict()
+        transit_to = transit_matrix.loc[country, :]
+        transit_to = transit_to[transit_to > 0].to_dict()
+
+        # create the list of Country object
+        country_list += [Country(pid=country,
+                                 qty_sold=qty_sold,
+                                 qty_purchased=qty_purchased,
+                                 odpoint=od_point,
+                                 long=lon,
+                                 lat=lat,
+                                 transit_from=transit_from,
+                                 transit_to=transit_to,
+                                 supply_importance=supply_importance
+                                 )]
+    country_list = CountryList(country_list)
+
+    logging.info('Country_list created: ' + str([country.pid for country in country_list]))
+
+    return country_list
+
+
 def load_ton_usd_equivalence(sector_table: pd.DataFrame, firm_list: list, country_list: list):
     """Load equivalence between usd and ton
 
@@ -1260,7 +1523,11 @@ def load_ton_usd_equivalence(sector_table: pd.DataFrame, firm_list: list, countr
     """
     sector_to_usd_per_ton = sector_table.set_index('sector')['usd_per_ton']
     for firm in firm_list:
-        firm.usd_per_ton = sector_to_usd_per_ton[firm.sector]
+        if len(firm.sector) > 3:  # case of mrio TODO a bit dirty code, clean
+            firm.usd_per_ton = sector_to_usd_per_ton[firm.sector[-3:]]
+        else:
+            firm.usd_per_ton = sector_to_usd_per_ton[firm.sector]
+
     for country in country_list:
         country.usd_per_ton = sector_to_usd_per_ton.mean()
     return firm_list, country_list, sector_to_usd_per_ton  # Should disappear, we want only sector_to_usdPerTon

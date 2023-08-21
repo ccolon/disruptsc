@@ -13,9 +13,10 @@ from code.network.commercial_link import CommercialLink
 
 class Household(Agent):
 
-    def __init__(self, pid, odpoint, long, lat, sector_consumption):
+    def __init__(self, pid, odpoint, name, long, lat, sector_consumption):
         super().__init__(
             agent_type="household",
+            name=name,
             pid=pid,
             odpoint=odpoint,
             long=long,

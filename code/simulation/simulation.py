@@ -29,3 +29,6 @@ class Simulation(object):
                 how="left", on="id")
             transport_edges_with_flows.to_file(export_folder / f"transport_edges_with_flows_{time_step}.geojson",
                                                driver="GeoJSON", index=False)
+
+    def calculate_and_export_summary_result(self):
+        pass

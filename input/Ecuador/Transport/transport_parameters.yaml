@@ -28,7 +28,7 @@ variability: #as fraction of travel time
 transport_cost_per_tonkm: #USD/(ton*km)
   roads:
     paved: 0.053 #from JICA (2016) International Logistics Function Strengthening. See excel
-    unpaved: 0.1 #for Tanzania
+    unpaved: 0.106 #for Tanzania
   maritime: 0.0017 #see excel
   airways: 10000 #guess
   waterways: 0.029 #guess
