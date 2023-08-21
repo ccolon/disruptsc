@@ -1419,7 +1419,9 @@ def create_countries_from_mrio(filepath_mrio: Path,
     region_sectors = [region_sector for region_sector in region_sectors if
                       len(region_sector) == 8]  # format 1011-FRE... :TODO a bit specific to Ecuador, change
 
-    countries = [col for col in mrio.columns if len(col) == 3]  # TODO a bit specific to Ecuador, change
+    buying_countries = [col for col in mrio.columns if len(col) == 3]  # TODO a bit specific to Ecuador, change
+    selling_countries = [col for col in mrio.index if len(col) == 3]
+    countries = list(set(buying_countries) | set(selling_countries))
     # I WAS HERE! not all countries are in the rows or columns, so need to do a set union
     # Create country table
     country_table = pd.DataFrame({"pid": countries})
@@ -1428,20 +1430,20 @@ def create_countries_from_mrio(filepath_mrio: Path,
     # Extract import, export, and transit matrices
     importing_region_sectors = [col for col in mrio.columns if len(col) == 8]
     import_table = rescale_monetary_values(
-        mrio.loc[countries, importing_region_sectors],
+        mrio.loc[selling_countries, importing_region_sectors],
         time_resolution=time_resolution,
         target_units=target_units,
         input_units=input_units
     )
     exporting_region_sectors = [row for row in mrio.index if len(row) == 8]
     export_table = rescale_monetary_values(
-        mrio.loc[exporting_region_sectors, countries],
+        mrio.loc[exporting_region_sectors, buying_countries],
         time_resolution=time_resolution,
         target_units=target_units,
         input_units=input_units
     )
     transit_matrix = rescale_monetary_values(
-        mrio.loc[countries, countries],
+        mrio.loc[selling_countries, buying_countries],
         time_resolution=time_resolution,
         target_units=target_units,
         input_units=input_units
@@ -1471,20 +1473,33 @@ def create_countries_from_mrio(filepath_mrio: Path,
             lat = lat.iloc[0]
 
         # imports, i.e., sales of countries
-        qty_sold = import_table.loc[country, :]
-        qty_sold = qty_sold[qty_sold > 0].to_dict()
-        supply_importance = sum(qty_sold.values()) / total_imports
+        if country in selling_countries:
+            qty_sold = import_table.loc[country, :]
+            qty_sold = qty_sold[qty_sold > 0].to_dict()
+            supply_importance = sum(qty_sold.values()) / total_imports
+        else:
+            qty_sold = {}
+            supply_importance = 0
 
         # exports, i.e., purchases from countries
-        qty_purchased = export_table.loc[country, :]
-        qty_purchased = qty_purchased[qty_purchased > 0].to_dict()
+        if country in buying_countries:
+            qty_purchased = export_table.loc[:, country]
+            qty_purchased = qty_purchased[qty_purchased > 0].to_dict()
+        else:
+            qty_purchased = {}
 
         # transits
         # Note that transit are not given per sector, so, if we only consider a few sector, the full transit flows will still be used
-        transit_from = transit_matrix.loc[:, country]
-        transit_from = transit_from[transit_from > 0].to_dict()
-        transit_to = transit_matrix.loc[country, :]
-        transit_to = transit_to[transit_to > 0].to_dict()
+        if country in transit_matrix.columns:
+            transit_from = transit_matrix.loc[:, country]
+            transit_from = transit_from[transit_from > 0].to_dict()
+        else:
+            transit_from = {}
+        if country in transit_matrix.index:
+            transit_to = transit_matrix.loc[country, :]
+            transit_to = transit_to[transit_to > 0].to_dict()
+        else:
+            transit_to = {}
 
         # create the list of Country object
         country_list += [Country(pid=country,
@@ -1525,6 +1540,7 @@ def load_ton_usd_equivalence(sector_table: pd.DataFrame, firm_list: list, countr
     for firm in firm_list:
         if len(firm.sector) > 3:  # case of mrio TODO a bit dirty code, clean
             firm.usd_per_ton = sector_to_usd_per_ton[firm.sector[-3:]]
+            # I WAS HER. sector CDN in the MRIO but not in the sector table...
         else:
             firm.usd_per_ton = sector_to_usd_per_ton[firm.sector]
 
