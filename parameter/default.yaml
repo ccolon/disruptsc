@@ -129,6 +129,7 @@ monetary_units_inputed: "USD"
 # Define the type of input data to calibrate the model
 # - 'disaggregating IO' uses national input-table (tech_coef) with business census (district_economic_data)
 # - 'supplier buyer network' uses supplier buyer network data
+# - 'mrio' use mrio matrix directly
 firm_data_type: "disaggregating IO"
 
 # Define how cost_per_ton are calculated for the different transport mode

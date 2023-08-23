@@ -228,6 +228,8 @@ def define_firms_from_local_economic_data(filepath_admin_unit_economic_data: Pat
     firm_table_per_od_point['lat'] = firm_table_per_od_point['od_point'].map(road_node_id_to_longlat['lat'])
     # add id
     firm_table_per_od_point['id'] = list(range(firm_table_per_od_point.shape[0]))
+    # add name, not really useful
+    firm_table_per_od_point['name'] = firm_table_per_od_point['od_point'].astype(str) + '-' + firm_table_per_od_point['sector']
     # add importance
     firm_table_per_od_point['importance'] = firm_table_per_od_point['relative_size']
 
@@ -807,6 +809,8 @@ def define_households(
     household_table['lat'] = household_table['od_point'].map(road_node_id_to_longlat['lat'])
     # add id
     household_table['id'] = list(range(household_table.shape[0]))
+    # add name, not really useful
+    household_table['name'] = household_table['od_point'].astype(str) + "-H"
 
     # F. Create purchase plan per household
     # rescale according to time resolution

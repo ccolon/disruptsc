@@ -134,8 +134,8 @@ class TransportNetwork(nx.Graph):
             sp = nx.shortest_path(self, origin_node, destination_node, weight=route_weight)
             route = [[(sp[0],)]] + [[(sp[i], sp[i + 1]), (sp[i + 1],)] for i in range(0, len(sp) - 1)]
             route = [item for item_tuple in route for item in item_tuple]
-            route2 = Route.from_node_list(sp)
-            print(route2)
+            #route2 = Route.from_node_list(sp)
+            #print(route2)
             return route
 
         else:
