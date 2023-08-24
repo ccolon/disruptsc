@@ -209,7 +209,7 @@ class Agent(object):
             return monetary_flow / (usd_per_ton / factor)
 
 
-class AgentList(UserList):
+class AgentList(UserList):  # TODO: should rather define a dictionary, such that FirmList[a_pid] return the Firm object
     def __init__(self, agent_list: list[Agent]):
         super().__init__(agent for agent in agent_list if isinstance(agent, Agent))
 

@@ -13,13 +13,15 @@ from .agent_functions import purchase_planning_function, production_function, \
 
 from code.agents.agent import Agent, AgentList
 from code.network.commercial_link import CommercialLink
+from .country import CountryList
+from ..network.sc_network import ScNetwork
 
 
 # TODO: create class FirmList, CountryList, HouseholdList from userlist as DisruptionList
 class Firm(Agent):
 
-    def __init__(self, pid, odpoint=0, sector=0, sector_type=None, name=None, input_mix=None, target_margin=0.2,
-                 utilization_rate=0.8,
+    def __init__(self, pid, odpoint=0, sector=0, sector_type=None, main_sector=None, name=None, input_mix=None,
+                 target_margin=0.2, utilization_rate=0.8,
                  importance=1, long=None, lat=None, geometry=None,
                  suppliers=None, clients=None, production=0, inventory_duration_target=1, reactivity_rate=1,
                  usd_per_ton=2864):
@@ -37,6 +39,7 @@ class Firm(Agent):
         self.importance = importance
         self.sector = sector
         self.sector_type = sector_type
+        self.main_sector = main_sector
         self.input_mix = input_mix or {}
 
         # Free parameters
@@ -186,8 +189,89 @@ class Firm(Agent):
             weight_among_same_product = inputed_supplier_link['transaction'] / total_input_same_sector
             self.suppliers[supplier_id] = {'sector': product_sector, 'weight': weight_among_same_product}
 
-    def select_suppliers(self, graph, firm_list: list, country_list,
-                         nb_suppliers_per_input=1, weight_localization=1, import_code='IMP'):
+    def identify_suppliers(self, sector_id: str, firm_list, country_list,
+                           nb_suppliers_per_input: float, weight_localization: float,
+                           firm_data_type: str, import_code: str):
+        if firm_data_type == "mrio":
+            if len(sector_id) == 3:  # case of countries
+                supplier_type = "country"
+                selected_supplier_ids = [sector_id]
+                supplier_weights = [1]
+
+            else:  # case of firms
+                supplier_type = "firm"
+                potential_supplier_pids = [firm.pid for firm in firm_list if firm.sector == sector_id]
+                if sector_id == self.sector:
+                    potential_supplier_pids.remove(self.pid)  # remove oneself
+                if len(potential_supplier_pids) == 0:
+                    raise ValueError(f"Firm {self.pid}: there should be one supplier for {sector_id}")
+                # Choose based on importance
+                prob_to_be_selected = np.array(rescale_values([firm_list[firm_pid].importance for firm_pid in
+                                                               potential_supplier_pids]))
+                prob_to_be_selected /= prob_to_be_selected.sum()
+                selected_supplier_ids = np.random.choice(potential_supplier_pids,
+                                                         p=prob_to_be_selected, size=1,
+                                                         replace=False).tolist()
+                supplier_weights = [1]
+
+        else:
+            if sector_id == import_code:
+                supplier_type = "country"
+                # Identify countries as suppliers if the corresponding sector does export
+                importance_threshold = 1e-6
+                potential_supplier_pid = [
+                    country.pid
+                    for country in country_list
+                    if country.supply_importance > importance_threshold
+                ]
+                importance_of_each = [
+                    country.supply_importance
+                    for country in country_list
+                    if country.supply_importance > importance_threshold
+                ]
+                prob_to_be_selected = np.array(importance_of_each)
+                prob_to_be_selected /= prob_to_be_selected.sum()
+
+            # For the other types of inputs, identify the domestic suppliers, and
+            # calculate their probability to be chosen, based on distance and importance
+            else:
+                supplier_type = "firm"
+                potential_supplier_pid = [firm.pid for firm in firm_list if firm.sector == sector_id]
+                if sector_id == self.sector:
+                    potential_supplier_pid.remove(self.pid)  # remove oneself
+                if len(potential_supplier_pid) == 0:
+                    raise ValueError(f"Firm {self.pid}: no potential supplier for input {sector_id}")
+                distance_to_each = rescale_values([
+                    self.distance_to_other(firm_list[firm_pid])
+                    for firm_pid in potential_supplier_pid
+                ])  # Compute distance to each of them (vol d oiseau)
+                # print(distance_to_each)
+                importance_of_each = rescale_values([firm_list[firm_pid].importance for firm_pid in
+                                                     potential_supplier_pid])  # Get importance for each of them
+                prob_to_be_selected = np.array(importance_of_each) / (np.array(distance_to_each) ** weight_localization)
+                prob_to_be_selected /= prob_to_be_selected.sum()
+
+            # Determine the number of supplier(s) to select. 1 or 2.
+            if random.uniform(0, 1) < nb_suppliers_per_input - 1:
+                nb_suppliers_to_choose = 2
+                if nb_suppliers_to_choose > len(potential_supplier_pid):
+                    nb_suppliers_to_choose = 1
+            else:
+                nb_suppliers_to_choose = 1
+
+            # Select the supplier(s). It there is 2 suppliers, then we generate
+            # random weight. It determines how much is bought from each supplier.
+            selected_supplier_ids = np.random.choice(potential_supplier_pid,
+                                                     p=prob_to_be_selected, size=nb_suppliers_to_choose,
+                                                     replace=False).tolist()
+            supplier_weights = generate_weights(
+                nb_suppliers_to_choose)  # Generate one random weight per number of supplier, sum to 1
+
+        return supplier_type, selected_supplier_ids, supplier_weights
+
+    def select_suppliers(self, graph: ScNetwork, firm_list, country_list: CountryList,
+                         nb_suppliers_per_input: float, weight_localization: float,
+                         firm_data_type: str, import_code: str):
         """
         The firm selects its suppliers.
 
@@ -227,69 +311,19 @@ class Firm(Agent):
 
             # If it is imports, identify international suppliers and calculate
             # their probability to be chosen, which is based on importance.
-            if sector_id == import_code:
-                # Identify countries as suppliers if the corresponding sector does export
-                importance_threshold = 1e-6
-                potential_supplier_pid = [
-                    country.pid
-                    for country in country_list
-                    if country.supply_importance > importance_threshold
-                ]
-                importance_of_each = [
-                    country.supply_importance
-                    for country in country_list
-                    if country.supply_importance > importance_threshold
-                ]
-                prob_to_be_selected = np.array(importance_of_each)
-                prob_to_be_selected /= prob_to_be_selected.sum()
-
-            # For the other types of inputs, identify the domestic suppliers, and
-            # calculate their probability to be chosen, based on distance and importance
-            else:
-                potential_supplier_pid = [firm.pid for firm in firm_list if
-                                          firm.sector == sector_id]  # Identify the id of potential suppliers among
-                # the other firms
-                if sector_id == self.sector:
-                    potential_supplier_pid.remove(self.pid)  # remove oneself
-                if len(potential_supplier_pid) == 0:
-                    raise ValueError(f"Firm {self.pid}: no potential supplier for input {sector_id}")
-                # print("\n", self.pid, ":", str(len(potential_supplier_pid)), "for sector", sector_id)
-                # print([
-                #     self.distance_to_other(firm_list[firm_pid])
-                #     for firm_pid in potential_supplier_pid
-                # ])
-                distance_to_each = rescale_values([
-                    self.distance_to_other(firm_list[firm_pid])
-                    for firm_pid in potential_supplier_pid
-                ])  # Compute distance to each of them (vol d oiseau)
-                # print(distance_to_each)
-                importance_of_each = rescale_values([firm_list[firm_pid].importance for firm_pid in
-                                                     potential_supplier_pid])  # Get importance for each of them
-                prob_to_be_selected = np.array(importance_of_each) / (np.array(distance_to_each) ** weight_localization)
-                prob_to_be_selected /= prob_to_be_selected.sum()
-
-            # Determine the numbre of supplier(s) to select. 1 or 2.
-            if random.uniform(0, 1) < nb_suppliers_per_input - 1:
-                nb_suppliers_to_choose = 2
-                if nb_suppliers_to_choose > len(potential_supplier_pid):
-                    nb_suppliers_to_choose = 1
-            else:
-                nb_suppliers_to_choose = 1
-
-            # Select the supplier(s). It there is 2 suppliers, then we generate
-            # random weight. It determines how much is bought from each supplier.
-            selected_supplier_id = np.random.choice(potential_supplier_pid,
-                                                    p=prob_to_be_selected, size=nb_suppliers_to_choose,
-                                                    replace=False).tolist()
-            supplier_weights = generate_weights(
-                nb_suppliers_to_choose)  # Generate one random weight per number of supplier, sum to 1
+            supplier_type, selected_supplier_ids, supplier_weights = self.identify_suppliers(sector_id,
+                                                                                             firm_list, country_list,
+                                                                                             nb_suppliers_per_input,
+                                                                                             weight_localization,
+                                                                                             firm_data_type,
+                                                                                             import_code)
 
             # For each new supplier, create a new CommercialLink in the supply chain network.
-            for supplier_id in selected_supplier_id:
+            for supplier_id in selected_supplier_ids:
                 # Retrieve the appropriate supplier object from the id
                 # If it is a country we get it from the country list
                 # It it is a firm we get it from the firm list
-                if sector_id == import_code:
+                if supplier_type == "country":
                     supplier_object = [country for country in country_list if country.pid == supplier_id][0]
                     link_category = 'import'
                     product_type = "imports"

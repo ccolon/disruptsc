@@ -28,7 +28,7 @@ filepaths:
   "transit": "Trade/transit_matrix.csv"
   # Network
   "firm_table": "Network/firm_table.csv"
-  "location_table": "Network/location_table.geojson"
+  "region_table": "Network/region_table.geojson"
   "transaction_table": "Network/transaction_table.csv"
   # MRIO
   "mrio": "Network/mrio.csv"

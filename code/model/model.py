@@ -1,4 +1,3 @@
-import networkx
 import networkx as nx
 import numpy as np
 import pandas as pd
@@ -10,21 +9,20 @@ from .caching_functions import \
     cache_transport_network, \
     cache_agent_data, load_cached_sc_network, cache_sc_network, load_cached_logistic_routes, cache_logistic_routes
 from .check_functions import compare_production_purchase_plans
+from .country_builder_functions import create_countries_from_mrio, create_countries
+from .firm_builder_functions import define_firms_from_local_economic_data, define_firms_from_network_data, \
+    define_firms_from_mrio, create_firms, load_technical_coefficients, calibrate_input_mix, load_mrio_tech_coefs, \
+    load_inventories
 from .transport_network_builder_functions import \
     create_transport_network
 from .agent_builder_functions import \
     filter_sector, \
-    define_firms_from_local_economic_data, \
-    create_firms, \
-    define_firms_from_network_data, \
-    define_firms_from_mrio_data, \
     extract_final_list_of_sector, \
     define_households, \
-    define_households_from_mrio_data, \
     add_households_for_firms, \
     create_households, \
-    load_technical_coefficients, calibrate_input_mix, load_inventories, create_countries, load_ton_usd_equivalence, \
-    define_firms_from_mrio, define_households_from_mrio, load_mrio_tech_coefs, create_countries_from_mrio
+    load_ton_usd_equivalence, \
+    define_households_from_mrio
 from code.parameters import Parameters
 from code.disruption.disruption import DisruptionList
 from code.simulation.simulation import Simulation
@@ -149,13 +147,12 @@ class Model(object):
                 self.firm_table = define_firms_from_mrio(
                     filepath_mrio=self.parameters.filepaths['mrio'],
                     filepath_sector_table=self.parameters.filepaths['sector_table'],
-                    filepath_region_table=self.parameters.filepaths['admin_unit_data'],
+                    filepath_region_table=self.parameters.filepaths['region_table'],
                     transport_nodes=self.transport_nodes
                 )
             else:
                 raise ValueError(f"{self.parameters.firm_data_type} should be one of 'disaggregating', "
-                                 f"'supplier-buyer network', 'mrio'"
-                )
+                                 f"'supplier-buyer network', 'mrio'")
             nb_firms = 'all'  # Weird
             logging.info('Creating firm_list. nb_firms: ' + str(nb_firms) +
                          ' reactivity_rate: ' + str(self.parameters.reactivity_rate) +
@@ -174,7 +171,7 @@ class Model(object):
             if self.parameters.firm_data_type == "mrio":
                 self.household_table, household_sector_consumption = define_households_from_mrio(
                     filepath_mrio=self.parameters.filepaths['mrio'],
-                    filepath_region_table=self.parameters.filepaths['admin_unit_data'],
+                    filepath_region_table=self.parameters.filepaths['region_table'],
                     transport_nodes=self.transport_nodes,
                     time_resolution=self.parameters.time_resolution,
                     target_units=self.parameters.monetary_units_in_model,
@@ -215,13 +212,13 @@ class Model(object):
             if self.parameters.firm_data_type == "disaggregating IO":
                 import_code_in_table = self.sector_table.loc[self.sector_table['type'] == 'imports', 'sector'].iloc[
                     0]  # usually it is IMP
-                self.firm_list = load_technical_coefficients(
+                load_technical_coefficients(
                     self.firm_list, self.parameters.filepaths['tech_coef'], self.parameters.io_cutoff,
                     import_code_in_table
                 )
 
             elif self.parameters.firm_data_type == "supplier-buyer network":
-                self.firm_table, self.transaction_table = calibrate_input_mix(
+                self.firm_list, self.transaction_table = calibrate_input_mix(
                     firm_list=self.firm_list,
                     firm_table=self.firm_table,
                     sector_table=self.sector_table,
@@ -229,7 +226,7 @@ class Model(object):
                 )
 
             elif self.parameters.firm_data_type == "mrio":
-                self.firm_table = load_mrio_tech_coefs(
+                load_mrio_tech_coefs(
                     firm_list=self.firm_list,
                     filepath_mrio=self.parameters.filepaths['mrio']
                 )
@@ -241,7 +238,7 @@ class Model(object):
                 )
 
             # Loading the inventories
-            self.firm_list = load_inventories(
+            load_inventories(
                 firm_list=self.firm_list,
                 inventory_duration_target=self.parameters.inventory_duration_target,
                 filepath_inventory_duration_targets=self.parameters.filepaths['inventory_duration_targets'],
@@ -276,7 +273,7 @@ class Model(object):
             # Specify the weight of a unit worth of good, which may differ according to sector, or even to each
             # firm/countries Note that for imports, i.e. for the goods delivered by a country, and for transit flows,
             # we do not disentangle sectors In this case, we use an average.
-            self.firm_list, self.country_list, sector_to_usdPerTon = load_ton_usd_equivalence(
+            load_ton_usd_equivalence(
                 sector_table=self.sector_table,
                 firm_list=self.firm_list,
                 country_list=self.country_list
@@ -330,11 +327,12 @@ class Model(object):
             )
             import_code_from_table = self.sector_table.loc[self.sector_table['type'] == 'imports', 'sector'].iloc[0]
 
-            if self.parameters.firm_data_type == "disaggregating IO":
+            if self.parameters.firm_data_type in ["disaggregating IO", 'mrio']:
                 for firm in self.firm_list:
                     firm.select_suppliers(self.sc_network, self.firm_list, self.country_list,
                                           self.parameters.nb_suppliers_per_input,
                                           self.parameters.weight_localization_firm,
+                                          self.parameters.firm_data_type,
                                           import_code=import_code_from_table)
 
             elif self.parameters.firm_data_type == "supplier-buyer network":

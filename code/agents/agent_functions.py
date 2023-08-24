@@ -281,7 +281,7 @@ def determine_suppliers_and_weights(potential_supplier_pid,
     if "importance_export" in mode.keys():
         importance_of_each = rescale_values([
             firm_list[firm_pid].importance * mode['importance_export']['bonus']
-            if firm_list[firm_pid].odpoint in mode['importance_export']['export_odpoints']
+            if firm_list[firm_pid].odpoint in mode['importance_export']['export_od_points']
             else firm_list[firm_pid].importance
             for firm_pid in potential_supplier_pid
         ])
@@ -494,7 +494,7 @@ def calculate_distance_between_agents(agentA, agentB):
         return compute_distance_from_arcmin(agentA.long, agentA.lat, agentB.long, agentB.lat)
 
 
-def determine_nb_suppliers(nb_suppliers_per_input, max_nb_of_suppliers=None):
+def determine_nb_suppliers(nb_suppliers_per_input: float, max_nb_of_suppliers=None):
     '''Draw 1 or 2 depending on the 'nb_suppliers_per_input' parameters
 
     nb_suppliers_per_input is a float number between 1 and 2

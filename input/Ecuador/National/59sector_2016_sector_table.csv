@@ -37,7 +37,7 @@ MAD,maderas,wood,Producción de madera y de productos de madera,manufacturing,49
 MAN,otras industrias manufactureras,other unclassified manufacturing,Industrias manufactureras ncp,manufacturing,1673916,130386,0.026551589,11522.42331,MAN,83695.8
 MAQ,maquinaria y equipo,manuf. of equipment,Fabricación de maquinaria y equipo,manufacturing,1277639,1786649,0.158028166,1147.052083,MAQ,63881.95
 MET,metales comunes,common metals manufacturing,Fabricación de metales comunes ,manufacturing,1273809,432163,0.326540851,289.6850659,MET,63690.45
-MIP,"Gas, petróleo y minería","Gas, oil and mining",Explotación de minerales no metálicos y actividades de apoyo a las minas y canteras,mining,2442458,5156991,0.606299237,574.6868933,MIP,122122.9
+MIP,mineria,mining,Explotación de minerales no metálicos y actividades de apoyo a las minas y canteras,mining,2442458,5156991,0.606299237,574.6868933,MIP,122122.9
 MOL,molinería,grain milling,Elaboración de productos de molinería,manufacturing,997723,981510,0.00445436,3962.158922,MOL,49886.15
 MUE,muebles,furniture,Fabricación de muebles,manufacturing,964801,918736,0.009715112,2135.838403,MUE,48240.05
 PAN,panadería,bread/baking,Elaboración de productos de la panadería,manufacturing,3689925,949606,0.017360111,1202.909534,PAN,184496.25

@@ -2,6 +2,7 @@ import random
 from collections import UserList
 
 import pandas as pd
+import geopandas as gpd
 import math
 import logging
 import warnings
@@ -76,41 +77,44 @@ class Country(Agent):
             self.purchase_plan[selling_country_pid] = quantity
             selling_country_object.clients[self.pid] = {'sector': self.pid, 'share': 0, 'transport_share': 0}
 
-    def select_suppliers(self, graph, firm_list, country_list, sector_table, transport_nodes):
+    def select_suppliers(self, graph, firm_list, country_list,
+                         sector_table: pd.DataFrame, transport_nodes: gpd.GeoDataFrame):
         # Select other country as supplier: transit flows
         self.create_transit_links(graph, country_list)
 
-        # Select suppliers
-        ## Identify firms from each sectors
-        dic_sector_to_firmid = identify_firms_in_each_sector(firm_list)
+        # Identify firms from each sector
+        dic_sector_to_firm_id = identify_firms_in_each_sector(firm_list)
         share_exporting_firms = sector_table.set_index('sector')['share_exporting_firms'].to_dict()
-        ## Identify odpoints which exports (optional)
-        export_odpoints = identify_special_transport_nodes(transport_nodes, "export")
-        ## Identify sectors to buy from
-        present_sectors = list(set(list(dic_sector_to_firmid.keys())))
+        # Identify od_points which exports (optional)
+        export_od_points = identify_special_transport_nodes(transport_nodes, "export")
+        # Identify sectors to buy from
+        present_sectors = list(set(list(dic_sector_to_firm_id.keys())))
         sectors_to_buy_from = list(self.qty_purchased.keys())
         present_sectors_to_buy_from = list(set(present_sectors) & set(sectors_to_buy_from))
-        ## For each one of these sectors, select suppliers
+        # For each one of these sectors, select suppliers
         supplier_selection_mode = {
             "importance_export": {
-                "export_odpoints": export_odpoints,
+                "export_od_points": export_od_points,
                 "bonus": 10
                 # give more weight to firms located in transport node identified as "export points" (e.g., SEZs)
             }
         }
         for sector in present_sectors_to_buy_from:  # only select suppliers from sectors that are present
             # Identify potential suppliers
-            potential_supplier_pid = dic_sector_to_firmid[sector]
+            potential_supplier_pid = dic_sector_to_firm_id[sector]
             # Evaluate how much to select
-            nb_selected_suppliers = max(1, round(len(potential_supplier_pid) * share_exporting_firms[sector]))
-            if (nb_selected_suppliers > len(potential_supplier_pid)):
-                warnings.warn("The number of supplier to select " + str(nb_selected_suppliers)
-                              + " is larger than the number of potential supplier" + str(
-                    len(potential_supplier_pid)) + " " + str(share_exporting_firms[sector]))
+            if sector not in share_exporting_firms:  # case of mrio
+                nb_suppliers_to_select = 1
+            else:  # otherwise we use the % of the sector table to cal
+                nb_suppliers_to_select = max(1, round(len(potential_supplier_pid) * share_exporting_firms[sector]))
+            if nb_suppliers_to_select > len(potential_supplier_pid):
+                logging.warning(f"The number of supplier to select {nb_suppliers_to_select} "
+                                f"is larger than the number of potential supplier {len(potential_supplier_pid)} "
+                                f"{share_exporting_firms[sector]}")
                 # Select supplier and weights
             selected_supplier_ids, supplier_weights = determine_suppliers_and_weights(
                 potential_supplier_pid,
-                nb_selected_suppliers,
+                nb_suppliers_to_select,
                 firm_list,
                 mode=supplier_selection_mode
             )
@@ -186,8 +190,7 @@ class Country(Agent):
                         account_capacity
                     )
             else:
-                if (edge[
-                    1].odpoint != -1):  # to non service firms, send shipment through transportation network
+                if (edge[1].odpoint != -1):  # to non-service firms, send shipment through transportation network
                     self.send_shipment(
                         graph[self][edge[1]]['object'],
                         transport_network,
@@ -348,7 +351,6 @@ class Country(Agent):
         print("Country " + self.pid + ": imports " + str(imports) + " from Tanzania and export " + str(
             exports) + " to Tanzania")
 
+
 class CountryList(AgentList):
     pass
-    # def __init__(self, country_list: list[Country]):
-    #     super().__init__(country for country in country_list if isinstance(country, Country))

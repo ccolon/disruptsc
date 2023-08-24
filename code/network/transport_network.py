@@ -230,7 +230,7 @@ class TransportNetwork(nx.Graph):
                     "to": commercial_link.buyer_id,
                     "quantity": commercial_link.delivery,
                     "tons": commercial_link.delivery_in_tons,
-                    "product_type": commercial_link.product,
+                    "product_type": commercial_link.product_type,
                     "flow_category": commercial_link.category,
                     "price": commercial_link.price
                 }
@@ -240,7 +240,7 @@ class TransportNetwork(nx.Graph):
                     "to": commercial_link.buyer_id,
                     "quantity": commercial_link.delivery,
                     "tons": commercial_link.delivery_in_tons,
-                    "product_type": commercial_link.product,
+                    "product_type": commercial_link.product_type,
                     "flow_category": commercial_link.category,
                     "price": commercial_link.price
                 }
@@ -335,6 +335,7 @@ class TransportNetwork(nx.Graph):
         flows_per_edge
         """
         flows_per_edge = []
+        flows_total = {}
         for edge in self.edges():
             new_data = {
                 "time_step": time_step,
@@ -350,7 +351,15 @@ class TransportNetwork(nx.Graph):
                 add_or_append_to_dict(new_data, "flow_" + shipment['product_type'], shipment['quantity'])
                 new_data['flow_total'] += shipment['quantity']
                 new_data['flow_total_tons'] += shipment['tons']
+                add_or_append_to_dict(flows_total, shipment['flow_category'], shipment['quantity'])
+                add_or_append_to_dict(flows_total, shipment['flow_category']+"*km",
+                                      shipment['quantity']*self[edge[0]][edge[1]]["km"])
+                add_or_append_to_dict(flows_total, shipment['flow_category']+"_tons",
+                                      shipment['tons'])
+                add_or_append_to_dict(flows_total, shipment['flow_category']+"_tons*km",
+                                      shipment['tons']*self[edge[0]][edge[1]]["km"])
             flows_per_edge += [new_data]
+        logging.info(flows_total)
         return flows_per_edge
 
     # def evaluate_normal_traffic(self, sectorId_to_volumeCoef=None):

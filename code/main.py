@@ -55,6 +55,8 @@ else:
 if parameters.export_files:
     simulation.export_agent_data(parameters.export_folder)
     simulation.export_transport_network_data(model.transport_edges, parameters.export_folder)
+    if parameters.simulation_type == "initial_state":
+        model.sc_network.calculate_io_matrix().to_csv(parameters.export_folder / "io_table.csv")
 # TODO add simulation.calculate_and_export_results()
 
 logging.info("End of simulation")
