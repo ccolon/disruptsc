@@ -12,6 +12,7 @@ from code.model.basic_functions import add_or_increment_dict_key, generate_weigh
 if TYPE_CHECKING:
     from code.network.sc_network import ScNetwork
     from code.network.transport_network import TransportNetwork
+    from code.agents.firm import FirmList
 
 
 class Agent(object):
@@ -274,64 +275,7 @@ def determine_nb_suppliers(nb_suppliers_per_input: float, max_nb_of_suppliers=No
     return nb_suppliers
 
 
-def select_supplier_from_list(agent, firm_list,
-                              nb_suppliers_to_choose, potential_firm_ids,
-                              distance, importance, weight_localization,
-                              force_same_odpoint=False):
-    # reduce firm to choose to local ones
-    if force_same_odpoint:
-        same_odpoint_firms = [
-            firm_id
-            for firm_id in potential_firm_ids
-            if firm_list[firm_id].odpoint == agent.odpoint
-        ]
-        if len(same_odpoint_firms) > 0:
-            potential_firm_ids = same_odpoint_firms
-        #     logging.info('retailer available locally at odpoint '+str(agent.odpoint)+
-        #         " for "+firm_list[potential_firm_ids[0]].sector)
-        # else:
-        #     logging.warning('force_same_odpoint but no retailer available at odpoint '+str(agent.odpoint)+
-        #         " for "+firm_list[potential_firm_ids[0]].sector)
 
-    # distance weight
-    if distance:
-        distance_to_each = rescale_values([
-            calculate_distance_between_agents(agent, firm_list[firm_id])
-            for firm_id in potential_firm_ids
-        ])
-        distance_weight = 1 / (np.array(distance_to_each) ** weight_localization)
-
-    # importance weight
-    if importance:
-        importance_of_each = rescale_values([firm_list[firm_id].importance for firm_id in potential_firm_ids])
-        importance_weight = np.array(importance_of_each)
-
-    # create weight vector based on choice
-    if importance and distance:
-        prob_to_be_selected = importance_weight * distance_weight
-    elif importance and not distance:
-        prob_to_be_selected = importance_weight
-    elif not importance and distance:
-        prob_to_be_selected = distance_weight
-    else:
-        prob_to_be_selected = np.ones((1, len(potential_firm_ids)))
-    prob_to_be_selected /= prob_to_be_selected.sum()
-
-    # perform the random choice
-    selected_supplier_id = np.random.choice(
-        potential_firm_ids,
-        p=prob_to_be_selected,
-        size=nb_suppliers_to_choose,
-        replace=False
-    ).tolist()
-    # Choose weight if there are multiple suppliers
-    if importance:
-        supplier_weights = generate_weights(nb_suppliers_to_choose, importance_of_each)
-    else:
-        supplier_weights = generate_weights(nb_suppliers_to_choose)
-
-    # return
-    return selected_supplier_id, supplier_weights
 
 
 def agent_receive_products_and_pay(agent, graph, transport_network, sectors_no_transport_network):

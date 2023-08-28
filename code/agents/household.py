@@ -1,6 +1,7 @@
-from code.model.basic_functions import calculate_distance_between_agents
-from code.agents.agent import determine_nb_suppliers, select_supplier_from_list, \
-    agent_receive_products_and_pay
+import numpy as np
+
+from code.model.basic_functions import calculate_distance_between_agents, rescale_values, generate_weights
+from code.agents.agent import determine_nb_suppliers, agent_receive_products_and_pay
 
 import pandas as pd
 import logging
@@ -75,8 +76,8 @@ class Household(Agent):
             )
 
             # Select based on size and distance
-            retailers, retailer_weights = select_supplier_from_list(
-                self, firm_list,
+            retailers, retailer_weights = self.select_supplier_from_list(
+                firm_list,
                 nb_suppliers_to_choose, potential_firms,
                 distance=True, importance=False,
                 weight_localization=weight_localization, force_same_odpoint=True
@@ -115,6 +116,62 @@ class Household(Agent):
 
     def receive_products_and_pay(self, graph, transport_network, sectors_no_transport_network):
         agent_receive_products_and_pay(self, graph, transport_network, sectors_no_transport_network)
+
+    def select_supplier_from_list(self, firm_list: "FirmList",
+                                  nb_suppliers_to_choose: int, potential_firm_ids: list,
+                                  distance: bool, importance: bool, weight_localization: float,
+                                  force_same_odpoint=False):
+        # reduce firm to choose to local ones
+        if force_same_odpoint:
+            same_odpoint_firms = [
+                firm_id
+                for firm_id in potential_firm_ids
+                if firm_list[firm_id].odpoint == self.odpoint
+            ]
+            if len(same_odpoint_firms) > 0:
+                potential_firm_ids = same_odpoint_firms
+            #     logging.info('retailer available locally at odpoint '+str(agent.odpoint)+
+            #         " for "+firm_list[potential_firm_ids[0]].sector)
+            # else:
+            #     logging.warning('force_same_odpoint but no retailer available at odpoint '+str(agent.odpoint)+
+            #         " for "+firm_list[potential_firm_ids[0]].sector)
+
+        # distance weight
+        if distance:
+            distance_to_each = rescale_values([
+                calculate_distance_between_agents(self, firm_list[firm_id])
+                for firm_id in potential_firm_ids
+            ])
+            distance_weight = 1 / (np.array(distance_to_each) ** weight_localization)
+        else:
+            distance_weight = np.ones(len(potential_firm_ids))
+
+        # importance weight
+        if importance:
+            importance_of_each = rescale_values([firm_list[firm_id].importance for firm_id in potential_firm_ids])
+            importance_weight = np.array(importance_of_each)
+        else:
+            importance_weight = np.ones(len(potential_firm_ids))
+
+        # create weight vector based on choice
+        prob_to_be_selected = distance_weight * importance_weight
+        prob_to_be_selected /= prob_to_be_selected.sum()
+
+        # perform the random choice
+        selected_supplier_ids = np.random.choice(
+            potential_firm_ids,
+            p=prob_to_be_selected,
+            size=nb_suppliers_to_choose,
+            replace=False
+        ).tolist()
+        # Choose weight if there are multiple suppliers
+        index_map = {supplier_id: position for position, supplier_id in enumerate(potential_firm_ids)}
+        selected_positions = [index_map[supplier_id] for supplier_id in selected_supplier_ids]
+        selected_prob = [prob_to_be_selected[position] for position in selected_positions]
+        supplier_weights = generate_weights(nb_suppliers_to_choose, importance_of_each=selected_prob)
+
+        # return
+        return selected_supplier_ids, supplier_weights
 
 
 class HouseholdList(AgentList):

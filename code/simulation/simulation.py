@@ -2,9 +2,7 @@ import json
 import logging
 import os
 from pathlib import Path
-
 import pandas as pd
-
 import geopandas as gpd
 
 from code.network.sc_network import ScNetwork

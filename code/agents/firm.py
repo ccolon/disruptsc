@@ -269,8 +269,10 @@ class Firm(Agent):
             selected_supplier_ids = np.random.choice(potential_supplier_pid,
                                                      p=prob_to_be_selected, size=nb_suppliers_to_choose,
                                                      replace=False).tolist()
-            supplier_weights = generate_weights(
-                nb_suppliers_to_choose)  # Generate one random weight per number of supplier, sum to 1
+            index_map = {supplier_id: position for position, supplier_id in enumerate(potential_supplier_pid)}
+            selected_positions = [index_map[supplier_id] for supplier_id in selected_supplier_ids]
+            selected_prob = [prob_to_be_selected[position] for position in selected_positions]
+            supplier_weights = generate_weights(nb_suppliers_to_choose, selected_prob)
 
         return supplier_type, selected_supplier_ids, supplier_weights
 

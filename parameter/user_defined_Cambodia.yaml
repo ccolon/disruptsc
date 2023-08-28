@@ -12,6 +12,7 @@ monetary_units_in_model: mUSD
 monetary_units_inputed: USD
 time_resolution: week
 io_cutoff: 0.02
+transport_cost_noise_level: 0.05
 countries_to_include: ['AFR', 'AME', 'ASI', 'EUR', 'OCE', 'THA', 'VNM']
 simulation_type: initial_state #disruption
 export_files: True

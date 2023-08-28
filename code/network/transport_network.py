@@ -129,7 +129,7 @@ class TransportNetwork(nx.Graph):
     def add_noise_to_weight(self, weight: str, noise_sd: float):
         noise_levels = np.random.normal(0, noise_sd, len(self.edges)).tolist()
         for edge in self.edges:
-            self[edge[0]][edge[1]]['weight'] = self[edge[0]][edge[1]][weight+'_noise'] * (1 + noise_levels.pop())
+            self[edge[0]][edge[1]][weight+'_noise'] = self[edge[0]][edge[1]][weight] * (1 + noise_levels.pop())
 
     def get_undisrupted_network(self):
         available_nodes = [node for node in self.nodes if self._node[node]['disruption_duration'] == 0]
