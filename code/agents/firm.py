@@ -111,6 +111,9 @@ class Firm(Agent):
         self.tons_transported = 0
         self.tonkm_transported = 0
 
+    def id_str(self):
+        return super().id_str() + f" sector {self.sector}"
+
     def update_production_capacity(self):
         is_back_to_normal = self.remaining_disrupted_time == 1  # Identify those who will be back to normal
         if self.remaining_disrupted_time > 0:  # Update the remaining time in disruption
@@ -640,7 +643,7 @@ class Firm(Agent):
                                                self.eq_finance['costs']['transport'])
 
     def send_shipment(self, commercial_link, transport_network,
-                      monetary_units_in_model, cost_repercussion_model, account_capacity):
+                      monetary_units_in_model, cost_repercussion_mode, account_capacity):
 
         monetary_unit_factor = {
             "mUSD": 1e6,
@@ -796,8 +799,8 @@ class Firm(Agent):
                              )
         # If we do not find a route, then we do not deliver
         else:
-            logging.info('Firm ' + str(self.pid) + ": because of disruption, " +
-                         "there is no route between me and firm " + str(commercial_link.buyer_id))
+            logging.info(f"{self.id_str().capitalize()}: because of disruption, there is no route between me "
+                         f"and agent {commercial_link.buyer_id}")
             # We do not write how the input price would have changed
             commercial_link.price = commercial_link.eq_price
             commercial_link.current_route = 'none'

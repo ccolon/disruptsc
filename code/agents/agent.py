@@ -19,6 +19,9 @@ class Agent(object):
         self.lat = lat
         self.usd_per_ton = None
 
+    def id_str(self):
+        return f"{self.agent_type} {self.pid} located {self.odpoint}"
+
     def choose_initial_routes(self, sc_network: networkx.DiGraph, transport_network: TransportNetwork,
                               logistic_modes: str | pandas.DataFrame, account_capacity, monetary_unit_flow):
         for edge in sc_network.out_edges(self):
@@ -106,10 +109,10 @@ class Agent(object):
         route = transport_network.provide_shortest_route(origin_node,
                                                          destination_node,
                                                          route_weight=weight_considered)
-        if route is None:
-            raise ValueError(f"Agent {self.pid} - No route found from {origin_node} to {destination_node}")
-        else:
-            return route, accepted_logistics_modes
+        # if route is None:
+        #     raise ValueError(f"Agent {self.pid} - No route found from {origin_node} to {destination_node}")
+        # else:
+        return route, accepted_logistics_modes
         # TODO: check if I want to reimplement this complex route choice procedure
         # if accepted_logistics_modes == "any":
         #     route = transport_network.provide_shortest_route(origin_node,

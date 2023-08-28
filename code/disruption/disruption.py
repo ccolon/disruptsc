@@ -75,7 +75,6 @@ class Disruption:
             edges: geopandas.GeoDataFrame,
             firm_table: pandas.DataFrame
     ) -> list:
-        print()
         disruption_list_transport_edges = [
             Disruption.from_sector_admin_unit(
                 firm_table=firm_table,
@@ -103,8 +102,8 @@ class Disruption:
         return disruption_list
 
     def print_info(self):
-        print(f"Capacity of {self.item_type} {self.item_id} is reduced by {self.reduction*100}% \
-              at time {self.start_time} during {self.duration} time steps")
+        print(f"Capacity of {self.item_type} {self.item_id} is reduced by {self.reduction*100}%"
+              f"% at time {self.start_time} during {self.duration} time steps")
 
 
 class DisruptionList(UserList):

@@ -328,16 +328,15 @@ class Country(Agent):
             # If there is an alternative route which is not too expensive
             else:
                 transport_network.transport_shipment(commercial_link)
-                logging.info("Country " + str(self.pid) + ": found an alternative route to client " +
-                             str(commercial_link.buyer_id) + ", it is costlier by " +
-                             '{:.0f}'.format(100 * relative_price_change_transport) + "%, price is " +
-                             '{:.4f}'.format(commercial_link.price) + " instead of " +
-                             '{:.4f}'.format(commercial_link.eq_price))
+                logging.info(f"{self.id_str().capitalize()}: found an alternative route "
+                             f" client {commercial_link.buyer_id}, it is costlier by "
+                             f"{100 * relative_price_change_transport:.0f}%, price is "
+                             f"{commercial_link.price:.4f} instead of {commercial_link.eq_price:.4f}")
 
         # It there is no alternative route
         else:
-            logging.info("Country " + str(self.pid) + ": because of disruption, there is " +
-                         "no route between me and client " + str(commercial_link.buyer_id))
+            logging.info(f"{self.id_str().capitalize()}: because of disruption, there is " +
+                         f"no route between me and client {commercial_link.buyer_id}")
             # We do not write how the input price would have changed
             commercial_link.price = commercial_link.eq_price
             # We do not pay the transporter, so we don't increment the transport cost

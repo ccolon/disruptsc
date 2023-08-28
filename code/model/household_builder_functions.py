@@ -179,11 +179,11 @@ def define_households_from_mrio(
 
     # Create household table
     household_table = pd.DataFrame({"name": region_households})
-    household_table['region'] = household_table['name'].str.extract('([0-9]*)-H')
-    logging.info(f"Select {household_table.shape[0]} firms in {household_table['region'].nunique()} admin units")
+    household_table['admin_code'] = household_table['name'].str.extract('([0-9]*)-H')
+    logging.info(f"Select {household_table.shape[0]} firms in {household_table['admin_code'].nunique()} admin units")
 
     # Identify OD point
-    household_table['od_point'] = get_closest_road_nodes(household_table['region'], transport_nodes,
+    household_table['od_point'] = get_closest_road_nodes(household_table['admin_code'], transport_nodes,
                                                          filepath_region_table)
 
     # Add long lat
