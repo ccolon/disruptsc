@@ -1,4 +1,4 @@
-from code.model.functions import calculate_distance_between_agents
+from code.model.basic_functions import calculate_distance_between_agents
 from code.agents.agent import determine_nb_suppliers, select_supplier_from_list, \
     agent_receive_products_and_pay
 

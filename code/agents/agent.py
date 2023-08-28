@@ -3,12 +3,10 @@ from typing import TYPE_CHECKING
 import logging
 from collections import UserList
 
-import networkx
 import numpy as np
 import pandas
-import pandas as pd
 
-from code.model.functions import add_or_increment_dict_key, generate_weights, rescale_values, \
+from code.model.basic_functions import add_or_increment_dict_key, generate_weights, rescale_values, \
     calculate_distance_between_agents
 
 if TYPE_CHECKING:

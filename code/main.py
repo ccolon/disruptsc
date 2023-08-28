@@ -55,6 +55,7 @@ else:
 if parameters.export_files:
     simulation.export_agent_data(parameters.export_folder)
     simulation.export_transport_network_data(model.transport_edges, parameters.export_folder)
-    simulation.calculate_and_export_summary_result(model.sc_network, model.household_table, parameters.export_folder)
+    simulation.calculate_and_export_summary_result(model.sc_network, model.household_table,
+                                                   parameters.monetary_units_in_model, parameters.export_folder)
 
 logging.info("End of simulation")

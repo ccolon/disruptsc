@@ -5,7 +5,7 @@ import pandas as pd
 import geopandas as gpd
 import logging
 
-from code.model.functions import calculate_distance_between_agents, rescale_values, \
+from code.model.basic_functions import calculate_distance_between_agents, rescale_values, \
     generate_weights_from_list
 from code.agents.agent import agent_receive_products_and_pay
 

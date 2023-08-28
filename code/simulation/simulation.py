@@ -39,7 +39,7 @@ class Simulation(object):
                                                driver="GeoJSON", index=False)
 
     def calculate_and_export_summary_result(self, sc_network: ScNetwork, household_table: pd.DataFrame,
-                                            export_folder: Path):
+                                            monetary_unit_in_model: str, export_folder: Path):
         if self.type == "initial_state":
             # export io matrix
             logging.info(f'Exporting resulting IO matrix to {export_folder}')
@@ -57,13 +57,17 @@ class Simulation(object):
             loss_per_region_sector_time = \
                 loss_per_region_sector_time.groupby(['admin_code', 'sector', 'time_step'], as_index=False)['loss'].sum()
             loss_per_region_sector_time.to_csv(export_folder / "loss_per_region_sector_time.csv", index=False)
+            household_loss = loss_per_region_sector_time['loss'].sum()
             logging.info(f'Exporting loss time series of countries to {export_folder}')
             # export loss time series for countries
             country_result_table = pd.DataFrame(self.country_data)
             country_result_table['loss'] = country_result_table['extra_spending'] \
                                            + country_result_table['consumption_loss']
             country_result_table = country_result_table[['time_step', 'country', 'loss']]
+            country_loss = country_result_table['loss'].sum()
             country_result_table.to_csv(export_folder / "loss_per_country.csv", index=False)
+            logging.info(f"Cumulated household loss: {household_loss:,.2f} {monetary_unit_in_model}")
+            logging.info(f"Cumulated country loss: {country_loss:,.2f} {monetary_unit_in_model}")
 
     @staticmethod
     def summarize_results_one_household(household_result_table_one_household):

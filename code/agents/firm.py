@@ -7,7 +7,7 @@ import networkx
 import numpy as np
 from shapely.geometry import Point
 
-from code.model.functions import generate_weights, \
+from code.model.basic_functions import generate_weights, \
     compute_distance_from_arcmin, rescale_values
 
 from code.agents.agent import Agent, AgentList, agent_receive_products_and_pay
