@@ -1,24 +1,47 @@
-class Route(object):
+from typing import TYPE_CHECKING
 
-    def __init__(self, cost_per_ton: float):
-        self.cost_per_ton = cost_per_ton
-        self.transport_modes = None
-        self.transport_nodes = None
-        self.transport_edges = None
+import pandas as pd
 
-    @classmethod
-    def from_node_list(cls, node_list: list):
-        transport_infra_id_list = [[(node_list[0],)]] + \
-                                  [[(node_list[i], node_list[i + 1]), (node_list[i + 1],)]
-                                   for i in range(0, len(node_list) - 1)]
-        transport_infra_id_list = [item for item_tuple in transport_infra_id_list for item in item_tuple]
-        return cls(transport_infra_id_list)
+if TYPE_CHECKING:
+    from code.network.transport_network import TransportNetwork
 
-    def extract_transport_edges(self):
-        return [item for item in self if len(item) == 2]
 
-    def extract_transport_nodes(self):
-        return [item for item in self if len(item) == 1]
+class Route(list):
+    def __init__(self, node_list: list, transport_network: "TransportNetwork"):
+        node_edge_tuple = [[(node_list[0],)]] + \
+                          [[(node_list[i], node_list[i + 1]), (node_list[i + 1],)]
+                           for i in range(0, len(node_list) - 1)]
+        transport_nodes_and_edges = [item for item_tuple in node_edge_tuple for item in item_tuple]
+        super().__init__(transport_nodes_and_edges)
+        self.transport_nodes_and_edges = transport_nodes_and_edges
+        self.transport_nodes = node_list
+        self.transport_edges = [item for item in transport_nodes_and_edges if len(item) == 2]
+        self.transport_edge_ids = [transport_network[source][target]['id'] for source, target in self.transport_edges]
+        self.transport_modes = list(set([transport_network[source][target]['type']
+                                         for source, target in self.transport_edges]))
+        # self.transport_modes = list(transport_edges.loc[self.transport_edge_ids, 'type'].unique())
+        self.cost_per_ton = sum([transport_network[source][target]['cost_per_ton']
+                                 for source, target in self.transport_edges])
+        # self.cost_per_ton = transport_edges.loc[self.transport_edge_ids, 'cost_per_ton'].sum()
+        self.length = sum([transport_network[source][target]['km']
+                           for source, target in self.transport_edges])
 
-    def calculate_route_cost_per_ton(self):
-        pass
+    def sum_indicator(self, transport_network: "TransportNetwork", indicator: str, per_type: bool = False):
+        if per_type:
+            details = []
+            for edge in self.transport_edges:
+                new_edge = {'id': transport_network[edge[0]][edge[1]]['id'],
+                            'type': transport_network[edge[0]][edge[1]]['type'],
+                            'multimodes': transport_network[edge[0]][edge[1]]['multimodes'],
+                            'special': transport_network[edge[0]][edge[1]]['special'],
+                            indicator: transport_network[edge[0]][edge[1]][indicator]}
+                details += [new_edge]
+            details = pd.DataFrame(details).fillna('N/A')
+            # print(details)
+            return details.groupby(['type', 'multimodes', 'special'])[indicator].sum()
+
+        else:
+            total_indicator = 0
+            for edge in self.transport_edges:
+                total_indicator += transport_network[edge[0]][edge[1]][indicator]
+            return total_indicator

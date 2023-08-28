@@ -1,7 +1,6 @@
-import math
-
 import geopandas
 import networkx as nx
+import numpy as np
 import pandas as pd
 import logging
 
@@ -58,25 +57,6 @@ class TransportNetwork(nx.Graph):
         self[end_ids[0]][end_ids[1]]['disruption_duration'] = 0
         self[end_ids[0]][end_ids[1]]['current_load'] = 0
 
-    def get_route_features(self, route, debug=False):
-        distance = 0  # km
-        time_cost = 1  # USD, cost cannot be 0
-        cost_per_ton = 0  # USD/ton
-        for segment in route:
-            if len(segment) == 2:  # only edges have costs
-                if self[segment[0]][segment[1]]['type'] != 'virtual':
-                    distance += self[segment[0]][segment[1]]['km']
-                    time_cost += self[segment[0]][segment[1]]['time_cost']
-                    cost_per_ton += self[segment[0]][segment[1]]['cost_per_ton']
-                    if debug:
-                        print(
-                            segment,
-                            self[segment[0]][segment[1]]['cost_per_ton'],
-                            self[segment[0]][segment[1]]['time_cost'],
-                            self[segment[0]][segment[1]]['km']
-                        )
-
-        return distance, time_cost, cost_per_ton
 
     def define_weights(self, route_optimization_weight):
         logging.info('Generating shortest-path weights on transport network')
@@ -116,7 +96,8 @@ class TransportNetwork(nx.Graph):
             self._node[household.odpoint]['household_there'] = household.pid
             transport_nodes.loc[transport_nodes['id'] == household.odpoint, "household_there"] = household.pid
 
-    def provide_shortest_route(self, origin_node, destination_node, route_weight):
+    def provide_shortest_route(self, origin_node: int, destination_node: int,
+                               route_weight: str, noise_level: float) -> Route or None:
         '''
         nx.shortest_path returns path as list of nodes
         we transform it into a route, which contains nodes and edges:
@@ -131,43 +112,24 @@ class TransportNetwork(nx.Graph):
             return None
 
         elif nx.has_path(self, origin_node, destination_node):
-            sp = nx.shortest_path(self, origin_node, destination_node, weight=route_weight)
-            route = [[(sp[0],)]] + [[(sp[i], sp[i + 1]), (sp[i + 1],)] for i in range(0, len(sp) - 1)]
-            route = [item for item_tuple in route for item in item_tuple]
-            #route2 = Route.from_node_list(sp)
-            #print(route2)
+            if noise_level > 0:
+                self.add_noise_to_weight(route_weight, noise_level)
+                sp = nx.shortest_path(self, origin_node, destination_node, weight=route_weight+'_noise')
+            else:
+                sp = nx.shortest_path(self, origin_node, destination_node, weight=route_weight)
+            # route = [[(sp[0],)]] + [[(sp[i], sp[i + 1]), (sp[i + 1],)] for i in range(0, len(sp) - 1)]
+            # route = [item for item_tuple in route for item in item_tuple]
+            route = Route(sp, self)
             return route
 
         else:
             logging.info("There is no path between " + str(origin_node) + " and " + str(destination_node))
             return None
 
-    def sum_indicator_on_route(self, route, indicator, detail_type=False):
-        total_indicator = 0
-        all_edges = [item for item in route if len(item) == 2]
-        # if indicator == "intl_rail_weight":
-        #     print("self[2586][2579]['intl_rail_weight']",self[2586][2579]["intl_rail_weight"])
-        for edge in all_edges:
-            # if indicator == "intl_rail_weight":
-            #     print(edge, self[edge[0]][edge[1]][indicator])
-            total_indicator += self[edge[0]][edge[1]][indicator]
-
-        # If detail_type == True, we print the indicator per edge categories
-        details = []
-        if detail_type:
-            for edge in all_edges:
-                new_edge = {}
-                new_edge['id'] = self[edge[0]][edge[1]]['id']
-                new_edge['type'] = self[edge[0]][edge[1]]['type']
-                new_edge['multimodes'] = self[edge[0]][edge[1]]['multimodes']
-                new_edge['special'] = self[edge[0]][edge[1]]['special']
-                new_edge[indicator] = self[edge[0]][edge[1]][indicator]
-                details += [new_edge]
-            details = pd.DataFrame(details).fillna('N/A')
-            # print(details)
-            detail_per_cat = details.groupby(['type', 'multimodes', 'special'])[indicator].sum()
-            print(detail_per_cat)
-        return total_indicator
+    def add_noise_to_weight(self, weight: str, noise_sd: float):
+        noise_levels = np.random.normal(0, noise_sd, len(self.edges)).tolist()
+        for edge in self.edges:
+            self[edge[0]][edge[1]]['weight'] = self[edge[0]][edge[1]][weight+'_noise'] * (1 + noise_levels.pop())
 
     def get_undisrupted_network(self):
         available_nodes = [node for node in self.nodes if self._node[node]['disruption_duration'] == 0]
@@ -202,10 +164,10 @@ class TransportNetwork(nx.Graph):
                 self[edge[0]][edge[1]]['disruption_duration'] = edge_id_duration_reduction_dict[edge_id]['duration']
 
     def update_road_disruption_state(self):
-        '''
+        """
         One time step is gone
         The remaining duration of disruption is decreased by 1
-        '''
+        """
         for node in self.nodes:
             if self._node[node]['disruption_duration'] > 0:
                 self._node[node]['disruption_duration'] -= 1
@@ -258,15 +220,7 @@ class TransportNetwork(nx.Graph):
         # logging.info("Edge (2610, 2589): current_load "+str(self[2610][2589]['current_load']))
         capacity_burden = 1e10
         edges_along_the_route = [item for item in route if len(item) == 2]
-        # if 'railways' in self.give_route_mode(route):
-        #     print("self[2586][2579]['current_load']", self[2586][2579]['current_load'])
         for edge in edges_along_the_route:
-            # if (edge[0] == 2610) & (edge[1] == 2589):
-            #     logging.info('Edge '+str(edge)+": current_load "+str(self[edge[0]][edge[1]]['current_load']))
-            # check that the edge to be loaded is not already over capacity
-            # if (self[edge[0]][edge[1]]['current_load'] > self[edge[0]][edge[1]]['capacity']):
-            #     logging.info('Edge '+str(edge)+" ("+self[edge[0]][edge[1]]['type']\
-            #         +") is already over capacity and will be loaded more!")
             # Add the load
             self[edge[0]][edge[1]]['current_load'] += load
             # If it exceeds capacity, add the capacity_burden to both the mode_weight and the capacity_weight
@@ -362,81 +316,6 @@ class TransportNetwork(nx.Graph):
         logging.info(flows_total)
         return flows_per_edge
 
-    # def evaluate_normal_traffic(self, sectorId_to_volumeCoef=None):
-    #     self.evaluate_traffic(sectorId_to_volumeCoef)
-    #     self.congestionned_edges = []
-    #     for edge in self.edges():
-    #         if self[edge[0]][edge[1]]['type'] == 'virtual':
-    #             continue
-    #         self[edge[0]][edge[1]]['traffic_normal'] = self[edge[0]][edge[1]]['traffic_current']
-    #         self[edge[0]][edge[1]]['congestion'] = 0
-
-    # def evaluate_congestion(self, sectorId_to_volumeCoef=None):
-    #     self.evaluate_traffic(sectorId_to_volumeCoef)
-    #     self.congestionned_edges = []
-    #     for edge in self.edges():
-    #         if self[edge[0]][edge[1]]['type'] == 'virtual':
-    #             continue
-    #         self[edge[0]][edge[1]]['congestion'] = self.congestion_function(
-    #             self[edge[0]][edge[1]]['traffic_current'],
-    #             self[edge[0]][edge[1]]['traffic_normal']
-    #         )
-    #         if self[edge[0]][edge[1]]['congestion'] > 1e-6:
-    #             self.congestionned_edges += [edge]
-
-    # @staticmethod
-    # def congestion_function(current_traffic, normal_traffic):
-    #     if (current_traffic == 0) & (normal_traffic == 0):
-    #         return 0
-    #
-    #     elif (current_traffic > 0) & (normal_traffic == 0):
-    #         return 0.5
-    #
-    #     elif (current_traffic == 0) & (normal_traffic > 0):
-    #         return 0
-    #
-    #     elif current_traffic < normal_traffic:
-    #         return 0
-    #
-    #     elif current_traffic < 1.5 * normal_traffic:
-    #         return 0
-    #     else:
-    #         excess_traffic = current_traffic - 1.5 * normal_traffic
-    #         return 4 * (1 - math.exp(-excess_traffic))
-
-    # def evaluate_traffic(self, sectorId_to_volumeCoef=None):
-    #     # If we have a correspondance of sector moneraty flow to volume,
-    #     # we identify the sector that generate volume
-    #     if sectorId_to_volumeCoef is not None:
-    #         sectors_causing_congestion = [
-    #             sector
-    #             for sector, coefficient in sectorId_to_volumeCoef.items()
-    #             if coefficient > 0
-    #         ]
-    #
-    #     for edge in self.edges():
-    #         if self[edge[0]][edge[1]]['type'] == 'virtual':
-    #             continue
-    #         # If we have a correspondance of sector moneraty flow to volume,
-    #         # we use volume
-    #         if sectorId_to_volumeCoef is not None:
-    #             volume = 0
-    #             for sector_id in sectors_causing_congestion:
-    #                 list_montetary_flows = [
-    #                     shipment['quantity']
-    #                     for shipment in self[edge[0]][edge[1]]["shipments"].values()
-    #                     if shipment['product_type'] == sector_id
-    #                 ]
-    #                 volume += sectorId_to_volumeCoef[sector_id] * sum(list_montetary_flows)
-    #             self[edge[0]][edge[1]]['traffic_current'] = volume
-    #         # Otherwise we use montery flow directly
-    #         else:
-    #             monetary_value_of_flows = sum([
-    #                 shipment['quantity']
-    #                 for shipment in self[edge[0]][edge[1]]["shipments"].values()
-    #             ])
-    #             self[edge[0]][edge[1]]['traffic_current'] = monetary_value_of_flows
-
     def reinitialize_flows_and_disruptions(self):
         for node in self.nodes:
             self.nodes[node]['disruption_duration'] = 0
@@ -446,14 +325,6 @@ class TransportNetwork(nx.Graph):
             self[edge[0]][edge[1]]['shipments'] = {}
             # self[edge[0]][edge[1]]['congestion'] = 0
             self[edge[0]][edge[1]]['current_load'] = 0
-
-    def calculate_cost_route(self, route):
-        route_edge_list = self.get_edge_list_from_route(route)
-        return sum([edge['cost_per_ton'] for edge in route_edge_list])
-
-    def get_edge_list_from_route(self, route):
-        edge_ids = [item for item in route if len(item) == 2]
-        return [self[edge_id[0]][edge_id[1]] for edge_id in edge_ids]
 
 
 def add_or_append_to_dict(dictionary, key, value_to_add):
