@@ -391,6 +391,10 @@ cost_repercussion_mode: "type1"
 # it the load exceed the capacity, then the edges cannot be used anymore
 account_capacity: True
 
+# Level of the noise to be added to the 'route_optimization_weight' attributes of the transport edges
+# when agents choose the lowest cost route. If 0, then no noise is added.
+transport_cost_noise_level: 0
+
 # How to create firms from economic data
 # - "economic_adminunit_data" is a new method developped for Cambodia
 #   We have econmic data for each sector at the commune level

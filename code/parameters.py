@@ -60,6 +60,7 @@ class Parameters:
     route_optimization_weight: str
     cost_repercussion_mode: str
     account_capacity: bool
+    transport_cost_noise_level: float
     firm_sampling_mode: str
     filepaths: dict
     export_files: bool
