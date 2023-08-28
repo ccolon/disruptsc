@@ -9,24 +9,24 @@ filepaths:
   "imports": "Trade/59sector_2016_import_table.csv"
   "exports": "Trade/59sector_2016_export_table.csv"
   "transit": "Trade/2016_transit_matrix.csv"
-  "roads_nodes": "Transport/roads_nodes_ximena.geojson"
-  "roads_edges": "Transport/roads_edges_ximena.geojson"
-  "multimodal_edges": "Transport/multimodal_edges_ximena.geojson"
+  "roads_nodes": "Transport/roads_nodes.geojson"  # roads_nodes_ximena for TR2
+  "roads_edges": "Transport/roads_edges.geojson"  # roads_edges_ximena for TR2
+  "multimodal_edges": "Transport/multimodal_edges.geojson"  # multimodal_edges_ximena for TR2
 transport_modes: [roads, maritime, waterways, airways]
 transport_cost_data:
-  roads: edge-specific
+  roads: surface-specific  # edge-specific for TR2 (Ximena's data), surface-specific for TR1 (OSM data)
 monetary_units_in_model: mUSD
 monetary_units_inputed: kUSD
 time_resolution: week
-firm_data_type: "mrio"  #  disaggregating IO
+firm_data_type: "mrio"  #  'disaggregating IO' for GR-13 and GR-59, 'mrio' for TR-AGG
 io_cutoff: 0.01  # 0.01
-simulation_type: initial_state
+simulation_type: disruption  # initial_state, disruption
 export_files: True
 disruption_description:
   type: compound
   events:
     - item_type: transport_edges
-      attribute: id
-      values: [465]
+      attribute: disruption
+      values: [2016_earthquake]
       start_time: 1
       duration: 1

@@ -13,16 +13,14 @@ from .country_builder_functions import create_countries_from_mrio, create_countr
 from .firm_builder_functions import define_firms_from_local_economic_data, define_firms_from_network_data, \
     define_firms_from_mrio, create_firms, load_technical_coefficients, calibrate_input_mix, load_mrio_tech_coefs, \
     load_inventories
+from .household_builder_functions import define_households_from_mrio, define_households, add_households_for_firms, \
+    create_households
 from .transport_network_builder_functions import \
     create_transport_network
 from .agent_builder_functions import \
     filter_sector, \
     extract_final_list_of_sector, \
-    define_households, \
-    add_households_for_firms, \
-    create_households, \
-    load_ton_usd_equivalence, \
-    define_households_from_mrio
+    load_ton_usd_equivalence
 from code.parameters import Parameters
 from code.disruption.disruption import DisruptionList
 from code.simulation.simulation import Simulation
@@ -555,6 +553,8 @@ class Model(object):
         # Get disruptions
         self.disruption_list = DisruptionList.from_disruption_description(self.parameters.disruption_description,
                                                                           self.transport_edges, self.firm_table)
+        if len(self.disruption_list) == 0:
+            raise ValueError("No disruption could be read")
         logging.info(f"{len(self.disruption_list)} disruption(s) will occur")
         self.disruption_list.print_info()
 
