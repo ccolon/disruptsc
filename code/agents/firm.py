@@ -1,20 +1,22 @@
+from typing import TYPE_CHECKING
+
 import logging
 import random
-from collections import UserList
 
 import networkx
 import numpy as np
 from shapely.geometry import Point
 
-from .agent_functions import purchase_planning_function, production_function, \
-    evaluate_inventory_duration, generate_weights, \
-    compute_distance_from_arcmin, rescale_values, \
-    agent_receive_products_and_pay
+from code.model.functions import generate_weights, \
+    compute_distance_from_arcmin, rescale_values
 
-from code.agents.agent import Agent, AgentList
+from code.agents.agent import Agent, AgentList, agent_receive_products_and_pay
 from code.network.commercial_link import CommercialLink
-from .country import CountryList
-from ..network.sc_network import ScNetwork
+from code.agents.country import CountryList
+
+if TYPE_CHECKING:
+    from code.network.sc_network import ScNetwork
+    from code.network.transport_network import TransportNetwork
 
 
 # TODO: create class FirmList, CountryList, HouseholdList from userlist as DisruptionList
@@ -272,7 +274,7 @@ class Firm(Agent):
 
         return supplier_type, selected_supplier_ids, supplier_weights
 
-    def select_suppliers(self, graph: ScNetwork, firm_list, country_list: CountryList,
+    def select_suppliers(self, graph: "ScNetwork", firm_list: "FirmList", country_list: "CountryList",
                          nb_suppliers_per_input: float, weight_localization: float,
                          firm_data_type: str, import_code: str):
         """
@@ -547,10 +549,9 @@ class Firm(Agent):
         # remove rationing as attribute
         pass
 
-    def deliver_products(self, graph, transport_network=None, sectors_no_transport_network=None,
-                         rationing_mode="equal",
-                         monetary_units_in_model="mUSD",
-                         cost_repercussion_mode="type1", account_capacity=True):
+    def deliver_products(self, graph: "ScNetwork", transport_network: "TransportNetwork",
+                         sectors_no_transport_network: list, rationing_mode: str, monetary_units_in_model: str,
+                         cost_repercussion_mode: str, account_capacity: bool, transport_cost_noise_level: float):
 
         # Do nothing if no orders
         if self.total_order == 0:
@@ -628,7 +629,8 @@ class Firm(Agent):
                     transport_network,
                     monetary_units_in_model,
                     cost_repercussion_mode,
-                    account_capacity
+                    account_capacity,
+                    transport_cost_noise_level
                 )
 
     def deliver_without_infrastructure(self, commercial_link):
@@ -642,8 +644,9 @@ class Firm(Agent):
         self.finance['costs']['transport'] += (self.clients[commercial_link.buyer_id]['share'] *
                                                self.eq_finance['costs']['transport'])
 
-    def send_shipment(self, commercial_link, transport_network,
-                      monetary_units_in_model, cost_repercussion_mode, account_capacity):
+    def send_shipment(self, commercial_link: "CommercialLink", transport_network: "TransportNetwork",
+                      monetary_units_in_model: str, cost_repercussion_mode: str,
+                      account_capacity: bool, transport_cost_noise_level: float):
 
         monetary_unit_factor = {
             "mUSD": 1e6,
@@ -686,7 +689,8 @@ class Firm(Agent):
             route = commercial_link.alternative_route
         # Otherwise we need to discover a new one
         else:
-            route = self.discover_new_route(commercial_link, transport_network, account_capacity)
+            route = self.discover_new_route(commercial_link, transport_network,
+                                            account_capacity, transport_cost_noise_level)
 
         # If the alternative route is available, or if we discovered one, we proceed
         if route is not None:
@@ -808,7 +812,8 @@ class Firm(Agent):
             # We set delivery to 0
             commercial_link.delivery = 0
 
-    def discover_new_route(self, commercial_link, transport_network, account_capacity):
+    def discover_new_route(self, commercial_link: "CommercialLink", transport_network: "TransportNetwork",
+                           account_capacity: bool, transport_cost_noise_level: float):
         origin_node = self.odpoint
         destination_node = commercial_link.route[-1][0]
         route, selected_mode = self.choose_route(
@@ -816,6 +821,7 @@ class Firm(Agent):
             origin_node=origin_node,
             destination_node=destination_node,
             account_capacity=account_capacity,
+            transport_cost_noise_level=transport_cost_noise_level,
             accepted_logistics_modes=commercial_link.possible_transport_modes
         )
         # If we find a new route, we save it as the alternative one
@@ -823,8 +829,7 @@ class Firm(Agent):
             commercial_link.store_route_information(
                 route=route,
                 transport_mode=selected_mode,
-                main_or_alternative="alternative",
-                transport_network=transport_network
+                main_or_alternative="alternative"
             )
         return route
 
@@ -920,3 +925,35 @@ class FirmList(AgentList):
                     firm_id_duration_reduction_dict[firm.pid]['duration'],
                     firm_id_duration_reduction_dict[firm.pid]['reduction']
                 )
+
+
+def production_function(inputs, input_mix, function_type="Leontief"):
+    # Leontief
+    if function_type == "Leontief":
+        try:
+            return min([inputs[input_id] / input_mix[input_id] for input_id, val in input_mix.items()])
+        except KeyError:
+            return 0
+
+    else:
+        raise ValueError("Wrong mode selected")
+
+
+def purchase_planning_function(estimated_need, inventory, inventory_duration_target=1, reactivity_rate=1):
+    """Decide the quantity of each input to buy according to a dynamical rule
+    """
+    target_inventory = (1 + inventory_duration_target) * estimated_need
+    if inventory >= target_inventory + estimated_need:
+        return 0
+    elif inventory >= target_inventory:
+        return target_inventory + estimated_need - inventory
+    else:
+        return (1 - reactivity_rate) * estimated_need + reactivity_rate * (
+                estimated_need + target_inventory - inventory)
+
+
+def evaluate_inventory_duration(estimated_need, inventory):
+    if estimated_need == 0:
+        return None
+    else:
+        return inventory / estimated_need - 1

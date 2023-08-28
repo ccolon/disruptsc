@@ -1,21 +1,20 @@
-import random
-from collections import UserList
+from typing import TYPE_CHECKING
 
+import numpy as np
 import pandas as pd
 import geopandas as gpd
-import math
 import logging
-import warnings
 
-from .agent_functions import rescale_values, \
-    generate_weights_from_list, \
-    determine_suppliers_and_weights, \
-    identify_firms_in_each_sector, \
-    identify_special_transport_nodes, \
-    agent_receive_products_and_pay, calculate_distance_between_agents
+from code.model.functions import calculate_distance_between_agents, rescale_values, \
+    generate_weights_from_list
+from code.agents.agent import agent_receive_products_and_pay
 
 from code.agents.agent import Agent, AgentList
 from code.network.commercial_link import CommercialLink
+
+if TYPE_CHECKING:
+    from code.network.transport_network import TransportNetwork
+    from code.network.sc_network import ScNetwork
 
 
 class Country(Agent):
@@ -86,7 +85,8 @@ class Country(Agent):
         dic_sector_to_firm_id = identify_firms_in_each_sector(firm_list)
         share_exporting_firms = sector_table.set_index('sector')['share_exporting_firms'].to_dict()
         # Identify od_points which exports (optional)
-        export_od_points = identify_special_transport_nodes(transport_nodes, "export")
+        export_od_points = transport_nodes.dropna(subset=['special'])
+        export_od_points = export_od_points.loc[export_od_points['special'].str.contains("export"), "id"].tolist()
         # Identify sectors to buy from
         present_sectors = list(set(list(dic_sector_to_firm_id.keys())))
         sectors_to_buy_from = list(self.qty_purchased.keys())
@@ -155,8 +155,10 @@ class Country(Agent):
                 quantity_to_buy = 0
             graph[edge[0]][self]['object'].order = quantity_to_buy
 
-    def deliver_products(self, graph, transport_network, sectors_no_transport_network,
-                         rationing_mode, monetary_units_in_model, cost_repercussion_mode, account_capacity):
+    def deliver_products(self, graph: "ScNetwork", transport_network: "TransportNetwork",
+                         sectors_no_transport_network: list[str], rationing_mode: str,
+                         monetary_units_in_model: str, cost_repercussion_mode: str, account_capacity: bool,
+                         transport_cost_noise_level: float):
         """ The quantity to be delivered is the quantity that was ordered (no rationning takes place)
         """
         self.generalized_transport_cost = 0
@@ -187,7 +189,8 @@ class Country(Agent):
                         transport_network,
                         monetary_units_in_model,
                         cost_repercussion_mode,
-                        account_capacity
+                        account_capacity,
+                        transport_cost_noise_level
                     )
             else:
                 if (edge[1].odpoint != -1):  # to non-service firms, send shipment through transportation network
@@ -196,14 +199,16 @@ class Country(Agent):
                         transport_network,
                         monetary_units_in_model,
                         cost_repercussion_mode,
-                        account_capacity
+                        account_capacity,
+                        transport_cost_noise_level
                     )
                 else:  # if it sends to service firms, nothing to do. price is equilibrium price
                     graph[self][edge[1]]['object'].price = graph[self][edge[1]]['object'].eq_price
                     self.qty_sold += graph[self][edge[1]]['object'].delivery
 
-    def send_shipment(self, commercial_link, transport_network,
-                      monetary_units_in_model, cost_repercussion_mode, account_capacity):
+    def send_shipment(self, commercial_link: "CommercialLink", transport_network: "TransportNetwork",
+                      monetary_units_in_model: str, cost_repercussion_mode: str, account_capacity: bool,
+                      transport_cost_noise_level: float):
 
         if commercial_link.delivery_in_tons == 0:
             print("delivery", commercial_link.delivery)
@@ -252,6 +257,7 @@ class Country(Agent):
                 origin_node=origin_node,
                 destination_node=destination_node,
                 account_capacity=account_capacity,
+                transport_cost_noise_level=transport_cost_noise_level,
                 accepted_logistics_modes=commercial_link.possible_transport_modes
             )
             # We evaluate the cost of this new route
@@ -259,8 +265,7 @@ class Country(Agent):
                 commercial_link.store_route_information(
                     route=route,
                     transport_mode=selected_mode,
-                    main_or_alternative="alternative",
-                    transport_network=transport_network
+                    main_or_alternative="alternative"
                 )
 
         # If the alternative route is available, or if we discovered one, we proceed
@@ -353,3 +358,47 @@ class Country(Agent):
 
 class CountryList(AgentList):
     pass
+
+
+def identify_firms_in_each_sector(firm_list):
+    firm_id_each_sector = pd.DataFrame({
+        'firm': [firm.pid for firm in firm_list],
+        'sector': [firm.sector for firm in firm_list]})
+    dic_sector_to_firmid = firm_id_each_sector \
+        .groupby('sector')['firm'] \
+        .apply(lambda x: list(x)) \
+        .to_dict()
+    return dic_sector_to_firmid
+
+
+def determine_suppliers_and_weights(potential_supplier_pids,
+                                    nb_selected_suppliers, firm_list, mode):
+    # Get importance for each of them
+    if "importance_export" in mode.keys():
+        importance_of_each = rescale_values([
+            firm_list[firm_pid].importance * mode['importance_export']['bonus']
+            if firm_list[firm_pid].odpoint in mode['importance_export']['export_od_points']
+            else firm_list[firm_pid].importance
+            for firm_pid in potential_supplier_pids
+        ])
+    elif "importance" in mode.keys():
+        importance_of_each = rescale_values([
+            firm_list[firm_pid].importance
+            for firm_pid in potential_supplier_pids
+        ])
+
+    # Select supplier
+    prob_to_be_selected = np.array(importance_of_each) / np.array(importance_of_each).sum()
+    selected_supplier_ids = np.random.choice(potential_supplier_pids,
+                                             p=prob_to_be_selected,
+                                             size=nb_selected_suppliers,
+                                             replace=False
+                                             ).tolist()
+
+    # Compute weights, based on importance only
+    supplier_weights = generate_weights_from_list([
+        firm_list[firm_pid].importance
+        for firm_pid in selected_supplier_ids
+    ])
+
+    return selected_supplier_ids, supplier_weights

@@ -8,7 +8,7 @@ import pandas as pd
 import geopandas as gpd
 
 from code.agents.firm import Firm, FirmList
-from code.model.agent_builder_functions import get_index_closest_point, get_closest_road_nodes, get_long_lat
+from code.model.builder_functions import get_index_closest_point, get_closest_road_nodes, get_long_lat
 
 
 def create_firms(

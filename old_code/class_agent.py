@@ -38,8 +38,7 @@ class Agent(object):
                 sc_network[self][edge[1]]['object'].store_route_information(
                     route=route,
                     transport_mode=selected_mode,
-                    main_or_alternative="main",
-                    transport_network=transport_network
+                    main_or_alternative="main"
                 )
 
                 if account_capacity:

@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 import logging
 from pathlib import Path
 
@@ -5,11 +7,11 @@ import geopandas
 import pandas
 import pandas as pd
 import geopandas as gpd
-import numpy as np
 from pandas import Series
 
-from code.agents.firm import FirmList
-from code.agents.country import CountryList
+if TYPE_CHECKING:
+    from code.agents.firm import FirmList
+    from code.agents.country import CountryList
 
 
 def filter_sector(sector_table, cutoff_sector_output, cutoff_sector_demand,
@@ -163,7 +165,7 @@ def get_index_closest_point(point, df_with_points):
     return df_with_points.index[distance_list.index(min(distance_list))]
 
 
-def extract_final_list_of_sector(firm_list: FirmList):
+def extract_final_list_of_sector(firm_list: "FirmList"):
     n = len(firm_list)
     present_sectors = list(set([firm.main_sector for firm in firm_list]))
     present_sectors.sort()
@@ -173,44 +175,7 @@ def extract_final_list_of_sector(firm_list: FirmList):
     return n, present_sectors, flow_types_to_export
 
 
-def rescale_monetary_values(
-        values: pd.Series | pd.DataFrame | float,
-        time_resolution: str = "week",
-        target_units: str = "mUSD",
-        input_units: str = "USD"
-) -> pd.Series | pd.DataFrame | float:
-    """Rescale monetary values using the appropriate timescale and monetary units
-
-    Parameters
-    ----------
-    values : pandas.Series, pandas.DataFrame, float
-        Values to transform
-
-    time_resolution : 'day', 'week', 'month', 'year'
-        The number in the input table are yearly figure
-
-    target_units : 'USD', 'kUSD', 'mUSD'
-        Monetary units to which values are converted
-
-    input_units : 'USD', 'kUSD', 'mUSD'
-        Monetary units of the inputted values
-
-    Returns
-    -------
-    same type as values
-    """
-    # Rescale according to the time period chosen
-    periods = {'day': 365, 'week': 52, 'month': 12, 'year': 1}
-    values = values / periods[time_resolution]
-
-    # Change units
-    units = {"USD": 1, "kUSD": 1e3, "mUSD": 1e6}
-    values = values * units[input_units] / units[target_units]
-
-    return values
-
-
-def load_ton_usd_equivalence(sector_table: pd.DataFrame, firm_list: FirmList, country_list: CountryList):
+def load_ton_usd_equivalence(sector_table: pd.DataFrame, firm_list: "FirmList", country_list: "CountryList"):
     """Load equivalence between usd and ton
 
     It updates the firm_list and country_list.

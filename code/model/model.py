@@ -8,16 +8,17 @@ from .caching_functions import \
     load_cached_transaction_table, \
     cache_transport_network, \
     cache_agent_data, load_cached_sc_network, cache_sc_network, load_cached_logistic_routes, cache_logistic_routes
-from .check_functions import compare_production_purchase_plans
-from .country_builder_functions import create_countries_from_mrio, create_countries
-from .firm_builder_functions import define_firms_from_local_economic_data, define_firms_from_network_data, \
+from code.model.check_functions import compare_production_purchase_plans
+from code.model.country_builder_functions import create_countries_from_mrio, create_countries
+from code.model.firm_builder_functions import define_firms_from_local_economic_data, define_firms_from_network_data, \
     define_firms_from_mrio, create_firms, load_technical_coefficients, calibrate_input_mix, load_mrio_tech_coefs, \
     load_inventories
-from .household_builder_functions import define_households_from_mrio, define_households, add_households_for_firms, \
+from code.model.household_builder_functions import define_households_from_mrio, define_households, \
+    add_households_for_firms, \
     create_households
-from .transport_network_builder_functions import \
+from code.model.transport_network_builder_functions import \
     create_transport_network
-from .agent_builder_functions import \
+from code.model.builder_functions import \
     filter_sector, \
     extract_final_list_of_sector, \
     load_ton_usd_equivalence
@@ -373,12 +374,14 @@ class Model(object):
             for country in self.country_list:
                 country.choose_initial_routes(self.sc_network, self.transport_network, logistics_modes,
                                               self.parameters.account_capacity,
+                                              self.parameters.transport_cost_noise_level,
                                               self.parameters.monetary_units_in_model)
             logging.info('Routes for exports and B2B domestic flows are being selected by domestic firms')
             for firm in self.firm_list:
                 if firm.sector_type not in self.parameters.sectors_no_transport_network:
                     firm.choose_initial_routes(self.sc_network, self.transport_network, logistics_modes,
                                                self.parameters.account_capacity,
+                                               self.parameters.transport_cost_noise_level,
                                                self.parameters.monetary_units_in_model)
             # Save to tmp folder
             data_to_cache = {
@@ -595,10 +598,12 @@ class Model(object):
         self.firm_list.produce()
         self.country_list.deliver(self.sc_network, self.transport_network, self.parameters.sectors_no_transport_network,
                                   self.parameters.rationing_mode, self.parameters.account_capacity,
-                                  self.parameters.monetary_units_in_model, self.parameters.cost_repercussion_mode)
+                                  self.parameters.monetary_units_in_model, self.parameters.cost_repercussion_mode,
+                                  self.parameters.transport_cost_noise_level)
         self.firm_list.deliver(self.sc_network, self.transport_network, self.parameters.sectors_no_transport_network,
                                self.parameters.rationing_mode, self.parameters.account_capacity,
-                               self.parameters.monetary_units_in_model, self.parameters.cost_repercussion_mode)
+                               self.parameters.monetary_units_in_model, self.parameters.cost_repercussion_mode,
+                                  self.parameters.transport_cost_noise_level)
         # if congestion: TODO reevaluate modeling of congestion
         #     if (time_step == 0):
         #         transport_network.evaluate_normal_traffic()

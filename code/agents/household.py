@@ -1,16 +1,14 @@
-from collections import UserList
+from code.model.functions import calculate_distance_between_agents
+from code.agents.agent import determine_nb_suppliers, select_supplier_from_list, \
+    agent_receive_products_and_pay
 
-from .agent_functions import determine_nb_suppliers, select_supplier_from_list, \
-    agent_receive_products_and_pay, calculate_distance_between_agents
-
-import random
 import pandas as pd
 import logging
 
 from code.agents.agent import Agent, AgentList
 from code.network.commercial_link import CommercialLink
-from .firm import FirmList
-from ..network.sc_network import ScNetwork
+from code.agents.firm import FirmList
+from code.network.sc_network import ScNetwork
 
 
 class Household(Agent):

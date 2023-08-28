@@ -1,5 +1,7 @@
 import pandas as pd
 
+from code.network.route import Route
+
 
 class CommercialLink(object):
 
@@ -59,10 +61,9 @@ class CommercialLink(object):
         self.alternative_route_cost_per_ton = 0
         self.price = 1
 
-    def store_route_information(self, route, transport_mode,
-                                main_or_alternative, transport_network):
+    def store_route_information(self, route: Route, transport_mode: str, main_or_alternative: str):
 
-        distance, route_time_cost, cost_per_ton = transport_network.get_route_features(route)
+        # distance, route_time_cost, cost_per_ton = transport_network.get_route_features(route)
         # if pd.isna(cost_per_ton):
         #     print(route, distance, route_time_cost, cost_per_ton)
         #     transport_network.giveRouteCaracteristics(route, debug=True)
@@ -72,18 +73,18 @@ class CommercialLink(object):
         #     transport_network.giveRouteCaracteristics(route, debug=True)
 
         if main_or_alternative == "main":
-            self.route = route
+            self.route = route.transport_nodes_and_edges
             self.route_mode = transport_mode
-            self.route_length = distance
-            self.route_time_cost = route_time_cost
-            self.route_cost_per_ton = cost_per_ton
+            self.route_length = route.length
+            # self.route_time_cost = route_time_cost
+            self.route_cost_per_ton = route.cost_per_ton
 
         elif main_or_alternative == "alternative":
-            self.alternative_route = route
+            self.alternative_route = route.transport_nodes_and_edges
             self.alternative_route_mode = transport_mode
-            self.alternative_route_length = distance
-            self.alternative_route_time_cost = route_time_cost
-            self.alternative_route_cost_per_ton = cost_per_ton
+            self.alternative_route_length = route.length
+            # self.alternative_route_time_cost = route_time_cost
+            self.alternative_route_cost_per_ton = route.cost_per_ton
 
             # switching_cost = 0.05
             # if self.alternative_route_mode != self.route_mode:

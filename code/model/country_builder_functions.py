@@ -6,7 +6,7 @@ import pandas
 import pandas as pd
 
 from code.agents.country import Country, CountryList
-from code.model.agent_builder_functions import rescale_monetary_values
+from code.model.functions import rescale_monetary_values
 
 
 def create_countries(filepath_imports: Path, filepath_exports: Path, filepath_transit: Path,

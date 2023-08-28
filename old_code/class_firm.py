@@ -251,10 +251,10 @@ class Firm(Agent):
                 if len(potential_supplier_pid) == 0:
                     raise ValueError("Firm " + str(self.pid) +
                                      ": no potential supplier for input " + str(sector_id))
-                # print("\n", self.pid, ":", str(len(potential_supplier_pid)), "for sector", sector_id)
+                # print("\n", self.pid, ":", str(len(potential_supplier_pids)), "for sector", sector_id)
                 # print([
                 #     self.distance_to_other(firm_list[firm_pid]) 
-                #     for firm_pid in potential_supplier_pid
+                #     for firm_pid in potential_supplier_pids
                 # ])
                 distance_to_each = rescale_values([
                     self.distance_to_other(firm_list[firm_pid])
