@@ -36,6 +36,8 @@ logistic routes are generated
 - `same_sc_network_new_logistic_routes`: the transport network, agents, supplier-buyer links, are reused, 
 but new logistic routes are generated
 - `same_logistic_routes`: everything is reused
+The files are cached in the `tmp` folder as pickle files. Note that if you change region, you will first need 
+to call the script without optional argument.
 
 
 ## Concepts
@@ -44,16 +46,16 @@ but new logistic routes are generated
 
 The model focuses on a country. A country is divided into some administrative units 
 (e.g., regions, districts, communes, cantones, etc.) We need to pick a relevant administrative level 
-for which the economic data are compiled. We call it "districts" in the remainder of the text.
+for which the economic data are compiled. We call it "regions" in the remainder of the text.
 
-Districts are labelled using the country-relevant classification, for instance, the string `XXXXXX` where X are digits. 
-We call this id the district code. It should always be a string, even if it consists of digits only, 
+Regions are labelled using the country-relevant classification, for instance, the string `XXXXXX` where X are digits. 
+We call this id the region code. It should always be a string, even if it consists of digits only, 
 e.g., `123456` as string, not as integer.
 
 The transport network is composed of edges and nodes. Edges are *LineString*, Nodes are *Points*. 
 Edges are identified by an integer ID, so are nodes.
 
-Each district is associated with one node in the transport network.
+Each region is associated with one node in the transport network.
 
 ### Sector structure
 
@@ -69,12 +71,13 @@ The main objects are the economic agents. There are three classes of agents:
 - countries
 
 Firms, households, and countries are associated with nodes in the transport network. 
-There is at most one firm per sector per district, one household per sector per district. 
-Countries are associated to nodes which are located outside of the country.
+There is at most one firm per sector per region, one household per sector per region. 
+Countries are associated to nodes which are located outside the country.
 
 ### Implementation choices
 
-- For geographical data file, we use GeoJSON and not shapefiles. They should all be unprojected, using *epsg:4326*.
+- For geographical data file, we use GeoJSON and not shapefiles. They should not be projected and 
+use the *epsg:4326* coordinate reference system.
 
 
 ## Using the model
@@ -88,7 +91,7 @@ given in the `parameters.py` file. Usually, this name is the country under study
 Within this subdirectory, create 5 subdirectories:
 - Disruption: specific list of transport nodes or edges to test (optional)
 - National: country-wide data derived from input--output tables or other country-wide data
-- Subnational: subnational data, typically, for each district, population, location of the main city, sector size
+- Subnational: subnational data, typically, for each region, population, location of the main city, sector size
 - Trade: import, export, transit flows
 - Transport: the transport network
 
@@ -196,7 +199,7 @@ It needs to be adjusted to the transport modes modelled.
 	variability_coef: 0.44 #USD/hour
 
 
-#### Contraints on transport modes (optional)
+#### Constraints on transport modes (optional)
 
 An additional file `transport_modes.csv` can be used to prevent specific supply-chains flows 
 from taking specific transport modes. 
@@ -221,10 +224,10 @@ Set to 0 for sectors whose type is 'utility', 'transport', 'trade', 'service'
 - `share_exporting_firms`: the percentage of the firms that export per sector. 
 This value can be derived from country-specific data. 
 Without good data, we can simply use for instance the share of export per sector.
-- `supply_data` (when no network data are used): the attribute of the 'district_data' file 
+- `supply_data` (when no network data are used): the attribute of the 'region_data' file 
 that the model will use to disaggregate the sectoral data
 - `cutoff` (when no network data are used): the cutoff value to apply. 
-We will not model any firm for this sector in districts whose supply_data is below the cutoff
+We will not model any firm for this sector in regions whose supply_data is below the cutoff
 
 Note that, when no network data are used, the model will create firms based on the geospatial economic data. To speed up computation, firms that would be too small are dropped.
 
@@ -273,15 +276,15 @@ TRD | AGR | 3.5
 
 ### Subnational (when no network data are used)'
 
-#### District Data
+#### Region Data
 
-In this file are summarized the socioeconomic and spatial data on economic production for each district. 
+In this file are summarized the socioeconomic and spatial data on economic production for each region. 
 A GeoJSON file is expected.
-- `admin_code`: a string with the administrative code of the district
-- `geometry`: a 'Point', which represent where the firms and household modelled for this district will be located. 
-Typically the location of the largest city in the district, or, as a second best option, the district's centroid.
-- `population`: the number of people in the district
-- economic supply data: at least one column per sector which captures the size of the sector in this district. 
+- `admin_code`: a string with the administrative code of the region
+- `geometry`: a 'Point', which represent where the firms and household modelled for this region will be located. 
+Typically the location of the largest city in the region, or, as a second best option, the region's centroid.
+- `population`: the number of people in the region
+- economic supply data: at least one column per sector which captures the size of the sector in this region. 
 For instance, there could be the number of employees in the manufacturing of basic metals, 
 the total sales of construction, and the value of production of agricultural products. 
 The column name should corresponds to the values of the `supply_data` column in the _sector table_
@@ -344,7 +347,7 @@ Example:
 ## Data prep
 
 *Requisite:*
-- Say you have sales data per sector per district, *sales_csv*, preprated from business census data. 
+- Say you have sales data per sector per region, *sales_csv*, preprated from business census data. 
 It should be coded with a relevant sector classification.
 - You should also have a list of countries, or group of countries, to represent the rest of the world. 
 Typically, isolate the neighbooring countries, or those that very relevant in terms of trade, 
@@ -359,23 +362,23 @@ For instance, VNM for Vietnam, THA for Thailand, ASI for Asia, OCE for Oceania, 
 (recommended identifier: a trigram, e.g. CER for cereal production or MTE for manufacturing of textile)
 - The column with the identifier should be called *sector*
 
-**2. Prepare the district data**
+**2. Prepare the region data**
 
-- Prepare a *district_geojson*, with all district, their adequate identifier 
+- Prepare a *region_geojson*, with all region, their adequate identifier 
 (typically the administrative code, beware whether you want it to me string or integer), 
 the point of their main city as geometry
 - Make sure the coordinates system is EPSG 4326 (unprojected, degrees)
 - The column with the admin code should be called *admin_code*
-- Make sure that in your *sales_csv*, the districts and sectors are adequately coded
-- Create the *district_data_geojson* (see above) from *district_geojson* and *sales_csv*, 
-which includes population per district
+- Make sure that in your *sales_csv*, the regions and sectors are adequately coded
+- Create the *region_data_geojson* (see above) from *region_geojson* and *sales_csv*, 
+which includes population per region
 
 **3. Add the sector cutoff to the sector table**
 
 - Add a column *supply_data* in the sector table: 
-it should correspond to the name of the attribute of the district data (*district_geojson*) 
+it should correspond to the name of the attribute of the regional data (*region_geojson*) 
 contains the economic data of that sector
-- Add a column *cutoff* in the sector table: only district with data above this cutoff will be 
+- Add a column *cutoff* in the sector table: only region with data above this cutoff will be 
 modeled as production place for that sector
 
 **4. Prepare the technical coefficient matrix**
