@@ -26,9 +26,11 @@ class ScNetwork(nx.DiGraph):
         return io_table
 
     def generate_edge_list(self):
-        edge_list = [(source.pid, source.agent_type, target.pid, target.agent_type) for source, target in self.edges()]
+        edge_list = [(source.pid, source.agent_type, source.odpoint, target.pid, target.agent_type, target.odpoint)
+                     for source, target in self.edges()]
         edge_list = pd.DataFrame(edge_list)
-        edge_list.columns = ['source_id', 'source_type', 'target_id', 'target_type']
+        edge_list.columns = ['source_id', 'source_type', 'source_od_point',
+                             'target_id', 'target_type', 'target_od_point']
         return edge_list
 
 

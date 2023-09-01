@@ -42,6 +42,8 @@ class Simulation(object):
             # export io matrix
             logging.info(f'Exporting resulting IO matrix to {export_folder}')
             sc_network.calculate_io_matrix().to_csv(export_folder / "io_table.csv")
+            logging.info(f'Exporting edgelist to {export_folder}')
+            sc_network.generate_edge_list().to_csv(export_folder / "sc_network_edgelist.csv")
 
         elif self.type == "disruption":
             # export loss time series for households
@@ -66,6 +68,9 @@ class Simulation(object):
             country_result_table.to_csv(export_folder / "loss_per_country.csv", index=False)
             logging.info(f"Cumulated household loss: {household_loss:,.2f} {monetary_unit_in_model}")
             logging.info(f"Cumulated country loss: {country_loss:,.2f} {monetary_unit_in_model}")
+            # Export summary
+            total_loss = pd.DataFrame({"households": household_loss, "countries": country_loss}, index=[0])
+            total_loss.to_csv(export_folder / "loss_summary.csv", index=False)
 
     @staticmethod
     def summarize_results_one_household(household_result_table_one_household):
