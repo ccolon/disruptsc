@@ -1,0 +1,67 @@
+# Import modules
+import logging
+import sys
+import time
+import paths
+from code.model.caching_functions import generate_cache_parameters_from_command_line_argument
+from code.parameters import Parameters
+from code.simulation.handling_functions import check_script_call
+from code.model.model import Model
+
+import networkx as nx
+import numpy as np
+
+region = "Ecuador"
+parameters = Parameters.load_parameters(paths.PARAMETER_FOLDER, region)
+
+
+model = Model(parameters)
+model.setup_transport_network(True)
+model.setup_agents(True)
+model.setup_sc_network(True)
+
+model.set_initial_conditions()
+
+model.setup_logistic_routes(cached=cache_parameters['logistic_routes'])
+
+
+nx.adjacency_matrix(
+            model.sc_network,
+            weight='weight',
+            nodelist=model.firm_list)
+
+
+nx.adjacency_matrix(
+            model.sc_network,
+            weight='weight',
+            nodelist=model.firm_list).todense()
+
+
+firm_connectivity_matrix = nx.adjacency_matrix(
+    model.sc_network,
+    # graph.subgraph(list(graph.nodes)[:-1]),
+    weight='weight',
+    nodelist=model.firm_list
+).todense()
+
+
+final_demand_vector = model.build_final_demand_vector(model.household_list, model.country_list, model.firm_list)
+
+n = len(model.firm_list)
+np.linalg.solve(np.eye(n) - firm_connectivity_matrix, final_demand_vector)
+
+
+for household in model.household_list:
+    for retailer_id, quantity in household.purchase_plan.items():
+        final_demand_vector[(retailer_id, 0)] += quantity
+
+
+for country in model.country_list:
+    for supplier_id, quantity in country.purchase_plan.items():
+        if isinstance(supplier_id, int):  # we only consider purchase from firms, not from other countries
+            final_demand_vector[(supplier_id, 0)] += quantity
+
+for country in model.country_list:
+    for supplier_id, quantity in country.purchase_plan.items():
+        if supplier_id == 2085:
+            print(country.pid, country.purchase_plan[2085])

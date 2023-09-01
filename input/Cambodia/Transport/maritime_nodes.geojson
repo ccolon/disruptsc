@@ -1,0 +1,27 @@
+{
+"type": "FeatureCollection",
+"features": [
+{ "type": "Feature", "properties": { "name": "Sihanoukville international port", "special": "port", "id": 0 }, "geometry": { "type": "Point", "coordinates": [ 103.516309673648962, 10.650942812649564 ] } },
+{ "type": "Feature", "properties": { "name": null, "special": "ASI", "id": 1 }, "geometry": { "type": "Point", "coordinates": [ 113.259728363939985, 19.976633901767304 ] } },
+{ "type": "Feature", "properties": { "name": "Cai Mep Port", "special": "port", "id": 2 }, "geometry": { "type": "Point", "coordinates": [ 107.025876593767066, 10.537117173118581 ] } },
+{ "type": "Feature", "properties": { "name": "Laem Chabang", "special": "port", "id": 3 }, "geometry": { "type": "Point", "coordinates": [ 100.872678802248288, 13.075676164145284 ] } },
+{ "type": "Feature", "properties": { "name": null, "special": "OCE", "id": 4 }, "geometry": { "type": "Point", "coordinates": [ 138.574984333814058, -11.105679419151238 ] } },
+{ "type": "Feature", "properties": { "name": null, "special": "AFR", "id": 5 }, "geometry": { "type": "Point", "coordinates": [ 39.460999999591884, -6.961000000336512 ] } },
+{ "type": "Feature", "properties": { "name": null, "special": "EUR", "id": 6 }, "geometry": { "type": "Point", "coordinates": [ 6.007387900575273, 43.169671891513858 ] } },
+{ "type": "Feature", "properties": { "name": null, "special": null, "id": 7 }, "geometry": { "type": "Point", "coordinates": [ 111.128727898729466, 10.891175443645832 ] } },
+{ "type": "Feature", "properties": { "name": null, "special": null, "id": 8 }, "geometry": { "type": "Point", "coordinates": [ 104.183, 1.412 ] } },
+{ "type": "Feature", "properties": { "name": null, "special": "AME", "id": 9 }, "geometry": { "type": "Point", "coordinates": [ -76.663, 34.718 ] } },
+{ "type": "Feature", "properties": { "name": null, "special": null, "id": 10 }, "geometry": { "type": "Point", "coordinates": [ 8.202779880036474, 38.194384502585571 ] } },
+{ "type": "Feature", "properties": { "name": null, "special": null, "id": 11 }, "geometry": { "type": "Point", "coordinates": [ 91.164830956026108, 4.920942313332673 ] } },
+{ "type": "Feature", "properties": { "name": null, "special": null, "id": 12 }, "geometry": { "type": "Point", "coordinates": [ 105.796587036586246, 10.044505762768368 ] } },
+{ "type": "Feature", "properties": { "name": null, "special": null, "id": 13 }, "geometry": { "type": "Point", "coordinates": [ 106.367781966723058, 10.351346014494759 ] } },
+{ "type": "Feature", "properties": { "name": null, "special": null, "id": 14 }, "geometry": { "type": "Point", "coordinates": [ 103.515492084796065, 10.651131227669753 ] } },
+{ "type": "Feature", "properties": { "name": null, "special": null, "id": 15 }, "geometry": { "type": "Point", "coordinates": [ 100.853649215939285, 13.071231697919652 ] } },
+{ "type": "Feature", "properties": { "name": null, "special": null, "id": 16 }, "geometry": { "type": "Point", "coordinates": [ 107.064412294750142, 10.333478971511965 ] } },
+{ "type": "Feature", "properties": { "name": "Ho Chi Minh Port", "special": "port", "id": 17 }, "geometry": { "type": "Point", "coordinates": [ 106.747141375268356, 10.718555952143424 ] } },
+{ "type": "Feature", "properties": { "name": null, "special": null, "id": 18 }, "geometry": { "type": "Point", "coordinates": [ 107.022525111633968, 10.533775719394677 ] } },
+{ "type": "Feature", "properties": { "name": null, "special": null, "id": 19 }, "geometry": { "type": "Point", "coordinates": [ 106.751512058838287, 10.717865844211337 ] } },
+{ "type": "Feature", "properties": { "name": null, "special": null, "id": 20 }, "geometry": { "type": "Point", "coordinates": [ 107.064038937681914, 10.108822590548494 ] } },
+{ "type": "Feature", "properties": { "name": null, "special": null, "id": 21 }, "geometry": { "type": "Point", "coordinates": [ 107.236021863624501, 9.872557206319328 ] } }
+]
+}

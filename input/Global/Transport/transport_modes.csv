@@ -1,0 +1,4 @@
+from	to	sector	transport_mode
+domestic	domestic	all	domestic
+domestic	ROW	all	international
+ROW	domestic	all	international

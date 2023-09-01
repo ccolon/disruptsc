@@ -1,0 +1,4916 @@
+,sector,supply_data,cutoff,coverage
+0,AFG_Agriculture,USD,0,1
+1,AFG_Fishing,USD,0,1
+2,AFG_Mining and Quarrying,USD,0,1
+3,AFG_Food & Beverages,USD,0,1
+4,AFG_Textiles and Wearing Apparel,USD,0,1
+5,AFG_Wood and Paper,USD,0,1
+6,"AFG_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+7,AFG_Metal Products,USD,0,1
+8,AFG_Electrical and Machinery,USD,0,1
+9,AFG_Transport Equipment,USD,0,1
+10,AFG_Other Manufacturing,USD,0,1
+11,AFG_Recycling,USD,0,1
+12,"AFG_Electricity, Gas and Water",USD,0,1
+13,AFG_Construction,USD,0,1
+14,AFG_Maintenance and Repair,USD,0,1
+15,AFG_Wholesale Trade,USD,0,1
+16,AFG_Retail Trade,USD,0,1
+17,AFG_Hotels and Restraurants,USD,0,1
+18,AFG_Transport,USD,0,1
+19,AFG_Post and Telecommunications,USD,0,1
+20,AFG_Finacial Intermediation and Business Activities,USD,0,1
+21,AFG_Public Administration,USD,0,1
+22,"AFG_Education, Health and Other Services",USD,0,1
+23,AFG_Private Households,USD,0,1
+24,AFG_Others,USD,0,1
+25,AFG_Re-export & Re-import,USD,0,1
+26,ALB_Agriculture,USD,0,1
+27,ALB_Fishing,USD,0,1
+28,ALB_Mining and Quarrying,USD,0,1
+29,ALB_Food & Beverages,USD,0,1
+30,ALB_Textiles and Wearing Apparel,USD,0,1
+31,ALB_Wood and Paper,USD,0,1
+32,"ALB_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+33,ALB_Metal Products,USD,0,1
+34,ALB_Electrical and Machinery,USD,0,1
+35,ALB_Transport Equipment,USD,0,1
+36,ALB_Other Manufacturing,USD,0,1
+37,ALB_Recycling,USD,0,1
+38,"ALB_Electricity, Gas and Water",USD,0,1
+39,ALB_Construction,USD,0,1
+40,ALB_Maintenance and Repair,USD,0,1
+41,ALB_Wholesale Trade,USD,0,1
+42,ALB_Retail Trade,USD,0,1
+43,ALB_Hotels and Restraurants,USD,0,1
+44,ALB_Transport,USD,0,1
+45,ALB_Post and Telecommunications,USD,0,1
+46,ALB_Finacial Intermediation and Business Activities,USD,0,1
+47,ALB_Public Administration,USD,0,1
+48,"ALB_Education, Health and Other Services",USD,0,1
+49,ALB_Private Households,USD,0,1
+50,ALB_Others,USD,0,1
+51,ALB_Re-export & Re-import,USD,0,1
+52,DZA_Agriculture,USD,0,1
+53,DZA_Fishing,USD,0,1
+54,DZA_Mining and Quarrying,USD,0,1
+55,DZA_Food & Beverages,USD,0,1
+56,DZA_Textiles and Wearing Apparel,USD,0,1
+57,DZA_Wood and Paper,USD,0,1
+58,"DZA_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+59,DZA_Metal Products,USD,0,1
+60,DZA_Electrical and Machinery,USD,0,1
+61,DZA_Transport Equipment,USD,0,1
+62,DZA_Other Manufacturing,USD,0,1
+63,DZA_Recycling,USD,0,1
+64,"DZA_Electricity, Gas and Water",USD,0,1
+65,DZA_Construction,USD,0,1
+66,DZA_Maintenance and Repair,USD,0,1
+67,DZA_Wholesale Trade,USD,0,1
+68,DZA_Retail Trade,USD,0,1
+69,DZA_Hotels and Restraurants,USD,0,1
+70,DZA_Transport,USD,0,1
+71,DZA_Post and Telecommunications,USD,0,1
+72,DZA_Finacial Intermediation and Business Activities,USD,0,1
+73,DZA_Public Administration,USD,0,1
+74,"DZA_Education, Health and Other Services",USD,0,1
+75,DZA_Private Households,USD,0,1
+76,DZA_Others,USD,0,1
+77,DZA_Re-export & Re-import,USD,0,1
+78,AND_Agriculture,USD,0,1
+79,AND_Fishing,USD,0,1
+80,AND_Mining and Quarrying,USD,0,1
+81,AND_Food & Beverages,USD,0,1
+82,AND_Textiles and Wearing Apparel,USD,0,1
+83,AND_Wood and Paper,USD,0,1
+84,"AND_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+85,AND_Metal Products,USD,0,1
+86,AND_Electrical and Machinery,USD,0,1
+87,AND_Transport Equipment,USD,0,1
+88,AND_Other Manufacturing,USD,0,1
+89,AND_Recycling,USD,0,1
+90,"AND_Electricity, Gas and Water",USD,0,1
+91,AND_Construction,USD,0,1
+92,AND_Maintenance and Repair,USD,0,1
+93,AND_Wholesale Trade,USD,0,1
+94,AND_Retail Trade,USD,0,1
+95,AND_Hotels and Restraurants,USD,0,1
+96,AND_Transport,USD,0,1
+97,AND_Post and Telecommunications,USD,0,1
+98,AND_Finacial Intermediation and Business Activities,USD,0,1
+99,AND_Public Administration,USD,0,1
+100,"AND_Education, Health and Other Services",USD,0,1
+101,AND_Private Households,USD,0,1
+102,AND_Others,USD,0,1
+103,AND_Re-export & Re-import,USD,0,1
+104,AGO_Agriculture,USD,0,1
+105,AGO_Fishing,USD,0,1
+106,AGO_Mining and Quarrying,USD,0,1
+107,AGO_Food & Beverages,USD,0,1
+108,AGO_Textiles and Wearing Apparel,USD,0,1
+109,AGO_Wood and Paper,USD,0,1
+110,"AGO_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+111,AGO_Metal Products,USD,0,1
+112,AGO_Electrical and Machinery,USD,0,1
+113,AGO_Transport Equipment,USD,0,1
+114,AGO_Other Manufacturing,USD,0,1
+115,AGO_Recycling,USD,0,1
+116,"AGO_Electricity, Gas and Water",USD,0,1
+117,AGO_Construction,USD,0,1
+118,AGO_Maintenance and Repair,USD,0,1
+119,AGO_Wholesale Trade,USD,0,1
+120,AGO_Retail Trade,USD,0,1
+121,AGO_Hotels and Restraurants,USD,0,1
+122,AGO_Transport,USD,0,1
+123,AGO_Post and Telecommunications,USD,0,1
+124,AGO_Finacial Intermediation and Business Activities,USD,0,1
+125,AGO_Public Administration,USD,0,1
+126,"AGO_Education, Health and Other Services",USD,0,1
+127,AGO_Private Households,USD,0,1
+128,AGO_Others,USD,0,1
+129,AGO_Re-export & Re-import,USD,0,1
+130,ATG_Agriculture,USD,0,1
+131,ATG_Fishing,USD,0,1
+132,ATG_Mining and Quarrying,USD,0,1
+133,ATG_Food & Beverages,USD,0,1
+134,ATG_Textiles and Wearing Apparel,USD,0,1
+135,ATG_Wood and Paper,USD,0,1
+136,"ATG_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+137,ATG_Metal Products,USD,0,1
+138,ATG_Electrical and Machinery,USD,0,1
+139,ATG_Transport Equipment,USD,0,1
+140,ATG_Other Manufacturing,USD,0,1
+141,ATG_Recycling,USD,0,1
+142,"ATG_Electricity, Gas and Water",USD,0,1
+143,ATG_Construction,USD,0,1
+144,ATG_Maintenance and Repair,USD,0,1
+145,ATG_Wholesale Trade,USD,0,1
+146,ATG_Retail Trade,USD,0,1
+147,ATG_Hotels and Restraurants,USD,0,1
+148,ATG_Transport,USD,0,1
+149,ATG_Post and Telecommunications,USD,0,1
+150,ATG_Finacial Intermediation and Business Activities,USD,0,1
+151,ATG_Public Administration,USD,0,1
+152,"ATG_Education, Health and Other Services",USD,0,1
+153,ATG_Private Households,USD,0,1
+154,ATG_Others,USD,0,1
+155,ATG_Re-export & Re-import,USD,0,1
+156,ARG_Agriculture,USD,0,1
+157,ARG_Fishing,USD,0,1
+158,ARG_Mining and Quarrying,USD,0,1
+159,ARG_Food & Beverages,USD,0,1
+160,ARG_Textiles and Wearing Apparel,USD,0,1
+161,ARG_Wood and Paper,USD,0,1
+162,"ARG_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+163,ARG_Metal Products,USD,0,1
+164,ARG_Electrical and Machinery,USD,0,1
+165,ARG_Transport Equipment,USD,0,1
+166,ARG_Other Manufacturing,USD,0,1
+167,ARG_Recycling,USD,0,1
+168,"ARG_Electricity, Gas and Water",USD,0,1
+169,ARG_Construction,USD,0,1
+170,ARG_Maintenance and Repair,USD,0,1
+171,ARG_Wholesale Trade,USD,0,1
+172,ARG_Retail Trade,USD,0,1
+173,ARG_Hotels and Restraurants,USD,0,1
+174,ARG_Transport,USD,0,1
+175,ARG_Post and Telecommunications,USD,0,1
+176,ARG_Finacial Intermediation and Business Activities,USD,0,1
+177,ARG_Public Administration,USD,0,1
+178,"ARG_Education, Health and Other Services",USD,0,1
+179,ARG_Private Households,USD,0,1
+180,ARG_Others,USD,0,1
+181,ARG_Re-export & Re-import,USD,0,1
+182,ARM_Agriculture,USD,0,1
+183,ARM_Fishing,USD,0,1
+184,ARM_Mining and Quarrying,USD,0,1
+185,ARM_Food & Beverages,USD,0,1
+186,ARM_Textiles and Wearing Apparel,USD,0,1
+187,ARM_Wood and Paper,USD,0,1
+188,"ARM_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+189,ARM_Metal Products,USD,0,1
+190,ARM_Electrical and Machinery,USD,0,1
+191,ARM_Transport Equipment,USD,0,1
+192,ARM_Other Manufacturing,USD,0,1
+193,ARM_Recycling,USD,0,1
+194,"ARM_Electricity, Gas and Water",USD,0,1
+195,ARM_Construction,USD,0,1
+196,ARM_Maintenance and Repair,USD,0,1
+197,ARM_Wholesale Trade,USD,0,1
+198,ARM_Retail Trade,USD,0,1
+199,ARM_Hotels and Restraurants,USD,0,1
+200,ARM_Transport,USD,0,1
+201,ARM_Post and Telecommunications,USD,0,1
+202,ARM_Finacial Intermediation and Business Activities,USD,0,1
+203,ARM_Public Administration,USD,0,1
+204,"ARM_Education, Health and Other Services",USD,0,1
+205,ARM_Private Households,USD,0,1
+206,ARM_Others,USD,0,1
+207,ARM_Re-export & Re-import,USD,0,1
+208,ABW_Agriculture,USD,0,1
+209,ABW_Fishing,USD,0,1
+210,ABW_Mining and Quarrying,USD,0,1
+211,ABW_Food & Beverages,USD,0,1
+212,ABW_Textiles and Wearing Apparel,USD,0,1
+213,ABW_Wood and Paper,USD,0,1
+214,"ABW_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+215,ABW_Metal Products,USD,0,1
+216,ABW_Electrical and Machinery,USD,0,1
+217,ABW_Transport Equipment,USD,0,1
+218,ABW_Other Manufacturing,USD,0,1
+219,ABW_Recycling,USD,0,1
+220,"ABW_Electricity, Gas and Water",USD,0,1
+221,ABW_Construction,USD,0,1
+222,ABW_Maintenance and Repair,USD,0,1
+223,ABW_Wholesale Trade,USD,0,1
+224,ABW_Retail Trade,USD,0,1
+225,ABW_Hotels and Restraurants,USD,0,1
+226,ABW_Transport,USD,0,1
+227,ABW_Post and Telecommunications,USD,0,1
+228,ABW_Finacial Intermediation and Business Activities,USD,0,1
+229,ABW_Public Administration,USD,0,1
+230,"ABW_Education, Health and Other Services",USD,0,1
+231,ABW_Private Households,USD,0,1
+232,ABW_Others,USD,0,1
+233,ABW_Re-export & Re-import,USD,0,1
+234,AUS_Agriculture,USD,0,1
+235,AUS_Fishing,USD,0,1
+236,AUS_Mining and Quarrying,USD,0,1
+237,AUS_Food & Beverages,USD,0,1
+238,AUS_Textiles and Wearing Apparel,USD,0,1
+239,AUS_Wood and Paper,USD,0,1
+240,"AUS_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+241,AUS_Metal Products,USD,0,1
+242,AUS_Electrical and Machinery,USD,0,1
+243,AUS_Transport Equipment,USD,0,1
+244,AUS_Other Manufacturing,USD,0,1
+245,AUS_Recycling,USD,0,1
+246,"AUS_Electricity, Gas and Water",USD,0,1
+247,AUS_Construction,USD,0,1
+248,AUS_Maintenance and Repair,USD,0,1
+249,AUS_Wholesale Trade,USD,0,1
+250,AUS_Retail Trade,USD,0,1
+251,AUS_Hotels and Restraurants,USD,0,1
+252,AUS_Transport,USD,0,1
+253,AUS_Post and Telecommunications,USD,0,1
+254,AUS_Finacial Intermediation and Business Activities,USD,0,1
+255,AUS_Public Administration,USD,0,1
+256,"AUS_Education, Health and Other Services",USD,0,1
+257,AUS_Private Households,USD,0,1
+258,AUS_Others,USD,0,1
+259,AUS_Re-export & Re-import,USD,0,1
+260,AUT_Agriculture,USD,0,1
+261,AUT_Fishing,USD,0,1
+262,AUT_Mining and Quarrying,USD,0,1
+263,AUT_Food & Beverages,USD,0,1
+264,AUT_Textiles and Wearing Apparel,USD,0,1
+265,AUT_Wood and Paper,USD,0,1
+266,"AUT_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+267,AUT_Metal Products,USD,0,1
+268,AUT_Electrical and Machinery,USD,0,1
+269,AUT_Transport Equipment,USD,0,1
+270,AUT_Other Manufacturing,USD,0,1
+271,AUT_Recycling,USD,0,1
+272,"AUT_Electricity, Gas and Water",USD,0,1
+273,AUT_Construction,USD,0,1
+274,AUT_Maintenance and Repair,USD,0,1
+275,AUT_Wholesale Trade,USD,0,1
+276,AUT_Retail Trade,USD,0,1
+277,AUT_Hotels and Restraurants,USD,0,1
+278,AUT_Transport,USD,0,1
+279,AUT_Post and Telecommunications,USD,0,1
+280,AUT_Finacial Intermediation and Business Activities,USD,0,1
+281,AUT_Public Administration,USD,0,1
+282,"AUT_Education, Health and Other Services",USD,0,1
+283,AUT_Private Households,USD,0,1
+284,AUT_Others,USD,0,1
+285,AUT_Re-export & Re-import,USD,0,1
+286,AZE_Agriculture,USD,0,1
+287,AZE_Fishing,USD,0,1
+288,AZE_Mining and Quarrying,USD,0,1
+289,AZE_Food & Beverages,USD,0,1
+290,AZE_Textiles and Wearing Apparel,USD,0,1
+291,AZE_Wood and Paper,USD,0,1
+292,"AZE_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+293,AZE_Metal Products,USD,0,1
+294,AZE_Electrical and Machinery,USD,0,1
+295,AZE_Transport Equipment,USD,0,1
+296,AZE_Other Manufacturing,USD,0,1
+297,AZE_Recycling,USD,0,1
+298,"AZE_Electricity, Gas and Water",USD,0,1
+299,AZE_Construction,USD,0,1
+300,AZE_Maintenance and Repair,USD,0,1
+301,AZE_Wholesale Trade,USD,0,1
+302,AZE_Retail Trade,USD,0,1
+303,AZE_Hotels and Restraurants,USD,0,1
+304,AZE_Transport,USD,0,1
+305,AZE_Post and Telecommunications,USD,0,1
+306,AZE_Finacial Intermediation and Business Activities,USD,0,1
+307,AZE_Public Administration,USD,0,1
+308,"AZE_Education, Health and Other Services",USD,0,1
+309,AZE_Private Households,USD,0,1
+310,AZE_Others,USD,0,1
+311,AZE_Re-export & Re-import,USD,0,1
+312,BHS_Agriculture,USD,0,1
+313,BHS_Fishing,USD,0,1
+314,BHS_Mining and Quarrying,USD,0,1
+315,BHS_Food & Beverages,USD,0,1
+316,BHS_Textiles and Wearing Apparel,USD,0,1
+317,BHS_Wood and Paper,USD,0,1
+318,"BHS_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+319,BHS_Metal Products,USD,0,1
+320,BHS_Electrical and Machinery,USD,0,1
+321,BHS_Transport Equipment,USD,0,1
+322,BHS_Other Manufacturing,USD,0,1
+323,BHS_Recycling,USD,0,1
+324,"BHS_Electricity, Gas and Water",USD,0,1
+325,BHS_Construction,USD,0,1
+326,BHS_Maintenance and Repair,USD,0,1
+327,BHS_Wholesale Trade,USD,0,1
+328,BHS_Retail Trade,USD,0,1
+329,BHS_Hotels and Restraurants,USD,0,1
+330,BHS_Transport,USD,0,1
+331,BHS_Post and Telecommunications,USD,0,1
+332,BHS_Finacial Intermediation and Business Activities,USD,0,1
+333,BHS_Public Administration,USD,0,1
+334,"BHS_Education, Health and Other Services",USD,0,1
+335,BHS_Private Households,USD,0,1
+336,BHS_Others,USD,0,1
+337,BHS_Re-export & Re-import,USD,0,1
+338,BHR_Agriculture,USD,0,1
+339,BHR_Fishing,USD,0,1
+340,BHR_Mining and Quarrying,USD,0,1
+341,BHR_Food & Beverages,USD,0,1
+342,BHR_Textiles and Wearing Apparel,USD,0,1
+343,BHR_Wood and Paper,USD,0,1
+344,"BHR_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+345,BHR_Metal Products,USD,0,1
+346,BHR_Electrical and Machinery,USD,0,1
+347,BHR_Transport Equipment,USD,0,1
+348,BHR_Other Manufacturing,USD,0,1
+349,BHR_Recycling,USD,0,1
+350,"BHR_Electricity, Gas and Water",USD,0,1
+351,BHR_Construction,USD,0,1
+352,BHR_Maintenance and Repair,USD,0,1
+353,BHR_Wholesale Trade,USD,0,1
+354,BHR_Retail Trade,USD,0,1
+355,BHR_Hotels and Restraurants,USD,0,1
+356,BHR_Transport,USD,0,1
+357,BHR_Post and Telecommunications,USD,0,1
+358,BHR_Finacial Intermediation and Business Activities,USD,0,1
+359,BHR_Public Administration,USD,0,1
+360,"BHR_Education, Health and Other Services",USD,0,1
+361,BHR_Private Households,USD,0,1
+362,BHR_Others,USD,0,1
+363,BHR_Re-export & Re-import,USD,0,1
+364,BGD_Agriculture,USD,0,1
+365,BGD_Fishing,USD,0,1
+366,BGD_Mining and Quarrying,USD,0,1
+367,BGD_Food & Beverages,USD,0,1
+368,BGD_Textiles and Wearing Apparel,USD,0,1
+369,BGD_Wood and Paper,USD,0,1
+370,"BGD_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+371,BGD_Metal Products,USD,0,1
+372,BGD_Electrical and Machinery,USD,0,1
+373,BGD_Transport Equipment,USD,0,1
+374,BGD_Other Manufacturing,USD,0,1
+375,BGD_Recycling,USD,0,1
+376,"BGD_Electricity, Gas and Water",USD,0,1
+377,BGD_Construction,USD,0,1
+378,BGD_Maintenance and Repair,USD,0,1
+379,BGD_Wholesale Trade,USD,0,1
+380,BGD_Retail Trade,USD,0,1
+381,BGD_Hotels and Restraurants,USD,0,1
+382,BGD_Transport,USD,0,1
+383,BGD_Post and Telecommunications,USD,0,1
+384,BGD_Finacial Intermediation and Business Activities,USD,0,1
+385,BGD_Public Administration,USD,0,1
+386,"BGD_Education, Health and Other Services",USD,0,1
+387,BGD_Private Households,USD,0,1
+388,BGD_Others,USD,0,1
+389,BGD_Re-export & Re-import,USD,0,1
+390,BRB_Agriculture,USD,0,1
+391,BRB_Fishing,USD,0,1
+392,BRB_Mining and Quarrying,USD,0,1
+393,BRB_Food & Beverages,USD,0,1
+394,BRB_Textiles and Wearing Apparel,USD,0,1
+395,BRB_Wood and Paper,USD,0,1
+396,"BRB_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+397,BRB_Metal Products,USD,0,1
+398,BRB_Electrical and Machinery,USD,0,1
+399,BRB_Transport Equipment,USD,0,1
+400,BRB_Other Manufacturing,USD,0,1
+401,BRB_Recycling,USD,0,1
+402,"BRB_Electricity, Gas and Water",USD,0,1
+403,BRB_Construction,USD,0,1
+404,BRB_Maintenance and Repair,USD,0,1
+405,BRB_Wholesale Trade,USD,0,1
+406,BRB_Retail Trade,USD,0,1
+407,BRB_Hotels and Restraurants,USD,0,1
+408,BRB_Transport,USD,0,1
+409,BRB_Post and Telecommunications,USD,0,1
+410,BRB_Finacial Intermediation and Business Activities,USD,0,1
+411,BRB_Public Administration,USD,0,1
+412,"BRB_Education, Health and Other Services",USD,0,1
+413,BRB_Private Households,USD,0,1
+414,BRB_Others,USD,0,1
+415,BRB_Re-export & Re-import,USD,0,1
+416,BLR_Agriculture,USD,0,1
+417,BLR_Fishing,USD,0,1
+418,BLR_Mining and Quarrying,USD,0,1
+419,BLR_Food & Beverages,USD,0,1
+420,BLR_Textiles and Wearing Apparel,USD,0,1
+421,BLR_Wood and Paper,USD,0,1
+422,"BLR_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+423,BLR_Metal Products,USD,0,1
+424,BLR_Electrical and Machinery,USD,0,1
+425,BLR_Transport Equipment,USD,0,1
+426,BLR_Other Manufacturing,USD,0,1
+427,BLR_Recycling,USD,0,1
+428,"BLR_Electricity, Gas and Water",USD,0,1
+429,BLR_Construction,USD,0,1
+430,BLR_Maintenance and Repair,USD,0,1
+431,BLR_Wholesale Trade,USD,0,1
+432,BLR_Retail Trade,USD,0,1
+433,BLR_Hotels and Restraurants,USD,0,1
+434,BLR_Transport,USD,0,1
+435,BLR_Post and Telecommunications,USD,0,1
+436,BLR_Finacial Intermediation and Business Activities,USD,0,1
+437,BLR_Public Administration,USD,0,1
+438,"BLR_Education, Health and Other Services",USD,0,1
+439,BLR_Private Households,USD,0,1
+440,BLR_Others,USD,0,1
+441,BLR_Re-export & Re-import,USD,0,1
+442,BEL_Agriculture,USD,0,1
+443,BEL_Fishing,USD,0,1
+444,BEL_Mining and Quarrying,USD,0,1
+445,BEL_Food & Beverages,USD,0,1
+446,BEL_Textiles and Wearing Apparel,USD,0,1
+447,BEL_Wood and Paper,USD,0,1
+448,"BEL_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+449,BEL_Metal Products,USD,0,1
+450,BEL_Electrical and Machinery,USD,0,1
+451,BEL_Transport Equipment,USD,0,1
+452,BEL_Other Manufacturing,USD,0,1
+453,BEL_Recycling,USD,0,1
+454,"BEL_Electricity, Gas and Water",USD,0,1
+455,BEL_Construction,USD,0,1
+456,BEL_Maintenance and Repair,USD,0,1
+457,BEL_Wholesale Trade,USD,0,1
+458,BEL_Retail Trade,USD,0,1
+459,BEL_Hotels and Restraurants,USD,0,1
+460,BEL_Transport,USD,0,1
+461,BEL_Post and Telecommunications,USD,0,1
+462,BEL_Finacial Intermediation and Business Activities,USD,0,1
+463,BEL_Public Administration,USD,0,1
+464,"BEL_Education, Health and Other Services",USD,0,1
+465,BEL_Private Households,USD,0,1
+466,BEL_Others,USD,0,1
+467,BEL_Re-export & Re-import,USD,0,1
+468,BLZ_Agriculture,USD,0,1
+469,BLZ_Fishing,USD,0,1
+470,BLZ_Mining and Quarrying,USD,0,1
+471,BLZ_Food & Beverages,USD,0,1
+472,BLZ_Textiles and Wearing Apparel,USD,0,1
+473,BLZ_Wood and Paper,USD,0,1
+474,"BLZ_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+475,BLZ_Metal Products,USD,0,1
+476,BLZ_Electrical and Machinery,USD,0,1
+477,BLZ_Transport Equipment,USD,0,1
+478,BLZ_Other Manufacturing,USD,0,1
+479,BLZ_Recycling,USD,0,1
+480,"BLZ_Electricity, Gas and Water",USD,0,1
+481,BLZ_Construction,USD,0,1
+482,BLZ_Maintenance and Repair,USD,0,1
+483,BLZ_Wholesale Trade,USD,0,1
+484,BLZ_Retail Trade,USD,0,1
+485,BLZ_Hotels and Restraurants,USD,0,1
+486,BLZ_Transport,USD,0,1
+487,BLZ_Post and Telecommunications,USD,0,1
+488,BLZ_Finacial Intermediation and Business Activities,USD,0,1
+489,BLZ_Public Administration,USD,0,1
+490,"BLZ_Education, Health and Other Services",USD,0,1
+491,BLZ_Private Households,USD,0,1
+492,BLZ_Others,USD,0,1
+493,BLZ_Re-export & Re-import,USD,0,1
+494,BEN_Agriculture,USD,0,1
+495,BEN_Fishing,USD,0,1
+496,BEN_Mining and Quarrying,USD,0,1
+497,BEN_Food & Beverages,USD,0,1
+498,BEN_Textiles and Wearing Apparel,USD,0,1
+499,BEN_Wood and Paper,USD,0,1
+500,"BEN_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+501,BEN_Metal Products,USD,0,1
+502,BEN_Electrical and Machinery,USD,0,1
+503,BEN_Transport Equipment,USD,0,1
+504,BEN_Other Manufacturing,USD,0,1
+505,BEN_Recycling,USD,0,1
+506,"BEN_Electricity, Gas and Water",USD,0,1
+507,BEN_Construction,USD,0,1
+508,BEN_Maintenance and Repair,USD,0,1
+509,BEN_Wholesale Trade,USD,0,1
+510,BEN_Retail Trade,USD,0,1
+511,BEN_Hotels and Restraurants,USD,0,1
+512,BEN_Transport,USD,0,1
+513,BEN_Post and Telecommunications,USD,0,1
+514,BEN_Finacial Intermediation and Business Activities,USD,0,1
+515,BEN_Public Administration,USD,0,1
+516,"BEN_Education, Health and Other Services",USD,0,1
+517,BEN_Private Households,USD,0,1
+518,BEN_Others,USD,0,1
+519,BEN_Re-export & Re-import,USD,0,1
+520,BMU_Agriculture,USD,0,1
+521,BMU_Fishing,USD,0,1
+522,BMU_Mining and Quarrying,USD,0,1
+523,BMU_Food & Beverages,USD,0,1
+524,BMU_Textiles and Wearing Apparel,USD,0,1
+525,BMU_Wood and Paper,USD,0,1
+526,"BMU_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+527,BMU_Metal Products,USD,0,1
+528,BMU_Electrical and Machinery,USD,0,1
+529,BMU_Transport Equipment,USD,0,1
+530,BMU_Other Manufacturing,USD,0,1
+531,BMU_Recycling,USD,0,1
+532,"BMU_Electricity, Gas and Water",USD,0,1
+533,BMU_Construction,USD,0,1
+534,BMU_Maintenance and Repair,USD,0,1
+535,BMU_Wholesale Trade,USD,0,1
+536,BMU_Retail Trade,USD,0,1
+537,BMU_Hotels and Restraurants,USD,0,1
+538,BMU_Transport,USD,0,1
+539,BMU_Post and Telecommunications,USD,0,1
+540,BMU_Finacial Intermediation and Business Activities,USD,0,1
+541,BMU_Public Administration,USD,0,1
+542,"BMU_Education, Health and Other Services",USD,0,1
+543,BMU_Private Households,USD,0,1
+544,BMU_Others,USD,0,1
+545,BMU_Re-export & Re-import,USD,0,1
+546,BTN_Agriculture,USD,0,1
+547,BTN_Fishing,USD,0,1
+548,BTN_Mining and Quarrying,USD,0,1
+549,BTN_Food & Beverages,USD,0,1
+550,BTN_Textiles and Wearing Apparel,USD,0,1
+551,BTN_Wood and Paper,USD,0,1
+552,"BTN_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+553,BTN_Metal Products,USD,0,1
+554,BTN_Electrical and Machinery,USD,0,1
+555,BTN_Transport Equipment,USD,0,1
+556,BTN_Other Manufacturing,USD,0,1
+557,BTN_Recycling,USD,0,1
+558,"BTN_Electricity, Gas and Water",USD,0,1
+559,BTN_Construction,USD,0,1
+560,BTN_Maintenance and Repair,USD,0,1
+561,BTN_Wholesale Trade,USD,0,1
+562,BTN_Retail Trade,USD,0,1
+563,BTN_Hotels and Restraurants,USD,0,1
+564,BTN_Transport,USD,0,1
+565,BTN_Post and Telecommunications,USD,0,1
+566,BTN_Finacial Intermediation and Business Activities,USD,0,1
+567,BTN_Public Administration,USD,0,1
+568,"BTN_Education, Health and Other Services",USD,0,1
+569,BTN_Private Households,USD,0,1
+570,BTN_Others,USD,0,1
+571,BTN_Re-export & Re-import,USD,0,1
+572,BOL_Agriculture,USD,0,1
+573,BOL_Fishing,USD,0,1
+574,BOL_Mining and Quarrying,USD,0,1
+575,BOL_Food & Beverages,USD,0,1
+576,BOL_Textiles and Wearing Apparel,USD,0,1
+577,BOL_Wood and Paper,USD,0,1
+578,"BOL_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+579,BOL_Metal Products,USD,0,1
+580,BOL_Electrical and Machinery,USD,0,1
+581,BOL_Transport Equipment,USD,0,1
+582,BOL_Other Manufacturing,USD,0,1
+583,BOL_Recycling,USD,0,1
+584,"BOL_Electricity, Gas and Water",USD,0,1
+585,BOL_Construction,USD,0,1
+586,BOL_Maintenance and Repair,USD,0,1
+587,BOL_Wholesale Trade,USD,0,1
+588,BOL_Retail Trade,USD,0,1
+589,BOL_Hotels and Restraurants,USD,0,1
+590,BOL_Transport,USD,0,1
+591,BOL_Post and Telecommunications,USD,0,1
+592,BOL_Finacial Intermediation and Business Activities,USD,0,1
+593,BOL_Public Administration,USD,0,1
+594,"BOL_Education, Health and Other Services",USD,0,1
+595,BOL_Private Households,USD,0,1
+596,BOL_Others,USD,0,1
+597,BOL_Re-export & Re-import,USD,0,1
+598,BIH_Agriculture,USD,0,1
+599,BIH_Fishing,USD,0,1
+600,BIH_Mining and Quarrying,USD,0,1
+601,BIH_Food & Beverages,USD,0,1
+602,BIH_Textiles and Wearing Apparel,USD,0,1
+603,BIH_Wood and Paper,USD,0,1
+604,"BIH_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+605,BIH_Metal Products,USD,0,1
+606,BIH_Electrical and Machinery,USD,0,1
+607,BIH_Transport Equipment,USD,0,1
+608,BIH_Other Manufacturing,USD,0,1
+609,BIH_Recycling,USD,0,1
+610,"BIH_Electricity, Gas and Water",USD,0,1
+611,BIH_Construction,USD,0,1
+612,BIH_Maintenance and Repair,USD,0,1
+613,BIH_Wholesale Trade,USD,0,1
+614,BIH_Retail Trade,USD,0,1
+615,BIH_Hotels and Restraurants,USD,0,1
+616,BIH_Transport,USD,0,1
+617,BIH_Post and Telecommunications,USD,0,1
+618,BIH_Finacial Intermediation and Business Activities,USD,0,1
+619,BIH_Public Administration,USD,0,1
+620,"BIH_Education, Health and Other Services",USD,0,1
+621,BIH_Private Households,USD,0,1
+622,BIH_Others,USD,0,1
+623,BIH_Re-export & Re-import,USD,0,1
+624,BWA_Agriculture,USD,0,1
+625,BWA_Fishing,USD,0,1
+626,BWA_Mining and Quarrying,USD,0,1
+627,BWA_Food & Beverages,USD,0,1
+628,BWA_Textiles and Wearing Apparel,USD,0,1
+629,BWA_Wood and Paper,USD,0,1
+630,"BWA_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+631,BWA_Metal Products,USD,0,1
+632,BWA_Electrical and Machinery,USD,0,1
+633,BWA_Transport Equipment,USD,0,1
+634,BWA_Other Manufacturing,USD,0,1
+635,BWA_Recycling,USD,0,1
+636,"BWA_Electricity, Gas and Water",USD,0,1
+637,BWA_Construction,USD,0,1
+638,BWA_Maintenance and Repair,USD,0,1
+639,BWA_Wholesale Trade,USD,0,1
+640,BWA_Retail Trade,USD,0,1
+641,BWA_Hotels and Restraurants,USD,0,1
+642,BWA_Transport,USD,0,1
+643,BWA_Post and Telecommunications,USD,0,1
+644,BWA_Finacial Intermediation and Business Activities,USD,0,1
+645,BWA_Public Administration,USD,0,1
+646,"BWA_Education, Health and Other Services",USD,0,1
+647,BWA_Private Households,USD,0,1
+648,BWA_Others,USD,0,1
+649,BWA_Re-export & Re-import,USD,0,1
+650,BRA_Agriculture,USD,0,1
+651,BRA_Fishing,USD,0,1
+652,BRA_Mining and Quarrying,USD,0,1
+653,BRA_Food & Beverages,USD,0,1
+654,BRA_Textiles and Wearing Apparel,USD,0,1
+655,BRA_Wood and Paper,USD,0,1
+656,"BRA_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+657,BRA_Metal Products,USD,0,1
+658,BRA_Electrical and Machinery,USD,0,1
+659,BRA_Transport Equipment,USD,0,1
+660,BRA_Other Manufacturing,USD,0,1
+661,BRA_Recycling,USD,0,1
+662,"BRA_Electricity, Gas and Water",USD,0,1
+663,BRA_Construction,USD,0,1
+664,BRA_Maintenance and Repair,USD,0,1
+665,BRA_Wholesale Trade,USD,0,1
+666,BRA_Retail Trade,USD,0,1
+667,BRA_Hotels and Restraurants,USD,0,1
+668,BRA_Transport,USD,0,1
+669,BRA_Post and Telecommunications,USD,0,1
+670,BRA_Finacial Intermediation and Business Activities,USD,0,1
+671,BRA_Public Administration,USD,0,1
+672,"BRA_Education, Health and Other Services",USD,0,1
+673,BRA_Private Households,USD,0,1
+674,BRA_Others,USD,0,1
+675,BRA_Re-export & Re-import,USD,0,1
+676,VGB_Agriculture,USD,0,1
+677,VGB_Fishing,USD,0,1
+678,VGB_Mining and Quarrying,USD,0,1
+679,VGB_Food & Beverages,USD,0,1
+680,VGB_Textiles and Wearing Apparel,USD,0,1
+681,VGB_Wood and Paper,USD,0,1
+682,"VGB_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+683,VGB_Metal Products,USD,0,1
+684,VGB_Electrical and Machinery,USD,0,1
+685,VGB_Transport Equipment,USD,0,1
+686,VGB_Other Manufacturing,USD,0,1
+687,VGB_Recycling,USD,0,1
+688,"VGB_Electricity, Gas and Water",USD,0,1
+689,VGB_Construction,USD,0,1
+690,VGB_Maintenance and Repair,USD,0,1
+691,VGB_Wholesale Trade,USD,0,1
+692,VGB_Retail Trade,USD,0,1
+693,VGB_Hotels and Restraurants,USD,0,1
+694,VGB_Transport,USD,0,1
+695,VGB_Post and Telecommunications,USD,0,1
+696,VGB_Finacial Intermediation and Business Activities,USD,0,1
+697,VGB_Public Administration,USD,0,1
+698,"VGB_Education, Health and Other Services",USD,0,1
+699,VGB_Private Households,USD,0,1
+700,VGB_Others,USD,0,1
+701,VGB_Re-export & Re-import,USD,0,1
+702,BRN_Agriculture,USD,0,1
+703,BRN_Fishing,USD,0,1
+704,BRN_Mining and Quarrying,USD,0,1
+705,BRN_Food & Beverages,USD,0,1
+706,BRN_Textiles and Wearing Apparel,USD,0,1
+707,BRN_Wood and Paper,USD,0,1
+708,"BRN_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+709,BRN_Metal Products,USD,0,1
+710,BRN_Electrical and Machinery,USD,0,1
+711,BRN_Transport Equipment,USD,0,1
+712,BRN_Other Manufacturing,USD,0,1
+713,BRN_Recycling,USD,0,1
+714,"BRN_Electricity, Gas and Water",USD,0,1
+715,BRN_Construction,USD,0,1
+716,BRN_Maintenance and Repair,USD,0,1
+717,BRN_Wholesale Trade,USD,0,1
+718,BRN_Retail Trade,USD,0,1
+719,BRN_Hotels and Restraurants,USD,0,1
+720,BRN_Transport,USD,0,1
+721,BRN_Post and Telecommunications,USD,0,1
+722,BRN_Finacial Intermediation and Business Activities,USD,0,1
+723,BRN_Public Administration,USD,0,1
+724,"BRN_Education, Health and Other Services",USD,0,1
+725,BRN_Private Households,USD,0,1
+726,BRN_Others,USD,0,1
+727,BRN_Re-export & Re-import,USD,0,1
+728,BGR_Agriculture,USD,0,1
+729,BGR_Fishing,USD,0,1
+730,BGR_Mining and Quarrying,USD,0,1
+731,BGR_Food & Beverages,USD,0,1
+732,BGR_Textiles and Wearing Apparel,USD,0,1
+733,BGR_Wood and Paper,USD,0,1
+734,"BGR_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+735,BGR_Metal Products,USD,0,1
+736,BGR_Electrical and Machinery,USD,0,1
+737,BGR_Transport Equipment,USD,0,1
+738,BGR_Other Manufacturing,USD,0,1
+739,BGR_Recycling,USD,0,1
+740,"BGR_Electricity, Gas and Water",USD,0,1
+741,BGR_Construction,USD,0,1
+742,BGR_Maintenance and Repair,USD,0,1
+743,BGR_Wholesale Trade,USD,0,1
+744,BGR_Retail Trade,USD,0,1
+745,BGR_Hotels and Restraurants,USD,0,1
+746,BGR_Transport,USD,0,1
+747,BGR_Post and Telecommunications,USD,0,1
+748,BGR_Finacial Intermediation and Business Activities,USD,0,1
+749,BGR_Public Administration,USD,0,1
+750,"BGR_Education, Health and Other Services",USD,0,1
+751,BGR_Private Households,USD,0,1
+752,BGR_Others,USD,0,1
+753,BGR_Re-export & Re-import,USD,0,1
+754,BFA_Agriculture,USD,0,1
+755,BFA_Fishing,USD,0,1
+756,BFA_Mining and Quarrying,USD,0,1
+757,BFA_Food & Beverages,USD,0,1
+758,BFA_Textiles and Wearing Apparel,USD,0,1
+759,BFA_Wood and Paper,USD,0,1
+760,"BFA_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+761,BFA_Metal Products,USD,0,1
+762,BFA_Electrical and Machinery,USD,0,1
+763,BFA_Transport Equipment,USD,0,1
+764,BFA_Other Manufacturing,USD,0,1
+765,BFA_Recycling,USD,0,1
+766,"BFA_Electricity, Gas and Water",USD,0,1
+767,BFA_Construction,USD,0,1
+768,BFA_Maintenance and Repair,USD,0,1
+769,BFA_Wholesale Trade,USD,0,1
+770,BFA_Retail Trade,USD,0,1
+771,BFA_Hotels and Restraurants,USD,0,1
+772,BFA_Transport,USD,0,1
+773,BFA_Post and Telecommunications,USD,0,1
+774,BFA_Finacial Intermediation and Business Activities,USD,0,1
+775,BFA_Public Administration,USD,0,1
+776,"BFA_Education, Health and Other Services",USD,0,1
+777,BFA_Private Households,USD,0,1
+778,BFA_Others,USD,0,1
+779,BFA_Re-export & Re-import,USD,0,1
+780,BDI_Agriculture,USD,0,1
+781,BDI_Fishing,USD,0,1
+782,BDI_Mining and Quarrying,USD,0,1
+783,BDI_Food & Beverages,USD,0,1
+784,BDI_Textiles and Wearing Apparel,USD,0,1
+785,BDI_Wood and Paper,USD,0,1
+786,"BDI_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+787,BDI_Metal Products,USD,0,1
+788,BDI_Electrical and Machinery,USD,0,1
+789,BDI_Transport Equipment,USD,0,1
+790,BDI_Other Manufacturing,USD,0,1
+791,BDI_Recycling,USD,0,1
+792,"BDI_Electricity, Gas and Water",USD,0,1
+793,BDI_Construction,USD,0,1
+794,BDI_Maintenance and Repair,USD,0,1
+795,BDI_Wholesale Trade,USD,0,1
+796,BDI_Retail Trade,USD,0,1
+797,BDI_Hotels and Restraurants,USD,0,1
+798,BDI_Transport,USD,0,1
+799,BDI_Post and Telecommunications,USD,0,1
+800,BDI_Finacial Intermediation and Business Activities,USD,0,1
+801,BDI_Public Administration,USD,0,1
+802,"BDI_Education, Health and Other Services",USD,0,1
+803,BDI_Private Households,USD,0,1
+804,BDI_Others,USD,0,1
+805,BDI_Re-export & Re-import,USD,0,1
+806,KHM_Agriculture,USD,0,1
+807,KHM_Fishing,USD,0,1
+808,KHM_Mining and Quarrying,USD,0,1
+809,KHM_Food & Beverages,USD,0,1
+810,KHM_Textiles and Wearing Apparel,USD,0,1
+811,KHM_Wood and Paper,USD,0,1
+812,"KHM_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+813,KHM_Metal Products,USD,0,1
+814,KHM_Electrical and Machinery,USD,0,1
+815,KHM_Transport Equipment,USD,0,1
+816,KHM_Other Manufacturing,USD,0,1
+817,KHM_Recycling,USD,0,1
+818,"KHM_Electricity, Gas and Water",USD,0,1
+819,KHM_Construction,USD,0,1
+820,KHM_Maintenance and Repair,USD,0,1
+821,KHM_Wholesale Trade,USD,0,1
+822,KHM_Retail Trade,USD,0,1
+823,KHM_Hotels and Restraurants,USD,0,1
+824,KHM_Transport,USD,0,1
+825,KHM_Post and Telecommunications,USD,0,1
+826,KHM_Finacial Intermediation and Business Activities,USD,0,1
+827,KHM_Public Administration,USD,0,1
+828,"KHM_Education, Health and Other Services",USD,0,1
+829,KHM_Private Households,USD,0,1
+830,KHM_Others,USD,0,1
+831,KHM_Re-export & Re-import,USD,0,1
+832,CMR_Agriculture,USD,0,1
+833,CMR_Fishing,USD,0,1
+834,CMR_Mining and Quarrying,USD,0,1
+835,CMR_Food & Beverages,USD,0,1
+836,CMR_Textiles and Wearing Apparel,USD,0,1
+837,CMR_Wood and Paper,USD,0,1
+838,"CMR_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+839,CMR_Metal Products,USD,0,1
+840,CMR_Electrical and Machinery,USD,0,1
+841,CMR_Transport Equipment,USD,0,1
+842,CMR_Other Manufacturing,USD,0,1
+843,CMR_Recycling,USD,0,1
+844,"CMR_Electricity, Gas and Water",USD,0,1
+845,CMR_Construction,USD,0,1
+846,CMR_Maintenance and Repair,USD,0,1
+847,CMR_Wholesale Trade,USD,0,1
+848,CMR_Retail Trade,USD,0,1
+849,CMR_Hotels and Restraurants,USD,0,1
+850,CMR_Transport,USD,0,1
+851,CMR_Post and Telecommunications,USD,0,1
+852,CMR_Finacial Intermediation and Business Activities,USD,0,1
+853,CMR_Public Administration,USD,0,1
+854,"CMR_Education, Health and Other Services",USD,0,1
+855,CMR_Private Households,USD,0,1
+856,CMR_Others,USD,0,1
+857,CMR_Re-export & Re-import,USD,0,1
+858,CAN_Agriculture,USD,0,1
+859,CAN_Fishing,USD,0,1
+860,CAN_Mining and Quarrying,USD,0,1
+861,CAN_Food & Beverages,USD,0,1
+862,CAN_Textiles and Wearing Apparel,USD,0,1
+863,CAN_Wood and Paper,USD,0,1
+864,"CAN_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+865,CAN_Metal Products,USD,0,1
+866,CAN_Electrical and Machinery,USD,0,1
+867,CAN_Transport Equipment,USD,0,1
+868,CAN_Other Manufacturing,USD,0,1
+869,CAN_Recycling,USD,0,1
+870,"CAN_Electricity, Gas and Water",USD,0,1
+871,CAN_Construction,USD,0,1
+872,CAN_Maintenance and Repair,USD,0,1
+873,CAN_Wholesale Trade,USD,0,1
+874,CAN_Retail Trade,USD,0,1
+875,CAN_Hotels and Restraurants,USD,0,1
+876,CAN_Transport,USD,0,1
+877,CAN_Post and Telecommunications,USD,0,1
+878,CAN_Finacial Intermediation and Business Activities,USD,0,1
+879,CAN_Public Administration,USD,0,1
+880,"CAN_Education, Health and Other Services",USD,0,1
+881,CAN_Private Households,USD,0,1
+882,CAN_Others,USD,0,1
+883,CAN_Re-export & Re-import,USD,0,1
+884,CPV_Agriculture,USD,0,1
+885,CPV_Fishing,USD,0,1
+886,CPV_Mining and Quarrying,USD,0,1
+887,CPV_Food & Beverages,USD,0,1
+888,CPV_Textiles and Wearing Apparel,USD,0,1
+889,CPV_Wood and Paper,USD,0,1
+890,"CPV_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+891,CPV_Metal Products,USD,0,1
+892,CPV_Electrical and Machinery,USD,0,1
+893,CPV_Transport Equipment,USD,0,1
+894,CPV_Other Manufacturing,USD,0,1
+895,CPV_Recycling,USD,0,1
+896,"CPV_Electricity, Gas and Water",USD,0,1
+897,CPV_Construction,USD,0,1
+898,CPV_Maintenance and Repair,USD,0,1
+899,CPV_Wholesale Trade,USD,0,1
+900,CPV_Retail Trade,USD,0,1
+901,CPV_Hotels and Restraurants,USD,0,1
+902,CPV_Transport,USD,0,1
+903,CPV_Post and Telecommunications,USD,0,1
+904,CPV_Finacial Intermediation and Business Activities,USD,0,1
+905,CPV_Public Administration,USD,0,1
+906,"CPV_Education, Health and Other Services",USD,0,1
+907,CPV_Private Households,USD,0,1
+908,CPV_Others,USD,0,1
+909,CPV_Re-export & Re-import,USD,0,1
+910,CYM_Agriculture,USD,0,1
+911,CYM_Fishing,USD,0,1
+912,CYM_Mining and Quarrying,USD,0,1
+913,CYM_Food & Beverages,USD,0,1
+914,CYM_Textiles and Wearing Apparel,USD,0,1
+915,CYM_Wood and Paper,USD,0,1
+916,"CYM_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+917,CYM_Metal Products,USD,0,1
+918,CYM_Electrical and Machinery,USD,0,1
+919,CYM_Transport Equipment,USD,0,1
+920,CYM_Other Manufacturing,USD,0,1
+921,CYM_Recycling,USD,0,1
+922,"CYM_Electricity, Gas and Water",USD,0,1
+923,CYM_Construction,USD,0,1
+924,CYM_Maintenance and Repair,USD,0,1
+925,CYM_Wholesale Trade,USD,0,1
+926,CYM_Retail Trade,USD,0,1
+927,CYM_Hotels and Restraurants,USD,0,1
+928,CYM_Transport,USD,0,1
+929,CYM_Post and Telecommunications,USD,0,1
+930,CYM_Finacial Intermediation and Business Activities,USD,0,1
+931,CYM_Public Administration,USD,0,1
+932,"CYM_Education, Health and Other Services",USD,0,1
+933,CYM_Private Households,USD,0,1
+934,CYM_Others,USD,0,1
+935,CYM_Re-export & Re-import,USD,0,1
+936,CAF_Agriculture,USD,0,1
+937,CAF_Fishing,USD,0,1
+938,CAF_Mining and Quarrying,USD,0,1
+939,CAF_Food & Beverages,USD,0,1
+940,CAF_Textiles and Wearing Apparel,USD,0,1
+941,CAF_Wood and Paper,USD,0,1
+942,"CAF_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+943,CAF_Metal Products,USD,0,1
+944,CAF_Electrical and Machinery,USD,0,1
+945,CAF_Transport Equipment,USD,0,1
+946,CAF_Other Manufacturing,USD,0,1
+947,CAF_Recycling,USD,0,1
+948,"CAF_Electricity, Gas and Water",USD,0,1
+949,CAF_Construction,USD,0,1
+950,CAF_Maintenance and Repair,USD,0,1
+951,CAF_Wholesale Trade,USD,0,1
+952,CAF_Retail Trade,USD,0,1
+953,CAF_Hotels and Restraurants,USD,0,1
+954,CAF_Transport,USD,0,1
+955,CAF_Post and Telecommunications,USD,0,1
+956,CAF_Finacial Intermediation and Business Activities,USD,0,1
+957,CAF_Public Administration,USD,0,1
+958,"CAF_Education, Health and Other Services",USD,0,1
+959,CAF_Private Households,USD,0,1
+960,CAF_Others,USD,0,1
+961,CAF_Re-export & Re-import,USD,0,1
+962,TCD_Agriculture,USD,0,1
+963,TCD_Fishing,USD,0,1
+964,TCD_Mining and Quarrying,USD,0,1
+965,TCD_Food & Beverages,USD,0,1
+966,TCD_Textiles and Wearing Apparel,USD,0,1
+967,TCD_Wood and Paper,USD,0,1
+968,"TCD_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+969,TCD_Metal Products,USD,0,1
+970,TCD_Electrical and Machinery,USD,0,1
+971,TCD_Transport Equipment,USD,0,1
+972,TCD_Other Manufacturing,USD,0,1
+973,TCD_Recycling,USD,0,1
+974,"TCD_Electricity, Gas and Water",USD,0,1
+975,TCD_Construction,USD,0,1
+976,TCD_Maintenance and Repair,USD,0,1
+977,TCD_Wholesale Trade,USD,0,1
+978,TCD_Retail Trade,USD,0,1
+979,TCD_Hotels and Restraurants,USD,0,1
+980,TCD_Transport,USD,0,1
+981,TCD_Post and Telecommunications,USD,0,1
+982,TCD_Finacial Intermediation and Business Activities,USD,0,1
+983,TCD_Public Administration,USD,0,1
+984,"TCD_Education, Health and Other Services",USD,0,1
+985,TCD_Private Households,USD,0,1
+986,TCD_Others,USD,0,1
+987,TCD_Re-export & Re-import,USD,0,1
+988,CHL_Agriculture,USD,0,1
+989,CHL_Fishing,USD,0,1
+990,CHL_Mining and Quarrying,USD,0,1
+991,CHL_Food & Beverages,USD,0,1
+992,CHL_Textiles and Wearing Apparel,USD,0,1
+993,CHL_Wood and Paper,USD,0,1
+994,"CHL_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+995,CHL_Metal Products,USD,0,1
+996,CHL_Electrical and Machinery,USD,0,1
+997,CHL_Transport Equipment,USD,0,1
+998,CHL_Other Manufacturing,USD,0,1
+999,CHL_Recycling,USD,0,1
+1000,"CHL_Electricity, Gas and Water",USD,0,1
+1001,CHL_Construction,USD,0,1
+1002,CHL_Maintenance and Repair,USD,0,1
+1003,CHL_Wholesale Trade,USD,0,1
+1004,CHL_Retail Trade,USD,0,1
+1005,CHL_Hotels and Restraurants,USD,0,1
+1006,CHL_Transport,USD,0,1
+1007,CHL_Post and Telecommunications,USD,0,1
+1008,CHL_Finacial Intermediation and Business Activities,USD,0,1
+1009,CHL_Public Administration,USD,0,1
+1010,"CHL_Education, Health and Other Services",USD,0,1
+1011,CHL_Private Households,USD,0,1
+1012,CHL_Others,USD,0,1
+1013,CHL_Re-export & Re-import,USD,0,1
+1014,CHN_Agriculture,USD,0,1
+1015,CHN_Fishing,USD,0,1
+1016,CHN_Mining and Quarrying,USD,0,1
+1017,CHN_Food & Beverages,USD,0,1
+1018,CHN_Textiles and Wearing Apparel,USD,0,1
+1019,CHN_Wood and Paper,USD,0,1
+1020,"CHN_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1021,CHN_Metal Products,USD,0,1
+1022,CHN_Electrical and Machinery,USD,0,1
+1023,CHN_Transport Equipment,USD,0,1
+1024,CHN_Other Manufacturing,USD,0,1
+1025,CHN_Recycling,USD,0,1
+1026,"CHN_Electricity, Gas and Water",USD,0,1
+1027,CHN_Construction,USD,0,1
+1028,CHN_Maintenance and Repair,USD,0,1
+1029,CHN_Wholesale Trade,USD,0,1
+1030,CHN_Retail Trade,USD,0,1
+1031,CHN_Hotels and Restraurants,USD,0,1
+1032,CHN_Transport,USD,0,1
+1033,CHN_Post and Telecommunications,USD,0,1
+1034,CHN_Finacial Intermediation and Business Activities,USD,0,1
+1035,CHN_Public Administration,USD,0,1
+1036,"CHN_Education, Health and Other Services",USD,0,1
+1037,CHN_Private Households,USD,0,1
+1038,CHN_Others,USD,0,1
+1039,CHN_Re-export & Re-import,USD,0,1
+1040,COL_Agriculture,USD,0,1
+1041,COL_Fishing,USD,0,1
+1042,COL_Mining and Quarrying,USD,0,1
+1043,COL_Food & Beverages,USD,0,1
+1044,COL_Textiles and Wearing Apparel,USD,0,1
+1045,COL_Wood and Paper,USD,0,1
+1046,"COL_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1047,COL_Metal Products,USD,0,1
+1048,COL_Electrical and Machinery,USD,0,1
+1049,COL_Transport Equipment,USD,0,1
+1050,COL_Other Manufacturing,USD,0,1
+1051,COL_Recycling,USD,0,1
+1052,"COL_Electricity, Gas and Water",USD,0,1
+1053,COL_Construction,USD,0,1
+1054,COL_Maintenance and Repair,USD,0,1
+1055,COL_Wholesale Trade,USD,0,1
+1056,COL_Retail Trade,USD,0,1
+1057,COL_Hotels and Restraurants,USD,0,1
+1058,COL_Transport,USD,0,1
+1059,COL_Post and Telecommunications,USD,0,1
+1060,COL_Finacial Intermediation and Business Activities,USD,0,1
+1061,COL_Public Administration,USD,0,1
+1062,"COL_Education, Health and Other Services",USD,0,1
+1063,COL_Private Households,USD,0,1
+1064,COL_Others,USD,0,1
+1065,COL_Re-export & Re-import,USD,0,1
+1066,COG_Agriculture,USD,0,1
+1067,COG_Fishing,USD,0,1
+1068,COG_Mining and Quarrying,USD,0,1
+1069,COG_Food & Beverages,USD,0,1
+1070,COG_Textiles and Wearing Apparel,USD,0,1
+1071,COG_Wood and Paper,USD,0,1
+1072,"COG_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1073,COG_Metal Products,USD,0,1
+1074,COG_Electrical and Machinery,USD,0,1
+1075,COG_Transport Equipment,USD,0,1
+1076,COG_Other Manufacturing,USD,0,1
+1077,COG_Recycling,USD,0,1
+1078,"COG_Electricity, Gas and Water",USD,0,1
+1079,COG_Construction,USD,0,1
+1080,COG_Maintenance and Repair,USD,0,1
+1081,COG_Wholesale Trade,USD,0,1
+1082,COG_Retail Trade,USD,0,1
+1083,COG_Hotels and Restraurants,USD,0,1
+1084,COG_Transport,USD,0,1
+1085,COG_Post and Telecommunications,USD,0,1
+1086,COG_Finacial Intermediation and Business Activities,USD,0,1
+1087,COG_Public Administration,USD,0,1
+1088,"COG_Education, Health and Other Services",USD,0,1
+1089,COG_Private Households,USD,0,1
+1090,COG_Others,USD,0,1
+1091,COG_Re-export & Re-import,USD,0,1
+1092,CRI_Agriculture,USD,0,1
+1093,CRI_Fishing,USD,0,1
+1094,CRI_Mining and Quarrying,USD,0,1
+1095,CRI_Food & Beverages,USD,0,1
+1096,CRI_Textiles and Wearing Apparel,USD,0,1
+1097,CRI_Wood and Paper,USD,0,1
+1098,"CRI_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1099,CRI_Metal Products,USD,0,1
+1100,CRI_Electrical and Machinery,USD,0,1
+1101,CRI_Transport Equipment,USD,0,1
+1102,CRI_Other Manufacturing,USD,0,1
+1103,CRI_Recycling,USD,0,1
+1104,"CRI_Electricity, Gas and Water",USD,0,1
+1105,CRI_Construction,USD,0,1
+1106,CRI_Maintenance and Repair,USD,0,1
+1107,CRI_Wholesale Trade,USD,0,1
+1108,CRI_Retail Trade,USD,0,1
+1109,CRI_Hotels and Restraurants,USD,0,1
+1110,CRI_Transport,USD,0,1
+1111,CRI_Post and Telecommunications,USD,0,1
+1112,CRI_Finacial Intermediation and Business Activities,USD,0,1
+1113,CRI_Public Administration,USD,0,1
+1114,"CRI_Education, Health and Other Services",USD,0,1
+1115,CRI_Private Households,USD,0,1
+1116,CRI_Others,USD,0,1
+1117,CRI_Re-export & Re-import,USD,0,1
+1118,HRV_Agriculture,USD,0,1
+1119,HRV_Fishing,USD,0,1
+1120,HRV_Mining and Quarrying,USD,0,1
+1121,HRV_Food & Beverages,USD,0,1
+1122,HRV_Textiles and Wearing Apparel,USD,0,1
+1123,HRV_Wood and Paper,USD,0,1
+1124,"HRV_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1125,HRV_Metal Products,USD,0,1
+1126,HRV_Electrical and Machinery,USD,0,1
+1127,HRV_Transport Equipment,USD,0,1
+1128,HRV_Other Manufacturing,USD,0,1
+1129,HRV_Recycling,USD,0,1
+1130,"HRV_Electricity, Gas and Water",USD,0,1
+1131,HRV_Construction,USD,0,1
+1132,HRV_Maintenance and Repair,USD,0,1
+1133,HRV_Wholesale Trade,USD,0,1
+1134,HRV_Retail Trade,USD,0,1
+1135,HRV_Hotels and Restraurants,USD,0,1
+1136,HRV_Transport,USD,0,1
+1137,HRV_Post and Telecommunications,USD,0,1
+1138,HRV_Finacial Intermediation and Business Activities,USD,0,1
+1139,HRV_Public Administration,USD,0,1
+1140,"HRV_Education, Health and Other Services",USD,0,1
+1141,HRV_Private Households,USD,0,1
+1142,HRV_Others,USD,0,1
+1143,HRV_Re-export & Re-import,USD,0,1
+1144,CUB_Agriculture,USD,0,1
+1145,CUB_Fishing,USD,0,1
+1146,CUB_Mining and Quarrying,USD,0,1
+1147,CUB_Food & Beverages,USD,0,1
+1148,CUB_Textiles and Wearing Apparel,USD,0,1
+1149,CUB_Wood and Paper,USD,0,1
+1150,"CUB_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1151,CUB_Metal Products,USD,0,1
+1152,CUB_Electrical and Machinery,USD,0,1
+1153,CUB_Transport Equipment,USD,0,1
+1154,CUB_Other Manufacturing,USD,0,1
+1155,CUB_Recycling,USD,0,1
+1156,"CUB_Electricity, Gas and Water",USD,0,1
+1157,CUB_Construction,USD,0,1
+1158,CUB_Maintenance and Repair,USD,0,1
+1159,CUB_Wholesale Trade,USD,0,1
+1160,CUB_Retail Trade,USD,0,1
+1161,CUB_Hotels and Restraurants,USD,0,1
+1162,CUB_Transport,USD,0,1
+1163,CUB_Post and Telecommunications,USD,0,1
+1164,CUB_Finacial Intermediation and Business Activities,USD,0,1
+1165,CUB_Public Administration,USD,0,1
+1166,"CUB_Education, Health and Other Services",USD,0,1
+1167,CUB_Private Households,USD,0,1
+1168,CUB_Others,USD,0,1
+1169,CUB_Re-export & Re-import,USD,0,1
+1170,CYP_Agriculture,USD,0,1
+1171,CYP_Fishing,USD,0,1
+1172,CYP_Mining and Quarrying,USD,0,1
+1173,CYP_Food & Beverages,USD,0,1
+1174,CYP_Textiles and Wearing Apparel,USD,0,1
+1175,CYP_Wood and Paper,USD,0,1
+1176,"CYP_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1177,CYP_Metal Products,USD,0,1
+1178,CYP_Electrical and Machinery,USD,0,1
+1179,CYP_Transport Equipment,USD,0,1
+1180,CYP_Other Manufacturing,USD,0,1
+1181,CYP_Recycling,USD,0,1
+1182,"CYP_Electricity, Gas and Water",USD,0,1
+1183,CYP_Construction,USD,0,1
+1184,CYP_Maintenance and Repair,USD,0,1
+1185,CYP_Wholesale Trade,USD,0,1
+1186,CYP_Retail Trade,USD,0,1
+1187,CYP_Hotels and Restraurants,USD,0,1
+1188,CYP_Transport,USD,0,1
+1189,CYP_Post and Telecommunications,USD,0,1
+1190,CYP_Finacial Intermediation and Business Activities,USD,0,1
+1191,CYP_Public Administration,USD,0,1
+1192,"CYP_Education, Health and Other Services",USD,0,1
+1193,CYP_Private Households,USD,0,1
+1194,CYP_Others,USD,0,1
+1195,CYP_Re-export & Re-import,USD,0,1
+1196,CZE_Agriculture,USD,0,1
+1197,CZE_Fishing,USD,0,1
+1198,CZE_Mining and Quarrying,USD,0,1
+1199,CZE_Food & Beverages,USD,0,1
+1200,CZE_Textiles and Wearing Apparel,USD,0,1
+1201,CZE_Wood and Paper,USD,0,1
+1202,"CZE_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1203,CZE_Metal Products,USD,0,1
+1204,CZE_Electrical and Machinery,USD,0,1
+1205,CZE_Transport Equipment,USD,0,1
+1206,CZE_Other Manufacturing,USD,0,1
+1207,CZE_Recycling,USD,0,1
+1208,"CZE_Electricity, Gas and Water",USD,0,1
+1209,CZE_Construction,USD,0,1
+1210,CZE_Maintenance and Repair,USD,0,1
+1211,CZE_Wholesale Trade,USD,0,1
+1212,CZE_Retail Trade,USD,0,1
+1213,CZE_Hotels and Restraurants,USD,0,1
+1214,CZE_Transport,USD,0,1
+1215,CZE_Post and Telecommunications,USD,0,1
+1216,CZE_Finacial Intermediation and Business Activities,USD,0,1
+1217,CZE_Public Administration,USD,0,1
+1218,"CZE_Education, Health and Other Services",USD,0,1
+1219,CZE_Private Households,USD,0,1
+1220,CZE_Others,USD,0,1
+1221,CZE_Re-export & Re-import,USD,0,1
+1222,CIV_Agriculture,USD,0,1
+1223,CIV_Fishing,USD,0,1
+1224,CIV_Mining and Quarrying,USD,0,1
+1225,CIV_Food & Beverages,USD,0,1
+1226,CIV_Textiles and Wearing Apparel,USD,0,1
+1227,CIV_Wood and Paper,USD,0,1
+1228,"CIV_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1229,CIV_Metal Products,USD,0,1
+1230,CIV_Electrical and Machinery,USD,0,1
+1231,CIV_Transport Equipment,USD,0,1
+1232,CIV_Other Manufacturing,USD,0,1
+1233,CIV_Recycling,USD,0,1
+1234,"CIV_Electricity, Gas and Water",USD,0,1
+1235,CIV_Construction,USD,0,1
+1236,CIV_Maintenance and Repair,USD,0,1
+1237,CIV_Wholesale Trade,USD,0,1
+1238,CIV_Retail Trade,USD,0,1
+1239,CIV_Hotels and Restraurants,USD,0,1
+1240,CIV_Transport,USD,0,1
+1241,CIV_Post and Telecommunications,USD,0,1
+1242,CIV_Finacial Intermediation and Business Activities,USD,0,1
+1243,CIV_Public Administration,USD,0,1
+1244,"CIV_Education, Health and Other Services",USD,0,1
+1245,CIV_Private Households,USD,0,1
+1246,CIV_Others,USD,0,1
+1247,CIV_Re-export & Re-import,USD,0,1
+1248,PRK_Agriculture,USD,0,1
+1249,PRK_Fishing,USD,0,1
+1250,PRK_Mining and Quarrying,USD,0,1
+1251,PRK_Food & Beverages,USD,0,1
+1252,PRK_Textiles and Wearing Apparel,USD,0,1
+1253,PRK_Wood and Paper,USD,0,1
+1254,"PRK_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1255,PRK_Metal Products,USD,0,1
+1256,PRK_Electrical and Machinery,USD,0,1
+1257,PRK_Transport Equipment,USD,0,1
+1258,PRK_Other Manufacturing,USD,0,1
+1259,PRK_Recycling,USD,0,1
+1260,"PRK_Electricity, Gas and Water",USD,0,1
+1261,PRK_Construction,USD,0,1
+1262,PRK_Maintenance and Repair,USD,0,1
+1263,PRK_Wholesale Trade,USD,0,1
+1264,PRK_Retail Trade,USD,0,1
+1265,PRK_Hotels and Restraurants,USD,0,1
+1266,PRK_Transport,USD,0,1
+1267,PRK_Post and Telecommunications,USD,0,1
+1268,PRK_Finacial Intermediation and Business Activities,USD,0,1
+1269,PRK_Public Administration,USD,0,1
+1270,"PRK_Education, Health and Other Services",USD,0,1
+1271,PRK_Private Households,USD,0,1
+1272,PRK_Others,USD,0,1
+1273,PRK_Re-export & Re-import,USD,0,1
+1274,COD_Agriculture,USD,0,1
+1275,COD_Fishing,USD,0,1
+1276,COD_Mining and Quarrying,USD,0,1
+1277,COD_Food & Beverages,USD,0,1
+1278,COD_Textiles and Wearing Apparel,USD,0,1
+1279,COD_Wood and Paper,USD,0,1
+1280,"COD_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1281,COD_Metal Products,USD,0,1
+1282,COD_Electrical and Machinery,USD,0,1
+1283,COD_Transport Equipment,USD,0,1
+1284,COD_Other Manufacturing,USD,0,1
+1285,COD_Recycling,USD,0,1
+1286,"COD_Electricity, Gas and Water",USD,0,1
+1287,COD_Construction,USD,0,1
+1288,COD_Maintenance and Repair,USD,0,1
+1289,COD_Wholesale Trade,USD,0,1
+1290,COD_Retail Trade,USD,0,1
+1291,COD_Hotels and Restraurants,USD,0,1
+1292,COD_Transport,USD,0,1
+1293,COD_Post and Telecommunications,USD,0,1
+1294,COD_Finacial Intermediation and Business Activities,USD,0,1
+1295,COD_Public Administration,USD,0,1
+1296,"COD_Education, Health and Other Services",USD,0,1
+1297,COD_Private Households,USD,0,1
+1298,COD_Others,USD,0,1
+1299,COD_Re-export & Re-import,USD,0,1
+1300,DNK_Agriculture,USD,0,1
+1301,DNK_Fishing,USD,0,1
+1302,DNK_Mining and Quarrying,USD,0,1
+1303,DNK_Food & Beverages,USD,0,1
+1304,DNK_Textiles and Wearing Apparel,USD,0,1
+1305,DNK_Wood and Paper,USD,0,1
+1306,"DNK_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1307,DNK_Metal Products,USD,0,1
+1308,DNK_Electrical and Machinery,USD,0,1
+1309,DNK_Transport Equipment,USD,0,1
+1310,DNK_Other Manufacturing,USD,0,1
+1311,DNK_Recycling,USD,0,1
+1312,"DNK_Electricity, Gas and Water",USD,0,1
+1313,DNK_Construction,USD,0,1
+1314,DNK_Maintenance and Repair,USD,0,1
+1315,DNK_Wholesale Trade,USD,0,1
+1316,DNK_Retail Trade,USD,0,1
+1317,DNK_Hotels and Restraurants,USD,0,1
+1318,DNK_Transport,USD,0,1
+1319,DNK_Post and Telecommunications,USD,0,1
+1320,DNK_Finacial Intermediation and Business Activities,USD,0,1
+1321,DNK_Public Administration,USD,0,1
+1322,"DNK_Education, Health and Other Services",USD,0,1
+1323,DNK_Private Households,USD,0,1
+1324,DNK_Others,USD,0,1
+1325,DNK_Re-export & Re-import,USD,0,1
+1326,DJI_Agriculture,USD,0,1
+1327,DJI_Fishing,USD,0,1
+1328,DJI_Mining and Quarrying,USD,0,1
+1329,DJI_Food & Beverages,USD,0,1
+1330,DJI_Textiles and Wearing Apparel,USD,0,1
+1331,DJI_Wood and Paper,USD,0,1
+1332,"DJI_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1333,DJI_Metal Products,USD,0,1
+1334,DJI_Electrical and Machinery,USD,0,1
+1335,DJI_Transport Equipment,USD,0,1
+1336,DJI_Other Manufacturing,USD,0,1
+1337,DJI_Recycling,USD,0,1
+1338,"DJI_Electricity, Gas and Water",USD,0,1
+1339,DJI_Construction,USD,0,1
+1340,DJI_Maintenance and Repair,USD,0,1
+1341,DJI_Wholesale Trade,USD,0,1
+1342,DJI_Retail Trade,USD,0,1
+1343,DJI_Hotels and Restraurants,USD,0,1
+1344,DJI_Transport,USD,0,1
+1345,DJI_Post and Telecommunications,USD,0,1
+1346,DJI_Finacial Intermediation and Business Activities,USD,0,1
+1347,DJI_Public Administration,USD,0,1
+1348,"DJI_Education, Health and Other Services",USD,0,1
+1349,DJI_Private Households,USD,0,1
+1350,DJI_Others,USD,0,1
+1351,DJI_Re-export & Re-import,USD,0,1
+1352,DOM_Agriculture,USD,0,1
+1353,DOM_Fishing,USD,0,1
+1354,DOM_Mining and Quarrying,USD,0,1
+1355,DOM_Food & Beverages,USD,0,1
+1356,DOM_Textiles and Wearing Apparel,USD,0,1
+1357,DOM_Wood and Paper,USD,0,1
+1358,"DOM_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1359,DOM_Metal Products,USD,0,1
+1360,DOM_Electrical and Machinery,USD,0,1
+1361,DOM_Transport Equipment,USD,0,1
+1362,DOM_Other Manufacturing,USD,0,1
+1363,DOM_Recycling,USD,0,1
+1364,"DOM_Electricity, Gas and Water",USD,0,1
+1365,DOM_Construction,USD,0,1
+1366,DOM_Maintenance and Repair,USD,0,1
+1367,DOM_Wholesale Trade,USD,0,1
+1368,DOM_Retail Trade,USD,0,1
+1369,DOM_Hotels and Restraurants,USD,0,1
+1370,DOM_Transport,USD,0,1
+1371,DOM_Post and Telecommunications,USD,0,1
+1372,DOM_Finacial Intermediation and Business Activities,USD,0,1
+1373,DOM_Public Administration,USD,0,1
+1374,"DOM_Education, Health and Other Services",USD,0,1
+1375,DOM_Private Households,USD,0,1
+1376,DOM_Others,USD,0,1
+1377,DOM_Re-export & Re-import,USD,0,1
+1378,ECU_Agriculture,USD,0,1
+1379,ECU_Fishing,USD,0,1
+1380,ECU_Mining and Quarrying,USD,0,1
+1381,ECU_Food & Beverages,USD,0,1
+1382,ECU_Textiles and Wearing Apparel,USD,0,1
+1383,ECU_Wood and Paper,USD,0,1
+1384,"ECU_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1385,ECU_Metal Products,USD,0,1
+1386,ECU_Electrical and Machinery,USD,0,1
+1387,ECU_Transport Equipment,USD,0,1
+1388,ECU_Other Manufacturing,USD,0,1
+1389,ECU_Recycling,USD,0,1
+1390,"ECU_Electricity, Gas and Water",USD,0,1
+1391,ECU_Construction,USD,0,1
+1392,ECU_Maintenance and Repair,USD,0,1
+1393,ECU_Wholesale Trade,USD,0,1
+1394,ECU_Retail Trade,USD,0,1
+1395,ECU_Hotels and Restraurants,USD,0,1
+1396,ECU_Transport,USD,0,1
+1397,ECU_Post and Telecommunications,USD,0,1
+1398,ECU_Finacial Intermediation and Business Activities,USD,0,1
+1399,ECU_Public Administration,USD,0,1
+1400,"ECU_Education, Health and Other Services",USD,0,1
+1401,ECU_Private Households,USD,0,1
+1402,ECU_Others,USD,0,1
+1403,ECU_Re-export & Re-import,USD,0,1
+1404,EGY_Agriculture,USD,0,1
+1405,EGY_Fishing,USD,0,1
+1406,EGY_Mining and Quarrying,USD,0,1
+1407,EGY_Food & Beverages,USD,0,1
+1408,EGY_Textiles and Wearing Apparel,USD,0,1
+1409,EGY_Wood and Paper,USD,0,1
+1410,"EGY_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1411,EGY_Metal Products,USD,0,1
+1412,EGY_Electrical and Machinery,USD,0,1
+1413,EGY_Transport Equipment,USD,0,1
+1414,EGY_Other Manufacturing,USD,0,1
+1415,EGY_Recycling,USD,0,1
+1416,"EGY_Electricity, Gas and Water",USD,0,1
+1417,EGY_Construction,USD,0,1
+1418,EGY_Maintenance and Repair,USD,0,1
+1419,EGY_Wholesale Trade,USD,0,1
+1420,EGY_Retail Trade,USD,0,1
+1421,EGY_Hotels and Restraurants,USD,0,1
+1422,EGY_Transport,USD,0,1
+1423,EGY_Post and Telecommunications,USD,0,1
+1424,EGY_Finacial Intermediation and Business Activities,USD,0,1
+1425,EGY_Public Administration,USD,0,1
+1426,"EGY_Education, Health and Other Services",USD,0,1
+1427,EGY_Private Households,USD,0,1
+1428,EGY_Others,USD,0,1
+1429,EGY_Re-export & Re-import,USD,0,1
+1430,SLV_Agriculture,USD,0,1
+1431,SLV_Fishing,USD,0,1
+1432,SLV_Mining and Quarrying,USD,0,1
+1433,SLV_Food & Beverages,USD,0,1
+1434,SLV_Textiles and Wearing Apparel,USD,0,1
+1435,SLV_Wood and Paper,USD,0,1
+1436,"SLV_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1437,SLV_Metal Products,USD,0,1
+1438,SLV_Electrical and Machinery,USD,0,1
+1439,SLV_Transport Equipment,USD,0,1
+1440,SLV_Other Manufacturing,USD,0,1
+1441,SLV_Recycling,USD,0,1
+1442,"SLV_Electricity, Gas and Water",USD,0,1
+1443,SLV_Construction,USD,0,1
+1444,SLV_Maintenance and Repair,USD,0,1
+1445,SLV_Wholesale Trade,USD,0,1
+1446,SLV_Retail Trade,USD,0,1
+1447,SLV_Hotels and Restraurants,USD,0,1
+1448,SLV_Transport,USD,0,1
+1449,SLV_Post and Telecommunications,USD,0,1
+1450,SLV_Finacial Intermediation and Business Activities,USD,0,1
+1451,SLV_Public Administration,USD,0,1
+1452,"SLV_Education, Health and Other Services",USD,0,1
+1453,SLV_Private Households,USD,0,1
+1454,SLV_Others,USD,0,1
+1455,SLV_Re-export & Re-import,USD,0,1
+1456,ERI_Agriculture,USD,0,1
+1457,ERI_Fishing,USD,0,1
+1458,ERI_Mining and Quarrying,USD,0,1
+1459,ERI_Food & Beverages,USD,0,1
+1460,ERI_Textiles and Wearing Apparel,USD,0,1
+1461,ERI_Wood and Paper,USD,0,1
+1462,"ERI_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1463,ERI_Metal Products,USD,0,1
+1464,ERI_Electrical and Machinery,USD,0,1
+1465,ERI_Transport Equipment,USD,0,1
+1466,ERI_Other Manufacturing,USD,0,1
+1467,ERI_Recycling,USD,0,1
+1468,"ERI_Electricity, Gas and Water",USD,0,1
+1469,ERI_Construction,USD,0,1
+1470,ERI_Maintenance and Repair,USD,0,1
+1471,ERI_Wholesale Trade,USD,0,1
+1472,ERI_Retail Trade,USD,0,1
+1473,ERI_Hotels and Restraurants,USD,0,1
+1474,ERI_Transport,USD,0,1
+1475,ERI_Post and Telecommunications,USD,0,1
+1476,ERI_Finacial Intermediation and Business Activities,USD,0,1
+1477,ERI_Public Administration,USD,0,1
+1478,"ERI_Education, Health and Other Services",USD,0,1
+1479,ERI_Private Households,USD,0,1
+1480,ERI_Others,USD,0,1
+1481,ERI_Re-export & Re-import,USD,0,1
+1482,EST_Agriculture,USD,0,1
+1483,EST_Fishing,USD,0,1
+1484,EST_Mining and Quarrying,USD,0,1
+1485,EST_Food & Beverages,USD,0,1
+1486,EST_Textiles and Wearing Apparel,USD,0,1
+1487,EST_Wood and Paper,USD,0,1
+1488,"EST_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1489,EST_Metal Products,USD,0,1
+1490,EST_Electrical and Machinery,USD,0,1
+1491,EST_Transport Equipment,USD,0,1
+1492,EST_Other Manufacturing,USD,0,1
+1493,EST_Recycling,USD,0,1
+1494,"EST_Electricity, Gas and Water",USD,0,1
+1495,EST_Construction,USD,0,1
+1496,EST_Maintenance and Repair,USD,0,1
+1497,EST_Wholesale Trade,USD,0,1
+1498,EST_Retail Trade,USD,0,1
+1499,EST_Hotels and Restraurants,USD,0,1
+1500,EST_Transport,USD,0,1
+1501,EST_Post and Telecommunications,USD,0,1
+1502,EST_Finacial Intermediation and Business Activities,USD,0,1
+1503,EST_Public Administration,USD,0,1
+1504,"EST_Education, Health and Other Services",USD,0,1
+1505,EST_Private Households,USD,0,1
+1506,EST_Others,USD,0,1
+1507,EST_Re-export & Re-import,USD,0,1
+1508,ETH_Agriculture,USD,0,1
+1509,ETH_Fishing,USD,0,1
+1510,ETH_Mining and Quarrying,USD,0,1
+1511,ETH_Food & Beverages,USD,0,1
+1512,ETH_Textiles and Wearing Apparel,USD,0,1
+1513,ETH_Wood and Paper,USD,0,1
+1514,"ETH_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1515,ETH_Metal Products,USD,0,1
+1516,ETH_Electrical and Machinery,USD,0,1
+1517,ETH_Transport Equipment,USD,0,1
+1518,ETH_Other Manufacturing,USD,0,1
+1519,ETH_Recycling,USD,0,1
+1520,"ETH_Electricity, Gas and Water",USD,0,1
+1521,ETH_Construction,USD,0,1
+1522,ETH_Maintenance and Repair,USD,0,1
+1523,ETH_Wholesale Trade,USD,0,1
+1524,ETH_Retail Trade,USD,0,1
+1525,ETH_Hotels and Restraurants,USD,0,1
+1526,ETH_Transport,USD,0,1
+1527,ETH_Post and Telecommunications,USD,0,1
+1528,ETH_Finacial Intermediation and Business Activities,USD,0,1
+1529,ETH_Public Administration,USD,0,1
+1530,"ETH_Education, Health and Other Services",USD,0,1
+1531,ETH_Private Households,USD,0,1
+1532,ETH_Others,USD,0,1
+1533,ETH_Re-export & Re-import,USD,0,1
+1534,FJI_Agriculture,USD,0,1
+1535,FJI_Fishing,USD,0,1
+1536,FJI_Mining and Quarrying,USD,0,1
+1537,FJI_Food & Beverages,USD,0,1
+1538,FJI_Textiles and Wearing Apparel,USD,0,1
+1539,FJI_Wood and Paper,USD,0,1
+1540,"FJI_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1541,FJI_Metal Products,USD,0,1
+1542,FJI_Electrical and Machinery,USD,0,1
+1543,FJI_Transport Equipment,USD,0,1
+1544,FJI_Other Manufacturing,USD,0,1
+1545,FJI_Recycling,USD,0,1
+1546,"FJI_Electricity, Gas and Water",USD,0,1
+1547,FJI_Construction,USD,0,1
+1548,FJI_Maintenance and Repair,USD,0,1
+1549,FJI_Wholesale Trade,USD,0,1
+1550,FJI_Retail Trade,USD,0,1
+1551,FJI_Hotels and Restraurants,USD,0,1
+1552,FJI_Transport,USD,0,1
+1553,FJI_Post and Telecommunications,USD,0,1
+1554,FJI_Finacial Intermediation and Business Activities,USD,0,1
+1555,FJI_Public Administration,USD,0,1
+1556,"FJI_Education, Health and Other Services",USD,0,1
+1557,FJI_Private Households,USD,0,1
+1558,FJI_Others,USD,0,1
+1559,FJI_Re-export & Re-import,USD,0,1
+1560,FIN_Agriculture,USD,0,1
+1561,FIN_Fishing,USD,0,1
+1562,FIN_Mining and Quarrying,USD,0,1
+1563,FIN_Food & Beverages,USD,0,1
+1564,FIN_Textiles and Wearing Apparel,USD,0,1
+1565,FIN_Wood and Paper,USD,0,1
+1566,"FIN_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1567,FIN_Metal Products,USD,0,1
+1568,FIN_Electrical and Machinery,USD,0,1
+1569,FIN_Transport Equipment,USD,0,1
+1570,FIN_Other Manufacturing,USD,0,1
+1571,FIN_Recycling,USD,0,1
+1572,"FIN_Electricity, Gas and Water",USD,0,1
+1573,FIN_Construction,USD,0,1
+1574,FIN_Maintenance and Repair,USD,0,1
+1575,FIN_Wholesale Trade,USD,0,1
+1576,FIN_Retail Trade,USD,0,1
+1577,FIN_Hotels and Restraurants,USD,0,1
+1578,FIN_Transport,USD,0,1
+1579,FIN_Post and Telecommunications,USD,0,1
+1580,FIN_Finacial Intermediation and Business Activities,USD,0,1
+1581,FIN_Public Administration,USD,0,1
+1582,"FIN_Education, Health and Other Services",USD,0,1
+1583,FIN_Private Households,USD,0,1
+1584,FIN_Others,USD,0,1
+1585,FIN_Re-export & Re-import,USD,0,1
+1586,FRA_Agriculture,USD,0,1
+1587,FRA_Fishing,USD,0,1
+1588,FRA_Mining and Quarrying,USD,0,1
+1589,FRA_Food & Beverages,USD,0,1
+1590,FRA_Textiles and Wearing Apparel,USD,0,1
+1591,FRA_Wood and Paper,USD,0,1
+1592,"FRA_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1593,FRA_Metal Products,USD,0,1
+1594,FRA_Electrical and Machinery,USD,0,1
+1595,FRA_Transport Equipment,USD,0,1
+1596,FRA_Other Manufacturing,USD,0,1
+1597,FRA_Recycling,USD,0,1
+1598,"FRA_Electricity, Gas and Water",USD,0,1
+1599,FRA_Construction,USD,0,1
+1600,FRA_Maintenance and Repair,USD,0,1
+1601,FRA_Wholesale Trade,USD,0,1
+1602,FRA_Retail Trade,USD,0,1
+1603,FRA_Hotels and Restraurants,USD,0,1
+1604,FRA_Transport,USD,0,1
+1605,FRA_Post and Telecommunications,USD,0,1
+1606,FRA_Finacial Intermediation and Business Activities,USD,0,1
+1607,FRA_Public Administration,USD,0,1
+1608,"FRA_Education, Health and Other Services",USD,0,1
+1609,FRA_Private Households,USD,0,1
+1610,FRA_Others,USD,0,1
+1611,FRA_Re-export & Re-import,USD,0,1
+1612,PYF_Agriculture,USD,0,1
+1613,PYF_Fishing,USD,0,1
+1614,PYF_Mining and Quarrying,USD,0,1
+1615,PYF_Food & Beverages,USD,0,1
+1616,PYF_Textiles and Wearing Apparel,USD,0,1
+1617,PYF_Wood and Paper,USD,0,1
+1618,"PYF_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1619,PYF_Metal Products,USD,0,1
+1620,PYF_Electrical and Machinery,USD,0,1
+1621,PYF_Transport Equipment,USD,0,1
+1622,PYF_Other Manufacturing,USD,0,1
+1623,PYF_Recycling,USD,0,1
+1624,"PYF_Electricity, Gas and Water",USD,0,1
+1625,PYF_Construction,USD,0,1
+1626,PYF_Maintenance and Repair,USD,0,1
+1627,PYF_Wholesale Trade,USD,0,1
+1628,PYF_Retail Trade,USD,0,1
+1629,PYF_Hotels and Restraurants,USD,0,1
+1630,PYF_Transport,USD,0,1
+1631,PYF_Post and Telecommunications,USD,0,1
+1632,PYF_Finacial Intermediation and Business Activities,USD,0,1
+1633,PYF_Public Administration,USD,0,1
+1634,"PYF_Education, Health and Other Services",USD,0,1
+1635,PYF_Private Households,USD,0,1
+1636,PYF_Others,USD,0,1
+1637,PYF_Re-export & Re-import,USD,0,1
+1638,GAB_Agriculture,USD,0,1
+1639,GAB_Fishing,USD,0,1
+1640,GAB_Mining and Quarrying,USD,0,1
+1641,GAB_Food & Beverages,USD,0,1
+1642,GAB_Textiles and Wearing Apparel,USD,0,1
+1643,GAB_Wood and Paper,USD,0,1
+1644,"GAB_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1645,GAB_Metal Products,USD,0,1
+1646,GAB_Electrical and Machinery,USD,0,1
+1647,GAB_Transport Equipment,USD,0,1
+1648,GAB_Other Manufacturing,USD,0,1
+1649,GAB_Recycling,USD,0,1
+1650,"GAB_Electricity, Gas and Water",USD,0,1
+1651,GAB_Construction,USD,0,1
+1652,GAB_Maintenance and Repair,USD,0,1
+1653,GAB_Wholesale Trade,USD,0,1
+1654,GAB_Retail Trade,USD,0,1
+1655,GAB_Hotels and Restraurants,USD,0,1
+1656,GAB_Transport,USD,0,1
+1657,GAB_Post and Telecommunications,USD,0,1
+1658,GAB_Finacial Intermediation and Business Activities,USD,0,1
+1659,GAB_Public Administration,USD,0,1
+1660,"GAB_Education, Health and Other Services",USD,0,1
+1661,GAB_Private Households,USD,0,1
+1662,GAB_Others,USD,0,1
+1663,GAB_Re-export & Re-import,USD,0,1
+1664,GMB_Agriculture,USD,0,1
+1665,GMB_Fishing,USD,0,1
+1666,GMB_Mining and Quarrying,USD,0,1
+1667,GMB_Food & Beverages,USD,0,1
+1668,GMB_Textiles and Wearing Apparel,USD,0,1
+1669,GMB_Wood and Paper,USD,0,1
+1670,"GMB_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1671,GMB_Metal Products,USD,0,1
+1672,GMB_Electrical and Machinery,USD,0,1
+1673,GMB_Transport Equipment,USD,0,1
+1674,GMB_Other Manufacturing,USD,0,1
+1675,GMB_Recycling,USD,0,1
+1676,"GMB_Electricity, Gas and Water",USD,0,1
+1677,GMB_Construction,USD,0,1
+1678,GMB_Maintenance and Repair,USD,0,1
+1679,GMB_Wholesale Trade,USD,0,1
+1680,GMB_Retail Trade,USD,0,1
+1681,GMB_Hotels and Restraurants,USD,0,1
+1682,GMB_Transport,USD,0,1
+1683,GMB_Post and Telecommunications,USD,0,1
+1684,GMB_Finacial Intermediation and Business Activities,USD,0,1
+1685,GMB_Public Administration,USD,0,1
+1686,"GMB_Education, Health and Other Services",USD,0,1
+1687,GMB_Private Households,USD,0,1
+1688,GMB_Others,USD,0,1
+1689,GMB_Re-export & Re-import,USD,0,1
+1690,GEO_Agriculture,USD,0,1
+1691,GEO_Fishing,USD,0,1
+1692,GEO_Mining and Quarrying,USD,0,1
+1693,GEO_Food & Beverages,USD,0,1
+1694,GEO_Textiles and Wearing Apparel,USD,0,1
+1695,GEO_Wood and Paper,USD,0,1
+1696,"GEO_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1697,GEO_Metal Products,USD,0,1
+1698,GEO_Electrical and Machinery,USD,0,1
+1699,GEO_Transport Equipment,USD,0,1
+1700,GEO_Other Manufacturing,USD,0,1
+1701,GEO_Recycling,USD,0,1
+1702,"GEO_Electricity, Gas and Water",USD,0,1
+1703,GEO_Construction,USD,0,1
+1704,GEO_Maintenance and Repair,USD,0,1
+1705,GEO_Wholesale Trade,USD,0,1
+1706,GEO_Retail Trade,USD,0,1
+1707,GEO_Hotels and Restraurants,USD,0,1
+1708,GEO_Transport,USD,0,1
+1709,GEO_Post and Telecommunications,USD,0,1
+1710,GEO_Finacial Intermediation and Business Activities,USD,0,1
+1711,GEO_Public Administration,USD,0,1
+1712,"GEO_Education, Health and Other Services",USD,0,1
+1713,GEO_Private Households,USD,0,1
+1714,GEO_Others,USD,0,1
+1715,GEO_Re-export & Re-import,USD,0,1
+1716,DEU_Agriculture,USD,0,1
+1717,DEU_Fishing,USD,0,1
+1718,DEU_Mining and Quarrying,USD,0,1
+1719,DEU_Food & Beverages,USD,0,1
+1720,DEU_Textiles and Wearing Apparel,USD,0,1
+1721,DEU_Wood and Paper,USD,0,1
+1722,"DEU_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1723,DEU_Metal Products,USD,0,1
+1724,DEU_Electrical and Machinery,USD,0,1
+1725,DEU_Transport Equipment,USD,0,1
+1726,DEU_Other Manufacturing,USD,0,1
+1727,DEU_Recycling,USD,0,1
+1728,"DEU_Electricity, Gas and Water",USD,0,1
+1729,DEU_Construction,USD,0,1
+1730,DEU_Maintenance and Repair,USD,0,1
+1731,DEU_Wholesale Trade,USD,0,1
+1732,DEU_Retail Trade,USD,0,1
+1733,DEU_Hotels and Restraurants,USD,0,1
+1734,DEU_Transport,USD,0,1
+1735,DEU_Post and Telecommunications,USD,0,1
+1736,DEU_Finacial Intermediation and Business Activities,USD,0,1
+1737,DEU_Public Administration,USD,0,1
+1738,"DEU_Education, Health and Other Services",USD,0,1
+1739,DEU_Private Households,USD,0,1
+1740,DEU_Others,USD,0,1
+1741,DEU_Re-export & Re-import,USD,0,1
+1742,GHA_Agriculture,USD,0,1
+1743,GHA_Fishing,USD,0,1
+1744,GHA_Mining and Quarrying,USD,0,1
+1745,GHA_Food & Beverages,USD,0,1
+1746,GHA_Textiles and Wearing Apparel,USD,0,1
+1747,GHA_Wood and Paper,USD,0,1
+1748,"GHA_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1749,GHA_Metal Products,USD,0,1
+1750,GHA_Electrical and Machinery,USD,0,1
+1751,GHA_Transport Equipment,USD,0,1
+1752,GHA_Other Manufacturing,USD,0,1
+1753,GHA_Recycling,USD,0,1
+1754,"GHA_Electricity, Gas and Water",USD,0,1
+1755,GHA_Construction,USD,0,1
+1756,GHA_Maintenance and Repair,USD,0,1
+1757,GHA_Wholesale Trade,USD,0,1
+1758,GHA_Retail Trade,USD,0,1
+1759,GHA_Hotels and Restraurants,USD,0,1
+1760,GHA_Transport,USD,0,1
+1761,GHA_Post and Telecommunications,USD,0,1
+1762,GHA_Finacial Intermediation and Business Activities,USD,0,1
+1763,GHA_Public Administration,USD,0,1
+1764,"GHA_Education, Health and Other Services",USD,0,1
+1765,GHA_Private Households,USD,0,1
+1766,GHA_Others,USD,0,1
+1767,GHA_Re-export & Re-import,USD,0,1
+1768,GRC_Agriculture,USD,0,1
+1769,GRC_Fishing,USD,0,1
+1770,GRC_Mining and Quarrying,USD,0,1
+1771,GRC_Food & Beverages,USD,0,1
+1772,GRC_Textiles and Wearing Apparel,USD,0,1
+1773,GRC_Wood and Paper,USD,0,1
+1774,"GRC_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1775,GRC_Metal Products,USD,0,1
+1776,GRC_Electrical and Machinery,USD,0,1
+1777,GRC_Transport Equipment,USD,0,1
+1778,GRC_Other Manufacturing,USD,0,1
+1779,GRC_Recycling,USD,0,1
+1780,"GRC_Electricity, Gas and Water",USD,0,1
+1781,GRC_Construction,USD,0,1
+1782,GRC_Maintenance and Repair,USD,0,1
+1783,GRC_Wholesale Trade,USD,0,1
+1784,GRC_Retail Trade,USD,0,1
+1785,GRC_Hotels and Restraurants,USD,0,1
+1786,GRC_Transport,USD,0,1
+1787,GRC_Post and Telecommunications,USD,0,1
+1788,GRC_Finacial Intermediation and Business Activities,USD,0,1
+1789,GRC_Public Administration,USD,0,1
+1790,"GRC_Education, Health and Other Services",USD,0,1
+1791,GRC_Private Households,USD,0,1
+1792,GRC_Others,USD,0,1
+1793,GRC_Re-export & Re-import,USD,0,1
+1794,GRL_Agriculture,USD,0,1
+1795,GRL_Fishing,USD,0,1
+1796,GRL_Mining and Quarrying,USD,0,1
+1797,GRL_Food & Beverages,USD,0,1
+1798,GRL_Textiles and Wearing Apparel,USD,0,1
+1799,GRL_Wood and Paper,USD,0,1
+1800,"GRL_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1801,GRL_Metal Products,USD,0,1
+1802,GRL_Electrical and Machinery,USD,0,1
+1803,GRL_Transport Equipment,USD,0,1
+1804,GRL_Other Manufacturing,USD,0,1
+1805,GRL_Recycling,USD,0,1
+1806,"GRL_Electricity, Gas and Water",USD,0,1
+1807,GRL_Construction,USD,0,1
+1808,GRL_Maintenance and Repair,USD,0,1
+1809,GRL_Wholesale Trade,USD,0,1
+1810,GRL_Retail Trade,USD,0,1
+1811,GRL_Hotels and Restraurants,USD,0,1
+1812,GRL_Transport,USD,0,1
+1813,GRL_Post and Telecommunications,USD,0,1
+1814,GRL_Finacial Intermediation and Business Activities,USD,0,1
+1815,GRL_Public Administration,USD,0,1
+1816,"GRL_Education, Health and Other Services",USD,0,1
+1817,GRL_Private Households,USD,0,1
+1818,GRL_Others,USD,0,1
+1819,GRL_Re-export & Re-import,USD,0,1
+1820,GTM_Agriculture,USD,0,1
+1821,GTM_Fishing,USD,0,1
+1822,GTM_Mining and Quarrying,USD,0,1
+1823,GTM_Food & Beverages,USD,0,1
+1824,GTM_Textiles and Wearing Apparel,USD,0,1
+1825,GTM_Wood and Paper,USD,0,1
+1826,"GTM_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1827,GTM_Metal Products,USD,0,1
+1828,GTM_Electrical and Machinery,USD,0,1
+1829,GTM_Transport Equipment,USD,0,1
+1830,GTM_Other Manufacturing,USD,0,1
+1831,GTM_Recycling,USD,0,1
+1832,"GTM_Electricity, Gas and Water",USD,0,1
+1833,GTM_Construction,USD,0,1
+1834,GTM_Maintenance and Repair,USD,0,1
+1835,GTM_Wholesale Trade,USD,0,1
+1836,GTM_Retail Trade,USD,0,1
+1837,GTM_Hotels and Restraurants,USD,0,1
+1838,GTM_Transport,USD,0,1
+1839,GTM_Post and Telecommunications,USD,0,1
+1840,GTM_Finacial Intermediation and Business Activities,USD,0,1
+1841,GTM_Public Administration,USD,0,1
+1842,"GTM_Education, Health and Other Services",USD,0,1
+1843,GTM_Private Households,USD,0,1
+1844,GTM_Others,USD,0,1
+1845,GTM_Re-export & Re-import,USD,0,1
+1846,GIN_Agriculture,USD,0,1
+1847,GIN_Fishing,USD,0,1
+1848,GIN_Mining and Quarrying,USD,0,1
+1849,GIN_Food & Beverages,USD,0,1
+1850,GIN_Textiles and Wearing Apparel,USD,0,1
+1851,GIN_Wood and Paper,USD,0,1
+1852,"GIN_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1853,GIN_Metal Products,USD,0,1
+1854,GIN_Electrical and Machinery,USD,0,1
+1855,GIN_Transport Equipment,USD,0,1
+1856,GIN_Other Manufacturing,USD,0,1
+1857,GIN_Recycling,USD,0,1
+1858,"GIN_Electricity, Gas and Water",USD,0,1
+1859,GIN_Construction,USD,0,1
+1860,GIN_Maintenance and Repair,USD,0,1
+1861,GIN_Wholesale Trade,USD,0,1
+1862,GIN_Retail Trade,USD,0,1
+1863,GIN_Hotels and Restraurants,USD,0,1
+1864,GIN_Transport,USD,0,1
+1865,GIN_Post and Telecommunications,USD,0,1
+1866,GIN_Finacial Intermediation and Business Activities,USD,0,1
+1867,GIN_Public Administration,USD,0,1
+1868,"GIN_Education, Health and Other Services",USD,0,1
+1869,GIN_Private Households,USD,0,1
+1870,GIN_Others,USD,0,1
+1871,GIN_Re-export & Re-import,USD,0,1
+1872,GUY_Agriculture,USD,0,1
+1873,GUY_Fishing,USD,0,1
+1874,GUY_Mining and Quarrying,USD,0,1
+1875,GUY_Food & Beverages,USD,0,1
+1876,GUY_Textiles and Wearing Apparel,USD,0,1
+1877,GUY_Wood and Paper,USD,0,1
+1878,"GUY_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1879,GUY_Metal Products,USD,0,1
+1880,GUY_Electrical and Machinery,USD,0,1
+1881,GUY_Transport Equipment,USD,0,1
+1882,GUY_Other Manufacturing,USD,0,1
+1883,GUY_Recycling,USD,0,1
+1884,"GUY_Electricity, Gas and Water",USD,0,1
+1885,GUY_Construction,USD,0,1
+1886,GUY_Maintenance and Repair,USD,0,1
+1887,GUY_Wholesale Trade,USD,0,1
+1888,GUY_Retail Trade,USD,0,1
+1889,GUY_Hotels and Restraurants,USD,0,1
+1890,GUY_Transport,USD,0,1
+1891,GUY_Post and Telecommunications,USD,0,1
+1892,GUY_Finacial Intermediation and Business Activities,USD,0,1
+1893,GUY_Public Administration,USD,0,1
+1894,"GUY_Education, Health and Other Services",USD,0,1
+1895,GUY_Private Households,USD,0,1
+1896,GUY_Others,USD,0,1
+1897,GUY_Re-export & Re-import,USD,0,1
+1898,HTI_Agriculture,USD,0,1
+1899,HTI_Fishing,USD,0,1
+1900,HTI_Mining and Quarrying,USD,0,1
+1901,HTI_Food & Beverages,USD,0,1
+1902,HTI_Textiles and Wearing Apparel,USD,0,1
+1903,HTI_Wood and Paper,USD,0,1
+1904,"HTI_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1905,HTI_Metal Products,USD,0,1
+1906,HTI_Electrical and Machinery,USD,0,1
+1907,HTI_Transport Equipment,USD,0,1
+1908,HTI_Other Manufacturing,USD,0,1
+1909,HTI_Recycling,USD,0,1
+1910,"HTI_Electricity, Gas and Water",USD,0,1
+1911,HTI_Construction,USD,0,1
+1912,HTI_Maintenance and Repair,USD,0,1
+1913,HTI_Wholesale Trade,USD,0,1
+1914,HTI_Retail Trade,USD,0,1
+1915,HTI_Hotels and Restraurants,USD,0,1
+1916,HTI_Transport,USD,0,1
+1917,HTI_Post and Telecommunications,USD,0,1
+1918,HTI_Finacial Intermediation and Business Activities,USD,0,1
+1919,HTI_Public Administration,USD,0,1
+1920,"HTI_Education, Health and Other Services",USD,0,1
+1921,HTI_Private Households,USD,0,1
+1922,HTI_Others,USD,0,1
+1923,HTI_Re-export & Re-import,USD,0,1
+1924,HND_Agriculture,USD,0,1
+1925,HND_Fishing,USD,0,1
+1926,HND_Mining and Quarrying,USD,0,1
+1927,HND_Food & Beverages,USD,0,1
+1928,HND_Textiles and Wearing Apparel,USD,0,1
+1929,HND_Wood and Paper,USD,0,1
+1930,"HND_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1931,HND_Metal Products,USD,0,1
+1932,HND_Electrical and Machinery,USD,0,1
+1933,HND_Transport Equipment,USD,0,1
+1934,HND_Other Manufacturing,USD,0,1
+1935,HND_Recycling,USD,0,1
+1936,"HND_Electricity, Gas and Water",USD,0,1
+1937,HND_Construction,USD,0,1
+1938,HND_Maintenance and Repair,USD,0,1
+1939,HND_Wholesale Trade,USD,0,1
+1940,HND_Retail Trade,USD,0,1
+1941,HND_Hotels and Restraurants,USD,0,1
+1942,HND_Transport,USD,0,1
+1943,HND_Post and Telecommunications,USD,0,1
+1944,HND_Finacial Intermediation and Business Activities,USD,0,1
+1945,HND_Public Administration,USD,0,1
+1946,"HND_Education, Health and Other Services",USD,0,1
+1947,HND_Private Households,USD,0,1
+1948,HND_Others,USD,0,1
+1949,HND_Re-export & Re-import,USD,0,1
+1950,HKG_Agriculture,USD,0,1
+1951,HKG_Fishing,USD,0,1
+1952,HKG_Mining and Quarrying,USD,0,1
+1953,HKG_Food & Beverages,USD,0,1
+1954,HKG_Textiles and Wearing Apparel,USD,0,1
+1955,HKG_Wood and Paper,USD,0,1
+1956,"HKG_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1957,HKG_Metal Products,USD,0,1
+1958,HKG_Electrical and Machinery,USD,0,1
+1959,HKG_Transport Equipment,USD,0,1
+1960,HKG_Other Manufacturing,USD,0,1
+1961,HKG_Recycling,USD,0,1
+1962,"HKG_Electricity, Gas and Water",USD,0,1
+1963,HKG_Construction,USD,0,1
+1964,HKG_Maintenance and Repair,USD,0,1
+1965,HKG_Wholesale Trade,USD,0,1
+1966,HKG_Retail Trade,USD,0,1
+1967,HKG_Hotels and Restraurants,USD,0,1
+1968,HKG_Transport,USD,0,1
+1969,HKG_Post and Telecommunications,USD,0,1
+1970,HKG_Finacial Intermediation and Business Activities,USD,0,1
+1971,HKG_Public Administration,USD,0,1
+1972,"HKG_Education, Health and Other Services",USD,0,1
+1973,HKG_Private Households,USD,0,1
+1974,HKG_Others,USD,0,1
+1975,HKG_Re-export & Re-import,USD,0,1
+1976,HUN_Agriculture,USD,0,1
+1977,HUN_Fishing,USD,0,1
+1978,HUN_Mining and Quarrying,USD,0,1
+1979,HUN_Food & Beverages,USD,0,1
+1980,HUN_Textiles and Wearing Apparel,USD,0,1
+1981,HUN_Wood and Paper,USD,0,1
+1982,"HUN_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+1983,HUN_Metal Products,USD,0,1
+1984,HUN_Electrical and Machinery,USD,0,1
+1985,HUN_Transport Equipment,USD,0,1
+1986,HUN_Other Manufacturing,USD,0,1
+1987,HUN_Recycling,USD,0,1
+1988,"HUN_Electricity, Gas and Water",USD,0,1
+1989,HUN_Construction,USD,0,1
+1990,HUN_Maintenance and Repair,USD,0,1
+1991,HUN_Wholesale Trade,USD,0,1
+1992,HUN_Retail Trade,USD,0,1
+1993,HUN_Hotels and Restraurants,USD,0,1
+1994,HUN_Transport,USD,0,1
+1995,HUN_Post and Telecommunications,USD,0,1
+1996,HUN_Finacial Intermediation and Business Activities,USD,0,1
+1997,HUN_Public Administration,USD,0,1
+1998,"HUN_Education, Health and Other Services",USD,0,1
+1999,HUN_Private Households,USD,0,1
+2000,HUN_Others,USD,0,1
+2001,HUN_Re-export & Re-import,USD,0,1
+2002,ISL_Agriculture,USD,0,1
+2003,ISL_Fishing,USD,0,1
+2004,ISL_Mining and Quarrying,USD,0,1
+2005,ISL_Food & Beverages,USD,0,1
+2006,ISL_Textiles and Wearing Apparel,USD,0,1
+2007,ISL_Wood and Paper,USD,0,1
+2008,"ISL_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2009,ISL_Metal Products,USD,0,1
+2010,ISL_Electrical and Machinery,USD,0,1
+2011,ISL_Transport Equipment,USD,0,1
+2012,ISL_Other Manufacturing,USD,0,1
+2013,ISL_Recycling,USD,0,1
+2014,"ISL_Electricity, Gas and Water",USD,0,1
+2015,ISL_Construction,USD,0,1
+2016,ISL_Maintenance and Repair,USD,0,1
+2017,ISL_Wholesale Trade,USD,0,1
+2018,ISL_Retail Trade,USD,0,1
+2019,ISL_Hotels and Restraurants,USD,0,1
+2020,ISL_Transport,USD,0,1
+2021,ISL_Post and Telecommunications,USD,0,1
+2022,ISL_Finacial Intermediation and Business Activities,USD,0,1
+2023,ISL_Public Administration,USD,0,1
+2024,"ISL_Education, Health and Other Services",USD,0,1
+2025,ISL_Private Households,USD,0,1
+2026,ISL_Others,USD,0,1
+2027,ISL_Re-export & Re-import,USD,0,1
+2028,IND_Agriculture,USD,0,1
+2029,IND_Fishing,USD,0,1
+2030,IND_Mining and Quarrying,USD,0,1
+2031,IND_Food & Beverages,USD,0,1
+2032,IND_Textiles and Wearing Apparel,USD,0,1
+2033,IND_Wood and Paper,USD,0,1
+2034,"IND_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2035,IND_Metal Products,USD,0,1
+2036,IND_Electrical and Machinery,USD,0,1
+2037,IND_Transport Equipment,USD,0,1
+2038,IND_Other Manufacturing,USD,0,1
+2039,IND_Recycling,USD,0,1
+2040,"IND_Electricity, Gas and Water",USD,0,1
+2041,IND_Construction,USD,0,1
+2042,IND_Maintenance and Repair,USD,0,1
+2043,IND_Wholesale Trade,USD,0,1
+2044,IND_Retail Trade,USD,0,1
+2045,IND_Hotels and Restraurants,USD,0,1
+2046,IND_Transport,USD,0,1
+2047,IND_Post and Telecommunications,USD,0,1
+2048,IND_Finacial Intermediation and Business Activities,USD,0,1
+2049,IND_Public Administration,USD,0,1
+2050,"IND_Education, Health and Other Services",USD,0,1
+2051,IND_Private Households,USD,0,1
+2052,IND_Others,USD,0,1
+2053,IND_Re-export & Re-import,USD,0,1
+2054,IDN_Agriculture,USD,0,1
+2055,IDN_Fishing,USD,0,1
+2056,IDN_Mining and Quarrying,USD,0,1
+2057,IDN_Food & Beverages,USD,0,1
+2058,IDN_Textiles and Wearing Apparel,USD,0,1
+2059,IDN_Wood and Paper,USD,0,1
+2060,"IDN_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2061,IDN_Metal Products,USD,0,1
+2062,IDN_Electrical and Machinery,USD,0,1
+2063,IDN_Transport Equipment,USD,0,1
+2064,IDN_Other Manufacturing,USD,0,1
+2065,IDN_Recycling,USD,0,1
+2066,"IDN_Electricity, Gas and Water",USD,0,1
+2067,IDN_Construction,USD,0,1
+2068,IDN_Maintenance and Repair,USD,0,1
+2069,IDN_Wholesale Trade,USD,0,1
+2070,IDN_Retail Trade,USD,0,1
+2071,IDN_Hotels and Restraurants,USD,0,1
+2072,IDN_Transport,USD,0,1
+2073,IDN_Post and Telecommunications,USD,0,1
+2074,IDN_Finacial Intermediation and Business Activities,USD,0,1
+2075,IDN_Public Administration,USD,0,1
+2076,"IDN_Education, Health and Other Services",USD,0,1
+2077,IDN_Private Households,USD,0,1
+2078,IDN_Others,USD,0,1
+2079,IDN_Re-export & Re-import,USD,0,1
+2080,IRN_Agriculture,USD,0,1
+2081,IRN_Fishing,USD,0,1
+2082,IRN_Mining and Quarrying,USD,0,1
+2083,IRN_Food & Beverages,USD,0,1
+2084,IRN_Textiles and Wearing Apparel,USD,0,1
+2085,IRN_Wood and Paper,USD,0,1
+2086,"IRN_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2087,IRN_Metal Products,USD,0,1
+2088,IRN_Electrical and Machinery,USD,0,1
+2089,IRN_Transport Equipment,USD,0,1
+2090,IRN_Other Manufacturing,USD,0,1
+2091,IRN_Recycling,USD,0,1
+2092,"IRN_Electricity, Gas and Water",USD,0,1
+2093,IRN_Construction,USD,0,1
+2094,IRN_Maintenance and Repair,USD,0,1
+2095,IRN_Wholesale Trade,USD,0,1
+2096,IRN_Retail Trade,USD,0,1
+2097,IRN_Hotels and Restraurants,USD,0,1
+2098,IRN_Transport,USD,0,1
+2099,IRN_Post and Telecommunications,USD,0,1
+2100,IRN_Finacial Intermediation and Business Activities,USD,0,1
+2101,IRN_Public Administration,USD,0,1
+2102,"IRN_Education, Health and Other Services",USD,0,1
+2103,IRN_Private Households,USD,0,1
+2104,IRN_Others,USD,0,1
+2105,IRN_Re-export & Re-import,USD,0,1
+2106,IRQ_Agriculture,USD,0,1
+2107,IRQ_Fishing,USD,0,1
+2108,IRQ_Mining and Quarrying,USD,0,1
+2109,IRQ_Food & Beverages,USD,0,1
+2110,IRQ_Textiles and Wearing Apparel,USD,0,1
+2111,IRQ_Wood and Paper,USD,0,1
+2112,"IRQ_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2113,IRQ_Metal Products,USD,0,1
+2114,IRQ_Electrical and Machinery,USD,0,1
+2115,IRQ_Transport Equipment,USD,0,1
+2116,IRQ_Other Manufacturing,USD,0,1
+2117,IRQ_Recycling,USD,0,1
+2118,"IRQ_Electricity, Gas and Water",USD,0,1
+2119,IRQ_Construction,USD,0,1
+2120,IRQ_Maintenance and Repair,USD,0,1
+2121,IRQ_Wholesale Trade,USD,0,1
+2122,IRQ_Retail Trade,USD,0,1
+2123,IRQ_Hotels and Restraurants,USD,0,1
+2124,IRQ_Transport,USD,0,1
+2125,IRQ_Post and Telecommunications,USD,0,1
+2126,IRQ_Finacial Intermediation and Business Activities,USD,0,1
+2127,IRQ_Public Administration,USD,0,1
+2128,"IRQ_Education, Health and Other Services",USD,0,1
+2129,IRQ_Private Households,USD,0,1
+2130,IRQ_Others,USD,0,1
+2131,IRQ_Re-export & Re-import,USD,0,1
+2132,IRL_Agriculture,USD,0,1
+2133,IRL_Fishing,USD,0,1
+2134,IRL_Mining and Quarrying,USD,0,1
+2135,IRL_Food & Beverages,USD,0,1
+2136,IRL_Textiles and Wearing Apparel,USD,0,1
+2137,IRL_Wood and Paper,USD,0,1
+2138,"IRL_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2139,IRL_Metal Products,USD,0,1
+2140,IRL_Electrical and Machinery,USD,0,1
+2141,IRL_Transport Equipment,USD,0,1
+2142,IRL_Other Manufacturing,USD,0,1
+2143,IRL_Recycling,USD,0,1
+2144,"IRL_Electricity, Gas and Water",USD,0,1
+2145,IRL_Construction,USD,0,1
+2146,IRL_Maintenance and Repair,USD,0,1
+2147,IRL_Wholesale Trade,USD,0,1
+2148,IRL_Retail Trade,USD,0,1
+2149,IRL_Hotels and Restraurants,USD,0,1
+2150,IRL_Transport,USD,0,1
+2151,IRL_Post and Telecommunications,USD,0,1
+2152,IRL_Finacial Intermediation and Business Activities,USD,0,1
+2153,IRL_Public Administration,USD,0,1
+2154,"IRL_Education, Health and Other Services",USD,0,1
+2155,IRL_Private Households,USD,0,1
+2156,IRL_Others,USD,0,1
+2157,IRL_Re-export & Re-import,USD,0,1
+2158,ISR_Agriculture,USD,0,1
+2159,ISR_Fishing,USD,0,1
+2160,ISR_Mining and Quarrying,USD,0,1
+2161,ISR_Food & Beverages,USD,0,1
+2162,ISR_Textiles and Wearing Apparel,USD,0,1
+2163,ISR_Wood and Paper,USD,0,1
+2164,"ISR_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2165,ISR_Metal Products,USD,0,1
+2166,ISR_Electrical and Machinery,USD,0,1
+2167,ISR_Transport Equipment,USD,0,1
+2168,ISR_Other Manufacturing,USD,0,1
+2169,ISR_Recycling,USD,0,1
+2170,"ISR_Electricity, Gas and Water",USD,0,1
+2171,ISR_Construction,USD,0,1
+2172,ISR_Maintenance and Repair,USD,0,1
+2173,ISR_Wholesale Trade,USD,0,1
+2174,ISR_Retail Trade,USD,0,1
+2175,ISR_Hotels and Restraurants,USD,0,1
+2176,ISR_Transport,USD,0,1
+2177,ISR_Post and Telecommunications,USD,0,1
+2178,ISR_Finacial Intermediation and Business Activities,USD,0,1
+2179,ISR_Public Administration,USD,0,1
+2180,"ISR_Education, Health and Other Services",USD,0,1
+2181,ISR_Private Households,USD,0,1
+2182,ISR_Others,USD,0,1
+2183,ISR_Re-export & Re-import,USD,0,1
+2184,ITA_Agriculture,USD,0,1
+2185,ITA_Fishing,USD,0,1
+2186,ITA_Mining and Quarrying,USD,0,1
+2187,ITA_Food & Beverages,USD,0,1
+2188,ITA_Textiles and Wearing Apparel,USD,0,1
+2189,ITA_Wood and Paper,USD,0,1
+2190,"ITA_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2191,ITA_Metal Products,USD,0,1
+2192,ITA_Electrical and Machinery,USD,0,1
+2193,ITA_Transport Equipment,USD,0,1
+2194,ITA_Other Manufacturing,USD,0,1
+2195,ITA_Recycling,USD,0,1
+2196,"ITA_Electricity, Gas and Water",USD,0,1
+2197,ITA_Construction,USD,0,1
+2198,ITA_Maintenance and Repair,USD,0,1
+2199,ITA_Wholesale Trade,USD,0,1
+2200,ITA_Retail Trade,USD,0,1
+2201,ITA_Hotels and Restraurants,USD,0,1
+2202,ITA_Transport,USD,0,1
+2203,ITA_Post and Telecommunications,USD,0,1
+2204,ITA_Finacial Intermediation and Business Activities,USD,0,1
+2205,ITA_Public Administration,USD,0,1
+2206,"ITA_Education, Health and Other Services",USD,0,1
+2207,ITA_Private Households,USD,0,1
+2208,ITA_Others,USD,0,1
+2209,ITA_Re-export & Re-import,USD,0,1
+2210,JAM_Agriculture,USD,0,1
+2211,JAM_Fishing,USD,0,1
+2212,JAM_Mining and Quarrying,USD,0,1
+2213,JAM_Food & Beverages,USD,0,1
+2214,JAM_Textiles and Wearing Apparel,USD,0,1
+2215,JAM_Wood and Paper,USD,0,1
+2216,"JAM_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2217,JAM_Metal Products,USD,0,1
+2218,JAM_Electrical and Machinery,USD,0,1
+2219,JAM_Transport Equipment,USD,0,1
+2220,JAM_Other Manufacturing,USD,0,1
+2221,JAM_Recycling,USD,0,1
+2222,"JAM_Electricity, Gas and Water",USD,0,1
+2223,JAM_Construction,USD,0,1
+2224,JAM_Maintenance and Repair,USD,0,1
+2225,JAM_Wholesale Trade,USD,0,1
+2226,JAM_Retail Trade,USD,0,1
+2227,JAM_Hotels and Restraurants,USD,0,1
+2228,JAM_Transport,USD,0,1
+2229,JAM_Post and Telecommunications,USD,0,1
+2230,JAM_Finacial Intermediation and Business Activities,USD,0,1
+2231,JAM_Public Administration,USD,0,1
+2232,"JAM_Education, Health and Other Services",USD,0,1
+2233,JAM_Private Households,USD,0,1
+2234,JAM_Others,USD,0,1
+2235,JAM_Re-export & Re-import,USD,0,1
+2236,JPN_Agriculture,USD,0,1
+2237,JPN_Fishing,USD,0,1
+2238,JPN_Mining and Quarrying,USD,0,1
+2239,JPN_Food & Beverages,USD,0,1
+2240,JPN_Textiles and Wearing Apparel,USD,0,1
+2241,JPN_Wood and Paper,USD,0,1
+2242,"JPN_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2243,JPN_Metal Products,USD,0,1
+2244,JPN_Electrical and Machinery,USD,0,1
+2245,JPN_Transport Equipment,USD,0,1
+2246,JPN_Other Manufacturing,USD,0,1
+2247,JPN_Recycling,USD,0,1
+2248,"JPN_Electricity, Gas and Water",USD,0,1
+2249,JPN_Construction,USD,0,1
+2250,JPN_Maintenance and Repair,USD,0,1
+2251,JPN_Wholesale Trade,USD,0,1
+2252,JPN_Retail Trade,USD,0,1
+2253,JPN_Hotels and Restraurants,USD,0,1
+2254,JPN_Transport,USD,0,1
+2255,JPN_Post and Telecommunications,USD,0,1
+2256,JPN_Finacial Intermediation and Business Activities,USD,0,1
+2257,JPN_Public Administration,USD,0,1
+2258,"JPN_Education, Health and Other Services",USD,0,1
+2259,JPN_Private Households,USD,0,1
+2260,JPN_Others,USD,0,1
+2261,JPN_Re-export & Re-import,USD,0,1
+2262,JOR_Agriculture,USD,0,1
+2263,JOR_Fishing,USD,0,1
+2264,JOR_Mining and Quarrying,USD,0,1
+2265,JOR_Food & Beverages,USD,0,1
+2266,JOR_Textiles and Wearing Apparel,USD,0,1
+2267,JOR_Wood and Paper,USD,0,1
+2268,"JOR_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2269,JOR_Metal Products,USD,0,1
+2270,JOR_Electrical and Machinery,USD,0,1
+2271,JOR_Transport Equipment,USD,0,1
+2272,JOR_Other Manufacturing,USD,0,1
+2273,JOR_Recycling,USD,0,1
+2274,"JOR_Electricity, Gas and Water",USD,0,1
+2275,JOR_Construction,USD,0,1
+2276,JOR_Maintenance and Repair,USD,0,1
+2277,JOR_Wholesale Trade,USD,0,1
+2278,JOR_Retail Trade,USD,0,1
+2279,JOR_Hotels and Restraurants,USD,0,1
+2280,JOR_Transport,USD,0,1
+2281,JOR_Post and Telecommunications,USD,0,1
+2282,JOR_Finacial Intermediation and Business Activities,USD,0,1
+2283,JOR_Public Administration,USD,0,1
+2284,"JOR_Education, Health and Other Services",USD,0,1
+2285,JOR_Private Households,USD,0,1
+2286,JOR_Others,USD,0,1
+2287,JOR_Re-export & Re-import,USD,0,1
+2288,KAZ_Agriculture,USD,0,1
+2289,KAZ_Fishing,USD,0,1
+2290,KAZ_Mining and Quarrying,USD,0,1
+2291,KAZ_Food & Beverages,USD,0,1
+2292,KAZ_Textiles and Wearing Apparel,USD,0,1
+2293,KAZ_Wood and Paper,USD,0,1
+2294,"KAZ_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2295,KAZ_Metal Products,USD,0,1
+2296,KAZ_Electrical and Machinery,USD,0,1
+2297,KAZ_Transport Equipment,USD,0,1
+2298,KAZ_Other Manufacturing,USD,0,1
+2299,KAZ_Recycling,USD,0,1
+2300,"KAZ_Electricity, Gas and Water",USD,0,1
+2301,KAZ_Construction,USD,0,1
+2302,KAZ_Maintenance and Repair,USD,0,1
+2303,KAZ_Wholesale Trade,USD,0,1
+2304,KAZ_Retail Trade,USD,0,1
+2305,KAZ_Hotels and Restraurants,USD,0,1
+2306,KAZ_Transport,USD,0,1
+2307,KAZ_Post and Telecommunications,USD,0,1
+2308,KAZ_Finacial Intermediation and Business Activities,USD,0,1
+2309,KAZ_Public Administration,USD,0,1
+2310,"KAZ_Education, Health and Other Services",USD,0,1
+2311,KAZ_Private Households,USD,0,1
+2312,KAZ_Others,USD,0,1
+2313,KAZ_Re-export & Re-import,USD,0,1
+2314,KEN_Agriculture,USD,0,1
+2315,KEN_Fishing,USD,0,1
+2316,KEN_Mining and Quarrying,USD,0,1
+2317,KEN_Food & Beverages,USD,0,1
+2318,KEN_Textiles and Wearing Apparel,USD,0,1
+2319,KEN_Wood and Paper,USD,0,1
+2320,"KEN_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2321,KEN_Metal Products,USD,0,1
+2322,KEN_Electrical and Machinery,USD,0,1
+2323,KEN_Transport Equipment,USD,0,1
+2324,KEN_Other Manufacturing,USD,0,1
+2325,KEN_Recycling,USD,0,1
+2326,"KEN_Electricity, Gas and Water",USD,0,1
+2327,KEN_Construction,USD,0,1
+2328,KEN_Maintenance and Repair,USD,0,1
+2329,KEN_Wholesale Trade,USD,0,1
+2330,KEN_Retail Trade,USD,0,1
+2331,KEN_Hotels and Restraurants,USD,0,1
+2332,KEN_Transport,USD,0,1
+2333,KEN_Post and Telecommunications,USD,0,1
+2334,KEN_Finacial Intermediation and Business Activities,USD,0,1
+2335,KEN_Public Administration,USD,0,1
+2336,"KEN_Education, Health and Other Services",USD,0,1
+2337,KEN_Private Households,USD,0,1
+2338,KEN_Others,USD,0,1
+2339,KEN_Re-export & Re-import,USD,0,1
+2340,KWT_Agriculture,USD,0,1
+2341,KWT_Fishing,USD,0,1
+2342,KWT_Mining and Quarrying,USD,0,1
+2343,KWT_Food & Beverages,USD,0,1
+2344,KWT_Textiles and Wearing Apparel,USD,0,1
+2345,KWT_Wood and Paper,USD,0,1
+2346,"KWT_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2347,KWT_Metal Products,USD,0,1
+2348,KWT_Electrical and Machinery,USD,0,1
+2349,KWT_Transport Equipment,USD,0,1
+2350,KWT_Other Manufacturing,USD,0,1
+2351,KWT_Recycling,USD,0,1
+2352,"KWT_Electricity, Gas and Water",USD,0,1
+2353,KWT_Construction,USD,0,1
+2354,KWT_Maintenance and Repair,USD,0,1
+2355,KWT_Wholesale Trade,USD,0,1
+2356,KWT_Retail Trade,USD,0,1
+2357,KWT_Hotels and Restraurants,USD,0,1
+2358,KWT_Transport,USD,0,1
+2359,KWT_Post and Telecommunications,USD,0,1
+2360,KWT_Finacial Intermediation and Business Activities,USD,0,1
+2361,KWT_Public Administration,USD,0,1
+2362,"KWT_Education, Health and Other Services",USD,0,1
+2363,KWT_Private Households,USD,0,1
+2364,KWT_Others,USD,0,1
+2365,KWT_Re-export & Re-import,USD,0,1
+2366,KGZ_Agriculture,USD,0,1
+2367,KGZ_Fishing,USD,0,1
+2368,KGZ_Mining and Quarrying,USD,0,1
+2369,KGZ_Food & Beverages,USD,0,1
+2370,KGZ_Textiles and Wearing Apparel,USD,0,1
+2371,KGZ_Wood and Paper,USD,0,1
+2372,"KGZ_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2373,KGZ_Metal Products,USD,0,1
+2374,KGZ_Electrical and Machinery,USD,0,1
+2375,KGZ_Transport Equipment,USD,0,1
+2376,KGZ_Other Manufacturing,USD,0,1
+2377,KGZ_Recycling,USD,0,1
+2378,"KGZ_Electricity, Gas and Water",USD,0,1
+2379,KGZ_Construction,USD,0,1
+2380,KGZ_Maintenance and Repair,USD,0,1
+2381,KGZ_Wholesale Trade,USD,0,1
+2382,KGZ_Retail Trade,USD,0,1
+2383,KGZ_Hotels and Restraurants,USD,0,1
+2384,KGZ_Transport,USD,0,1
+2385,KGZ_Post and Telecommunications,USD,0,1
+2386,KGZ_Finacial Intermediation and Business Activities,USD,0,1
+2387,KGZ_Public Administration,USD,0,1
+2388,"KGZ_Education, Health and Other Services",USD,0,1
+2389,KGZ_Private Households,USD,0,1
+2390,KGZ_Others,USD,0,1
+2391,KGZ_Re-export & Re-import,USD,0,1
+2392,LAO_Agriculture,USD,0,1
+2393,LAO_Fishing,USD,0,1
+2394,LAO_Mining and Quarrying,USD,0,1
+2395,LAO_Food & Beverages,USD,0,1
+2396,LAO_Textiles and Wearing Apparel,USD,0,1
+2397,LAO_Wood and Paper,USD,0,1
+2398,"LAO_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2399,LAO_Metal Products,USD,0,1
+2400,LAO_Electrical and Machinery,USD,0,1
+2401,LAO_Transport Equipment,USD,0,1
+2402,LAO_Other Manufacturing,USD,0,1
+2403,LAO_Recycling,USD,0,1
+2404,"LAO_Electricity, Gas and Water",USD,0,1
+2405,LAO_Construction,USD,0,1
+2406,LAO_Maintenance and Repair,USD,0,1
+2407,LAO_Wholesale Trade,USD,0,1
+2408,LAO_Retail Trade,USD,0,1
+2409,LAO_Hotels and Restraurants,USD,0,1
+2410,LAO_Transport,USD,0,1
+2411,LAO_Post and Telecommunications,USD,0,1
+2412,LAO_Finacial Intermediation and Business Activities,USD,0,1
+2413,LAO_Public Administration,USD,0,1
+2414,"LAO_Education, Health and Other Services",USD,0,1
+2415,LAO_Private Households,USD,0,1
+2416,LAO_Others,USD,0,1
+2417,LAO_Re-export & Re-import,USD,0,1
+2418,LVA_Agriculture,USD,0,1
+2419,LVA_Fishing,USD,0,1
+2420,LVA_Mining and Quarrying,USD,0,1
+2421,LVA_Food & Beverages,USD,0,1
+2422,LVA_Textiles and Wearing Apparel,USD,0,1
+2423,LVA_Wood and Paper,USD,0,1
+2424,"LVA_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2425,LVA_Metal Products,USD,0,1
+2426,LVA_Electrical and Machinery,USD,0,1
+2427,LVA_Transport Equipment,USD,0,1
+2428,LVA_Other Manufacturing,USD,0,1
+2429,LVA_Recycling,USD,0,1
+2430,"LVA_Electricity, Gas and Water",USD,0,1
+2431,LVA_Construction,USD,0,1
+2432,LVA_Maintenance and Repair,USD,0,1
+2433,LVA_Wholesale Trade,USD,0,1
+2434,LVA_Retail Trade,USD,0,1
+2435,LVA_Hotels and Restraurants,USD,0,1
+2436,LVA_Transport,USD,0,1
+2437,LVA_Post and Telecommunications,USD,0,1
+2438,LVA_Finacial Intermediation and Business Activities,USD,0,1
+2439,LVA_Public Administration,USD,0,1
+2440,"LVA_Education, Health and Other Services",USD,0,1
+2441,LVA_Private Households,USD,0,1
+2442,LVA_Others,USD,0,1
+2443,LVA_Re-export & Re-import,USD,0,1
+2444,LBN_Agriculture,USD,0,1
+2445,LBN_Fishing,USD,0,1
+2446,LBN_Mining and Quarrying,USD,0,1
+2447,LBN_Food & Beverages,USD,0,1
+2448,LBN_Textiles and Wearing Apparel,USD,0,1
+2449,LBN_Wood and Paper,USD,0,1
+2450,"LBN_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2451,LBN_Metal Products,USD,0,1
+2452,LBN_Electrical and Machinery,USD,0,1
+2453,LBN_Transport Equipment,USD,0,1
+2454,LBN_Other Manufacturing,USD,0,1
+2455,LBN_Recycling,USD,0,1
+2456,"LBN_Electricity, Gas and Water",USD,0,1
+2457,LBN_Construction,USD,0,1
+2458,LBN_Maintenance and Repair,USD,0,1
+2459,LBN_Wholesale Trade,USD,0,1
+2460,LBN_Retail Trade,USD,0,1
+2461,LBN_Hotels and Restraurants,USD,0,1
+2462,LBN_Transport,USD,0,1
+2463,LBN_Post and Telecommunications,USD,0,1
+2464,LBN_Finacial Intermediation and Business Activities,USD,0,1
+2465,LBN_Public Administration,USD,0,1
+2466,"LBN_Education, Health and Other Services",USD,0,1
+2467,LBN_Private Households,USD,0,1
+2468,LBN_Others,USD,0,1
+2469,LBN_Re-export & Re-import,USD,0,1
+2470,LSO_Agriculture,USD,0,1
+2471,LSO_Fishing,USD,0,1
+2472,LSO_Mining and Quarrying,USD,0,1
+2473,LSO_Food & Beverages,USD,0,1
+2474,LSO_Textiles and Wearing Apparel,USD,0,1
+2475,LSO_Wood and Paper,USD,0,1
+2476,"LSO_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2477,LSO_Metal Products,USD,0,1
+2478,LSO_Electrical and Machinery,USD,0,1
+2479,LSO_Transport Equipment,USD,0,1
+2480,LSO_Other Manufacturing,USD,0,1
+2481,LSO_Recycling,USD,0,1
+2482,"LSO_Electricity, Gas and Water",USD,0,1
+2483,LSO_Construction,USD,0,1
+2484,LSO_Maintenance and Repair,USD,0,1
+2485,LSO_Wholesale Trade,USD,0,1
+2486,LSO_Retail Trade,USD,0,1
+2487,LSO_Hotels and Restraurants,USD,0,1
+2488,LSO_Transport,USD,0,1
+2489,LSO_Post and Telecommunications,USD,0,1
+2490,LSO_Finacial Intermediation and Business Activities,USD,0,1
+2491,LSO_Public Administration,USD,0,1
+2492,"LSO_Education, Health and Other Services",USD,0,1
+2493,LSO_Private Households,USD,0,1
+2494,LSO_Others,USD,0,1
+2495,LSO_Re-export & Re-import,USD,0,1
+2496,LBR_Agriculture,USD,0,1
+2497,LBR_Fishing,USD,0,1
+2498,LBR_Mining and Quarrying,USD,0,1
+2499,LBR_Food & Beverages,USD,0,1
+2500,LBR_Textiles and Wearing Apparel,USD,0,1
+2501,LBR_Wood and Paper,USD,0,1
+2502,"LBR_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2503,LBR_Metal Products,USD,0,1
+2504,LBR_Electrical and Machinery,USD,0,1
+2505,LBR_Transport Equipment,USD,0,1
+2506,LBR_Other Manufacturing,USD,0,1
+2507,LBR_Recycling,USD,0,1
+2508,"LBR_Electricity, Gas and Water",USD,0,1
+2509,LBR_Construction,USD,0,1
+2510,LBR_Maintenance and Repair,USD,0,1
+2511,LBR_Wholesale Trade,USD,0,1
+2512,LBR_Retail Trade,USD,0,1
+2513,LBR_Hotels and Restraurants,USD,0,1
+2514,LBR_Transport,USD,0,1
+2515,LBR_Post and Telecommunications,USD,0,1
+2516,LBR_Finacial Intermediation and Business Activities,USD,0,1
+2517,LBR_Public Administration,USD,0,1
+2518,"LBR_Education, Health and Other Services",USD,0,1
+2519,LBR_Private Households,USD,0,1
+2520,LBR_Others,USD,0,1
+2521,LBR_Re-export & Re-import,USD,0,1
+2522,LBY_Agriculture,USD,0,1
+2523,LBY_Fishing,USD,0,1
+2524,LBY_Mining and Quarrying,USD,0,1
+2525,LBY_Food & Beverages,USD,0,1
+2526,LBY_Textiles and Wearing Apparel,USD,0,1
+2527,LBY_Wood and Paper,USD,0,1
+2528,"LBY_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2529,LBY_Metal Products,USD,0,1
+2530,LBY_Electrical and Machinery,USD,0,1
+2531,LBY_Transport Equipment,USD,0,1
+2532,LBY_Other Manufacturing,USD,0,1
+2533,LBY_Recycling,USD,0,1
+2534,"LBY_Electricity, Gas and Water",USD,0,1
+2535,LBY_Construction,USD,0,1
+2536,LBY_Maintenance and Repair,USD,0,1
+2537,LBY_Wholesale Trade,USD,0,1
+2538,LBY_Retail Trade,USD,0,1
+2539,LBY_Hotels and Restraurants,USD,0,1
+2540,LBY_Transport,USD,0,1
+2541,LBY_Post and Telecommunications,USD,0,1
+2542,LBY_Finacial Intermediation and Business Activities,USD,0,1
+2543,LBY_Public Administration,USD,0,1
+2544,"LBY_Education, Health and Other Services",USD,0,1
+2545,LBY_Private Households,USD,0,1
+2546,LBY_Others,USD,0,1
+2547,LBY_Re-export & Re-import,USD,0,1
+2548,LIE_Agriculture,USD,0,1
+2549,LIE_Fishing,USD,0,1
+2550,LIE_Mining and Quarrying,USD,0,1
+2551,LIE_Food & Beverages,USD,0,1
+2552,LIE_Textiles and Wearing Apparel,USD,0,1
+2553,LIE_Wood and Paper,USD,0,1
+2554,"LIE_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2555,LIE_Metal Products,USD,0,1
+2556,LIE_Electrical and Machinery,USD,0,1
+2557,LIE_Transport Equipment,USD,0,1
+2558,LIE_Other Manufacturing,USD,0,1
+2559,LIE_Recycling,USD,0,1
+2560,"LIE_Electricity, Gas and Water",USD,0,1
+2561,LIE_Construction,USD,0,1
+2562,LIE_Maintenance and Repair,USD,0,1
+2563,LIE_Wholesale Trade,USD,0,1
+2564,LIE_Retail Trade,USD,0,1
+2565,LIE_Hotels and Restraurants,USD,0,1
+2566,LIE_Transport,USD,0,1
+2567,LIE_Post and Telecommunications,USD,0,1
+2568,LIE_Finacial Intermediation and Business Activities,USD,0,1
+2569,LIE_Public Administration,USD,0,1
+2570,"LIE_Education, Health and Other Services",USD,0,1
+2571,LIE_Private Households,USD,0,1
+2572,LIE_Others,USD,0,1
+2573,LIE_Re-export & Re-import,USD,0,1
+2574,LTU_Agriculture,USD,0,1
+2575,LTU_Fishing,USD,0,1
+2576,LTU_Mining and Quarrying,USD,0,1
+2577,LTU_Food & Beverages,USD,0,1
+2578,LTU_Textiles and Wearing Apparel,USD,0,1
+2579,LTU_Wood and Paper,USD,0,1
+2580,"LTU_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2581,LTU_Metal Products,USD,0,1
+2582,LTU_Electrical and Machinery,USD,0,1
+2583,LTU_Transport Equipment,USD,0,1
+2584,LTU_Other Manufacturing,USD,0,1
+2585,LTU_Recycling,USD,0,1
+2586,"LTU_Electricity, Gas and Water",USD,0,1
+2587,LTU_Construction,USD,0,1
+2588,LTU_Maintenance and Repair,USD,0,1
+2589,LTU_Wholesale Trade,USD,0,1
+2590,LTU_Retail Trade,USD,0,1
+2591,LTU_Hotels and Restraurants,USD,0,1
+2592,LTU_Transport,USD,0,1
+2593,LTU_Post and Telecommunications,USD,0,1
+2594,LTU_Finacial Intermediation and Business Activities,USD,0,1
+2595,LTU_Public Administration,USD,0,1
+2596,"LTU_Education, Health and Other Services",USD,0,1
+2597,LTU_Private Households,USD,0,1
+2598,LTU_Others,USD,0,1
+2599,LTU_Re-export & Re-import,USD,0,1
+2600,LUX_Agriculture,USD,0,1
+2601,LUX_Fishing,USD,0,1
+2602,LUX_Mining and Quarrying,USD,0,1
+2603,LUX_Food & Beverages,USD,0,1
+2604,LUX_Textiles and Wearing Apparel,USD,0,1
+2605,LUX_Wood and Paper,USD,0,1
+2606,"LUX_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2607,LUX_Metal Products,USD,0,1
+2608,LUX_Electrical and Machinery,USD,0,1
+2609,LUX_Transport Equipment,USD,0,1
+2610,LUX_Other Manufacturing,USD,0,1
+2611,LUX_Recycling,USD,0,1
+2612,"LUX_Electricity, Gas and Water",USD,0,1
+2613,LUX_Construction,USD,0,1
+2614,LUX_Maintenance and Repair,USD,0,1
+2615,LUX_Wholesale Trade,USD,0,1
+2616,LUX_Retail Trade,USD,0,1
+2617,LUX_Hotels and Restraurants,USD,0,1
+2618,LUX_Transport,USD,0,1
+2619,LUX_Post and Telecommunications,USD,0,1
+2620,LUX_Finacial Intermediation and Business Activities,USD,0,1
+2621,LUX_Public Administration,USD,0,1
+2622,"LUX_Education, Health and Other Services",USD,0,1
+2623,LUX_Private Households,USD,0,1
+2624,LUX_Others,USD,0,1
+2625,LUX_Re-export & Re-import,USD,0,1
+2626,MAC_Agriculture,USD,0,1
+2627,MAC_Fishing,USD,0,1
+2628,MAC_Mining and Quarrying,USD,0,1
+2629,MAC_Food & Beverages,USD,0,1
+2630,MAC_Textiles and Wearing Apparel,USD,0,1
+2631,MAC_Wood and Paper,USD,0,1
+2632,"MAC_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2633,MAC_Metal Products,USD,0,1
+2634,MAC_Electrical and Machinery,USD,0,1
+2635,MAC_Transport Equipment,USD,0,1
+2636,MAC_Other Manufacturing,USD,0,1
+2637,MAC_Recycling,USD,0,1
+2638,"MAC_Electricity, Gas and Water",USD,0,1
+2639,MAC_Construction,USD,0,1
+2640,MAC_Maintenance and Repair,USD,0,1
+2641,MAC_Wholesale Trade,USD,0,1
+2642,MAC_Retail Trade,USD,0,1
+2643,MAC_Hotels and Restraurants,USD,0,1
+2644,MAC_Transport,USD,0,1
+2645,MAC_Post and Telecommunications,USD,0,1
+2646,MAC_Finacial Intermediation and Business Activities,USD,0,1
+2647,MAC_Public Administration,USD,0,1
+2648,"MAC_Education, Health and Other Services",USD,0,1
+2649,MAC_Private Households,USD,0,1
+2650,MAC_Others,USD,0,1
+2651,MAC_Re-export & Re-import,USD,0,1
+2652,MDG_Agriculture,USD,0,1
+2653,MDG_Fishing,USD,0,1
+2654,MDG_Mining and Quarrying,USD,0,1
+2655,MDG_Food & Beverages,USD,0,1
+2656,MDG_Textiles and Wearing Apparel,USD,0,1
+2657,MDG_Wood and Paper,USD,0,1
+2658,"MDG_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2659,MDG_Metal Products,USD,0,1
+2660,MDG_Electrical and Machinery,USD,0,1
+2661,MDG_Transport Equipment,USD,0,1
+2662,MDG_Other Manufacturing,USD,0,1
+2663,MDG_Recycling,USD,0,1
+2664,"MDG_Electricity, Gas and Water",USD,0,1
+2665,MDG_Construction,USD,0,1
+2666,MDG_Maintenance and Repair,USD,0,1
+2667,MDG_Wholesale Trade,USD,0,1
+2668,MDG_Retail Trade,USD,0,1
+2669,MDG_Hotels and Restraurants,USD,0,1
+2670,MDG_Transport,USD,0,1
+2671,MDG_Post and Telecommunications,USD,0,1
+2672,MDG_Finacial Intermediation and Business Activities,USD,0,1
+2673,MDG_Public Administration,USD,0,1
+2674,"MDG_Education, Health and Other Services",USD,0,1
+2675,MDG_Private Households,USD,0,1
+2676,MDG_Others,USD,0,1
+2677,MDG_Re-export & Re-import,USD,0,1
+2678,MWI_Agriculture,USD,0,1
+2679,MWI_Fishing,USD,0,1
+2680,MWI_Mining and Quarrying,USD,0,1
+2681,MWI_Food & Beverages,USD,0,1
+2682,MWI_Textiles and Wearing Apparel,USD,0,1
+2683,MWI_Wood and Paper,USD,0,1
+2684,"MWI_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2685,MWI_Metal Products,USD,0,1
+2686,MWI_Electrical and Machinery,USD,0,1
+2687,MWI_Transport Equipment,USD,0,1
+2688,MWI_Other Manufacturing,USD,0,1
+2689,MWI_Recycling,USD,0,1
+2690,"MWI_Electricity, Gas and Water",USD,0,1
+2691,MWI_Construction,USD,0,1
+2692,MWI_Maintenance and Repair,USD,0,1
+2693,MWI_Wholesale Trade,USD,0,1
+2694,MWI_Retail Trade,USD,0,1
+2695,MWI_Hotels and Restraurants,USD,0,1
+2696,MWI_Transport,USD,0,1
+2697,MWI_Post and Telecommunications,USD,0,1
+2698,MWI_Finacial Intermediation and Business Activities,USD,0,1
+2699,MWI_Public Administration,USD,0,1
+2700,"MWI_Education, Health and Other Services",USD,0,1
+2701,MWI_Private Households,USD,0,1
+2702,MWI_Others,USD,0,1
+2703,MWI_Re-export & Re-import,USD,0,1
+2704,MYS_Agriculture,USD,0,1
+2705,MYS_Fishing,USD,0,1
+2706,MYS_Mining and Quarrying,USD,0,1
+2707,MYS_Food & Beverages,USD,0,1
+2708,MYS_Textiles and Wearing Apparel,USD,0,1
+2709,MYS_Wood and Paper,USD,0,1
+2710,"MYS_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2711,MYS_Metal Products,USD,0,1
+2712,MYS_Electrical and Machinery,USD,0,1
+2713,MYS_Transport Equipment,USD,0,1
+2714,MYS_Other Manufacturing,USD,0,1
+2715,MYS_Recycling,USD,0,1
+2716,"MYS_Electricity, Gas and Water",USD,0,1
+2717,MYS_Construction,USD,0,1
+2718,MYS_Maintenance and Repair,USD,0,1
+2719,MYS_Wholesale Trade,USD,0,1
+2720,MYS_Retail Trade,USD,0,1
+2721,MYS_Hotels and Restraurants,USD,0,1
+2722,MYS_Transport,USD,0,1
+2723,MYS_Post and Telecommunications,USD,0,1
+2724,MYS_Finacial Intermediation and Business Activities,USD,0,1
+2725,MYS_Public Administration,USD,0,1
+2726,"MYS_Education, Health and Other Services",USD,0,1
+2727,MYS_Private Households,USD,0,1
+2728,MYS_Others,USD,0,1
+2729,MYS_Re-export & Re-import,USD,0,1
+2730,MDV_Agriculture,USD,0,1
+2731,MDV_Fishing,USD,0,1
+2732,MDV_Mining and Quarrying,USD,0,1
+2733,MDV_Food & Beverages,USD,0,1
+2734,MDV_Textiles and Wearing Apparel,USD,0,1
+2735,MDV_Wood and Paper,USD,0,1
+2736,"MDV_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2737,MDV_Metal Products,USD,0,1
+2738,MDV_Electrical and Machinery,USD,0,1
+2739,MDV_Transport Equipment,USD,0,1
+2740,MDV_Other Manufacturing,USD,0,1
+2741,MDV_Recycling,USD,0,1
+2742,"MDV_Electricity, Gas and Water",USD,0,1
+2743,MDV_Construction,USD,0,1
+2744,MDV_Maintenance and Repair,USD,0,1
+2745,MDV_Wholesale Trade,USD,0,1
+2746,MDV_Retail Trade,USD,0,1
+2747,MDV_Hotels and Restraurants,USD,0,1
+2748,MDV_Transport,USD,0,1
+2749,MDV_Post and Telecommunications,USD,0,1
+2750,MDV_Finacial Intermediation and Business Activities,USD,0,1
+2751,MDV_Public Administration,USD,0,1
+2752,"MDV_Education, Health and Other Services",USD,0,1
+2753,MDV_Private Households,USD,0,1
+2754,MDV_Others,USD,0,1
+2755,MDV_Re-export & Re-import,USD,0,1
+2756,MLI_Agriculture,USD,0,1
+2757,MLI_Fishing,USD,0,1
+2758,MLI_Mining and Quarrying,USD,0,1
+2759,MLI_Food & Beverages,USD,0,1
+2760,MLI_Textiles and Wearing Apparel,USD,0,1
+2761,MLI_Wood and Paper,USD,0,1
+2762,"MLI_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2763,MLI_Metal Products,USD,0,1
+2764,MLI_Electrical and Machinery,USD,0,1
+2765,MLI_Transport Equipment,USD,0,1
+2766,MLI_Other Manufacturing,USD,0,1
+2767,MLI_Recycling,USD,0,1
+2768,"MLI_Electricity, Gas and Water",USD,0,1
+2769,MLI_Construction,USD,0,1
+2770,MLI_Maintenance and Repair,USD,0,1
+2771,MLI_Wholesale Trade,USD,0,1
+2772,MLI_Retail Trade,USD,0,1
+2773,MLI_Hotels and Restraurants,USD,0,1
+2774,MLI_Transport,USD,0,1
+2775,MLI_Post and Telecommunications,USD,0,1
+2776,MLI_Finacial Intermediation and Business Activities,USD,0,1
+2777,MLI_Public Administration,USD,0,1
+2778,"MLI_Education, Health and Other Services",USD,0,1
+2779,MLI_Private Households,USD,0,1
+2780,MLI_Others,USD,0,1
+2781,MLI_Re-export & Re-import,USD,0,1
+2782,MLT_Agriculture,USD,0,1
+2783,MLT_Fishing,USD,0,1
+2784,MLT_Mining and Quarrying,USD,0,1
+2785,MLT_Food & Beverages,USD,0,1
+2786,MLT_Textiles and Wearing Apparel,USD,0,1
+2787,MLT_Wood and Paper,USD,0,1
+2788,"MLT_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2789,MLT_Metal Products,USD,0,1
+2790,MLT_Electrical and Machinery,USD,0,1
+2791,MLT_Transport Equipment,USD,0,1
+2792,MLT_Other Manufacturing,USD,0,1
+2793,MLT_Recycling,USD,0,1
+2794,"MLT_Electricity, Gas and Water",USD,0,1
+2795,MLT_Construction,USD,0,1
+2796,MLT_Maintenance and Repair,USD,0,1
+2797,MLT_Wholesale Trade,USD,0,1
+2798,MLT_Retail Trade,USD,0,1
+2799,MLT_Hotels and Restraurants,USD,0,1
+2800,MLT_Transport,USD,0,1
+2801,MLT_Post and Telecommunications,USD,0,1
+2802,MLT_Finacial Intermediation and Business Activities,USD,0,1
+2803,MLT_Public Administration,USD,0,1
+2804,"MLT_Education, Health and Other Services",USD,0,1
+2805,MLT_Private Households,USD,0,1
+2806,MLT_Others,USD,0,1
+2807,MLT_Re-export & Re-import,USD,0,1
+2808,MRT_Agriculture,USD,0,1
+2809,MRT_Fishing,USD,0,1
+2810,MRT_Mining and Quarrying,USD,0,1
+2811,MRT_Food & Beverages,USD,0,1
+2812,MRT_Textiles and Wearing Apparel,USD,0,1
+2813,MRT_Wood and Paper,USD,0,1
+2814,"MRT_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2815,MRT_Metal Products,USD,0,1
+2816,MRT_Electrical and Machinery,USD,0,1
+2817,MRT_Transport Equipment,USD,0,1
+2818,MRT_Other Manufacturing,USD,0,1
+2819,MRT_Recycling,USD,0,1
+2820,"MRT_Electricity, Gas and Water",USD,0,1
+2821,MRT_Construction,USD,0,1
+2822,MRT_Maintenance and Repair,USD,0,1
+2823,MRT_Wholesale Trade,USD,0,1
+2824,MRT_Retail Trade,USD,0,1
+2825,MRT_Hotels and Restraurants,USD,0,1
+2826,MRT_Transport,USD,0,1
+2827,MRT_Post and Telecommunications,USD,0,1
+2828,MRT_Finacial Intermediation and Business Activities,USD,0,1
+2829,MRT_Public Administration,USD,0,1
+2830,"MRT_Education, Health and Other Services",USD,0,1
+2831,MRT_Private Households,USD,0,1
+2832,MRT_Others,USD,0,1
+2833,MRT_Re-export & Re-import,USD,0,1
+2834,MUS_Agriculture,USD,0,1
+2835,MUS_Fishing,USD,0,1
+2836,MUS_Mining and Quarrying,USD,0,1
+2837,MUS_Food & Beverages,USD,0,1
+2838,MUS_Textiles and Wearing Apparel,USD,0,1
+2839,MUS_Wood and Paper,USD,0,1
+2840,"MUS_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2841,MUS_Metal Products,USD,0,1
+2842,MUS_Electrical and Machinery,USD,0,1
+2843,MUS_Transport Equipment,USD,0,1
+2844,MUS_Other Manufacturing,USD,0,1
+2845,MUS_Recycling,USD,0,1
+2846,"MUS_Electricity, Gas and Water",USD,0,1
+2847,MUS_Construction,USD,0,1
+2848,MUS_Maintenance and Repair,USD,0,1
+2849,MUS_Wholesale Trade,USD,0,1
+2850,MUS_Retail Trade,USD,0,1
+2851,MUS_Hotels and Restraurants,USD,0,1
+2852,MUS_Transport,USD,0,1
+2853,MUS_Post and Telecommunications,USD,0,1
+2854,MUS_Finacial Intermediation and Business Activities,USD,0,1
+2855,MUS_Public Administration,USD,0,1
+2856,"MUS_Education, Health and Other Services",USD,0,1
+2857,MUS_Private Households,USD,0,1
+2858,MUS_Others,USD,0,1
+2859,MUS_Re-export & Re-import,USD,0,1
+2860,MEX_Agriculture,USD,0,1
+2861,MEX_Fishing,USD,0,1
+2862,MEX_Mining and Quarrying,USD,0,1
+2863,MEX_Food & Beverages,USD,0,1
+2864,MEX_Textiles and Wearing Apparel,USD,0,1
+2865,MEX_Wood and Paper,USD,0,1
+2866,"MEX_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2867,MEX_Metal Products,USD,0,1
+2868,MEX_Electrical and Machinery,USD,0,1
+2869,MEX_Transport Equipment,USD,0,1
+2870,MEX_Other Manufacturing,USD,0,1
+2871,MEX_Recycling,USD,0,1
+2872,"MEX_Electricity, Gas and Water",USD,0,1
+2873,MEX_Construction,USD,0,1
+2874,MEX_Maintenance and Repair,USD,0,1
+2875,MEX_Wholesale Trade,USD,0,1
+2876,MEX_Retail Trade,USD,0,1
+2877,MEX_Hotels and Restraurants,USD,0,1
+2878,MEX_Transport,USD,0,1
+2879,MEX_Post and Telecommunications,USD,0,1
+2880,MEX_Finacial Intermediation and Business Activities,USD,0,1
+2881,MEX_Public Administration,USD,0,1
+2882,"MEX_Education, Health and Other Services",USD,0,1
+2883,MEX_Private Households,USD,0,1
+2884,MEX_Others,USD,0,1
+2885,MEX_Re-export & Re-import,USD,0,1
+2886,MCO_Agriculture,USD,0,1
+2887,MCO_Fishing,USD,0,1
+2888,MCO_Mining and Quarrying,USD,0,1
+2889,MCO_Food & Beverages,USD,0,1
+2890,MCO_Textiles and Wearing Apparel,USD,0,1
+2891,MCO_Wood and Paper,USD,0,1
+2892,"MCO_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2893,MCO_Metal Products,USD,0,1
+2894,MCO_Electrical and Machinery,USD,0,1
+2895,MCO_Transport Equipment,USD,0,1
+2896,MCO_Other Manufacturing,USD,0,1
+2897,MCO_Recycling,USD,0,1
+2898,"MCO_Electricity, Gas and Water",USD,0,1
+2899,MCO_Construction,USD,0,1
+2900,MCO_Maintenance and Repair,USD,0,1
+2901,MCO_Wholesale Trade,USD,0,1
+2902,MCO_Retail Trade,USD,0,1
+2903,MCO_Hotels and Restraurants,USD,0,1
+2904,MCO_Transport,USD,0,1
+2905,MCO_Post and Telecommunications,USD,0,1
+2906,MCO_Finacial Intermediation and Business Activities,USD,0,1
+2907,MCO_Public Administration,USD,0,1
+2908,"MCO_Education, Health and Other Services",USD,0,1
+2909,MCO_Private Households,USD,0,1
+2910,MCO_Others,USD,0,1
+2911,MCO_Re-export & Re-import,USD,0,1
+2912,MNG_Agriculture,USD,0,1
+2913,MNG_Fishing,USD,0,1
+2914,MNG_Mining and Quarrying,USD,0,1
+2915,MNG_Food & Beverages,USD,0,1
+2916,MNG_Textiles and Wearing Apparel,USD,0,1
+2917,MNG_Wood and Paper,USD,0,1
+2918,"MNG_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2919,MNG_Metal Products,USD,0,1
+2920,MNG_Electrical and Machinery,USD,0,1
+2921,MNG_Transport Equipment,USD,0,1
+2922,MNG_Other Manufacturing,USD,0,1
+2923,MNG_Recycling,USD,0,1
+2924,"MNG_Electricity, Gas and Water",USD,0,1
+2925,MNG_Construction,USD,0,1
+2926,MNG_Maintenance and Repair,USD,0,1
+2927,MNG_Wholesale Trade,USD,0,1
+2928,MNG_Retail Trade,USD,0,1
+2929,MNG_Hotels and Restraurants,USD,0,1
+2930,MNG_Transport,USD,0,1
+2931,MNG_Post and Telecommunications,USD,0,1
+2932,MNG_Finacial Intermediation and Business Activities,USD,0,1
+2933,MNG_Public Administration,USD,0,1
+2934,"MNG_Education, Health and Other Services",USD,0,1
+2935,MNG_Private Households,USD,0,1
+2936,MNG_Others,USD,0,1
+2937,MNG_Re-export & Re-import,USD,0,1
+2938,MNE_Agriculture,USD,0,1
+2939,MNE_Fishing,USD,0,1
+2940,MNE_Mining and Quarrying,USD,0,1
+2941,MNE_Food & Beverages,USD,0,1
+2942,MNE_Textiles and Wearing Apparel,USD,0,1
+2943,MNE_Wood and Paper,USD,0,1
+2944,"MNE_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2945,MNE_Metal Products,USD,0,1
+2946,MNE_Electrical and Machinery,USD,0,1
+2947,MNE_Transport Equipment,USD,0,1
+2948,MNE_Other Manufacturing,USD,0,1
+2949,MNE_Recycling,USD,0,1
+2950,"MNE_Electricity, Gas and Water",USD,0,1
+2951,MNE_Construction,USD,0,1
+2952,MNE_Maintenance and Repair,USD,0,1
+2953,MNE_Wholesale Trade,USD,0,1
+2954,MNE_Retail Trade,USD,0,1
+2955,MNE_Hotels and Restraurants,USD,0,1
+2956,MNE_Transport,USD,0,1
+2957,MNE_Post and Telecommunications,USD,0,1
+2958,MNE_Finacial Intermediation and Business Activities,USD,0,1
+2959,MNE_Public Administration,USD,0,1
+2960,"MNE_Education, Health and Other Services",USD,0,1
+2961,MNE_Private Households,USD,0,1
+2962,MNE_Others,USD,0,1
+2963,MNE_Re-export & Re-import,USD,0,1
+2964,MAR_Agriculture,USD,0,1
+2965,MAR_Fishing,USD,0,1
+2966,MAR_Mining and Quarrying,USD,0,1
+2967,MAR_Food & Beverages,USD,0,1
+2968,MAR_Textiles and Wearing Apparel,USD,0,1
+2969,MAR_Wood and Paper,USD,0,1
+2970,"MAR_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2971,MAR_Metal Products,USD,0,1
+2972,MAR_Electrical and Machinery,USD,0,1
+2973,MAR_Transport Equipment,USD,0,1
+2974,MAR_Other Manufacturing,USD,0,1
+2975,MAR_Recycling,USD,0,1
+2976,"MAR_Electricity, Gas and Water",USD,0,1
+2977,MAR_Construction,USD,0,1
+2978,MAR_Maintenance and Repair,USD,0,1
+2979,MAR_Wholesale Trade,USD,0,1
+2980,MAR_Retail Trade,USD,0,1
+2981,MAR_Hotels and Restraurants,USD,0,1
+2982,MAR_Transport,USD,0,1
+2983,MAR_Post and Telecommunications,USD,0,1
+2984,MAR_Finacial Intermediation and Business Activities,USD,0,1
+2985,MAR_Public Administration,USD,0,1
+2986,"MAR_Education, Health and Other Services",USD,0,1
+2987,MAR_Private Households,USD,0,1
+2988,MAR_Others,USD,0,1
+2989,MAR_Re-export & Re-import,USD,0,1
+2990,MOZ_Agriculture,USD,0,1
+2991,MOZ_Fishing,USD,0,1
+2992,MOZ_Mining and Quarrying,USD,0,1
+2993,MOZ_Food & Beverages,USD,0,1
+2994,MOZ_Textiles and Wearing Apparel,USD,0,1
+2995,MOZ_Wood and Paper,USD,0,1
+2996,"MOZ_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+2997,MOZ_Metal Products,USD,0,1
+2998,MOZ_Electrical and Machinery,USD,0,1
+2999,MOZ_Transport Equipment,USD,0,1
+3000,MOZ_Other Manufacturing,USD,0,1
+3001,MOZ_Recycling,USD,0,1
+3002,"MOZ_Electricity, Gas and Water",USD,0,1
+3003,MOZ_Construction,USD,0,1
+3004,MOZ_Maintenance and Repair,USD,0,1
+3005,MOZ_Wholesale Trade,USD,0,1
+3006,MOZ_Retail Trade,USD,0,1
+3007,MOZ_Hotels and Restraurants,USD,0,1
+3008,MOZ_Transport,USD,0,1
+3009,MOZ_Post and Telecommunications,USD,0,1
+3010,MOZ_Finacial Intermediation and Business Activities,USD,0,1
+3011,MOZ_Public Administration,USD,0,1
+3012,"MOZ_Education, Health and Other Services",USD,0,1
+3013,MOZ_Private Households,USD,0,1
+3014,MOZ_Others,USD,0,1
+3015,MOZ_Re-export & Re-import,USD,0,1
+3016,MMR_Agriculture,USD,0,1
+3017,MMR_Fishing,USD,0,1
+3018,MMR_Mining and Quarrying,USD,0,1
+3019,MMR_Food & Beverages,USD,0,1
+3020,MMR_Textiles and Wearing Apparel,USD,0,1
+3021,MMR_Wood and Paper,USD,0,1
+3022,"MMR_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3023,MMR_Metal Products,USD,0,1
+3024,MMR_Electrical and Machinery,USD,0,1
+3025,MMR_Transport Equipment,USD,0,1
+3026,MMR_Other Manufacturing,USD,0,1
+3027,MMR_Recycling,USD,0,1
+3028,"MMR_Electricity, Gas and Water",USD,0,1
+3029,MMR_Construction,USD,0,1
+3030,MMR_Maintenance and Repair,USD,0,1
+3031,MMR_Wholesale Trade,USD,0,1
+3032,MMR_Retail Trade,USD,0,1
+3033,MMR_Hotels and Restraurants,USD,0,1
+3034,MMR_Transport,USD,0,1
+3035,MMR_Post and Telecommunications,USD,0,1
+3036,MMR_Finacial Intermediation and Business Activities,USD,0,1
+3037,MMR_Public Administration,USD,0,1
+3038,"MMR_Education, Health and Other Services",USD,0,1
+3039,MMR_Private Households,USD,0,1
+3040,MMR_Others,USD,0,1
+3041,MMR_Re-export & Re-import,USD,0,1
+3042,NAM_Agriculture,USD,0,1
+3043,NAM_Fishing,USD,0,1
+3044,NAM_Mining and Quarrying,USD,0,1
+3045,NAM_Food & Beverages,USD,0,1
+3046,NAM_Textiles and Wearing Apparel,USD,0,1
+3047,NAM_Wood and Paper,USD,0,1
+3048,"NAM_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3049,NAM_Metal Products,USD,0,1
+3050,NAM_Electrical and Machinery,USD,0,1
+3051,NAM_Transport Equipment,USD,0,1
+3052,NAM_Other Manufacturing,USD,0,1
+3053,NAM_Recycling,USD,0,1
+3054,"NAM_Electricity, Gas and Water",USD,0,1
+3055,NAM_Construction,USD,0,1
+3056,NAM_Maintenance and Repair,USD,0,1
+3057,NAM_Wholesale Trade,USD,0,1
+3058,NAM_Retail Trade,USD,0,1
+3059,NAM_Hotels and Restraurants,USD,0,1
+3060,NAM_Transport,USD,0,1
+3061,NAM_Post and Telecommunications,USD,0,1
+3062,NAM_Finacial Intermediation and Business Activities,USD,0,1
+3063,NAM_Public Administration,USD,0,1
+3064,"NAM_Education, Health and Other Services",USD,0,1
+3065,NAM_Private Households,USD,0,1
+3066,NAM_Others,USD,0,1
+3067,NAM_Re-export & Re-import,USD,0,1
+3068,NPL_Agriculture,USD,0,1
+3069,NPL_Fishing,USD,0,1
+3070,NPL_Mining and Quarrying,USD,0,1
+3071,NPL_Food & Beverages,USD,0,1
+3072,NPL_Textiles and Wearing Apparel,USD,0,1
+3073,NPL_Wood and Paper,USD,0,1
+3074,"NPL_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3075,NPL_Metal Products,USD,0,1
+3076,NPL_Electrical and Machinery,USD,0,1
+3077,NPL_Transport Equipment,USD,0,1
+3078,NPL_Other Manufacturing,USD,0,1
+3079,NPL_Recycling,USD,0,1
+3080,"NPL_Electricity, Gas and Water",USD,0,1
+3081,NPL_Construction,USD,0,1
+3082,NPL_Maintenance and Repair,USD,0,1
+3083,NPL_Wholesale Trade,USD,0,1
+3084,NPL_Retail Trade,USD,0,1
+3085,NPL_Hotels and Restraurants,USD,0,1
+3086,NPL_Transport,USD,0,1
+3087,NPL_Post and Telecommunications,USD,0,1
+3088,NPL_Finacial Intermediation and Business Activities,USD,0,1
+3089,NPL_Public Administration,USD,0,1
+3090,"NPL_Education, Health and Other Services",USD,0,1
+3091,NPL_Private Households,USD,0,1
+3092,NPL_Others,USD,0,1
+3093,NPL_Re-export & Re-import,USD,0,1
+3094,NLD_Agriculture,USD,0,1
+3095,NLD_Fishing,USD,0,1
+3096,NLD_Mining and Quarrying,USD,0,1
+3097,NLD_Food & Beverages,USD,0,1
+3098,NLD_Textiles and Wearing Apparel,USD,0,1
+3099,NLD_Wood and Paper,USD,0,1
+3100,"NLD_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3101,NLD_Metal Products,USD,0,1
+3102,NLD_Electrical and Machinery,USD,0,1
+3103,NLD_Transport Equipment,USD,0,1
+3104,NLD_Other Manufacturing,USD,0,1
+3105,NLD_Recycling,USD,0,1
+3106,"NLD_Electricity, Gas and Water",USD,0,1
+3107,NLD_Construction,USD,0,1
+3108,NLD_Maintenance and Repair,USD,0,1
+3109,NLD_Wholesale Trade,USD,0,1
+3110,NLD_Retail Trade,USD,0,1
+3111,NLD_Hotels and Restraurants,USD,0,1
+3112,NLD_Transport,USD,0,1
+3113,NLD_Post and Telecommunications,USD,0,1
+3114,NLD_Finacial Intermediation and Business Activities,USD,0,1
+3115,NLD_Public Administration,USD,0,1
+3116,"NLD_Education, Health and Other Services",USD,0,1
+3117,NLD_Private Households,USD,0,1
+3118,NLD_Others,USD,0,1
+3119,NLD_Re-export & Re-import,USD,0,1
+3120,ANT_Agriculture,USD,0,1
+3121,ANT_Fishing,USD,0,1
+3122,ANT_Mining and Quarrying,USD,0,1
+3123,ANT_Food & Beverages,USD,0,1
+3124,ANT_Textiles and Wearing Apparel,USD,0,1
+3125,ANT_Wood and Paper,USD,0,1
+3126,"ANT_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3127,ANT_Metal Products,USD,0,1
+3128,ANT_Electrical and Machinery,USD,0,1
+3129,ANT_Transport Equipment,USD,0,1
+3130,ANT_Other Manufacturing,USD,0,1
+3131,ANT_Recycling,USD,0,1
+3132,"ANT_Electricity, Gas and Water",USD,0,1
+3133,ANT_Construction,USD,0,1
+3134,ANT_Maintenance and Repair,USD,0,1
+3135,ANT_Wholesale Trade,USD,0,1
+3136,ANT_Retail Trade,USD,0,1
+3137,ANT_Hotels and Restraurants,USD,0,1
+3138,ANT_Transport,USD,0,1
+3139,ANT_Post and Telecommunications,USD,0,1
+3140,ANT_Finacial Intermediation and Business Activities,USD,0,1
+3141,ANT_Public Administration,USD,0,1
+3142,"ANT_Education, Health and Other Services",USD,0,1
+3143,ANT_Private Households,USD,0,1
+3144,ANT_Others,USD,0,1
+3145,ANT_Re-export & Re-import,USD,0,1
+3146,NCL_Agriculture,USD,0,1
+3147,NCL_Fishing,USD,0,1
+3148,NCL_Mining and Quarrying,USD,0,1
+3149,NCL_Food & Beverages,USD,0,1
+3150,NCL_Textiles and Wearing Apparel,USD,0,1
+3151,NCL_Wood and Paper,USD,0,1
+3152,"NCL_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3153,NCL_Metal Products,USD,0,1
+3154,NCL_Electrical and Machinery,USD,0,1
+3155,NCL_Transport Equipment,USD,0,1
+3156,NCL_Other Manufacturing,USD,0,1
+3157,NCL_Recycling,USD,0,1
+3158,"NCL_Electricity, Gas and Water",USD,0,1
+3159,NCL_Construction,USD,0,1
+3160,NCL_Maintenance and Repair,USD,0,1
+3161,NCL_Wholesale Trade,USD,0,1
+3162,NCL_Retail Trade,USD,0,1
+3163,NCL_Hotels and Restraurants,USD,0,1
+3164,NCL_Transport,USD,0,1
+3165,NCL_Post and Telecommunications,USD,0,1
+3166,NCL_Finacial Intermediation and Business Activities,USD,0,1
+3167,NCL_Public Administration,USD,0,1
+3168,"NCL_Education, Health and Other Services",USD,0,1
+3169,NCL_Private Households,USD,0,1
+3170,NCL_Others,USD,0,1
+3171,NCL_Re-export & Re-import,USD,0,1
+3172,NZL_Agriculture,USD,0,1
+3173,NZL_Fishing,USD,0,1
+3174,NZL_Mining and Quarrying,USD,0,1
+3175,NZL_Food & Beverages,USD,0,1
+3176,NZL_Textiles and Wearing Apparel,USD,0,1
+3177,NZL_Wood and Paper,USD,0,1
+3178,"NZL_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3179,NZL_Metal Products,USD,0,1
+3180,NZL_Electrical and Machinery,USD,0,1
+3181,NZL_Transport Equipment,USD,0,1
+3182,NZL_Other Manufacturing,USD,0,1
+3183,NZL_Recycling,USD,0,1
+3184,"NZL_Electricity, Gas and Water",USD,0,1
+3185,NZL_Construction,USD,0,1
+3186,NZL_Maintenance and Repair,USD,0,1
+3187,NZL_Wholesale Trade,USD,0,1
+3188,NZL_Retail Trade,USD,0,1
+3189,NZL_Hotels and Restraurants,USD,0,1
+3190,NZL_Transport,USD,0,1
+3191,NZL_Post and Telecommunications,USD,0,1
+3192,NZL_Finacial Intermediation and Business Activities,USD,0,1
+3193,NZL_Public Administration,USD,0,1
+3194,"NZL_Education, Health and Other Services",USD,0,1
+3195,NZL_Private Households,USD,0,1
+3196,NZL_Others,USD,0,1
+3197,NZL_Re-export & Re-import,USD,0,1
+3198,NIC_Agriculture,USD,0,1
+3199,NIC_Fishing,USD,0,1
+3200,NIC_Mining and Quarrying,USD,0,1
+3201,NIC_Food & Beverages,USD,0,1
+3202,NIC_Textiles and Wearing Apparel,USD,0,1
+3203,NIC_Wood and Paper,USD,0,1
+3204,"NIC_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3205,NIC_Metal Products,USD,0,1
+3206,NIC_Electrical and Machinery,USD,0,1
+3207,NIC_Transport Equipment,USD,0,1
+3208,NIC_Other Manufacturing,USD,0,1
+3209,NIC_Recycling,USD,0,1
+3210,"NIC_Electricity, Gas and Water",USD,0,1
+3211,NIC_Construction,USD,0,1
+3212,NIC_Maintenance and Repair,USD,0,1
+3213,NIC_Wholesale Trade,USD,0,1
+3214,NIC_Retail Trade,USD,0,1
+3215,NIC_Hotels and Restraurants,USD,0,1
+3216,NIC_Transport,USD,0,1
+3217,NIC_Post and Telecommunications,USD,0,1
+3218,NIC_Finacial Intermediation and Business Activities,USD,0,1
+3219,NIC_Public Administration,USD,0,1
+3220,"NIC_Education, Health and Other Services",USD,0,1
+3221,NIC_Private Households,USD,0,1
+3222,NIC_Others,USD,0,1
+3223,NIC_Re-export & Re-import,USD,0,1
+3224,NER_Agriculture,USD,0,1
+3225,NER_Fishing,USD,0,1
+3226,NER_Mining and Quarrying,USD,0,1
+3227,NER_Food & Beverages,USD,0,1
+3228,NER_Textiles and Wearing Apparel,USD,0,1
+3229,NER_Wood and Paper,USD,0,1
+3230,"NER_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3231,NER_Metal Products,USD,0,1
+3232,NER_Electrical and Machinery,USD,0,1
+3233,NER_Transport Equipment,USD,0,1
+3234,NER_Other Manufacturing,USD,0,1
+3235,NER_Recycling,USD,0,1
+3236,"NER_Electricity, Gas and Water",USD,0,1
+3237,NER_Construction,USD,0,1
+3238,NER_Maintenance and Repair,USD,0,1
+3239,NER_Wholesale Trade,USD,0,1
+3240,NER_Retail Trade,USD,0,1
+3241,NER_Hotels and Restraurants,USD,0,1
+3242,NER_Transport,USD,0,1
+3243,NER_Post and Telecommunications,USD,0,1
+3244,NER_Finacial Intermediation and Business Activities,USD,0,1
+3245,NER_Public Administration,USD,0,1
+3246,"NER_Education, Health and Other Services",USD,0,1
+3247,NER_Private Households,USD,0,1
+3248,NER_Others,USD,0,1
+3249,NER_Re-export & Re-import,USD,0,1
+3250,NGA_Agriculture,USD,0,1
+3251,NGA_Fishing,USD,0,1
+3252,NGA_Mining and Quarrying,USD,0,1
+3253,NGA_Food & Beverages,USD,0,1
+3254,NGA_Textiles and Wearing Apparel,USD,0,1
+3255,NGA_Wood and Paper,USD,0,1
+3256,"NGA_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3257,NGA_Metal Products,USD,0,1
+3258,NGA_Electrical and Machinery,USD,0,1
+3259,NGA_Transport Equipment,USD,0,1
+3260,NGA_Other Manufacturing,USD,0,1
+3261,NGA_Recycling,USD,0,1
+3262,"NGA_Electricity, Gas and Water",USD,0,1
+3263,NGA_Construction,USD,0,1
+3264,NGA_Maintenance and Repair,USD,0,1
+3265,NGA_Wholesale Trade,USD,0,1
+3266,NGA_Retail Trade,USD,0,1
+3267,NGA_Hotels and Restraurants,USD,0,1
+3268,NGA_Transport,USD,0,1
+3269,NGA_Post and Telecommunications,USD,0,1
+3270,NGA_Finacial Intermediation and Business Activities,USD,0,1
+3271,NGA_Public Administration,USD,0,1
+3272,"NGA_Education, Health and Other Services",USD,0,1
+3273,NGA_Private Households,USD,0,1
+3274,NGA_Others,USD,0,1
+3275,NGA_Re-export & Re-import,USD,0,1
+3276,NOR_Agriculture,USD,0,1
+3277,NOR_Fishing,USD,0,1
+3278,NOR_Mining and Quarrying,USD,0,1
+3279,NOR_Food & Beverages,USD,0,1
+3280,NOR_Textiles and Wearing Apparel,USD,0,1
+3281,NOR_Wood and Paper,USD,0,1
+3282,"NOR_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3283,NOR_Metal Products,USD,0,1
+3284,NOR_Electrical and Machinery,USD,0,1
+3285,NOR_Transport Equipment,USD,0,1
+3286,NOR_Other Manufacturing,USD,0,1
+3287,NOR_Recycling,USD,0,1
+3288,"NOR_Electricity, Gas and Water",USD,0,1
+3289,NOR_Construction,USD,0,1
+3290,NOR_Maintenance and Repair,USD,0,1
+3291,NOR_Wholesale Trade,USD,0,1
+3292,NOR_Retail Trade,USD,0,1
+3293,NOR_Hotels and Restraurants,USD,0,1
+3294,NOR_Transport,USD,0,1
+3295,NOR_Post and Telecommunications,USD,0,1
+3296,NOR_Finacial Intermediation and Business Activities,USD,0,1
+3297,NOR_Public Administration,USD,0,1
+3298,"NOR_Education, Health and Other Services",USD,0,1
+3299,NOR_Private Households,USD,0,1
+3300,NOR_Others,USD,0,1
+3301,NOR_Re-export & Re-import,USD,0,1
+3302,PSE_Agriculture,USD,0,1
+3303,PSE_Fishing,USD,0,1
+3304,PSE_Mining and Quarrying,USD,0,1
+3305,PSE_Food & Beverages,USD,0,1
+3306,PSE_Textiles and Wearing Apparel,USD,0,1
+3307,PSE_Wood and Paper,USD,0,1
+3308,"PSE_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3309,PSE_Metal Products,USD,0,1
+3310,PSE_Electrical and Machinery,USD,0,1
+3311,PSE_Transport Equipment,USD,0,1
+3312,PSE_Other Manufacturing,USD,0,1
+3313,PSE_Recycling,USD,0,1
+3314,"PSE_Electricity, Gas and Water",USD,0,1
+3315,PSE_Construction,USD,0,1
+3316,PSE_Maintenance and Repair,USD,0,1
+3317,PSE_Wholesale Trade,USD,0,1
+3318,PSE_Retail Trade,USD,0,1
+3319,PSE_Hotels and Restraurants,USD,0,1
+3320,PSE_Transport,USD,0,1
+3321,PSE_Post and Telecommunications,USD,0,1
+3322,PSE_Finacial Intermediation and Business Activities,USD,0,1
+3323,PSE_Public Administration,USD,0,1
+3324,"PSE_Education, Health and Other Services",USD,0,1
+3325,PSE_Private Households,USD,0,1
+3326,PSE_Others,USD,0,1
+3327,PSE_Re-export & Re-import,USD,0,1
+3328,OMN_Agriculture,USD,0,1
+3329,OMN_Fishing,USD,0,1
+3330,OMN_Mining and Quarrying,USD,0,1
+3331,OMN_Food & Beverages,USD,0,1
+3332,OMN_Textiles and Wearing Apparel,USD,0,1
+3333,OMN_Wood and Paper,USD,0,1
+3334,"OMN_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3335,OMN_Metal Products,USD,0,1
+3336,OMN_Electrical and Machinery,USD,0,1
+3337,OMN_Transport Equipment,USD,0,1
+3338,OMN_Other Manufacturing,USD,0,1
+3339,OMN_Recycling,USD,0,1
+3340,"OMN_Electricity, Gas and Water",USD,0,1
+3341,OMN_Construction,USD,0,1
+3342,OMN_Maintenance and Repair,USD,0,1
+3343,OMN_Wholesale Trade,USD,0,1
+3344,OMN_Retail Trade,USD,0,1
+3345,OMN_Hotels and Restraurants,USD,0,1
+3346,OMN_Transport,USD,0,1
+3347,OMN_Post and Telecommunications,USD,0,1
+3348,OMN_Finacial Intermediation and Business Activities,USD,0,1
+3349,OMN_Public Administration,USD,0,1
+3350,"OMN_Education, Health and Other Services",USD,0,1
+3351,OMN_Private Households,USD,0,1
+3352,OMN_Others,USD,0,1
+3353,OMN_Re-export & Re-import,USD,0,1
+3354,PAK_Agriculture,USD,0,1
+3355,PAK_Fishing,USD,0,1
+3356,PAK_Mining and Quarrying,USD,0,1
+3357,PAK_Food & Beverages,USD,0,1
+3358,PAK_Textiles and Wearing Apparel,USD,0,1
+3359,PAK_Wood and Paper,USD,0,1
+3360,"PAK_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3361,PAK_Metal Products,USD,0,1
+3362,PAK_Electrical and Machinery,USD,0,1
+3363,PAK_Transport Equipment,USD,0,1
+3364,PAK_Other Manufacturing,USD,0,1
+3365,PAK_Recycling,USD,0,1
+3366,"PAK_Electricity, Gas and Water",USD,0,1
+3367,PAK_Construction,USD,0,1
+3368,PAK_Maintenance and Repair,USD,0,1
+3369,PAK_Wholesale Trade,USD,0,1
+3370,PAK_Retail Trade,USD,0,1
+3371,PAK_Hotels and Restraurants,USD,0,1
+3372,PAK_Transport,USD,0,1
+3373,PAK_Post and Telecommunications,USD,0,1
+3374,PAK_Finacial Intermediation and Business Activities,USD,0,1
+3375,PAK_Public Administration,USD,0,1
+3376,"PAK_Education, Health and Other Services",USD,0,1
+3377,PAK_Private Households,USD,0,1
+3378,PAK_Others,USD,0,1
+3379,PAK_Re-export & Re-import,USD,0,1
+3380,PAN_Agriculture,USD,0,1
+3381,PAN_Fishing,USD,0,1
+3382,PAN_Mining and Quarrying,USD,0,1
+3383,PAN_Food & Beverages,USD,0,1
+3384,PAN_Textiles and Wearing Apparel,USD,0,1
+3385,PAN_Wood and Paper,USD,0,1
+3386,"PAN_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3387,PAN_Metal Products,USD,0,1
+3388,PAN_Electrical and Machinery,USD,0,1
+3389,PAN_Transport Equipment,USD,0,1
+3390,PAN_Other Manufacturing,USD,0,1
+3391,PAN_Recycling,USD,0,1
+3392,"PAN_Electricity, Gas and Water",USD,0,1
+3393,PAN_Construction,USD,0,1
+3394,PAN_Maintenance and Repair,USD,0,1
+3395,PAN_Wholesale Trade,USD,0,1
+3396,PAN_Retail Trade,USD,0,1
+3397,PAN_Hotels and Restraurants,USD,0,1
+3398,PAN_Transport,USD,0,1
+3399,PAN_Post and Telecommunications,USD,0,1
+3400,PAN_Finacial Intermediation and Business Activities,USD,0,1
+3401,PAN_Public Administration,USD,0,1
+3402,"PAN_Education, Health and Other Services",USD,0,1
+3403,PAN_Private Households,USD,0,1
+3404,PAN_Others,USD,0,1
+3405,PAN_Re-export & Re-import,USD,0,1
+3406,PNG_Agriculture,USD,0,1
+3407,PNG_Fishing,USD,0,1
+3408,PNG_Mining and Quarrying,USD,0,1
+3409,PNG_Food & Beverages,USD,0,1
+3410,PNG_Textiles and Wearing Apparel,USD,0,1
+3411,PNG_Wood and Paper,USD,0,1
+3412,"PNG_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3413,PNG_Metal Products,USD,0,1
+3414,PNG_Electrical and Machinery,USD,0,1
+3415,PNG_Transport Equipment,USD,0,1
+3416,PNG_Other Manufacturing,USD,0,1
+3417,PNG_Recycling,USD,0,1
+3418,"PNG_Electricity, Gas and Water",USD,0,1
+3419,PNG_Construction,USD,0,1
+3420,PNG_Maintenance and Repair,USD,0,1
+3421,PNG_Wholesale Trade,USD,0,1
+3422,PNG_Retail Trade,USD,0,1
+3423,PNG_Hotels and Restraurants,USD,0,1
+3424,PNG_Transport,USD,0,1
+3425,PNG_Post and Telecommunications,USD,0,1
+3426,PNG_Finacial Intermediation and Business Activities,USD,0,1
+3427,PNG_Public Administration,USD,0,1
+3428,"PNG_Education, Health and Other Services",USD,0,1
+3429,PNG_Private Households,USD,0,1
+3430,PNG_Others,USD,0,1
+3431,PNG_Re-export & Re-import,USD,0,1
+3432,PRY_Agriculture,USD,0,1
+3433,PRY_Fishing,USD,0,1
+3434,PRY_Mining and Quarrying,USD,0,1
+3435,PRY_Food & Beverages,USD,0,1
+3436,PRY_Textiles and Wearing Apparel,USD,0,1
+3437,PRY_Wood and Paper,USD,0,1
+3438,"PRY_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3439,PRY_Metal Products,USD,0,1
+3440,PRY_Electrical and Machinery,USD,0,1
+3441,PRY_Transport Equipment,USD,0,1
+3442,PRY_Other Manufacturing,USD,0,1
+3443,PRY_Recycling,USD,0,1
+3444,"PRY_Electricity, Gas and Water",USD,0,1
+3445,PRY_Construction,USD,0,1
+3446,PRY_Maintenance and Repair,USD,0,1
+3447,PRY_Wholesale Trade,USD,0,1
+3448,PRY_Retail Trade,USD,0,1
+3449,PRY_Hotels and Restraurants,USD,0,1
+3450,PRY_Transport,USD,0,1
+3451,PRY_Post and Telecommunications,USD,0,1
+3452,PRY_Finacial Intermediation and Business Activities,USD,0,1
+3453,PRY_Public Administration,USD,0,1
+3454,"PRY_Education, Health and Other Services",USD,0,1
+3455,PRY_Private Households,USD,0,1
+3456,PRY_Others,USD,0,1
+3457,PRY_Re-export & Re-import,USD,0,1
+3458,PER_Agriculture,USD,0,1
+3459,PER_Fishing,USD,0,1
+3460,PER_Mining and Quarrying,USD,0,1
+3461,PER_Food & Beverages,USD,0,1
+3462,PER_Textiles and Wearing Apparel,USD,0,1
+3463,PER_Wood and Paper,USD,0,1
+3464,"PER_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3465,PER_Metal Products,USD,0,1
+3466,PER_Electrical and Machinery,USD,0,1
+3467,PER_Transport Equipment,USD,0,1
+3468,PER_Other Manufacturing,USD,0,1
+3469,PER_Recycling,USD,0,1
+3470,"PER_Electricity, Gas and Water",USD,0,1
+3471,PER_Construction,USD,0,1
+3472,PER_Maintenance and Repair,USD,0,1
+3473,PER_Wholesale Trade,USD,0,1
+3474,PER_Retail Trade,USD,0,1
+3475,PER_Hotels and Restraurants,USD,0,1
+3476,PER_Transport,USD,0,1
+3477,PER_Post and Telecommunications,USD,0,1
+3478,PER_Finacial Intermediation and Business Activities,USD,0,1
+3479,PER_Public Administration,USD,0,1
+3480,"PER_Education, Health and Other Services",USD,0,1
+3481,PER_Private Households,USD,0,1
+3482,PER_Others,USD,0,1
+3483,PER_Re-export & Re-import,USD,0,1
+3484,PHL_Agriculture,USD,0,1
+3485,PHL_Fishing,USD,0,1
+3486,PHL_Mining and Quarrying,USD,0,1
+3487,PHL_Food & Beverages,USD,0,1
+3488,PHL_Textiles and Wearing Apparel,USD,0,1
+3489,PHL_Wood and Paper,USD,0,1
+3490,"PHL_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3491,PHL_Metal Products,USD,0,1
+3492,PHL_Electrical and Machinery,USD,0,1
+3493,PHL_Transport Equipment,USD,0,1
+3494,PHL_Other Manufacturing,USD,0,1
+3495,PHL_Recycling,USD,0,1
+3496,"PHL_Electricity, Gas and Water",USD,0,1
+3497,PHL_Construction,USD,0,1
+3498,PHL_Maintenance and Repair,USD,0,1
+3499,PHL_Wholesale Trade,USD,0,1
+3500,PHL_Retail Trade,USD,0,1
+3501,PHL_Hotels and Restraurants,USD,0,1
+3502,PHL_Transport,USD,0,1
+3503,PHL_Post and Telecommunications,USD,0,1
+3504,PHL_Finacial Intermediation and Business Activities,USD,0,1
+3505,PHL_Public Administration,USD,0,1
+3506,"PHL_Education, Health and Other Services",USD,0,1
+3507,PHL_Private Households,USD,0,1
+3508,PHL_Others,USD,0,1
+3509,PHL_Re-export & Re-import,USD,0,1
+3510,POL_Agriculture,USD,0,1
+3511,POL_Fishing,USD,0,1
+3512,POL_Mining and Quarrying,USD,0,1
+3513,POL_Food & Beverages,USD,0,1
+3514,POL_Textiles and Wearing Apparel,USD,0,1
+3515,POL_Wood and Paper,USD,0,1
+3516,"POL_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3517,POL_Metal Products,USD,0,1
+3518,POL_Electrical and Machinery,USD,0,1
+3519,POL_Transport Equipment,USD,0,1
+3520,POL_Other Manufacturing,USD,0,1
+3521,POL_Recycling,USD,0,1
+3522,"POL_Electricity, Gas and Water",USD,0,1
+3523,POL_Construction,USD,0,1
+3524,POL_Maintenance and Repair,USD,0,1
+3525,POL_Wholesale Trade,USD,0,1
+3526,POL_Retail Trade,USD,0,1
+3527,POL_Hotels and Restraurants,USD,0,1
+3528,POL_Transport,USD,0,1
+3529,POL_Post and Telecommunications,USD,0,1
+3530,POL_Finacial Intermediation and Business Activities,USD,0,1
+3531,POL_Public Administration,USD,0,1
+3532,"POL_Education, Health and Other Services",USD,0,1
+3533,POL_Private Households,USD,0,1
+3534,POL_Others,USD,0,1
+3535,POL_Re-export & Re-import,USD,0,1
+3536,PRT_Agriculture,USD,0,1
+3537,PRT_Fishing,USD,0,1
+3538,PRT_Mining and Quarrying,USD,0,1
+3539,PRT_Food & Beverages,USD,0,1
+3540,PRT_Textiles and Wearing Apparel,USD,0,1
+3541,PRT_Wood and Paper,USD,0,1
+3542,"PRT_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3543,PRT_Metal Products,USD,0,1
+3544,PRT_Electrical and Machinery,USD,0,1
+3545,PRT_Transport Equipment,USD,0,1
+3546,PRT_Other Manufacturing,USD,0,1
+3547,PRT_Recycling,USD,0,1
+3548,"PRT_Electricity, Gas and Water",USD,0,1
+3549,PRT_Construction,USD,0,1
+3550,PRT_Maintenance and Repair,USD,0,1
+3551,PRT_Wholesale Trade,USD,0,1
+3552,PRT_Retail Trade,USD,0,1
+3553,PRT_Hotels and Restraurants,USD,0,1
+3554,PRT_Transport,USD,0,1
+3555,PRT_Post and Telecommunications,USD,0,1
+3556,PRT_Finacial Intermediation and Business Activities,USD,0,1
+3557,PRT_Public Administration,USD,0,1
+3558,"PRT_Education, Health and Other Services",USD,0,1
+3559,PRT_Private Households,USD,0,1
+3560,PRT_Others,USD,0,1
+3561,PRT_Re-export & Re-import,USD,0,1
+3562,QAT_Agriculture,USD,0,1
+3563,QAT_Fishing,USD,0,1
+3564,QAT_Mining and Quarrying,USD,0,1
+3565,QAT_Food & Beverages,USD,0,1
+3566,QAT_Textiles and Wearing Apparel,USD,0,1
+3567,QAT_Wood and Paper,USD,0,1
+3568,"QAT_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3569,QAT_Metal Products,USD,0,1
+3570,QAT_Electrical and Machinery,USD,0,1
+3571,QAT_Transport Equipment,USD,0,1
+3572,QAT_Other Manufacturing,USD,0,1
+3573,QAT_Recycling,USD,0,1
+3574,"QAT_Electricity, Gas and Water",USD,0,1
+3575,QAT_Construction,USD,0,1
+3576,QAT_Maintenance and Repair,USD,0,1
+3577,QAT_Wholesale Trade,USD,0,1
+3578,QAT_Retail Trade,USD,0,1
+3579,QAT_Hotels and Restraurants,USD,0,1
+3580,QAT_Transport,USD,0,1
+3581,QAT_Post and Telecommunications,USD,0,1
+3582,QAT_Finacial Intermediation and Business Activities,USD,0,1
+3583,QAT_Public Administration,USD,0,1
+3584,"QAT_Education, Health and Other Services",USD,0,1
+3585,QAT_Private Households,USD,0,1
+3586,QAT_Others,USD,0,1
+3587,QAT_Re-export & Re-import,USD,0,1
+3588,KOR_Agriculture,USD,0,1
+3589,KOR_Fishing,USD,0,1
+3590,KOR_Mining and Quarrying,USD,0,1
+3591,KOR_Food & Beverages,USD,0,1
+3592,KOR_Textiles and Wearing Apparel,USD,0,1
+3593,KOR_Wood and Paper,USD,0,1
+3594,"KOR_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3595,KOR_Metal Products,USD,0,1
+3596,KOR_Electrical and Machinery,USD,0,1
+3597,KOR_Transport Equipment,USD,0,1
+3598,KOR_Other Manufacturing,USD,0,1
+3599,KOR_Recycling,USD,0,1
+3600,"KOR_Electricity, Gas and Water",USD,0,1
+3601,KOR_Construction,USD,0,1
+3602,KOR_Maintenance and Repair,USD,0,1
+3603,KOR_Wholesale Trade,USD,0,1
+3604,KOR_Retail Trade,USD,0,1
+3605,KOR_Hotels and Restraurants,USD,0,1
+3606,KOR_Transport,USD,0,1
+3607,KOR_Post and Telecommunications,USD,0,1
+3608,KOR_Finacial Intermediation and Business Activities,USD,0,1
+3609,KOR_Public Administration,USD,0,1
+3610,"KOR_Education, Health and Other Services",USD,0,1
+3611,KOR_Private Households,USD,0,1
+3612,KOR_Others,USD,0,1
+3613,KOR_Re-export & Re-import,USD,0,1
+3614,MDA_Agriculture,USD,0,1
+3615,MDA_Fishing,USD,0,1
+3616,MDA_Mining and Quarrying,USD,0,1
+3617,MDA_Food & Beverages,USD,0,1
+3618,MDA_Textiles and Wearing Apparel,USD,0,1
+3619,MDA_Wood and Paper,USD,0,1
+3620,"MDA_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3621,MDA_Metal Products,USD,0,1
+3622,MDA_Electrical and Machinery,USD,0,1
+3623,MDA_Transport Equipment,USD,0,1
+3624,MDA_Other Manufacturing,USD,0,1
+3625,MDA_Recycling,USD,0,1
+3626,"MDA_Electricity, Gas and Water",USD,0,1
+3627,MDA_Construction,USD,0,1
+3628,MDA_Maintenance and Repair,USD,0,1
+3629,MDA_Wholesale Trade,USD,0,1
+3630,MDA_Retail Trade,USD,0,1
+3631,MDA_Hotels and Restraurants,USD,0,1
+3632,MDA_Transport,USD,0,1
+3633,MDA_Post and Telecommunications,USD,0,1
+3634,MDA_Finacial Intermediation and Business Activities,USD,0,1
+3635,MDA_Public Administration,USD,0,1
+3636,"MDA_Education, Health and Other Services",USD,0,1
+3637,MDA_Private Households,USD,0,1
+3638,MDA_Others,USD,0,1
+3639,MDA_Re-export & Re-import,USD,0,1
+3640,ROU_Agriculture,USD,0,1
+3641,ROU_Fishing,USD,0,1
+3642,ROU_Mining and Quarrying,USD,0,1
+3643,ROU_Food & Beverages,USD,0,1
+3644,ROU_Textiles and Wearing Apparel,USD,0,1
+3645,ROU_Wood and Paper,USD,0,1
+3646,"ROU_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3647,ROU_Metal Products,USD,0,1
+3648,ROU_Electrical and Machinery,USD,0,1
+3649,ROU_Transport Equipment,USD,0,1
+3650,ROU_Other Manufacturing,USD,0,1
+3651,ROU_Recycling,USD,0,1
+3652,"ROU_Electricity, Gas and Water",USD,0,1
+3653,ROU_Construction,USD,0,1
+3654,ROU_Maintenance and Repair,USD,0,1
+3655,ROU_Wholesale Trade,USD,0,1
+3656,ROU_Retail Trade,USD,0,1
+3657,ROU_Hotels and Restraurants,USD,0,1
+3658,ROU_Transport,USD,0,1
+3659,ROU_Post and Telecommunications,USD,0,1
+3660,ROU_Finacial Intermediation and Business Activities,USD,0,1
+3661,ROU_Public Administration,USD,0,1
+3662,"ROU_Education, Health and Other Services",USD,0,1
+3663,ROU_Private Households,USD,0,1
+3664,ROU_Others,USD,0,1
+3665,ROU_Re-export & Re-import,USD,0,1
+3666,RUS_Agriculture,USD,0,1
+3667,RUS_Fishing,USD,0,1
+3668,RUS_Mining and Quarrying,USD,0,1
+3669,RUS_Food & Beverages,USD,0,1
+3670,RUS_Textiles and Wearing Apparel,USD,0,1
+3671,RUS_Wood and Paper,USD,0,1
+3672,"RUS_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3673,RUS_Metal Products,USD,0,1
+3674,RUS_Electrical and Machinery,USD,0,1
+3675,RUS_Transport Equipment,USD,0,1
+3676,RUS_Other Manufacturing,USD,0,1
+3677,RUS_Recycling,USD,0,1
+3678,"RUS_Electricity, Gas and Water",USD,0,1
+3679,RUS_Construction,USD,0,1
+3680,RUS_Maintenance and Repair,USD,0,1
+3681,RUS_Wholesale Trade,USD,0,1
+3682,RUS_Retail Trade,USD,0,1
+3683,RUS_Hotels and Restraurants,USD,0,1
+3684,RUS_Transport,USD,0,1
+3685,RUS_Post and Telecommunications,USD,0,1
+3686,RUS_Finacial Intermediation and Business Activities,USD,0,1
+3687,RUS_Public Administration,USD,0,1
+3688,"RUS_Education, Health and Other Services",USD,0,1
+3689,RUS_Private Households,USD,0,1
+3690,RUS_Others,USD,0,1
+3691,RUS_Re-export & Re-import,USD,0,1
+3692,RWA_Agriculture,USD,0,1
+3693,RWA_Fishing,USD,0,1
+3694,RWA_Mining and Quarrying,USD,0,1
+3695,RWA_Food & Beverages,USD,0,1
+3696,RWA_Textiles and Wearing Apparel,USD,0,1
+3697,RWA_Wood and Paper,USD,0,1
+3698,"RWA_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3699,RWA_Metal Products,USD,0,1
+3700,RWA_Electrical and Machinery,USD,0,1
+3701,RWA_Transport Equipment,USD,0,1
+3702,RWA_Other Manufacturing,USD,0,1
+3703,RWA_Recycling,USD,0,1
+3704,"RWA_Electricity, Gas and Water",USD,0,1
+3705,RWA_Construction,USD,0,1
+3706,RWA_Maintenance and Repair,USD,0,1
+3707,RWA_Wholesale Trade,USD,0,1
+3708,RWA_Retail Trade,USD,0,1
+3709,RWA_Hotels and Restraurants,USD,0,1
+3710,RWA_Transport,USD,0,1
+3711,RWA_Post and Telecommunications,USD,0,1
+3712,RWA_Finacial Intermediation and Business Activities,USD,0,1
+3713,RWA_Public Administration,USD,0,1
+3714,"RWA_Education, Health and Other Services",USD,0,1
+3715,RWA_Private Households,USD,0,1
+3716,RWA_Others,USD,0,1
+3717,RWA_Re-export & Re-import,USD,0,1
+3718,WSM_Agriculture,USD,0,1
+3719,WSM_Fishing,USD,0,1
+3720,WSM_Mining and Quarrying,USD,0,1
+3721,WSM_Food & Beverages,USD,0,1
+3722,WSM_Textiles and Wearing Apparel,USD,0,1
+3723,WSM_Wood and Paper,USD,0,1
+3724,"WSM_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3725,WSM_Metal Products,USD,0,1
+3726,WSM_Electrical and Machinery,USD,0,1
+3727,WSM_Transport Equipment,USD,0,1
+3728,WSM_Other Manufacturing,USD,0,1
+3729,WSM_Recycling,USD,0,1
+3730,"WSM_Electricity, Gas and Water",USD,0,1
+3731,WSM_Construction,USD,0,1
+3732,WSM_Maintenance and Repair,USD,0,1
+3733,WSM_Wholesale Trade,USD,0,1
+3734,WSM_Retail Trade,USD,0,1
+3735,WSM_Hotels and Restraurants,USD,0,1
+3736,WSM_Transport,USD,0,1
+3737,WSM_Post and Telecommunications,USD,0,1
+3738,WSM_Finacial Intermediation and Business Activities,USD,0,1
+3739,WSM_Public Administration,USD,0,1
+3740,"WSM_Education, Health and Other Services",USD,0,1
+3741,WSM_Private Households,USD,0,1
+3742,WSM_Others,USD,0,1
+3743,WSM_Re-export & Re-import,USD,0,1
+3744,SMR_Agriculture,USD,0,1
+3745,SMR_Fishing,USD,0,1
+3746,SMR_Mining and Quarrying,USD,0,1
+3747,SMR_Food & Beverages,USD,0,1
+3748,SMR_Textiles and Wearing Apparel,USD,0,1
+3749,SMR_Wood and Paper,USD,0,1
+3750,"SMR_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3751,SMR_Metal Products,USD,0,1
+3752,SMR_Electrical and Machinery,USD,0,1
+3753,SMR_Transport Equipment,USD,0,1
+3754,SMR_Other Manufacturing,USD,0,1
+3755,SMR_Recycling,USD,0,1
+3756,"SMR_Electricity, Gas and Water",USD,0,1
+3757,SMR_Construction,USD,0,1
+3758,SMR_Maintenance and Repair,USD,0,1
+3759,SMR_Wholesale Trade,USD,0,1
+3760,SMR_Retail Trade,USD,0,1
+3761,SMR_Hotels and Restraurants,USD,0,1
+3762,SMR_Transport,USD,0,1
+3763,SMR_Post and Telecommunications,USD,0,1
+3764,SMR_Finacial Intermediation and Business Activities,USD,0,1
+3765,SMR_Public Administration,USD,0,1
+3766,"SMR_Education, Health and Other Services",USD,0,1
+3767,SMR_Private Households,USD,0,1
+3768,SMR_Others,USD,0,1
+3769,SMR_Re-export & Re-import,USD,0,1
+3770,STP_Agriculture,USD,0,1
+3771,STP_Fishing,USD,0,1
+3772,STP_Mining and Quarrying,USD,0,1
+3773,STP_Food & Beverages,USD,0,1
+3774,STP_Textiles and Wearing Apparel,USD,0,1
+3775,STP_Wood and Paper,USD,0,1
+3776,"STP_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3777,STP_Metal Products,USD,0,1
+3778,STP_Electrical and Machinery,USD,0,1
+3779,STP_Transport Equipment,USD,0,1
+3780,STP_Other Manufacturing,USD,0,1
+3781,STP_Recycling,USD,0,1
+3782,"STP_Electricity, Gas and Water",USD,0,1
+3783,STP_Construction,USD,0,1
+3784,STP_Maintenance and Repair,USD,0,1
+3785,STP_Wholesale Trade,USD,0,1
+3786,STP_Retail Trade,USD,0,1
+3787,STP_Hotels and Restraurants,USD,0,1
+3788,STP_Transport,USD,0,1
+3789,STP_Post and Telecommunications,USD,0,1
+3790,STP_Finacial Intermediation and Business Activities,USD,0,1
+3791,STP_Public Administration,USD,0,1
+3792,"STP_Education, Health and Other Services",USD,0,1
+3793,STP_Private Households,USD,0,1
+3794,STP_Others,USD,0,1
+3795,STP_Re-export & Re-import,USD,0,1
+3796,SAU_Agriculture,USD,0,1
+3797,SAU_Fishing,USD,0,1
+3798,SAU_Mining and Quarrying,USD,0,1
+3799,SAU_Food & Beverages,USD,0,1
+3800,SAU_Textiles and Wearing Apparel,USD,0,1
+3801,SAU_Wood and Paper,USD,0,1
+3802,"SAU_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3803,SAU_Metal Products,USD,0,1
+3804,SAU_Electrical and Machinery,USD,0,1
+3805,SAU_Transport Equipment,USD,0,1
+3806,SAU_Other Manufacturing,USD,0,1
+3807,SAU_Recycling,USD,0,1
+3808,"SAU_Electricity, Gas and Water",USD,0,1
+3809,SAU_Construction,USD,0,1
+3810,SAU_Maintenance and Repair,USD,0,1
+3811,SAU_Wholesale Trade,USD,0,1
+3812,SAU_Retail Trade,USD,0,1
+3813,SAU_Hotels and Restraurants,USD,0,1
+3814,SAU_Transport,USD,0,1
+3815,SAU_Post and Telecommunications,USD,0,1
+3816,SAU_Finacial Intermediation and Business Activities,USD,0,1
+3817,SAU_Public Administration,USD,0,1
+3818,"SAU_Education, Health and Other Services",USD,0,1
+3819,SAU_Private Households,USD,0,1
+3820,SAU_Others,USD,0,1
+3821,SAU_Re-export & Re-import,USD,0,1
+3822,SEN_Agriculture,USD,0,1
+3823,SEN_Fishing,USD,0,1
+3824,SEN_Mining and Quarrying,USD,0,1
+3825,SEN_Food & Beverages,USD,0,1
+3826,SEN_Textiles and Wearing Apparel,USD,0,1
+3827,SEN_Wood and Paper,USD,0,1
+3828,"SEN_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3829,SEN_Metal Products,USD,0,1
+3830,SEN_Electrical and Machinery,USD,0,1
+3831,SEN_Transport Equipment,USD,0,1
+3832,SEN_Other Manufacturing,USD,0,1
+3833,SEN_Recycling,USD,0,1
+3834,"SEN_Electricity, Gas and Water",USD,0,1
+3835,SEN_Construction,USD,0,1
+3836,SEN_Maintenance and Repair,USD,0,1
+3837,SEN_Wholesale Trade,USD,0,1
+3838,SEN_Retail Trade,USD,0,1
+3839,SEN_Hotels and Restraurants,USD,0,1
+3840,SEN_Transport,USD,0,1
+3841,SEN_Post and Telecommunications,USD,0,1
+3842,SEN_Finacial Intermediation and Business Activities,USD,0,1
+3843,SEN_Public Administration,USD,0,1
+3844,"SEN_Education, Health and Other Services",USD,0,1
+3845,SEN_Private Households,USD,0,1
+3846,SEN_Others,USD,0,1
+3847,SEN_Re-export & Re-import,USD,0,1
+3848,SRB_Agriculture,USD,0,1
+3849,SRB_Fishing,USD,0,1
+3850,SRB_Mining and Quarrying,USD,0,1
+3851,SRB_Food & Beverages,USD,0,1
+3852,SRB_Textiles and Wearing Apparel,USD,0,1
+3853,SRB_Wood and Paper,USD,0,1
+3854,"SRB_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3855,SRB_Metal Products,USD,0,1
+3856,SRB_Electrical and Machinery,USD,0,1
+3857,SRB_Transport Equipment,USD,0,1
+3858,SRB_Other Manufacturing,USD,0,1
+3859,SRB_Recycling,USD,0,1
+3860,"SRB_Electricity, Gas and Water",USD,0,1
+3861,SRB_Construction,USD,0,1
+3862,SRB_Maintenance and Repair,USD,0,1
+3863,SRB_Wholesale Trade,USD,0,1
+3864,SRB_Retail Trade,USD,0,1
+3865,SRB_Hotels and Restraurants,USD,0,1
+3866,SRB_Transport,USD,0,1
+3867,SRB_Post and Telecommunications,USD,0,1
+3868,SRB_Finacial Intermediation and Business Activities,USD,0,1
+3869,SRB_Public Administration,USD,0,1
+3870,"SRB_Education, Health and Other Services",USD,0,1
+3871,SRB_Private Households,USD,0,1
+3872,SRB_Others,USD,0,1
+3873,SRB_Re-export & Re-import,USD,0,1
+3874,SYC_Agriculture,USD,0,1
+3875,SYC_Fishing,USD,0,1
+3876,SYC_Mining and Quarrying,USD,0,1
+3877,SYC_Food & Beverages,USD,0,1
+3878,SYC_Textiles and Wearing Apparel,USD,0,1
+3879,SYC_Wood and Paper,USD,0,1
+3880,"SYC_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3881,SYC_Metal Products,USD,0,1
+3882,SYC_Electrical and Machinery,USD,0,1
+3883,SYC_Transport Equipment,USD,0,1
+3884,SYC_Other Manufacturing,USD,0,1
+3885,SYC_Recycling,USD,0,1
+3886,"SYC_Electricity, Gas and Water",USD,0,1
+3887,SYC_Construction,USD,0,1
+3888,SYC_Maintenance and Repair,USD,0,1
+3889,SYC_Wholesale Trade,USD,0,1
+3890,SYC_Retail Trade,USD,0,1
+3891,SYC_Hotels and Restraurants,USD,0,1
+3892,SYC_Transport,USD,0,1
+3893,SYC_Post and Telecommunications,USD,0,1
+3894,SYC_Finacial Intermediation and Business Activities,USD,0,1
+3895,SYC_Public Administration,USD,0,1
+3896,"SYC_Education, Health and Other Services",USD,0,1
+3897,SYC_Private Households,USD,0,1
+3898,SYC_Others,USD,0,1
+3899,SYC_Re-export & Re-import,USD,0,1
+3900,SLE_Agriculture,USD,0,1
+3901,SLE_Fishing,USD,0,1
+3902,SLE_Mining and Quarrying,USD,0,1
+3903,SLE_Food & Beverages,USD,0,1
+3904,SLE_Textiles and Wearing Apparel,USD,0,1
+3905,SLE_Wood and Paper,USD,0,1
+3906,"SLE_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3907,SLE_Metal Products,USD,0,1
+3908,SLE_Electrical and Machinery,USD,0,1
+3909,SLE_Transport Equipment,USD,0,1
+3910,SLE_Other Manufacturing,USD,0,1
+3911,SLE_Recycling,USD,0,1
+3912,"SLE_Electricity, Gas and Water",USD,0,1
+3913,SLE_Construction,USD,0,1
+3914,SLE_Maintenance and Repair,USD,0,1
+3915,SLE_Wholesale Trade,USD,0,1
+3916,SLE_Retail Trade,USD,0,1
+3917,SLE_Hotels and Restraurants,USD,0,1
+3918,SLE_Transport,USD,0,1
+3919,SLE_Post and Telecommunications,USD,0,1
+3920,SLE_Finacial Intermediation and Business Activities,USD,0,1
+3921,SLE_Public Administration,USD,0,1
+3922,"SLE_Education, Health and Other Services",USD,0,1
+3923,SLE_Private Households,USD,0,1
+3924,SLE_Others,USD,0,1
+3925,SLE_Re-export & Re-import,USD,0,1
+3926,SGP_Agriculture,USD,0,1
+3927,SGP_Fishing,USD,0,1
+3928,SGP_Mining and Quarrying,USD,0,1
+3929,SGP_Food & Beverages,USD,0,1
+3930,SGP_Textiles and Wearing Apparel,USD,0,1
+3931,SGP_Wood and Paper,USD,0,1
+3932,"SGP_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3933,SGP_Metal Products,USD,0,1
+3934,SGP_Electrical and Machinery,USD,0,1
+3935,SGP_Transport Equipment,USD,0,1
+3936,SGP_Other Manufacturing,USD,0,1
+3937,SGP_Recycling,USD,0,1
+3938,"SGP_Electricity, Gas and Water",USD,0,1
+3939,SGP_Construction,USD,0,1
+3940,SGP_Maintenance and Repair,USD,0,1
+3941,SGP_Wholesale Trade,USD,0,1
+3942,SGP_Retail Trade,USD,0,1
+3943,SGP_Hotels and Restraurants,USD,0,1
+3944,SGP_Transport,USD,0,1
+3945,SGP_Post and Telecommunications,USD,0,1
+3946,SGP_Finacial Intermediation and Business Activities,USD,0,1
+3947,SGP_Public Administration,USD,0,1
+3948,"SGP_Education, Health and Other Services",USD,0,1
+3949,SGP_Private Households,USD,0,1
+3950,SGP_Others,USD,0,1
+3951,SGP_Re-export & Re-import,USD,0,1
+3952,SVK_Agriculture,USD,0,1
+3953,SVK_Fishing,USD,0,1
+3954,SVK_Mining and Quarrying,USD,0,1
+3955,SVK_Food & Beverages,USD,0,1
+3956,SVK_Textiles and Wearing Apparel,USD,0,1
+3957,SVK_Wood and Paper,USD,0,1
+3958,"SVK_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3959,SVK_Metal Products,USD,0,1
+3960,SVK_Electrical and Machinery,USD,0,1
+3961,SVK_Transport Equipment,USD,0,1
+3962,SVK_Other Manufacturing,USD,0,1
+3963,SVK_Recycling,USD,0,1
+3964,"SVK_Electricity, Gas and Water",USD,0,1
+3965,SVK_Construction,USD,0,1
+3966,SVK_Maintenance and Repair,USD,0,1
+3967,SVK_Wholesale Trade,USD,0,1
+3968,SVK_Retail Trade,USD,0,1
+3969,SVK_Hotels and Restraurants,USD,0,1
+3970,SVK_Transport,USD,0,1
+3971,SVK_Post and Telecommunications,USD,0,1
+3972,SVK_Finacial Intermediation and Business Activities,USD,0,1
+3973,SVK_Public Administration,USD,0,1
+3974,"SVK_Education, Health and Other Services",USD,0,1
+3975,SVK_Private Households,USD,0,1
+3976,SVK_Others,USD,0,1
+3977,SVK_Re-export & Re-import,USD,0,1
+3978,SVN_Agriculture,USD,0,1
+3979,SVN_Fishing,USD,0,1
+3980,SVN_Mining and Quarrying,USD,0,1
+3981,SVN_Food & Beverages,USD,0,1
+3982,SVN_Textiles and Wearing Apparel,USD,0,1
+3983,SVN_Wood and Paper,USD,0,1
+3984,"SVN_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+3985,SVN_Metal Products,USD,0,1
+3986,SVN_Electrical and Machinery,USD,0,1
+3987,SVN_Transport Equipment,USD,0,1
+3988,SVN_Other Manufacturing,USD,0,1
+3989,SVN_Recycling,USD,0,1
+3990,"SVN_Electricity, Gas and Water",USD,0,1
+3991,SVN_Construction,USD,0,1
+3992,SVN_Maintenance and Repair,USD,0,1
+3993,SVN_Wholesale Trade,USD,0,1
+3994,SVN_Retail Trade,USD,0,1
+3995,SVN_Hotels and Restraurants,USD,0,1
+3996,SVN_Transport,USD,0,1
+3997,SVN_Post and Telecommunications,USD,0,1
+3998,SVN_Finacial Intermediation and Business Activities,USD,0,1
+3999,SVN_Public Administration,USD,0,1
+4000,"SVN_Education, Health and Other Services",USD,0,1
+4001,SVN_Private Households,USD,0,1
+4002,SVN_Others,USD,0,1
+4003,SVN_Re-export & Re-import,USD,0,1
+4004,SOM_Agriculture,USD,0,1
+4005,SOM_Fishing,USD,0,1
+4006,SOM_Mining and Quarrying,USD,0,1
+4007,SOM_Food & Beverages,USD,0,1
+4008,SOM_Textiles and Wearing Apparel,USD,0,1
+4009,SOM_Wood and Paper,USD,0,1
+4010,"SOM_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4011,SOM_Metal Products,USD,0,1
+4012,SOM_Electrical and Machinery,USD,0,1
+4013,SOM_Transport Equipment,USD,0,1
+4014,SOM_Other Manufacturing,USD,0,1
+4015,SOM_Recycling,USD,0,1
+4016,"SOM_Electricity, Gas and Water",USD,0,1
+4017,SOM_Construction,USD,0,1
+4018,SOM_Maintenance and Repair,USD,0,1
+4019,SOM_Wholesale Trade,USD,0,1
+4020,SOM_Retail Trade,USD,0,1
+4021,SOM_Hotels and Restraurants,USD,0,1
+4022,SOM_Transport,USD,0,1
+4023,SOM_Post and Telecommunications,USD,0,1
+4024,SOM_Finacial Intermediation and Business Activities,USD,0,1
+4025,SOM_Public Administration,USD,0,1
+4026,"SOM_Education, Health and Other Services",USD,0,1
+4027,SOM_Private Households,USD,0,1
+4028,SOM_Others,USD,0,1
+4029,SOM_Re-export & Re-import,USD,0,1
+4030,ZAF_Agriculture,USD,0,1
+4031,ZAF_Fishing,USD,0,1
+4032,ZAF_Mining and Quarrying,USD,0,1
+4033,ZAF_Food & Beverages,USD,0,1
+4034,ZAF_Textiles and Wearing Apparel,USD,0,1
+4035,ZAF_Wood and Paper,USD,0,1
+4036,"ZAF_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4037,ZAF_Metal Products,USD,0,1
+4038,ZAF_Electrical and Machinery,USD,0,1
+4039,ZAF_Transport Equipment,USD,0,1
+4040,ZAF_Other Manufacturing,USD,0,1
+4041,ZAF_Recycling,USD,0,1
+4042,"ZAF_Electricity, Gas and Water",USD,0,1
+4043,ZAF_Construction,USD,0,1
+4044,ZAF_Maintenance and Repair,USD,0,1
+4045,ZAF_Wholesale Trade,USD,0,1
+4046,ZAF_Retail Trade,USD,0,1
+4047,ZAF_Hotels and Restraurants,USD,0,1
+4048,ZAF_Transport,USD,0,1
+4049,ZAF_Post and Telecommunications,USD,0,1
+4050,ZAF_Finacial Intermediation and Business Activities,USD,0,1
+4051,ZAF_Public Administration,USD,0,1
+4052,"ZAF_Education, Health and Other Services",USD,0,1
+4053,ZAF_Private Households,USD,0,1
+4054,ZAF_Others,USD,0,1
+4055,ZAF_Re-export & Re-import,USD,0,1
+4056,SDS_Agriculture,USD,0,1
+4057,SDS_Fishing,USD,0,1
+4058,SDS_Mining and Quarrying,USD,0,1
+4059,SDS_Food & Beverages,USD,0,1
+4060,SDS_Textiles and Wearing Apparel,USD,0,1
+4061,SDS_Wood and Paper,USD,0,1
+4062,"SDS_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4063,SDS_Metal Products,USD,0,1
+4064,SDS_Electrical and Machinery,USD,0,1
+4065,SDS_Transport Equipment,USD,0,1
+4066,SDS_Other Manufacturing,USD,0,1
+4067,SDS_Recycling,USD,0,1
+4068,"SDS_Electricity, Gas and Water",USD,0,1
+4069,SDS_Construction,USD,0,1
+4070,SDS_Maintenance and Repair,USD,0,1
+4071,SDS_Wholesale Trade,USD,0,1
+4072,SDS_Retail Trade,USD,0,1
+4073,SDS_Hotels and Restraurants,USD,0,1
+4074,SDS_Transport,USD,0,1
+4075,SDS_Post and Telecommunications,USD,0,1
+4076,SDS_Finacial Intermediation and Business Activities,USD,0,1
+4077,SDS_Public Administration,USD,0,1
+4078,"SDS_Education, Health and Other Services",USD,0,1
+4079,SDS_Private Households,USD,0,1
+4080,SDS_Others,USD,0,1
+4081,SDS_Re-export & Re-import,USD,0,1
+4082,ESP_Agriculture,USD,0,1
+4083,ESP_Fishing,USD,0,1
+4084,ESP_Mining and Quarrying,USD,0,1
+4085,ESP_Food & Beverages,USD,0,1
+4086,ESP_Textiles and Wearing Apparel,USD,0,1
+4087,ESP_Wood and Paper,USD,0,1
+4088,"ESP_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4089,ESP_Metal Products,USD,0,1
+4090,ESP_Electrical and Machinery,USD,0,1
+4091,ESP_Transport Equipment,USD,0,1
+4092,ESP_Other Manufacturing,USD,0,1
+4093,ESP_Recycling,USD,0,1
+4094,"ESP_Electricity, Gas and Water",USD,0,1
+4095,ESP_Construction,USD,0,1
+4096,ESP_Maintenance and Repair,USD,0,1
+4097,ESP_Wholesale Trade,USD,0,1
+4098,ESP_Retail Trade,USD,0,1
+4099,ESP_Hotels and Restraurants,USD,0,1
+4100,ESP_Transport,USD,0,1
+4101,ESP_Post and Telecommunications,USD,0,1
+4102,ESP_Finacial Intermediation and Business Activities,USD,0,1
+4103,ESP_Public Administration,USD,0,1
+4104,"ESP_Education, Health and Other Services",USD,0,1
+4105,ESP_Private Households,USD,0,1
+4106,ESP_Others,USD,0,1
+4107,ESP_Re-export & Re-import,USD,0,1
+4108,LKA_Agriculture,USD,0,1
+4109,LKA_Fishing,USD,0,1
+4110,LKA_Mining and Quarrying,USD,0,1
+4111,LKA_Food & Beverages,USD,0,1
+4112,LKA_Textiles and Wearing Apparel,USD,0,1
+4113,LKA_Wood and Paper,USD,0,1
+4114,"LKA_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4115,LKA_Metal Products,USD,0,1
+4116,LKA_Electrical and Machinery,USD,0,1
+4117,LKA_Transport Equipment,USD,0,1
+4118,LKA_Other Manufacturing,USD,0,1
+4119,LKA_Recycling,USD,0,1
+4120,"LKA_Electricity, Gas and Water",USD,0,1
+4121,LKA_Construction,USD,0,1
+4122,LKA_Maintenance and Repair,USD,0,1
+4123,LKA_Wholesale Trade,USD,0,1
+4124,LKA_Retail Trade,USD,0,1
+4125,LKA_Hotels and Restraurants,USD,0,1
+4126,LKA_Transport,USD,0,1
+4127,LKA_Post and Telecommunications,USD,0,1
+4128,LKA_Finacial Intermediation and Business Activities,USD,0,1
+4129,LKA_Public Administration,USD,0,1
+4130,"LKA_Education, Health and Other Services",USD,0,1
+4131,LKA_Private Households,USD,0,1
+4132,LKA_Others,USD,0,1
+4133,LKA_Re-export & Re-import,USD,0,1
+4134,SUD_Agriculture,USD,0,1
+4135,SUD_Fishing,USD,0,1
+4136,SUD_Mining and Quarrying,USD,0,1
+4137,SUD_Food & Beverages,USD,0,1
+4138,SUD_Textiles and Wearing Apparel,USD,0,1
+4139,SUD_Wood and Paper,USD,0,1
+4140,"SUD_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4141,SUD_Metal Products,USD,0,1
+4142,SUD_Electrical and Machinery,USD,0,1
+4143,SUD_Transport Equipment,USD,0,1
+4144,SUD_Other Manufacturing,USD,0,1
+4145,SUD_Recycling,USD,0,1
+4146,"SUD_Electricity, Gas and Water",USD,0,1
+4147,SUD_Construction,USD,0,1
+4148,SUD_Maintenance and Repair,USD,0,1
+4149,SUD_Wholesale Trade,USD,0,1
+4150,SUD_Retail Trade,USD,0,1
+4151,SUD_Hotels and Restraurants,USD,0,1
+4152,SUD_Transport,USD,0,1
+4153,SUD_Post and Telecommunications,USD,0,1
+4154,SUD_Finacial Intermediation and Business Activities,USD,0,1
+4155,SUD_Public Administration,USD,0,1
+4156,"SUD_Education, Health and Other Services",USD,0,1
+4157,SUD_Private Households,USD,0,1
+4158,SUD_Others,USD,0,1
+4159,SUD_Re-export & Re-import,USD,0,1
+4160,SUR_Agriculture,USD,0,1
+4161,SUR_Fishing,USD,0,1
+4162,SUR_Mining and Quarrying,USD,0,1
+4163,SUR_Food & Beverages,USD,0,1
+4164,SUR_Textiles and Wearing Apparel,USD,0,1
+4165,SUR_Wood and Paper,USD,0,1
+4166,"SUR_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4167,SUR_Metal Products,USD,0,1
+4168,SUR_Electrical and Machinery,USD,0,1
+4169,SUR_Transport Equipment,USD,0,1
+4170,SUR_Other Manufacturing,USD,0,1
+4171,SUR_Recycling,USD,0,1
+4172,"SUR_Electricity, Gas and Water",USD,0,1
+4173,SUR_Construction,USD,0,1
+4174,SUR_Maintenance and Repair,USD,0,1
+4175,SUR_Wholesale Trade,USD,0,1
+4176,SUR_Retail Trade,USD,0,1
+4177,SUR_Hotels and Restraurants,USD,0,1
+4178,SUR_Transport,USD,0,1
+4179,SUR_Post and Telecommunications,USD,0,1
+4180,SUR_Finacial Intermediation and Business Activities,USD,0,1
+4181,SUR_Public Administration,USD,0,1
+4182,"SUR_Education, Health and Other Services",USD,0,1
+4183,SUR_Private Households,USD,0,1
+4184,SUR_Others,USD,0,1
+4185,SUR_Re-export & Re-import,USD,0,1
+4186,SWZ_Agriculture,USD,0,1
+4187,SWZ_Fishing,USD,0,1
+4188,SWZ_Mining and Quarrying,USD,0,1
+4189,SWZ_Food & Beverages,USD,0,1
+4190,SWZ_Textiles and Wearing Apparel,USD,0,1
+4191,SWZ_Wood and Paper,USD,0,1
+4192,"SWZ_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4193,SWZ_Metal Products,USD,0,1
+4194,SWZ_Electrical and Machinery,USD,0,1
+4195,SWZ_Transport Equipment,USD,0,1
+4196,SWZ_Other Manufacturing,USD,0,1
+4197,SWZ_Recycling,USD,0,1
+4198,"SWZ_Electricity, Gas and Water",USD,0,1
+4199,SWZ_Construction,USD,0,1
+4200,SWZ_Maintenance and Repair,USD,0,1
+4201,SWZ_Wholesale Trade,USD,0,1
+4202,SWZ_Retail Trade,USD,0,1
+4203,SWZ_Hotels and Restraurants,USD,0,1
+4204,SWZ_Transport,USD,0,1
+4205,SWZ_Post and Telecommunications,USD,0,1
+4206,SWZ_Finacial Intermediation and Business Activities,USD,0,1
+4207,SWZ_Public Administration,USD,0,1
+4208,"SWZ_Education, Health and Other Services",USD,0,1
+4209,SWZ_Private Households,USD,0,1
+4210,SWZ_Others,USD,0,1
+4211,SWZ_Re-export & Re-import,USD,0,1
+4212,SWE_Agriculture,USD,0,1
+4213,SWE_Fishing,USD,0,1
+4214,SWE_Mining and Quarrying,USD,0,1
+4215,SWE_Food & Beverages,USD,0,1
+4216,SWE_Textiles and Wearing Apparel,USD,0,1
+4217,SWE_Wood and Paper,USD,0,1
+4218,"SWE_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4219,SWE_Metal Products,USD,0,1
+4220,SWE_Electrical and Machinery,USD,0,1
+4221,SWE_Transport Equipment,USD,0,1
+4222,SWE_Other Manufacturing,USD,0,1
+4223,SWE_Recycling,USD,0,1
+4224,"SWE_Electricity, Gas and Water",USD,0,1
+4225,SWE_Construction,USD,0,1
+4226,SWE_Maintenance and Repair,USD,0,1
+4227,SWE_Wholesale Trade,USD,0,1
+4228,SWE_Retail Trade,USD,0,1
+4229,SWE_Hotels and Restraurants,USD,0,1
+4230,SWE_Transport,USD,0,1
+4231,SWE_Post and Telecommunications,USD,0,1
+4232,SWE_Finacial Intermediation and Business Activities,USD,0,1
+4233,SWE_Public Administration,USD,0,1
+4234,"SWE_Education, Health and Other Services",USD,0,1
+4235,SWE_Private Households,USD,0,1
+4236,SWE_Others,USD,0,1
+4237,SWE_Re-export & Re-import,USD,0,1
+4238,CHE_Agriculture,USD,0,1
+4239,CHE_Fishing,USD,0,1
+4240,CHE_Mining and Quarrying,USD,0,1
+4241,CHE_Food & Beverages,USD,0,1
+4242,CHE_Textiles and Wearing Apparel,USD,0,1
+4243,CHE_Wood and Paper,USD,0,1
+4244,"CHE_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4245,CHE_Metal Products,USD,0,1
+4246,CHE_Electrical and Machinery,USD,0,1
+4247,CHE_Transport Equipment,USD,0,1
+4248,CHE_Other Manufacturing,USD,0,1
+4249,CHE_Recycling,USD,0,1
+4250,"CHE_Electricity, Gas and Water",USD,0,1
+4251,CHE_Construction,USD,0,1
+4252,CHE_Maintenance and Repair,USD,0,1
+4253,CHE_Wholesale Trade,USD,0,1
+4254,CHE_Retail Trade,USD,0,1
+4255,CHE_Hotels and Restraurants,USD,0,1
+4256,CHE_Transport,USD,0,1
+4257,CHE_Post and Telecommunications,USD,0,1
+4258,CHE_Finacial Intermediation and Business Activities,USD,0,1
+4259,CHE_Public Administration,USD,0,1
+4260,"CHE_Education, Health and Other Services",USD,0,1
+4261,CHE_Private Households,USD,0,1
+4262,CHE_Others,USD,0,1
+4263,CHE_Re-export & Re-import,USD,0,1
+4264,SYR_Agriculture,USD,0,1
+4265,SYR_Fishing,USD,0,1
+4266,SYR_Mining and Quarrying,USD,0,1
+4267,SYR_Food & Beverages,USD,0,1
+4268,SYR_Textiles and Wearing Apparel,USD,0,1
+4269,SYR_Wood and Paper,USD,0,1
+4270,"SYR_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4271,SYR_Metal Products,USD,0,1
+4272,SYR_Electrical and Machinery,USD,0,1
+4273,SYR_Transport Equipment,USD,0,1
+4274,SYR_Other Manufacturing,USD,0,1
+4275,SYR_Recycling,USD,0,1
+4276,"SYR_Electricity, Gas and Water",USD,0,1
+4277,SYR_Construction,USD,0,1
+4278,SYR_Maintenance and Repair,USD,0,1
+4279,SYR_Wholesale Trade,USD,0,1
+4280,SYR_Retail Trade,USD,0,1
+4281,SYR_Hotels and Restraurants,USD,0,1
+4282,SYR_Transport,USD,0,1
+4283,SYR_Post and Telecommunications,USD,0,1
+4284,SYR_Finacial Intermediation and Business Activities,USD,0,1
+4285,SYR_Public Administration,USD,0,1
+4286,"SYR_Education, Health and Other Services",USD,0,1
+4287,SYR_Private Households,USD,0,1
+4288,SYR_Others,USD,0,1
+4289,SYR_Re-export & Re-import,USD,0,1
+4290,TWN_Agriculture,USD,0,1
+4291,TWN_Fishing,USD,0,1
+4292,TWN_Mining and Quarrying,USD,0,1
+4293,TWN_Food & Beverages,USD,0,1
+4294,TWN_Textiles and Wearing Apparel,USD,0,1
+4295,TWN_Wood and Paper,USD,0,1
+4296,"TWN_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4297,TWN_Metal Products,USD,0,1
+4298,TWN_Electrical and Machinery,USD,0,1
+4299,TWN_Transport Equipment,USD,0,1
+4300,TWN_Other Manufacturing,USD,0,1
+4301,TWN_Recycling,USD,0,1
+4302,"TWN_Electricity, Gas and Water",USD,0,1
+4303,TWN_Construction,USD,0,1
+4304,TWN_Maintenance and Repair,USD,0,1
+4305,TWN_Wholesale Trade,USD,0,1
+4306,TWN_Retail Trade,USD,0,1
+4307,TWN_Hotels and Restraurants,USD,0,1
+4308,TWN_Transport,USD,0,1
+4309,TWN_Post and Telecommunications,USD,0,1
+4310,TWN_Finacial Intermediation and Business Activities,USD,0,1
+4311,TWN_Public Administration,USD,0,1
+4312,"TWN_Education, Health and Other Services",USD,0,1
+4313,TWN_Private Households,USD,0,1
+4314,TWN_Others,USD,0,1
+4315,TWN_Re-export & Re-import,USD,0,1
+4316,TJK_Agriculture,USD,0,1
+4317,TJK_Fishing,USD,0,1
+4318,TJK_Mining and Quarrying,USD,0,1
+4319,TJK_Food & Beverages,USD,0,1
+4320,TJK_Textiles and Wearing Apparel,USD,0,1
+4321,TJK_Wood and Paper,USD,0,1
+4322,"TJK_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4323,TJK_Metal Products,USD,0,1
+4324,TJK_Electrical and Machinery,USD,0,1
+4325,TJK_Transport Equipment,USD,0,1
+4326,TJK_Other Manufacturing,USD,0,1
+4327,TJK_Recycling,USD,0,1
+4328,"TJK_Electricity, Gas and Water",USD,0,1
+4329,TJK_Construction,USD,0,1
+4330,TJK_Maintenance and Repair,USD,0,1
+4331,TJK_Wholesale Trade,USD,0,1
+4332,TJK_Retail Trade,USD,0,1
+4333,TJK_Hotels and Restraurants,USD,0,1
+4334,TJK_Transport,USD,0,1
+4335,TJK_Post and Telecommunications,USD,0,1
+4336,TJK_Finacial Intermediation and Business Activities,USD,0,1
+4337,TJK_Public Administration,USD,0,1
+4338,"TJK_Education, Health and Other Services",USD,0,1
+4339,TJK_Private Households,USD,0,1
+4340,TJK_Others,USD,0,1
+4341,TJK_Re-export & Re-import,USD,0,1
+4342,THA_Agriculture,USD,0,1
+4343,THA_Fishing,USD,0,1
+4344,THA_Mining and Quarrying,USD,0,1
+4345,THA_Food & Beverages,USD,0,1
+4346,THA_Textiles and Wearing Apparel,USD,0,1
+4347,THA_Wood and Paper,USD,0,1
+4348,"THA_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4349,THA_Metal Products,USD,0,1
+4350,THA_Electrical and Machinery,USD,0,1
+4351,THA_Transport Equipment,USD,0,1
+4352,THA_Other Manufacturing,USD,0,1
+4353,THA_Recycling,USD,0,1
+4354,"THA_Electricity, Gas and Water",USD,0,1
+4355,THA_Construction,USD,0,1
+4356,THA_Maintenance and Repair,USD,0,1
+4357,THA_Wholesale Trade,USD,0,1
+4358,THA_Retail Trade,USD,0,1
+4359,THA_Hotels and Restraurants,USD,0,1
+4360,THA_Transport,USD,0,1
+4361,THA_Post and Telecommunications,USD,0,1
+4362,THA_Finacial Intermediation and Business Activities,USD,0,1
+4363,THA_Public Administration,USD,0,1
+4364,"THA_Education, Health and Other Services",USD,0,1
+4365,THA_Private Households,USD,0,1
+4366,THA_Others,USD,0,1
+4367,THA_Re-export & Re-import,USD,0,1
+4368,MKD_Agriculture,USD,0,1
+4369,MKD_Fishing,USD,0,1
+4370,MKD_Mining and Quarrying,USD,0,1
+4371,MKD_Food & Beverages,USD,0,1
+4372,MKD_Textiles and Wearing Apparel,USD,0,1
+4373,MKD_Wood and Paper,USD,0,1
+4374,"MKD_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4375,MKD_Metal Products,USD,0,1
+4376,MKD_Electrical and Machinery,USD,0,1
+4377,MKD_Transport Equipment,USD,0,1
+4378,MKD_Other Manufacturing,USD,0,1
+4379,MKD_Recycling,USD,0,1
+4380,"MKD_Electricity, Gas and Water",USD,0,1
+4381,MKD_Construction,USD,0,1
+4382,MKD_Maintenance and Repair,USD,0,1
+4383,MKD_Wholesale Trade,USD,0,1
+4384,MKD_Retail Trade,USD,0,1
+4385,MKD_Hotels and Restraurants,USD,0,1
+4386,MKD_Transport,USD,0,1
+4387,MKD_Post and Telecommunications,USD,0,1
+4388,MKD_Finacial Intermediation and Business Activities,USD,0,1
+4389,MKD_Public Administration,USD,0,1
+4390,"MKD_Education, Health and Other Services",USD,0,1
+4391,MKD_Private Households,USD,0,1
+4392,MKD_Others,USD,0,1
+4393,MKD_Re-export & Re-import,USD,0,1
+4394,TGO_Agriculture,USD,0,1
+4395,TGO_Fishing,USD,0,1
+4396,TGO_Mining and Quarrying,USD,0,1
+4397,TGO_Food & Beverages,USD,0,1
+4398,TGO_Textiles and Wearing Apparel,USD,0,1
+4399,TGO_Wood and Paper,USD,0,1
+4400,"TGO_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4401,TGO_Metal Products,USD,0,1
+4402,TGO_Electrical and Machinery,USD,0,1
+4403,TGO_Transport Equipment,USD,0,1
+4404,TGO_Other Manufacturing,USD,0,1
+4405,TGO_Recycling,USD,0,1
+4406,"TGO_Electricity, Gas and Water",USD,0,1
+4407,TGO_Construction,USD,0,1
+4408,TGO_Maintenance and Repair,USD,0,1
+4409,TGO_Wholesale Trade,USD,0,1
+4410,TGO_Retail Trade,USD,0,1
+4411,TGO_Hotels and Restraurants,USD,0,1
+4412,TGO_Transport,USD,0,1
+4413,TGO_Post and Telecommunications,USD,0,1
+4414,TGO_Finacial Intermediation and Business Activities,USD,0,1
+4415,TGO_Public Administration,USD,0,1
+4416,"TGO_Education, Health and Other Services",USD,0,1
+4417,TGO_Private Households,USD,0,1
+4418,TGO_Others,USD,0,1
+4419,TGO_Re-export & Re-import,USD,0,1
+4420,TTO_Agriculture,USD,0,1
+4421,TTO_Fishing,USD,0,1
+4422,TTO_Mining and Quarrying,USD,0,1
+4423,TTO_Food & Beverages,USD,0,1
+4424,TTO_Textiles and Wearing Apparel,USD,0,1
+4425,TTO_Wood and Paper,USD,0,1
+4426,"TTO_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4427,TTO_Metal Products,USD,0,1
+4428,TTO_Electrical and Machinery,USD,0,1
+4429,TTO_Transport Equipment,USD,0,1
+4430,TTO_Other Manufacturing,USD,0,1
+4431,TTO_Recycling,USD,0,1
+4432,"TTO_Electricity, Gas and Water",USD,0,1
+4433,TTO_Construction,USD,0,1
+4434,TTO_Maintenance and Repair,USD,0,1
+4435,TTO_Wholesale Trade,USD,0,1
+4436,TTO_Retail Trade,USD,0,1
+4437,TTO_Hotels and Restraurants,USD,0,1
+4438,TTO_Transport,USD,0,1
+4439,TTO_Post and Telecommunications,USD,0,1
+4440,TTO_Finacial Intermediation and Business Activities,USD,0,1
+4441,TTO_Public Administration,USD,0,1
+4442,"TTO_Education, Health and Other Services",USD,0,1
+4443,TTO_Private Households,USD,0,1
+4444,TTO_Others,USD,0,1
+4445,TTO_Re-export & Re-import,USD,0,1
+4446,TUN_Agriculture,USD,0,1
+4447,TUN_Fishing,USD,0,1
+4448,TUN_Mining and Quarrying,USD,0,1
+4449,TUN_Food & Beverages,USD,0,1
+4450,TUN_Textiles and Wearing Apparel,USD,0,1
+4451,TUN_Wood and Paper,USD,0,1
+4452,"TUN_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4453,TUN_Metal Products,USD,0,1
+4454,TUN_Electrical and Machinery,USD,0,1
+4455,TUN_Transport Equipment,USD,0,1
+4456,TUN_Other Manufacturing,USD,0,1
+4457,TUN_Recycling,USD,0,1
+4458,"TUN_Electricity, Gas and Water",USD,0,1
+4459,TUN_Construction,USD,0,1
+4460,TUN_Maintenance and Repair,USD,0,1
+4461,TUN_Wholesale Trade,USD,0,1
+4462,TUN_Retail Trade,USD,0,1
+4463,TUN_Hotels and Restraurants,USD,0,1
+4464,TUN_Transport,USD,0,1
+4465,TUN_Post and Telecommunications,USD,0,1
+4466,TUN_Finacial Intermediation and Business Activities,USD,0,1
+4467,TUN_Public Administration,USD,0,1
+4468,"TUN_Education, Health and Other Services",USD,0,1
+4469,TUN_Private Households,USD,0,1
+4470,TUN_Others,USD,0,1
+4471,TUN_Re-export & Re-import,USD,0,1
+4472,TUR_Agriculture,USD,0,1
+4473,TUR_Fishing,USD,0,1
+4474,TUR_Mining and Quarrying,USD,0,1
+4475,TUR_Food & Beverages,USD,0,1
+4476,TUR_Textiles and Wearing Apparel,USD,0,1
+4477,TUR_Wood and Paper,USD,0,1
+4478,"TUR_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4479,TUR_Metal Products,USD,0,1
+4480,TUR_Electrical and Machinery,USD,0,1
+4481,TUR_Transport Equipment,USD,0,1
+4482,TUR_Other Manufacturing,USD,0,1
+4483,TUR_Recycling,USD,0,1
+4484,"TUR_Electricity, Gas and Water",USD,0,1
+4485,TUR_Construction,USD,0,1
+4486,TUR_Maintenance and Repair,USD,0,1
+4487,TUR_Wholesale Trade,USD,0,1
+4488,TUR_Retail Trade,USD,0,1
+4489,TUR_Hotels and Restraurants,USD,0,1
+4490,TUR_Transport,USD,0,1
+4491,TUR_Post and Telecommunications,USD,0,1
+4492,TUR_Finacial Intermediation and Business Activities,USD,0,1
+4493,TUR_Public Administration,USD,0,1
+4494,"TUR_Education, Health and Other Services",USD,0,1
+4495,TUR_Private Households,USD,0,1
+4496,TUR_Others,USD,0,1
+4497,TUR_Re-export & Re-import,USD,0,1
+4498,TKM_Agriculture,USD,0,1
+4499,TKM_Fishing,USD,0,1
+4500,TKM_Mining and Quarrying,USD,0,1
+4501,TKM_Food & Beverages,USD,0,1
+4502,TKM_Textiles and Wearing Apparel,USD,0,1
+4503,TKM_Wood and Paper,USD,0,1
+4504,"TKM_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4505,TKM_Metal Products,USD,0,1
+4506,TKM_Electrical and Machinery,USD,0,1
+4507,TKM_Transport Equipment,USD,0,1
+4508,TKM_Other Manufacturing,USD,0,1
+4509,TKM_Recycling,USD,0,1
+4510,"TKM_Electricity, Gas and Water",USD,0,1
+4511,TKM_Construction,USD,0,1
+4512,TKM_Maintenance and Repair,USD,0,1
+4513,TKM_Wholesale Trade,USD,0,1
+4514,TKM_Retail Trade,USD,0,1
+4515,TKM_Hotels and Restraurants,USD,0,1
+4516,TKM_Transport,USD,0,1
+4517,TKM_Post and Telecommunications,USD,0,1
+4518,TKM_Finacial Intermediation and Business Activities,USD,0,1
+4519,TKM_Public Administration,USD,0,1
+4520,"TKM_Education, Health and Other Services",USD,0,1
+4521,TKM_Private Households,USD,0,1
+4522,TKM_Others,USD,0,1
+4523,TKM_Re-export & Re-import,USD,0,1
+4524,USR_Agriculture,USD,0,1
+4525,USR_Fishing,USD,0,1
+4526,USR_Mining and Quarrying,USD,0,1
+4527,USR_Food & Beverages,USD,0,1
+4528,USR_Textiles and Wearing Apparel,USD,0,1
+4529,USR_Wood and Paper,USD,0,1
+4530,"USR_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4531,USR_Metal Products,USD,0,1
+4532,USR_Electrical and Machinery,USD,0,1
+4533,USR_Transport Equipment,USD,0,1
+4534,USR_Other Manufacturing,USD,0,1
+4535,USR_Recycling,USD,0,1
+4536,"USR_Electricity, Gas and Water",USD,0,1
+4537,USR_Construction,USD,0,1
+4538,USR_Maintenance and Repair,USD,0,1
+4539,USR_Wholesale Trade,USD,0,1
+4540,USR_Retail Trade,USD,0,1
+4541,USR_Hotels and Restraurants,USD,0,1
+4542,USR_Transport,USD,0,1
+4543,USR_Post and Telecommunications,USD,0,1
+4544,USR_Finacial Intermediation and Business Activities,USD,0,1
+4545,USR_Public Administration,USD,0,1
+4546,"USR_Education, Health and Other Services",USD,0,1
+4547,USR_Private Households,USD,0,1
+4548,USR_Others,USD,0,1
+4549,USR_Re-export & Re-import,USD,0,1
+4550,UGA_Agriculture,USD,0,1
+4551,UGA_Fishing,USD,0,1
+4552,UGA_Mining and Quarrying,USD,0,1
+4553,UGA_Food & Beverages,USD,0,1
+4554,UGA_Textiles and Wearing Apparel,USD,0,1
+4555,UGA_Wood and Paper,USD,0,1
+4556,"UGA_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4557,UGA_Metal Products,USD,0,1
+4558,UGA_Electrical and Machinery,USD,0,1
+4559,UGA_Transport Equipment,USD,0,1
+4560,UGA_Other Manufacturing,USD,0,1
+4561,UGA_Recycling,USD,0,1
+4562,"UGA_Electricity, Gas and Water",USD,0,1
+4563,UGA_Construction,USD,0,1
+4564,UGA_Maintenance and Repair,USD,0,1
+4565,UGA_Wholesale Trade,USD,0,1
+4566,UGA_Retail Trade,USD,0,1
+4567,UGA_Hotels and Restraurants,USD,0,1
+4568,UGA_Transport,USD,0,1
+4569,UGA_Post and Telecommunications,USD,0,1
+4570,UGA_Finacial Intermediation and Business Activities,USD,0,1
+4571,UGA_Public Administration,USD,0,1
+4572,"UGA_Education, Health and Other Services",USD,0,1
+4573,UGA_Private Households,USD,0,1
+4574,UGA_Others,USD,0,1
+4575,UGA_Re-export & Re-import,USD,0,1
+4576,UKR_Agriculture,USD,0,1
+4577,UKR_Fishing,USD,0,1
+4578,UKR_Mining and Quarrying,USD,0,1
+4579,UKR_Food & Beverages,USD,0,1
+4580,UKR_Textiles and Wearing Apparel,USD,0,1
+4581,UKR_Wood and Paper,USD,0,1
+4582,"UKR_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4583,UKR_Metal Products,USD,0,1
+4584,UKR_Electrical and Machinery,USD,0,1
+4585,UKR_Transport Equipment,USD,0,1
+4586,UKR_Other Manufacturing,USD,0,1
+4587,UKR_Recycling,USD,0,1
+4588,"UKR_Electricity, Gas and Water",USD,0,1
+4589,UKR_Construction,USD,0,1
+4590,UKR_Maintenance and Repair,USD,0,1
+4591,UKR_Wholesale Trade,USD,0,1
+4592,UKR_Retail Trade,USD,0,1
+4593,UKR_Hotels and Restraurants,USD,0,1
+4594,UKR_Transport,USD,0,1
+4595,UKR_Post and Telecommunications,USD,0,1
+4596,UKR_Finacial Intermediation and Business Activities,USD,0,1
+4597,UKR_Public Administration,USD,0,1
+4598,"UKR_Education, Health and Other Services",USD,0,1
+4599,UKR_Private Households,USD,0,1
+4600,UKR_Others,USD,0,1
+4601,UKR_Re-export & Re-import,USD,0,1
+4602,ARE_Agriculture,USD,0,1
+4603,ARE_Fishing,USD,0,1
+4604,ARE_Mining and Quarrying,USD,0,1
+4605,ARE_Food & Beverages,USD,0,1
+4606,ARE_Textiles and Wearing Apparel,USD,0,1
+4607,ARE_Wood and Paper,USD,0,1
+4608,"ARE_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4609,ARE_Metal Products,USD,0,1
+4610,ARE_Electrical and Machinery,USD,0,1
+4611,ARE_Transport Equipment,USD,0,1
+4612,ARE_Other Manufacturing,USD,0,1
+4613,ARE_Recycling,USD,0,1
+4614,"ARE_Electricity, Gas and Water",USD,0,1
+4615,ARE_Construction,USD,0,1
+4616,ARE_Maintenance and Repair,USD,0,1
+4617,ARE_Wholesale Trade,USD,0,1
+4618,ARE_Retail Trade,USD,0,1
+4619,ARE_Hotels and Restraurants,USD,0,1
+4620,ARE_Transport,USD,0,1
+4621,ARE_Post and Telecommunications,USD,0,1
+4622,ARE_Finacial Intermediation and Business Activities,USD,0,1
+4623,ARE_Public Administration,USD,0,1
+4624,"ARE_Education, Health and Other Services",USD,0,1
+4625,ARE_Private Households,USD,0,1
+4626,ARE_Others,USD,0,1
+4627,ARE_Re-export & Re-import,USD,0,1
+4628,GBR_Agriculture,USD,0,1
+4629,GBR_Fishing,USD,0,1
+4630,GBR_Mining and Quarrying,USD,0,1
+4631,GBR_Food & Beverages,USD,0,1
+4632,GBR_Textiles and Wearing Apparel,USD,0,1
+4633,GBR_Wood and Paper,USD,0,1
+4634,"GBR_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4635,GBR_Metal Products,USD,0,1
+4636,GBR_Electrical and Machinery,USD,0,1
+4637,GBR_Transport Equipment,USD,0,1
+4638,GBR_Other Manufacturing,USD,0,1
+4639,GBR_Recycling,USD,0,1
+4640,"GBR_Electricity, Gas and Water",USD,0,1
+4641,GBR_Construction,USD,0,1
+4642,GBR_Maintenance and Repair,USD,0,1
+4643,GBR_Wholesale Trade,USD,0,1
+4644,GBR_Retail Trade,USD,0,1
+4645,GBR_Hotels and Restraurants,USD,0,1
+4646,GBR_Transport,USD,0,1
+4647,GBR_Post and Telecommunications,USD,0,1
+4648,GBR_Finacial Intermediation and Business Activities,USD,0,1
+4649,GBR_Public Administration,USD,0,1
+4650,"GBR_Education, Health and Other Services",USD,0,1
+4651,GBR_Private Households,USD,0,1
+4652,GBR_Others,USD,0,1
+4653,GBR_Re-export & Re-import,USD,0,1
+4654,TZA_Agriculture,USD,0,1
+4655,TZA_Fishing,USD,0,1
+4656,TZA_Mining and Quarrying,USD,0,1
+4657,TZA_Food & Beverages,USD,0,1
+4658,TZA_Textiles and Wearing Apparel,USD,0,1
+4659,TZA_Wood and Paper,USD,0,1
+4660,"TZA_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4661,TZA_Metal Products,USD,0,1
+4662,TZA_Electrical and Machinery,USD,0,1
+4663,TZA_Transport Equipment,USD,0,1
+4664,TZA_Other Manufacturing,USD,0,1
+4665,TZA_Recycling,USD,0,1
+4666,"TZA_Electricity, Gas and Water",USD,0,1
+4667,TZA_Construction,USD,0,1
+4668,TZA_Maintenance and Repair,USD,0,1
+4669,TZA_Wholesale Trade,USD,0,1
+4670,TZA_Retail Trade,USD,0,1
+4671,TZA_Hotels and Restraurants,USD,0,1
+4672,TZA_Transport,USD,0,1
+4673,TZA_Post and Telecommunications,USD,0,1
+4674,TZA_Finacial Intermediation and Business Activities,USD,0,1
+4675,TZA_Public Administration,USD,0,1
+4676,"TZA_Education, Health and Other Services",USD,0,1
+4677,TZA_Private Households,USD,0,1
+4678,TZA_Others,USD,0,1
+4679,TZA_Re-export & Re-import,USD,0,1
+4680,USA_Agriculture,USD,0,1
+4681,USA_Fishing,USD,0,1
+4682,USA_Mining and Quarrying,USD,0,1
+4683,USA_Food & Beverages,USD,0,1
+4684,USA_Textiles and Wearing Apparel,USD,0,1
+4685,USA_Wood and Paper,USD,0,1
+4686,"USA_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4687,USA_Metal Products,USD,0,1
+4688,USA_Electrical and Machinery,USD,0,1
+4689,USA_Transport Equipment,USD,0,1
+4690,USA_Other Manufacturing,USD,0,1
+4691,USA_Recycling,USD,0,1
+4692,"USA_Electricity, Gas and Water",USD,0,1
+4693,USA_Construction,USD,0,1
+4694,USA_Maintenance and Repair,USD,0,1
+4695,USA_Wholesale Trade,USD,0,1
+4696,USA_Retail Trade,USD,0,1
+4697,USA_Hotels and Restraurants,USD,0,1
+4698,USA_Transport,USD,0,1
+4699,USA_Post and Telecommunications,USD,0,1
+4700,USA_Finacial Intermediation and Business Activities,USD,0,1
+4701,USA_Public Administration,USD,0,1
+4702,"USA_Education, Health and Other Services",USD,0,1
+4703,USA_Private Households,USD,0,1
+4704,USA_Others,USD,0,1
+4705,USA_Re-export & Re-import,USD,0,1
+4706,URY_Agriculture,USD,0,1
+4707,URY_Fishing,USD,0,1
+4708,URY_Mining and Quarrying,USD,0,1
+4709,URY_Food & Beverages,USD,0,1
+4710,URY_Textiles and Wearing Apparel,USD,0,1
+4711,URY_Wood and Paper,USD,0,1
+4712,"URY_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4713,URY_Metal Products,USD,0,1
+4714,URY_Electrical and Machinery,USD,0,1
+4715,URY_Transport Equipment,USD,0,1
+4716,URY_Other Manufacturing,USD,0,1
+4717,URY_Recycling,USD,0,1
+4718,"URY_Electricity, Gas and Water",USD,0,1
+4719,URY_Construction,USD,0,1
+4720,URY_Maintenance and Repair,USD,0,1
+4721,URY_Wholesale Trade,USD,0,1
+4722,URY_Retail Trade,USD,0,1
+4723,URY_Hotels and Restraurants,USD,0,1
+4724,URY_Transport,USD,0,1
+4725,URY_Post and Telecommunications,USD,0,1
+4726,URY_Finacial Intermediation and Business Activities,USD,0,1
+4727,URY_Public Administration,USD,0,1
+4728,"URY_Education, Health and Other Services",USD,0,1
+4729,URY_Private Households,USD,0,1
+4730,URY_Others,USD,0,1
+4731,URY_Re-export & Re-import,USD,0,1
+4732,UZB_Agriculture,USD,0,1
+4733,UZB_Fishing,USD,0,1
+4734,UZB_Mining and Quarrying,USD,0,1
+4735,UZB_Food & Beverages,USD,0,1
+4736,UZB_Textiles and Wearing Apparel,USD,0,1
+4737,UZB_Wood and Paper,USD,0,1
+4738,"UZB_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4739,UZB_Metal Products,USD,0,1
+4740,UZB_Electrical and Machinery,USD,0,1
+4741,UZB_Transport Equipment,USD,0,1
+4742,UZB_Other Manufacturing,USD,0,1
+4743,UZB_Recycling,USD,0,1
+4744,"UZB_Electricity, Gas and Water",USD,0,1
+4745,UZB_Construction,USD,0,1
+4746,UZB_Maintenance and Repair,USD,0,1
+4747,UZB_Wholesale Trade,USD,0,1
+4748,UZB_Retail Trade,USD,0,1
+4749,UZB_Hotels and Restraurants,USD,0,1
+4750,UZB_Transport,USD,0,1
+4751,UZB_Post and Telecommunications,USD,0,1
+4752,UZB_Finacial Intermediation and Business Activities,USD,0,1
+4753,UZB_Public Administration,USD,0,1
+4754,"UZB_Education, Health and Other Services",USD,0,1
+4755,UZB_Private Households,USD,0,1
+4756,UZB_Others,USD,0,1
+4757,UZB_Re-export & Re-import,USD,0,1
+4758,VUT_Agriculture,USD,0,1
+4759,VUT_Fishing,USD,0,1
+4760,VUT_Mining and Quarrying,USD,0,1
+4761,VUT_Food & Beverages,USD,0,1
+4762,VUT_Textiles and Wearing Apparel,USD,0,1
+4763,VUT_Wood and Paper,USD,0,1
+4764,"VUT_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4765,VUT_Metal Products,USD,0,1
+4766,VUT_Electrical and Machinery,USD,0,1
+4767,VUT_Transport Equipment,USD,0,1
+4768,VUT_Other Manufacturing,USD,0,1
+4769,VUT_Recycling,USD,0,1
+4770,"VUT_Electricity, Gas and Water",USD,0,1
+4771,VUT_Construction,USD,0,1
+4772,VUT_Maintenance and Repair,USD,0,1
+4773,VUT_Wholesale Trade,USD,0,1
+4774,VUT_Retail Trade,USD,0,1
+4775,VUT_Hotels and Restraurants,USD,0,1
+4776,VUT_Transport,USD,0,1
+4777,VUT_Post and Telecommunications,USD,0,1
+4778,VUT_Finacial Intermediation and Business Activities,USD,0,1
+4779,VUT_Public Administration,USD,0,1
+4780,"VUT_Education, Health and Other Services",USD,0,1
+4781,VUT_Private Households,USD,0,1
+4782,VUT_Others,USD,0,1
+4783,VUT_Re-export & Re-import,USD,0,1
+4784,VEN_Agriculture,USD,0,1
+4785,VEN_Fishing,USD,0,1
+4786,VEN_Mining and Quarrying,USD,0,1
+4787,VEN_Food & Beverages,USD,0,1
+4788,VEN_Textiles and Wearing Apparel,USD,0,1
+4789,VEN_Wood and Paper,USD,0,1
+4790,"VEN_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4791,VEN_Metal Products,USD,0,1
+4792,VEN_Electrical and Machinery,USD,0,1
+4793,VEN_Transport Equipment,USD,0,1
+4794,VEN_Other Manufacturing,USD,0,1
+4795,VEN_Recycling,USD,0,1
+4796,"VEN_Electricity, Gas and Water",USD,0,1
+4797,VEN_Construction,USD,0,1
+4798,VEN_Maintenance and Repair,USD,0,1
+4799,VEN_Wholesale Trade,USD,0,1
+4800,VEN_Retail Trade,USD,0,1
+4801,VEN_Hotels and Restraurants,USD,0,1
+4802,VEN_Transport,USD,0,1
+4803,VEN_Post and Telecommunications,USD,0,1
+4804,VEN_Finacial Intermediation and Business Activities,USD,0,1
+4805,VEN_Public Administration,USD,0,1
+4806,"VEN_Education, Health and Other Services",USD,0,1
+4807,VEN_Private Households,USD,0,1
+4808,VEN_Others,USD,0,1
+4809,VEN_Re-export & Re-import,USD,0,1
+4810,VNM_Agriculture,USD,0,1
+4811,VNM_Fishing,USD,0,1
+4812,VNM_Mining and Quarrying,USD,0,1
+4813,VNM_Food & Beverages,USD,0,1
+4814,VNM_Textiles and Wearing Apparel,USD,0,1
+4815,VNM_Wood and Paper,USD,0,1
+4816,"VNM_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4817,VNM_Metal Products,USD,0,1
+4818,VNM_Electrical and Machinery,USD,0,1
+4819,VNM_Transport Equipment,USD,0,1
+4820,VNM_Other Manufacturing,USD,0,1
+4821,VNM_Recycling,USD,0,1
+4822,"VNM_Electricity, Gas and Water",USD,0,1
+4823,VNM_Construction,USD,0,1
+4824,VNM_Maintenance and Repair,USD,0,1
+4825,VNM_Wholesale Trade,USD,0,1
+4826,VNM_Retail Trade,USD,0,1
+4827,VNM_Hotels and Restraurants,USD,0,1
+4828,VNM_Transport,USD,0,1
+4829,VNM_Post and Telecommunications,USD,0,1
+4830,VNM_Finacial Intermediation and Business Activities,USD,0,1
+4831,VNM_Public Administration,USD,0,1
+4832,"VNM_Education, Health and Other Services",USD,0,1
+4833,VNM_Private Households,USD,0,1
+4834,VNM_Others,USD,0,1
+4835,VNM_Re-export & Re-import,USD,0,1
+4836,YEM_Agriculture,USD,0,1
+4837,YEM_Fishing,USD,0,1
+4838,YEM_Mining and Quarrying,USD,0,1
+4839,YEM_Food & Beverages,USD,0,1
+4840,YEM_Textiles and Wearing Apparel,USD,0,1
+4841,YEM_Wood and Paper,USD,0,1
+4842,"YEM_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4843,YEM_Metal Products,USD,0,1
+4844,YEM_Electrical and Machinery,USD,0,1
+4845,YEM_Transport Equipment,USD,0,1
+4846,YEM_Other Manufacturing,USD,0,1
+4847,YEM_Recycling,USD,0,1
+4848,"YEM_Electricity, Gas and Water",USD,0,1
+4849,YEM_Construction,USD,0,1
+4850,YEM_Maintenance and Repair,USD,0,1
+4851,YEM_Wholesale Trade,USD,0,1
+4852,YEM_Retail Trade,USD,0,1
+4853,YEM_Hotels and Restraurants,USD,0,1
+4854,YEM_Transport,USD,0,1
+4855,YEM_Post and Telecommunications,USD,0,1
+4856,YEM_Finacial Intermediation and Business Activities,USD,0,1
+4857,YEM_Public Administration,USD,0,1
+4858,"YEM_Education, Health and Other Services",USD,0,1
+4859,YEM_Private Households,USD,0,1
+4860,YEM_Others,USD,0,1
+4861,YEM_Re-export & Re-import,USD,0,1
+4862,ZMB_Agriculture,USD,0,1
+4863,ZMB_Fishing,USD,0,1
+4864,ZMB_Mining and Quarrying,USD,0,1
+4865,ZMB_Food & Beverages,USD,0,1
+4866,ZMB_Textiles and Wearing Apparel,USD,0,1
+4867,ZMB_Wood and Paper,USD,0,1
+4868,"ZMB_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4869,ZMB_Metal Products,USD,0,1
+4870,ZMB_Electrical and Machinery,USD,0,1
+4871,ZMB_Transport Equipment,USD,0,1
+4872,ZMB_Other Manufacturing,USD,0,1
+4873,ZMB_Recycling,USD,0,1
+4874,"ZMB_Electricity, Gas and Water",USD,0,1
+4875,ZMB_Construction,USD,0,1
+4876,ZMB_Maintenance and Repair,USD,0,1
+4877,ZMB_Wholesale Trade,USD,0,1
+4878,ZMB_Retail Trade,USD,0,1
+4879,ZMB_Hotels and Restraurants,USD,0,1
+4880,ZMB_Transport,USD,0,1
+4881,ZMB_Post and Telecommunications,USD,0,1
+4882,ZMB_Finacial Intermediation and Business Activities,USD,0,1
+4883,ZMB_Public Administration,USD,0,1
+4884,"ZMB_Education, Health and Other Services",USD,0,1
+4885,ZMB_Private Households,USD,0,1
+4886,ZMB_Others,USD,0,1
+4887,ZMB_Re-export & Re-import,USD,0,1
+4888,ZWE_Agriculture,USD,0,1
+4889,ZWE_Fishing,USD,0,1
+4890,ZWE_Mining and Quarrying,USD,0,1
+4891,ZWE_Food & Beverages,USD,0,1
+4892,ZWE_Textiles and Wearing Apparel,USD,0,1
+4893,ZWE_Wood and Paper,USD,0,1
+4894,"ZWE_Petroleum, Chemical and Non-Metallic Mineral Products",USD,0,1
+4895,ZWE_Metal Products,USD,0,1
+4896,ZWE_Electrical and Machinery,USD,0,1
+4897,ZWE_Transport Equipment,USD,0,1
+4898,ZWE_Other Manufacturing,USD,0,1
+4899,ZWE_Recycling,USD,0,1
+4900,"ZWE_Electricity, Gas and Water",USD,0,1
+4901,ZWE_Construction,USD,0,1
+4902,ZWE_Maintenance and Repair,USD,0,1
+4903,ZWE_Wholesale Trade,USD,0,1
+4904,ZWE_Retail Trade,USD,0,1
+4905,ZWE_Hotels and Restraurants,USD,0,1
+4906,ZWE_Transport,USD,0,1
+4907,ZWE_Post and Telecommunications,USD,0,1
+4908,ZWE_Finacial Intermediation and Business Activities,USD,0,1
+4909,ZWE_Public Administration,USD,0,1
+4910,"ZWE_Education, Health and Other Services",USD,0,1
+4911,ZWE_Private Households,USD,0,1
+4912,ZWE_Others,USD,0,1
+4913,ZWE_Re-export & Re-import,USD,0,1
+4914,ROW_TOTAL,USD,0,1
