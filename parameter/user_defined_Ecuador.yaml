@@ -20,6 +20,7 @@ monetary_units_inputed: kUSD
 time_resolution: week
 firm_data_type: "disaggregating IO"  #  'disaggregating IO' for GR-13 and GR-59, 'mrio' for TR-AGG
 io_cutoff: 0.01  # 0.01
+utilization_rate: 1
 simulation_type: disruption  # initial_state, disruption
 export_files: True
 disruption_description:
@@ -32,37 +33,61 @@ disruption_description:
       duration: 1
     - item_type: firms
       admin_units: ["1309"]
-      sectors: affected_sectors
+      sectors: ['ALD', 'AYG', 'AZU', 'BAL', 'BNA', 'CAN', 'CAR', 'CAU', 'CEM',
+                    'CHO', 'COM', 'CON', 'CUE', 'DEM', 'EDU', 'ELE', 'FID', 'HIL',
+                    'HOT', 'LAC', 'MAD', 'MAN', 'MAQ', 'MET', 'MIP', 'MOL', 'MUE',
+                    'PAN', 'PAP', 'POS', 'PPR', 'QU1', 'QU2', 'REF', 'REP', 'RES',
+                    'TEL', 'TRA', 'VES', 'VID']
       start_time: 1
       duration: 2
       production_capacity_reduction: 0.004153
     - item_type: firms
       admin_units: ["1301"]
-      sectors: affected_sectors
+      sectors: ['ALD', 'AYG', 'AZU', 'BAL', 'BNA', 'CAN', 'CAR', 'CAU', 'CEM',
+                    'CHO', 'COM', 'CON', 'CUE', 'DEM', 'EDU', 'ELE', 'FID', 'HIL',
+                    'HOT', 'LAC', 'MAD', 'MAN', 'MAQ', 'MET', 'MIP', 'MOL', 'MUE',
+                    'PAN', 'PAP', 'POS', 'PPR', 'QU1', 'QU2', 'REF', 'REP', 'RES',
+                    'TEL', 'TRA', 'VES', 'VID']
       start_time: 1
       duration: 2
       production_capacity_reduction: 0.006068
     - item_type: firms
       admin_units: ["1308"]
-      sectors: affected_sectors
+      sectors: ['ALD', 'AYG', 'AZU', 'BAL', 'BNA', 'CAN', 'CAR', 'CAU', 'CEM',
+                    'CHO', 'COM', 'CON', 'CUE', 'DEM', 'EDU', 'ELE', 'FID', 'HIL',
+                    'HOT', 'LAC', 'MAD', 'MAN', 'MAQ', 'MET', 'MIP', 'MOL', 'MUE',
+                    'PAN', 'PAP', 'POS', 'PPR', 'QU1', 'QU2', 'REF', 'REP', 'RES',
+                    'TEL', 'TRA', 'VES', 'VID']
       start_time: 1
       duration: 2
       production_capacity_reduction: 0.007499
     - item_type: firms
       admin_units: ["1321"]
-      sectors: affected_sectors
+      sectors: ['ALD', 'AYG', 'AZU', 'BAL', 'BNA', 'CAN', 'CAR', 'CAU', 'CEM',
+                    'CHO', 'COM', 'CON', 'CUE', 'DEM', 'EDU', 'ELE', 'FID', 'HIL',
+                    'HOT', 'LAC', 'MAD', 'MAN', 'MAQ', 'MET', 'MIP', 'MOL', 'MUE',
+                    'PAN', 'PAP', 'POS', 'PPR', 'QU1', 'QU2', 'REF', 'REP', 'RES',
+                    'TEL', 'TRA', 'VES', 'VID']
       start_time: 1
       duration: 2
       production_capacity_reduction: 0.010603
     - item_type: firms
       admin_units: ["1303"]
-      sectors: affected_sectors
+      sectors: ['ALD', 'AYG', 'AZU', 'BAL', 'BNA', 'CAN', 'CAR', 'CAU', 'CEM',
+                    'CHO', 'COM', 'CON', 'CUE', 'DEM', 'EDU', 'ELE', 'FID', 'HIL',
+                    'HOT', 'LAC', 'MAD', 'MAN', 'MAQ', 'MET', 'MIP', 'MOL', 'MUE',
+                    'PAN', 'PAP', 'POS', 'PPR', 'QU1', 'QU2', 'REF', 'REP', 'RES',
+                    'TEL', 'TRA', 'VES', 'VID']
       start_time: 1
       duration: 2
       production_capacity_reduction: 0.013404
     - item_type: firms
       admin_units: ["1322"]
-      sectors: affected_sectors
+      sectors: ['ALD', 'AYG', 'AZU', 'BAL', 'BNA', 'CAN', 'CAR', 'CAU', 'CEM',
+                    'CHO', 'COM', 'CON', 'CUE', 'DEM', 'EDU', 'ELE', 'FID', 'HIL',
+                    'HOT', 'LAC', 'MAD', 'MAN', 'MAQ', 'MET', 'MIP', 'MOL', 'MUE',
+                    'PAN', 'PAP', 'POS', 'PPR', 'QU1', 'QU2', 'REF', 'REP', 'RES',
+                    'TEL', 'TRA', 'VES', 'VID']
       start_time: 1
       duration: 2
       production_capacity_reduction: 0.022554

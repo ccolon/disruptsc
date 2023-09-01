@@ -51,6 +51,7 @@ class Disruption:
             duration: int,
             reduction: float
     ) -> list:
+        print(firm_table.columns)
         cond_district = firm_table['admin_unit'].isin(districts)
         cond_sector = firm_table['sector'].isin(sectors)
         item_ids = firm_table.loc[

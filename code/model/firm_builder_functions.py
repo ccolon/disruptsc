@@ -163,7 +163,7 @@ def define_firms_from_local_economic_data(filepath_admin_unit_economic_data: Pat
     # C. Combine firms that are in the same od-point and in the same sector
     # group by od-point and sector
     firm_table_per_od_point = firm_table_per_admin_unit \
-        .groupby(['od_point', 'sector'], as_index=False) \
+        .groupby(['admin_unit', 'od_point', 'sector'], as_index=False) \
         .sum()
 
     # D. Add information required by the createFirms function

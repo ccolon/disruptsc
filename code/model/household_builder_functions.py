@@ -300,8 +300,8 @@ def define_households(
     household_table['od_point'] = household_table['admin_code'].map(dic_admin_unit_to_road_node_id)
     # Combine households that are in the same od-point
     household_table = household_table \
-        .drop(columns=['geometry', 'admin_code']) \
-        .groupby('od_point', as_index=False) \
+        .drop(columns=['geometry']) \
+        .groupby(['od_point', 'admin_code'], as_index=False) \
         .sum()
     logging.info(str(household_table.shape[0]) + ' od-point selected for demand')
 
