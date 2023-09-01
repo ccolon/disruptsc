@@ -18,7 +18,7 @@ transport_cost_data:
 monetary_units_in_model: mUSD
 monetary_units_inputed: kUSD
 time_resolution: week
-firm_data_type: "mrio"  #  'disaggregating IO' for GR-13 and GR-59, 'mrio' for TR-AGG
+firm_data_type: "disaggregating IO"  #  'disaggregating IO' for GR-13 and GR-59, 'mrio' for TR-AGG
 io_cutoff: 0.01  # 0.01
 simulation_type: disruption  # initial_state, disruption
 export_files: True
@@ -27,6 +27,42 @@ disruption_description:
   events:
     - item_type: transport_edges
       attribute: disruption
-      values: [2016_earthquake]
+      values: ["2016_earthquake"]
       start_time: 1
       duration: 1
+    - item_type: firms
+      admin_units: ["1309"]
+      sectors: affected_sectors
+      start_time: 1
+      duration: 2
+      production_capacity_reduction: 0.004153
+    - item_type: firms
+      admin_units: ["1301"]
+      sectors: affected_sectors
+      start_time: 1
+      duration: 2
+      production_capacity_reduction: 0.006068
+    - item_type: firms
+      admin_units: ["1308"]
+      sectors: affected_sectors
+      start_time: 1
+      duration: 2
+      production_capacity_reduction: 0.007499
+    - item_type: firms
+      admin_units: ["1321"]
+      sectors: affected_sectors
+      start_time: 1
+      duration: 2
+      production_capacity_reduction: 0.010603
+    - item_type: firms
+      admin_units: ["1303"]
+      sectors: affected_sectors
+      start_time: 1
+      duration: 2
+      production_capacity_reduction: 0.013404
+    - item_type: firms
+      admin_units: ["1322"]
+      sectors: affected_sectors
+      start_time: 1
+      duration: 2
+      production_capacity_reduction: 0.022554
