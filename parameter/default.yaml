@@ -318,6 +318,10 @@ weight_localization_firm: 1
 # It is 1 / (distance)^w where w is the weight_localization parameter
 weight_localization_household: 4
 
+# Determine whether households are forced to only buy from local retailer
+# If there is no local retailer, we log a debug message and the household select a non-local one
+force_local_retailer: True
+
 # The type of simulation to run
 simulation_type: initial_state
 

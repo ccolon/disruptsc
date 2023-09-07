@@ -49,6 +49,7 @@ class Parameters:
     nb_suppliers_per_input: float
     weight_localization_firm: float
     weight_localization_household: float
+    force_local_retailer: bool
     disruption_description: dict
     time_resolution: str
     nodeedge_tested_topn: None | int
