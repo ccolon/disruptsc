@@ -536,7 +536,8 @@ class Model(object):
         # Collect households final demand. They buy only from firms.
         for household in household_list:
             for retailer_id, quantity in household.purchase_plan.items():
-                final_demand_vector[(retailer_id, 0)] += quantity
+                if isinstance(retailer_id, int):  # we only consider purchase from firms, not from other countries
+                    final_demand_vector[(retailer_id, 0)] += quantity
 
         # Collect country final demand. They buy from firms and countries.
         # We need to filter the demand directed to firms only.
