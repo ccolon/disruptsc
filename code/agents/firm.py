@@ -12,14 +12,13 @@ from code.model.basic_functions import generate_weights, \
 
 from code.agents.agent import Agent, AgentList, agent_receive_products_and_pay
 from code.network.commercial_link import CommercialLink
-from code.agents.country import CountryList
 
 if TYPE_CHECKING:
+    from code.agents.country import CountryList
     from code.network.sc_network import ScNetwork
     from code.network.transport_network import TransportNetwork
 
 
-# TODO: create class FirmList, CountryList, HouseholdList from userlist as DisruptionList
 class Firm(Agent):
 
     def __init__(self, pid, odpoint=0, sector=0, sector_type=None, main_sector=None, name=None, input_mix=None,
@@ -329,7 +328,7 @@ class Firm(Agent):
             for supplier_id in selected_supplier_ids:
                 # Retrieve the appropriate supplier object from the id
                 # If it is a country we get it from the country list
-                # It it is a firm we get it from the firm list
+                # If it is a firm we get it from the firm list
                 if supplier_type == "country":
                     supplier_object = [country for country in country_list if country.pid == supplier_id][0]
                     link_category = 'import'
