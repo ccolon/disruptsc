@@ -169,7 +169,8 @@ def extract_final_list_of_sector(firm_list: "FirmList"):
     n = len(firm_list)
     present_sectors = list(set([firm.main_sector for firm in firm_list]))
     present_sectors.sort()
-    flow_types_to_export = present_sectors + ['domestic_B2C', 'domestic_B2B', 'transit', 'import', 'export', 'total']
+    flow_types_to_export = present_sectors + ['domestic_B2C', 'domestic_B2B', 'transit', 'import',
+                                              'import_B2C', 'export', 'total']
     logging.info('Firm_list created, size is: ' + str(n))
     logging.info('Sectors present are: ' + str(present_sectors))
     return n, present_sectors, flow_types_to_export
@@ -195,4 +196,4 @@ def load_ton_usd_equivalence(sector_table: pd.DataFrame, firm_list: "FirmList", 
         firm.usd_per_ton = sector_to_usd_per_ton[firm.main_sector]
 
     for country in country_list:
-        country.usd_per_ton = sector_to_usd_per_ton.mean()
+        country.usd_per_ton = sector_to_usd_per_ton['IMP']
