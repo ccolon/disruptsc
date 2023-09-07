@@ -56,7 +56,7 @@ class TransportNetwork(nx.Graph):
         self[end_ids[0]][end_ids[1]]['shipments'] = {}
         self[end_ids[0]][end_ids[1]]['disruption_duration'] = 0
         self[end_ids[0]][end_ids[1]]['current_load'] = 0
-
+        self[end_ids[0]][end_ids[1]]['overused'] = False
 
     def define_weights(self, route_optimization_weight):
         logging.info('Generating shortest-path weights on transport network')
@@ -114,7 +114,7 @@ class TransportNetwork(nx.Graph):
         elif nx.has_path(self, origin_node, destination_node):
             if noise_level > 0:
                 self.add_noise_to_weight(route_weight, noise_level)
-                sp = nx.shortest_path(self, origin_node, destination_node, weight=route_weight+'_noise')
+                sp = nx.shortest_path(self, origin_node, destination_node, weight=route_weight + '_noise')
             else:
                 sp = nx.shortest_path(self, origin_node, destination_node, weight=route_weight)
             # route = [[(sp[0],)]] + [[(sp[i], sp[i + 1]), (sp[i + 1],)] for i in range(0, len(sp) - 1)]
@@ -129,7 +129,7 @@ class TransportNetwork(nx.Graph):
     def add_noise_to_weight(self, weight: str, noise_sd: float):
         noise_levels = np.random.normal(0, noise_sd, len(self.edges)).tolist()
         for edge in self.edges:
-            self[edge[0]][edge[1]][weight+'_noise'] = self[edge[0]][edge[1]][weight] * (1 + noise_levels.pop())
+            self[edge[0]][edge[1]][weight + '_noise'] = self[edge[0]][edge[1]][weight] * (1 + noise_levels.pop())
 
     def get_undisrupted_network(self):
         available_nodes = [node for node in self.nodes if self._node[node]['disruption_duration'] == 0]
@@ -210,7 +210,7 @@ class TransportNetwork(nx.Graph):
         # Propagate the load
         self.update_load_on_route(route_to_take, commercial_link.delivery_in_tons)
 
-    def update_load_on_route(self, route, load):
+    def update_load_on_route(self, route: "Route", load):
         '''Affect a load to a route
 
         The current_load attribute of each edge in the route will be increased by the new load.
@@ -219,14 +219,19 @@ class TransportNetwork(nx.Graph):
         '''
         # logging.info("Edge (2610, 2589): current_load "+str(self[2610][2589]['current_load']))
         capacity_burden = 1e10
-        edges_along_the_route = [item for item in route if len(item) == 2]
-        for edge in edges_along_the_route:
+        # edges_along_the_route = [item for item in route if len(item) == 2]
+        for edge in route.transport_edges:
             # Add the load
+            if self[edge[0]][edge[1]]['overused']:
+                logging.warning(f"Edge {edge} ({self[edge[0]][edge[1]]['type']}) is over capacity and got selected")
             self[edge[0]][edge[1]]['current_load'] += load
             # If it exceeds capacity, add the capacity_burden to both the mode_weight and the capacity_weight
-            if self[edge[0]][edge[1]]['current_load'] > self[edge[0]][edge[1]]['capacity']:
-                logging.info(f"Edge {edge} ({self[edge[0]][edge[1]]['type']} "
-                             f"has exceeded its capacity ({self[edge[0]][edge[1]]['capacity']})")
+            if ~self[edge[0]][edge[1]]['overused'] and \
+                    (self[edge[0]][edge[1]]['current_load'] > self[edge[0]][edge[1]]['capacity']):
+                logging.info(f"Edge {edge} ({self[edge[0]][edge[1]]['type']}) "
+                             f"has exceeded its capacity. Current load is {self[edge[0]][edge[1]]['current_load']}, "
+                             f"capacity is ({self[edge[0]][edge[1]]['capacity']})")
+                self[edge[0]][edge[1]]['overused'] = True
                 self[edge[0]][edge[1]]["capacity_weight"] += capacity_burden
 
     def reset_current_loads(self, route_optimization_weight):
@@ -236,6 +241,7 @@ class TransportNetwork(nx.Graph):
         """
         for edge in self.edges:
             self[edge[0]][edge[1]]['current_load'] = 0
+            self[edge[0]][edge[1]]['overused'] = False
 
         self.define_weights(route_optimization_weight)
 
@@ -306,12 +312,12 @@ class TransportNetwork(nx.Graph):
                 new_data['flow_total'] += shipment['quantity']
                 new_data['flow_total_tons'] += shipment['tons']
                 add_or_append_to_dict(flows_total, shipment['flow_category'], shipment['quantity'])
-                add_or_append_to_dict(flows_total, shipment['flow_category']+"*km",
-                                      shipment['quantity']*self[edge[0]][edge[1]]["km"])
-                add_or_append_to_dict(flows_total, shipment['flow_category']+"_tons",
+                add_or_append_to_dict(flows_total, shipment['flow_category'] + "*km",
+                                      shipment['quantity'] * self[edge[0]][edge[1]]["km"])
+                add_or_append_to_dict(flows_total, shipment['flow_category'] + "_tons",
                                       shipment['tons'])
-                add_or_append_to_dict(flows_total, shipment['flow_category']+"_tons*km",
-                                      shipment['tons']*self[edge[0]][edge[1]]["km"])
+                add_or_append_to_dict(flows_total, shipment['flow_category'] + "_tons*km",
+                                      shipment['tons'] * self[edge[0]][edge[1]]["km"])
             flows_per_edge += [new_data]
         logging.info(flows_total)
         return flows_per_edge
@@ -325,6 +331,7 @@ class TransportNetwork(nx.Graph):
             self[edge[0]][edge[1]]['shipments'] = {}
             # self[edge[0]][edge[1]]['congestion'] = 0
             self[edge[0]][edge[1]]['current_load'] = 0
+            self[edge[0]][edge[1]]['overused'] = False
 
 
 def add_or_append_to_dict(dictionary, key, value_to_add):
