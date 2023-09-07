@@ -31,25 +31,24 @@ variability: #as fraction of travel time
 
 transport_cost_per_tonkm: #USD/(ton*km)
   roads:
-    paved: 0.065 #from JICA (2016) International Logistics Function Strengthening. See excel
-    unpaved: 0.13 #for Tanzania
-  railways: 0.020 #100USD for one 20-ft container full of rice (20 tons) for PNH SHV. from JICA (2016) International Logistics Function Strengthening p4-74
-  # in Africa, according to Rail Transport and Firm Productivity Study (Martin, 2017), 0.03 - 0.06 ton/km
-  waterways: 0.037 #from JICA (2016) International Logistics Function Strengthening.
-  maritime: 0.0017 #see excel
+    paved: 0.065
+    unpaved: 0.13
+  railways: 0.020
+  waterways: 0.029
+  maritime: 0.002
 
 loading_cost_per_ton: #USD/ton
-  roads-waterways: 2.2 #arbitrary (same as railways-maritime)
-  roads-maritime-shv: 2.2 #arbitrary (same than railways)
-  roads-maritime-vnm: 2.2 #arbitrary (same than railways)
-  roads-railways: 5 #100 USD for one container (20 tons)
-  railways-maritime: 2.2 #22USD for one 20-ft container. Suppose 1 container = 10 tons. from JICA (2016) International Logistics Function Strengthening p4-74
-  waterways-maritime: 2.2 #arbitrary, same as railways
+  roads-waterways: 1.1
+  roads-maritime-shv: 1.1
+  roads-maritime-vnm: 1.1
+  roads-railways: 1.1
+  railways-maritime: 1.1
+  waterways-maritime: 0.55
 
 custom_cost: #USD/ton
-  roads: 27 #from JICA (2016) International Logistics Function Strengthening. See excel
-  waterways: 27 #from JICA (2016) International Logistics Function Strengthening. See excel
-  maritime: 27 #from JICA (2016) International Logistics Function Strengthening. See excel
+  roads: 27
+  waterways: 9.2
+  maritime: 9.2
 
 custom_time: #hours
   roads: 1.5 #from JICA (2016) International Logistics Function Strengthening. See excel
