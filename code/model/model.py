@@ -308,11 +308,12 @@ class Model(object):
                 f'{self.parameters.nb_suppliers_per_input}')
             self.sc_network = ScNetwork()
 
-            logging.info('Households are selecting their retailers (domestic B2C flows)')
+            logging.info('Households are selecting their retailers (domestic B2C flows and import B2C flows)')
             for household in self.household_list:
-                household.select_suppliers(self.sc_network, self.firm_list, self.firm_table,
-                                           self.parameters.nb_suppliers_per_input,
-                                           self.parameters.weight_localization_household)
+                household.select_suppliers(self.sc_network, self.firm_list, self.country_list,
+                                           self.parameters.nb_suppliers_per_input, self.parameters.force_local_retailer,
+                                           self.parameters.weight_localization_household,
+                                           self.parameters.firm_data_type)
 
             logging.info('Exporters are being selected by purchasing countries (export B2B flows)')
             logging.info('and trading countries are being connected (transit flows)')
@@ -583,8 +584,7 @@ class Model(object):
         return simulation
 
     def run_one_time_step(self, time_step: int, current_simulation: Simulation):
-        if time_step > 0:
-            self.transport_network.reset_current_loads(self.parameters.route_optimization_weight)
+        self.transport_network.reset_current_loads(self.parameters.route_optimization_weight)
 
         if self.disruption_list:
             self.apply_disruption(time_step)
