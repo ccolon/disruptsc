@@ -20,6 +20,7 @@ def generate_cache_parameters_from_command_line_argument(arguments: list[str]):
             'same_agents_new_sc_network',
             'same_sc_network_new_logistic_routes',
             'same_logistic_routes',
+            'same_agents_new_transport_network'
         ]
         argument = arguments[2]
         if argument not in accepted_script_arguments:
@@ -44,6 +45,11 @@ def generate_cache_parameters_from_command_line_argument(arguments: list[str]):
             cache_parameters['transport_network'] = True
             cache_parameters['agents'] = True
             cache_parameters['sc_network'] = True
+            cache_parameters['logistic_routes'] = True
+        if argument == accepted_script_arguments[4]:
+            cache_parameters['transport_network'] = True
+            cache_parameters['agents'] = False
+            cache_parameters['sc_network'] = False
             cache_parameters['logistic_routes'] = True
     return cache_parameters
 
