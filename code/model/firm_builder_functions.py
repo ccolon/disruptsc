@@ -291,16 +291,16 @@ def define_firms_from_mrio(
 
     # Create firm_table
     firm_table = pd.DataFrame({"name": region_sectors})
-    firm_table['region'] = firm_table['name'].str.extract(r'([0-9]*)-[A-Z0-9]{3}')
-    check_successful_extraction(firm_table, "region")
+    firm_table['admin_unit'] = firm_table['name'].str.extract(r'([0-9]*)-[A-Z0-9]{3}')
+    check_successful_extraction(firm_table, "admin_unit")
     firm_table['main_sector'] = firm_table['name'].str.extract(r'[0-9]*-([A-Z]{2}[A-Z0-9]{1})')
     check_successful_extraction(firm_table, "main_sector")
     firm_table['sector'] = firm_table['name'].str.replace('-bis', '')
     check_successful_extraction(firm_table, "sector")
-    logging.info(f"Select {firm_table.shape[0]} firms in {firm_table['region'].nunique()} admin units")
+    logging.info(f"Select {firm_table.shape[0]} firms in {firm_table['admin_unit'].nunique()} admin units")
 
     # Assign firms to the nearest road node
-    firm_table['od_point'] = get_closest_road_nodes(firm_table['region'], transport_nodes, filepath_region_table)
+    firm_table['od_point'] = get_closest_road_nodes(firm_table['admin_unit'], transport_nodes, filepath_region_table)
 
     # Add long lat
     long_lat = get_long_lat(firm_table['od_point'], transport_nodes)
