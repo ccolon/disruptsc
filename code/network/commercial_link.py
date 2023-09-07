@@ -73,14 +73,14 @@ class CommercialLink(object):
         #     transport_network.giveRouteCaracteristics(route, debug=True)
 
         if main_or_alternative == "main":
-            self.route = route.transport_nodes_and_edges
+            self.route = route
             self.route_mode = transport_mode
             self.route_length = route.length
             # self.route_time_cost = route_time_cost
             self.route_cost_per_ton = route.cost_per_ton
 
         elif main_or_alternative == "alternative":
-            self.alternative_route = route.transport_nodes_and_edges
+            self.alternative_route = route
             self.alternative_route_mode = transport_mode
             self.alternative_route_length = route.length
             # self.alternative_route_time_cost = route_time_cost
