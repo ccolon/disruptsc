@@ -105,8 +105,8 @@ def define_households_from_mrio_data(
 
     # Combine households that are in the same od-point
     household_table = household_table \
-        .drop(columns=['geometry', 'admin_code']) \
-        .groupby('od_point', as_index=False) \
+        .drop(columns=['geometry']) \
+        .groupby(['admin_code', 'od_point'], as_index=False) \
         .sum()
     logging.info(str(household_table.shape[0]) + ' od-point selected for demand')
 
@@ -272,8 +272,15 @@ def define_households(
     )
 
     # B. Add final demand
+    # Add imports... weird filtering: add if larger than the lowest sectoral final_demand filtered
+    min_final_demand_filtered = sector_table.set_index('sector').loc[filtered_sectors, 'final_demand'].min()
+    if sector_table.set_index('sector').loc['IMP', 'final_demand'] > min_final_demand_filtered:
+        sectors_to_buy_from = filtered_sectors + ['IMP']
+    else:
+        sectors_to_buy_from = filtered_sectors
     # get final demand for the selected sector
-    final_demand = sector_table.loc[sector_table['sector'].isin(filtered_sectors), ['sector', 'final_demand']]
+    final_demand = sector_table.loc[sector_table['sector'].isin(sectors_to_buy_from), ['sector', 'final_demand']]
+
     # put as single row
     final_demand_as_row = final_demand.set_index('sector').transpose()
     # duplicates rows
@@ -307,22 +314,19 @@ def define_households(
 
     # D. Filter out small demand
     if local_demand_cutoff > 0:
-        household_table[filtered_sectors] = household_table[filtered_sectors].mask(
-            household_table[filtered_sectors] < local_demand_cutoff
+        household_table[sectors_to_buy_from] = household_table[sectors_to_buy_from].mask(
+            household_table[sectors_to_buy_from] < local_demand_cutoff
         )
     # info
-    logging.info('Create ' + str(household_table.shape[0]) + " households in " +
-                 str(household_table['od_point'].nunique()) + ' od points')
-    for sector in filtered_sectors:
-        logging.info('Sector ' + sector + ": create " +
-                     str((~household_table[sector].isnull()).sum()) +
-                     " buying households that covers " +
+    logging.info(f"Create {household_table.shape[0]} households in {household_table['od_point'].nunique()} od points")
+    for sector in sectors_to_buy_from:
+        logging.info(f"Sector {sector}: create {(~household_table[sector].isnull()).sum()} households that covers " +
                      "{:.0f}%".format(
                          household_table[sector].sum() \
                          / sector_table.set_index('sector').loc[sector, 'final_demand'] * 100
                      ) + " of total final demand"
                      )
-    if (household_table[filtered_sectors].sum(axis=1) == 0).any():
+    if (household_table[sectors_to_buy_from].sum(axis=1) == 0).any():
         logging.warning('Some households have no purchase plan because of all their sectoral demand below cutoff!')
 
     # E. Add information required by the createHouseholds function
@@ -340,14 +344,14 @@ def define_households(
 
     # F. Create purchase plan per household
     # rescale according to time resolution
-    household_table[filtered_sectors] = rescale_monetary_values(
-        household_table[filtered_sectors],
+    household_table[sectors_to_buy_from] = rescale_monetary_values(
+        household_table[sectors_to_buy_from],
         time_resolution=time_resolution,
         target_units=target_units,
         input_units=input_units
     )
     # to dict
-    household_sector_consumption = household_table.set_index('id')[filtered_sectors].to_dict(orient='index')
+    household_sector_consumption = household_table.set_index('id')[sectors_to_buy_from].to_dict(orient='index')
     # remove nan values
     household_sector_consumption = {
         i: {
