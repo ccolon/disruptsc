@@ -1,6 +1,6 @@
 # Indicate the subfolder of the input folder that contains the input files
 filepaths:
-  "sector_table": "National/59_sector_table.csv"
+  "sector_table": "National/sector_table.csv"
   "tech_coef": "National/tech_coef_matrix.csv"
   "inventory_duration_targets": "National/inventory_duration_targets.csv"
   "admin_unit_data": "Subnational/commune_data.geojson"
@@ -12,9 +12,9 @@ monetary_units_in_model: mUSD
 monetary_units_inputed: USD
 time_resolution: week
 io_cutoff: 0.02
-transport_cost_noise_level: 0.05
+transport_cost_noise_level: 0
 countries_to_include: ['AFR', 'AME', 'ASI', 'EUR', 'OCE', 'THA', 'VNM']
-simulation_type: initial_state #disruption
+simulation_type: initial_state  # disruption
 export_files: True
 disruption_description:
   type: compound
