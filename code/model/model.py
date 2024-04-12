@@ -147,7 +147,8 @@ class Model(object):
                     filepath_mrio=self.parameters.filepaths['mrio'],
                     filepath_sector_table=self.parameters.filepaths['sector_table'],
                     filepath_region_table=self.parameters.filepaths['region_table'],
-                    transport_nodes=self.transport_nodes
+                    transport_nodes=self.transport_nodes,
+                    io_cutoff=self.parameters.io_cutoff
                 )
             else:
                 raise ValueError(f"{self.parameters.firm_data_type} should be one of 'disaggregating', "
@@ -227,7 +228,8 @@ class Model(object):
             elif self.parameters.firm_data_type == "mrio":
                 load_mrio_tech_coefs(
                     firm_list=self.firm_list,
-                    filepath_mrio=self.parameters.filepaths['mrio']
+                    filepath_mrio=self.parameters.filepaths['mrio'],
+                    io_cutoff=self.parameters.io_cutoff
                 )
 
             else:
@@ -274,6 +276,7 @@ class Model(object):
             # we do not disentangle sectors In this case, we use an average.
             load_ton_usd_equivalence(
                 sector_table=self.sector_table,
+                firm_table=self.firm_table,
                 firm_list=self.firm_list,
                 country_list=self.country_list
             )
@@ -345,7 +348,15 @@ class Model(object):
 
             else:
                 raise ValueError(self.parameters.firm_data_type +
-                                 " should be one of 'disaggregating', 'supplier-buyer network'")
+                                 " should be one of 'disaggregating IO', 'supplier-buyer network', 'mrio'")
+
+            firm_pids = [firm.pid for firm in self.firm_list]
+            node_pid_in_sc_network = [node.pid for node in self.sc_network]
+            if len(set(firm_pids) - set(node_pid_in_sc_network)) > 0:
+                unconnected_firms = list(set(firm_pids) - set(node_pid_in_sc_network))
+                for firm_pid in unconnected_firms:
+                    print(self.firm_list[firm_pid].id_str())
+                raise ValueError('Some firms are not in the sc network')
 
             logging.info('The nodes and edges of the supplier--buyer have been created')
             # Save to tmp folder
@@ -434,6 +445,10 @@ class Model(object):
         # Weight is the sectoral technical coefficient, if there is only one supplier for the input
         # It there are several, the technical coefficient is multiplied by the share of input of
         # this type that the firm buys to this supplier.
+        # l1 = [firm.pid for firm in self.sc_network.nodes if isinstance(firm.pid, int) ]
+        # l1.sort()
+        # print(l1)
+        # print([firm.pid for firm in self.firm_list])
         firm_connectivity_matrix = nx.adjacency_matrix(
             self.sc_network,
             # graph.subgraph(list(graph.nodes)[:-1]),
@@ -600,11 +615,11 @@ class Model(object):
         self.country_list.deliver(self.sc_network, self.transport_network, self.parameters.sectors_no_transport_network,
                                   self.parameters.rationing_mode, self.parameters.account_capacity,
                                   self.parameters.monetary_units_in_model, self.parameters.cost_repercussion_mode,
-                                  self.parameters.transport_cost_noise_level)
+                                  self.parameters.price_increase_threshold, self.parameters.transport_cost_noise_level)
         self.firm_list.deliver(self.sc_network, self.transport_network, self.parameters.sectors_no_transport_network,
                                self.parameters.rationing_mode, self.parameters.account_capacity,
                                self.parameters.monetary_units_in_model, self.parameters.cost_repercussion_mode,
-                                  self.parameters.transport_cost_noise_level)
+                               self.parameters.price_increase_threshold, self.parameters.transport_cost_noise_level)
         # if congestion: TODO reevaluate modeling of congestion
         #     if (time_step == 0):
         #         transport_network.evaluate_normal_traffic()
@@ -739,3 +754,7 @@ class Model(object):
         self.transport_edges.to_file(
             self.parameters.export_folder / 'transport_edges.geojson',
             driver="GeoJSON", index=False)
+
+    def export_agent_tables(self):
+        self.firm_table.to_csv(self.parameters.export_folder / 'firm_table.csv', index=False)
+        self.household_table.to_csv(self.parameters.export_folder / 'household_table.csv', index=False)

@@ -128,8 +128,8 @@ def get_closest_road_nodes(admin_unit_ids: pd.Series,
     }
     closest_road_nodes = admin_unit_ids.map(dic_region_to_road_node_id)
     if closest_road_nodes.isnull().sum() > 0:
-        logging.warning(f"{closest_road_nodes.isnull().sum()} admin_units not found")
-        raise KeyError(f"{closest_road_nodes.isnull().sum()} admin_units not found: "
+        logging.warning(f"{closest_road_nodes.isnull().sum()} regions not found")
+        raise KeyError(f"{closest_road_nodes.isnull().sum()} regions not found: "
                        f"{admin_unit_ids[closest_road_nodes.isnull()].to_list()}")
     return closest_road_nodes
 
@@ -176,7 +176,8 @@ def extract_final_list_of_sector(firm_list: "FirmList"):
     return n, present_sectors, flow_types_to_export
 
 
-def load_ton_usd_equivalence(sector_table: pd.DataFrame, firm_list: "FirmList", country_list: "CountryList"):
+def load_ton_usd_equivalence(sector_table: pd.DataFrame, firm_table: pd.DataFrame,
+                             firm_list: "FirmList", country_list: "CountryList"):
     """Load equivalence between usd and ton
 
     It updates the firm_list and country_list.
@@ -192,8 +193,9 @@ def load_ton_usd_equivalence(sector_table: pd.DataFrame, firm_list: "FirmList", 
         list of countries
     """
     sector_to_usd_per_ton = sector_table.set_index('sector')['usd_per_ton']
+    firm_table['usd_per_ton'] = firm_table['sector'].map(sector_to_usd_per_ton)
     for firm in firm_list:
-        firm.usd_per_ton = sector_to_usd_per_ton[firm.main_sector]
+        firm.usd_per_ton = sector_to_usd_per_ton[firm.sector]
 
     for country in country_list:
         country.usd_per_ton = sector_to_usd_per_ton['IMP']

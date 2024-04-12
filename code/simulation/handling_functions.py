@@ -29,7 +29,9 @@ def check_script_call(arguments: list[str]):
         'same_agents_new_sc_network',
         'same_sc_network_new_logistic_routes',
         'same_logistic_routes',
-        'same_agents_new_transport_network'
+        'same_agents_new_transport_network',
+        'same_sc_network_new_transport_network',
+        'new_agents_same_all'
     ]
     if len(arguments) > 2:
         if arguments[2] not in accepted_optional_arguments:

@@ -38,6 +38,8 @@ model.setup_transport_network(cached=cache_parameters['transport_network'])
 if parameters.export_files:
     model.export_transport_nodes_edges()
 model.setup_agents(cached=cache_parameters['agents'])
+if parameters.export_files:
+    model.export_agent_tables()
 model.setup_sc_network(cached=cache_parameters['sc_network'])
 model.set_initial_conditions()
 model.setup_logistic_routes(cached=cache_parameters['logistic_routes'])

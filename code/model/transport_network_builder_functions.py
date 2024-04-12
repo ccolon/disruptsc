@@ -185,6 +185,9 @@ def create_transport_network(transport_modes: list, filepaths: dict, transport_c
     for road in edges['id']:
         transport_network.add_transport_edge_with_nodes(road, edges, nodes)
 
+    # Only keep nodes that are used in edges (there may be some unconnected nodes in the data)
+    nodes = nodes.loc[nodes['id'].isin(list(transport_network.nodes))]
+
     return transport_network, nodes, edges
 
 

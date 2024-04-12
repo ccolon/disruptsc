@@ -27,7 +27,7 @@ class Agent(object):
         self.usd_per_ton = None
 
     def id_str(self):
-        return f"{self.agent_type} {self.pid} located {self.odpoint}"
+        return f"{self.agent_type} {self.pid} located {self.odpoint}".capitalize()
 
     def choose_initial_routes(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
                               logistic_modes: str | pandas.DataFrame, account_capacity: bool,
@@ -231,14 +231,14 @@ class AgentList(UserList):  # TODO: should rather define a dictionary, such that
 
     def deliver(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
                 sectors_no_transport_network: list, rationing_mode: str, account_capacity: bool,
-                monetary_units_in_model: str, cost_repercussion_mode: str, transport_cost_noise_level: float):
+                monetary_units_in_model: str, cost_repercussion_mode: str, price_increase_threshold: float,
+                transport_cost_noise_level: float):
         for agent in self:
             agent.deliver_products(sc_network, transport_network,
                                    sectors_no_transport_network=sectors_no_transport_network,
-                                   rationing_mode=rationing_mode,
-                                   monetary_units_in_model=monetary_units_in_model,
+                                   rationing_mode=rationing_mode, monetary_units_in_model=monetary_units_in_model,
                                    cost_repercussion_mode=cost_repercussion_mode,
-                                   account_capacity=account_capacity,
+                                   price_increase_threshold=price_increase_threshold, account_capacity=account_capacity,
                                    transport_cost_noise_level=transport_cost_noise_level)
 
     def receive_products(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",

@@ -10,6 +10,7 @@ from code.agents.household import Household, HouseholdList
 from code.model.builder_functions import get_index_closest_point, get_long_lat, \
     get_closest_road_nodes
 from code.model.basic_functions import rescale_monetary_values
+from code.network.mrio import Mrio
 
 
 def create_households(
@@ -63,7 +64,6 @@ def define_households_from_mrio_data(
     # household_table = gpd.read_file(filepath_region_table)
     # household_table = location_table.copy(deep=False)
     # TODO ajouter la demande finale par secteur country_sector_table
-    # print(household_table)
     final_demand = sector_table["final_demand"]
     # household_table = household_table.stack() #.transpose()
 
@@ -85,8 +85,6 @@ def define_households_from_mrio_data(
     # Reshape the household table
     household_table = household_table.stack().reset_index()
     household_table.columns = ['admin_code', 'column', 'value']
-
-    print(household_table)
 
     ## Fin TEST
 
@@ -173,18 +171,25 @@ def define_households_from_mrio(
         input_units: str
 ):
     # Load mrio
-    mrio = pd.read_csv(filepath_mrio, index_col=0)
-    # Extract region_households
-    region_households = [col for col in mrio.columns if
-                         col[-2:] == "-H"]  # format -H... :TODO a bit specific to Ecuador, change
+    mrio = Mrio.load_mrio_from_filepath(filepath_mrio)
+    # mrio = pd.read_csv(filepath_mrio, header=[0, 1], index_col=[0, 1])
+    # # Extract region_households
+    # region_households = mrio.columns.to_list()
+    # region_households = [tup for tup in region_households if tup[1] == 'final_demand']
 
     # Create household table
-    household_table = pd.DataFrame({"name": region_households})
-    household_table['admin_code'] = household_table['name'].str.extract('([0-9]*)-H')
-    logging.info(f"Select {household_table.shape[0]} firms in {household_table['admin_code'].nunique()} admin units")
+    household_table = pd.DataFrame({
+        'tuple': mrio.region_households,
+        'region': [tup[0] for tup in mrio.region_households],
+        'name': [tup[0] + '_households' for tup in mrio.region_households]
+    })
+    # household_table = pd.DataFrame({"name": region_households})
+    # household_table['admin_code'] = household_table['name'].str.extract('([0-9]*)-H')
+    # household_table['admin_code'] = household_table['name'].str.extract('([A-Z]{3})_H')
+    logging.info(f"Select {household_table.shape[0]} households in {household_table['region'].nunique()} regions")
 
     # Identify OD point
-    household_table['od_point'] = get_closest_road_nodes(household_table['admin_code'], transport_nodes,
+    household_table['od_point'] = get_closest_road_nodes(household_table['region'], transport_nodes,
                                                          filepath_region_table)
 
     # Add long lat
@@ -193,25 +198,35 @@ def define_households_from_mrio(
     household_table['lat'] = long_lat['lat']
 
     # Add id
-    household_table['id'] = list(range(household_table.shape[0]))
+    household_table['id'] = range(household_table.shape[0])
 
     # Identify final demand per region_sector
-    mrio = rescale_monetary_values(
-        mrio,
+    consumption = mrio[mrio.region_households].copy(deep=True)   # TODO to put in the class Mrio
+    consumption.index = ['_'.join(tup) for tup in consumption.index]
+    consumption.columns = [tup[0] + '_households' for tup in mrio.region_households]
+    consumption.columns = consumption.columns.map(household_table.set_index('name')['id'])
+    consumption = rescale_monetary_values(
+        consumption,
         time_resolution=time_resolution,
         target_units=target_units,
         input_units=input_units
     )
-    col_final_demand = [col for col in mrio.columns if col[-2:] == "-H"]
-    household_sector_consumption = mrio[col_final_demand].stack().reset_index() \
-        .groupby('level_1') \
-        .apply(lambda df: df.set_index('level_0')[0].to_dict()) \
-        .to_dict()
+    # col_final_demand = [col for col in mrio.columns if col[-2:] == "-H"]  #TODO too specific
+    # col_final_demand = [col for col in mrio.columns if col[-2:] == "_H"]  #TODO too specific
+    # household_sector_consumption = mrio[col_final_demand].stack().reset_index() \
+    #     .groupby('level_1') \
+    #     .apply(lambda df: df.set_index('level_0')[0].to_dict()) \
+    #     .to_dict()
     # Replace name by id :TODO use name as id to makes this unecessary
-    dic_name_to_id = household_table.set_index('name')['id']
+    # dic_name_to_id = household_table.set_index('name')['id']
+    household_sector_consumption = consumption.to_dict()
     household_sector_consumption = {
-        dic_name_to_id[name]: value
-        for name, value in household_sector_consumption.items()
+        household: {
+            key: value
+            for key, value in sublist.items()
+            if value > 0
+        }
+        for household, sublist in household_sector_consumption.items()
     }
 
     # Info

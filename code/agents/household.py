@@ -9,6 +9,7 @@ import logging
 
 from code.agents.agent import Agent, AgentList
 from code.network.commercial_link import CommercialLink
+from code.network.mrio import import_label
 
 if TYPE_CHECKING:
     from code.network.sc_network import ScNetwork
@@ -66,20 +67,21 @@ class Household(Agent):
         self.tot_spending = self.tot_consumption
         self.extra_spending_per_sector = {sector: 0 for sector in self.purchase_plan.keys()}
 
-    def identify_suppliers(self, sector_id: str, firm_list, country_list,
+    def identify_suppliers(self, sector: str, firm_list, country_list,
                            nb_suppliers_per_input: float, weight_localization: float, force_local: bool,
                            firm_data_type: str):
         if firm_data_type == "mrio":
-            if len(sector_id) == 3:  # case of countries
+            # if len(sector_id) == 3:  # case of countries
+            if import_label in sector:  # case of countries
                 supplier_type = "country"
-                selected_supplier_ids = [sector_id]
+                selected_supplier_ids = [sector[:3]]  # for countries, the id is extracted from the name
                 supplier_weights = [1]
 
             else:  # case of firms
                 supplier_type = "firm"
-                potential_supplier_pids = [firm.pid for firm in firm_list if firm.sector == sector_id]
+                potential_supplier_pids = [firm.pid for firm in firm_list if firm.sector == sector]
                 if len(potential_supplier_pids) == 0:
-                    raise ValueError(f"{self.id_str().capitalize()}: there should be one supplier for {sector_id}")
+                    raise ValueError(f"{self.id_str().capitalize()}: there should be one supplier for {sector}")
                 # Choose based on importance
                 prob_to_be_selected = np.array(rescale_values([firm_list[firm_pid].importance for firm_pid in
                                                                potential_supplier_pids]))
@@ -90,7 +92,7 @@ class Household(Agent):
                 supplier_weights = [1]
 
         else:
-            if sector_id == "IMP":
+            if sector == "IMP":
                 supplier_type = "country"
                 # Identify countries as suppliers if the corresponding sector does export
                 importance_threshold = 1e-6
@@ -111,9 +113,9 @@ class Household(Agent):
             # calculate their probability to be chosen, based on distance and importance
             else:
                 supplier_type = "firm"
-                potential_suppliers = [firm.pid for firm in firm_list if firm.sector == sector_id]
+                potential_suppliers = [firm.pid for firm in firm_list if firm.sector == sector]
                 if len(potential_suppliers) == 0:
-                    raise ValueError(f"{self.id_str().capitalize()}: no supplier for input {sector_id}")
+                    raise ValueError(f"{self.id_str().capitalize()}: no supplier for input {sector}")
                 if force_local:
                     potential_local_suppliers = [firm_id for firm_id in potential_suppliers
                                                  if firm_list[firm_id].odpoint == self.odpoint]
@@ -150,6 +152,7 @@ class Household(Agent):
     def select_suppliers(self, graph: "ScNetwork", firm_list: "FirmList", country_list: "CountryList",
                          nb_retailers: float, force_local: bool,
                          weight_localization: float, firm_data_type: str):
+        print(f"{self.id_str()}: consumption {self.sector_consumption}")
         for sector, amount in self.sector_consumption.items():
             supplier_type, retailers, retailer_weights = self.identify_suppliers(sector, firm_list, country_list,
                                                                                  nb_retailers,

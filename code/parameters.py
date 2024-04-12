@@ -60,6 +60,7 @@ class Parameters:
     epsilon_stop_condition: float
     route_optimization_weight: str
     cost_repercussion_mode: str
+    price_increase_threshold: float
     account_capacity: bool
     transport_cost_noise_level: float
     firm_sampling_mode: str
@@ -117,7 +118,10 @@ class Parameters:
 
     def build_full_filepath(self):
         for key, val in self.filepaths.items():
-            self.filepaths[key] = paths.INPUT_FOLDER / self.region / val
+            if val == "None":
+                self.filepaths[key] = None
+            else:
+                self.filepaths[key] = paths.INPUT_FOLDER / self.region / val
 
     def export(self):
         with open(self.export_folder / 'parameters.yaml', 'w') as file:

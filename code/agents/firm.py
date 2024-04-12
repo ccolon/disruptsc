@@ -12,6 +12,7 @@ from code.model.basic_functions import generate_weights, \
 
 from code.agents.agent import Agent, AgentList, agent_receive_products_and_pay
 from code.network.commercial_link import CommercialLink
+from code.network.mrio import import_label
 
 if TYPE_CHECKING:
     from code.agents.country import CountryList
@@ -166,8 +167,7 @@ class Firm(Agent):
         else:
             return compute_distance_from_arcmin(self.long, self.lat, other_firm.long, other_firm.lat)
 
-    def select_suppliers_from_data(self, graph, firm_list: list, country_list,
-                                   inputed_supplier_links, output, import_code='IMP'):
+    def select_suppliers_from_data(self, graph, firm_list, inputed_supplier_links, output):
 
         for inputed_supplier_link in list(inputed_supplier_links.transpose().to_dict().values()):
             # Create an edge in the graph
@@ -187,28 +187,29 @@ class Firm(Agent):
             # Associate a weight to the edge
             weight_in_input_mix = inputed_supplier_link['transaction'] / output
             graph[supplier_object][self]['weight'] = weight_in_input_mix
-            # The firm saves the name of the supplier, its sector, its weight among firm of the same sector (without I/O technical coefficient)
+            # The firm saves the name of the supplier, its sector,
+            # its weight among firm of the same sector (without I/O technical coefficient)
             total_input_same_sector = inputed_supplier_links.loc[
                 inputed_supplier_links['product_sector'] == product_sector, "transaction"].sum()
             weight_among_same_product = inputed_supplier_link['transaction'] / total_input_same_sector
             self.suppliers[supplier_id] = {'sector': product_sector, 'weight': weight_among_same_product}
 
-    def identify_suppliers(self, sector_id: str, firm_list, country_list,
+    def identify_suppliers(self, sector: str, firm_list, country_list,
                            nb_suppliers_per_input: float, weight_localization: float,
                            firm_data_type: str, import_code: str):
         if firm_data_type == "mrio":
-            if len(sector_id) == 3:  # case of countries
+            if import_label in sector:  # case of countries
                 supplier_type = "country"
-                selected_supplier_ids = [sector_id]
+                selected_supplier_ids = [sector[:3]]  # for countries, the id is extracted from the name
                 supplier_weights = [1]
 
             else:  # case of firms
                 supplier_type = "firm"
-                potential_supplier_pids = [firm.pid for firm in firm_list if firm.sector == sector_id]
-                if sector_id == self.sector:
+                potential_supplier_pids = [firm.pid for firm in firm_list if firm.sector == sector]
+                if sector == self.sector:
                     potential_supplier_pids.remove(self.pid)  # remove oneself
                 if len(potential_supplier_pids) == 0:
-                    raise ValueError(f"Firm {self.pid}: there should be one supplier for {sector_id}")
+                    raise ValueError(f"Firm {self.pid}: there should be one supplier for {sector}")
                 # Choose based on importance
                 prob_to_be_selected = np.array(rescale_values([firm_list[firm_pid].importance for firm_pid in
                                                                potential_supplier_pids]))
@@ -219,7 +220,7 @@ class Firm(Agent):
                 supplier_weights = [1]
 
         else:
-            if sector_id == import_code:
+            if sector == import_code:
                 supplier_type = "country"
                 # Identify countries as suppliers if the corresponding sector does export
                 importance_threshold = 1e-6
@@ -240,11 +241,11 @@ class Firm(Agent):
             # calculate their probability to be chosen, based on distance and importance
             else:
                 supplier_type = "firm"
-                potential_supplier_pid = [firm.pid for firm in firm_list if firm.sector == sector_id]
-                if sector_id == self.sector:
+                potential_supplier_pid = [firm.pid for firm in firm_list if firm.sector == sector]
+                if sector == self.sector:
                     potential_supplier_pid.remove(self.pid)  # remove oneself
                 if len(potential_supplier_pid) == 0:
-                    raise ValueError(f"Firm {self.pid}: no potential supplier for input {sector_id}")
+                    raise ValueError(f"Firm {self.pid}: no potential supplier for input {sector}")
                 distance_to_each = rescale_values([
                     self.distance_to_other(firm_list[firm_pid])
                     for firm_pid in potential_supplier_pid
@@ -291,6 +292,7 @@ class Firm(Agent):
 
         Parameters
         ----------
+        firm_data_type
         graph : networkx.DiGraph
             Supply chain graph
         firm_list : list of Firms
@@ -313,6 +315,7 @@ class Firm(Agent):
             0
 
         """
+        # print(f"{self.id_str()}: input mix {self.input_mix}")
         for sector_id, sector_weight in self.input_mix.items():
 
             # If it is imports, identify international suppliers and calculate
@@ -325,6 +328,7 @@ class Firm(Agent):
                                                                                              import_code)
 
             # For each new supplier, create a new CommercialLink in the supply chain network.
+            # print(f"{self.id_str()}: for input {sector_id} I selected {len(selected_supplier_ids)} suppliers")
             for supplier_id in selected_supplier_ids:
                 # Retrieve the appropriate supplier object from the id
                 # If it is a country we get it from the country list
@@ -552,7 +556,8 @@ class Firm(Agent):
 
     def deliver_products(self, graph: "ScNetwork", transport_network: "TransportNetwork",
                          sectors_no_transport_network: list, rationing_mode: str, monetary_units_in_model: str,
-                         cost_repercussion_mode: str, account_capacity: bool, transport_cost_noise_level: float):
+                         cost_repercussion_mode: str, price_increase_threshold: float, account_capacity: bool,
+                         transport_cost_noise_level: float):
 
         # Do nothing if no orders
         if self.total_order == 0:
@@ -625,14 +630,9 @@ class Firm(Agent):
                 self.deliver_without_infrastructure(graph[self][edge[1]]['object'])
             # otherwise use infrastructure
             else:
-                self.send_shipment(
-                    graph[self][edge[1]]['object'],
-                    transport_network,
-                    monetary_units_in_model,
-                    cost_repercussion_mode,
-                    account_capacity,
-                    transport_cost_noise_level
-                )
+                self.send_shipment(graph[self][edge[1]]['object'], transport_network, monetary_units_in_model,
+                                   cost_repercussion_mode, price_increase_threshold, account_capacity,
+                                   transport_cost_noise_level)
 
     def deliver_without_infrastructure(self, commercial_link):
         """ The firm deliver its products without using transportation infrastructure
@@ -646,7 +646,7 @@ class Firm(Agent):
                                                self.eq_finance['costs']['transport'])
 
     def send_shipment(self, commercial_link: "CommercialLink", transport_network: "TransportNetwork",
-                      monetary_units_in_model: str, cost_repercussion_mode: str,
+                      monetary_units_in_model: str, cost_repercussion_mode: str, price_increase_threshold: float,
                       account_capacity: bool, transport_cost_noise_level: float):
 
         monetary_unit_factor = {
@@ -710,14 +710,6 @@ class Firm(Agent):
                 # Calculate relative increase in routing cost
                 new_transport_bill = commercial_link.delivery_in_tons * commercial_link.alternative_route_cost_per_ton
                 normal_transport_bill = commercial_link.delivery_in_tons * commercial_link.route_cost_per_ton
-                if commercial_link.supplier_id == 37 and commercial_link.buyer_id == 767:
-                    print(
-                        route,
-                        commercial_link.delivery_in_tons,
-                        commercial_link.route_cost_per_ton,
-                        commercial_link.alternative_route_cost_per_ton
-                    )
-                    exit()
                 # print(normal_transport_bill, new_transport_bill)
                 relative_cost_change = max(new_transport_bill - normal_transport_bill, 0) / normal_transport_bill
                 # If switched transport mode, add switching cost
@@ -738,17 +730,17 @@ class Firm(Agent):
                 commercial_link.price = commercial_link.eq_price * (1 + total_relative_price_change)
 
             elif cost_repercussion_mode == "type2":  # actual repercussion de la bill
-                added_costUSD_per_ton = max(commercial_link.alternative_route_cost_per_ton -
+                added_cost_usd_per_ton = max(commercial_link.alternative_route_cost_per_ton -
                                             commercial_link.route_cost_per_ton,
                                             0)
-                added_costUSD_per_mUSD = added_costUSD_per_ton / (self.usd_per_ton / factor)
-                added_costmUSD_per_mUSD = added_costUSD_per_mUSD / factor
-                added_transport_bill = added_costmUSD_per_mUSD * commercial_link.delivery
+                added_cost_usd_per_musd = added_cost_usd_per_ton / (self.usd_per_ton / factor)
+                added_costm_usd_per_musd = added_cost_usd_per_musd / factor
+                added_transport_bill = added_costm_usd_per_musd * commercial_link.delivery
                 self.finance['costs']['transport'] += \
                     self.eq_finance['costs']['transport'] + added_transport_bill
                 commercial_link.price = (commercial_link.eq_price
                                          + self.delta_price_input
-                                         + added_costmUSD_per_mUSD)
+                                         + added_costm_usd_per_musd)
                 relative_price_change_transport = \
                     commercial_link.price / (commercial_link.eq_price + self.delta_price_input) - 1
                 if (commercial_link.price is None) or (commercial_link.price is np.nan):
@@ -760,7 +752,7 @@ class Firm(Agent):
                 logging.debug(f"Firm {self.pid}"
                               f": qty {commercial_link.delivery_in_tons} tons"
                               f" increase in route cost per ton {cost_increase}"
-                              f" increased bill mUSD {added_costmUSD_per_mUSD * commercial_link.delivery}"
+                              f" increased bill mUSD {added_costm_usd_per_musd * commercial_link.delivery}"
                               )
 
             elif cost_repercussion_mode == "type3":
@@ -780,14 +772,12 @@ class Firm(Agent):
                 raise NotImplementedError(f"Type {cost_repercussion_mode} not implemented")
 
             # If the increase in transport is larger than 2, then we do not deliver the goods
-            if relative_price_change_transport > 2:
-                logging.info("Firm " + str(self.pid) + ": found an alternative route to " +
-                             str(commercial_link.buyer_id) + ", but it is costlier by " +
-                             '{:.2f}'.format(100 * relative_price_change_transport) + "%, price would be " +
-                             '{:.4f}'.format(commercial_link.price) + " instead of " +
-                             '{:.4f}'.format(commercial_link.eq_price * (1 + self.delta_price_input)) +
-                             ' so I decide not to send it now.'
-                             )
+            if relative_price_change_transport > price_increase_threshold:
+                logging.info(f"{self.id_str()}: found an alternative route to {commercial_link.buyer_id} "
+                             f"but it is costlier by {100 * relative_price_change_transport:.2f}%, "
+                             f"price would be {commercial_link.price:.4f} "
+                             f"instead of {commercial_link.eq_price * (1 + self.delta_price_input):.4f}"
+                             f"so I decide not to send it now.")
                 commercial_link.price = commercial_link.eq_price
                 commercial_link.current_route = 'none'
                 # commercial_link.delivery = 0
@@ -804,7 +794,7 @@ class Firm(Agent):
                              )
         # If we do not find a route, then we do not deliver
         else:
-            logging.info(f"{self.id_str().capitalize()}: because of disruption, there is no route between me "
+            logging.info(f"{self.id_str()}: because of disruption, there is no route between me "
                          f"and agent {commercial_link.buyer_id}")
             # We do not write how the input price would have changed
             commercial_link.price = commercial_link.eq_price

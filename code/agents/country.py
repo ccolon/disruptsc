@@ -110,7 +110,7 @@ class Country(Agent):
             if nb_suppliers_to_select > len(potential_supplier_pid):
                 logging.warning(f"The number of supplier to select {nb_suppliers_to_select} "
                                 f"is larger than the number of potential supplier {len(potential_supplier_pid)} "
-                                f"{share_exporting_firms[sector]}")
+                                f"(share_exporting_firms: {share_exporting_firms[sector]})")
                 # Select supplier and weights
             selected_supplier_ids, supplier_weights = determine_suppliers_and_weights(
                 potential_supplier_pid,
@@ -156,10 +156,22 @@ class Country(Agent):
             graph[edge[0]][self]['object'].order = quantity_to_buy
 
     def deliver_products(self, graph: "ScNetwork", transport_network: "TransportNetwork",
-                         sectors_no_transport_network: list[str], rationing_mode: str,
-                         monetary_units_in_model: str, cost_repercussion_mode: str, account_capacity: bool,
+                         sectors_no_transport_network: list[str], rationing_mode: str, monetary_units_in_model: str,
+                         cost_repercussion_mode: str, price_increase_threshold: float, account_capacity: bool,
                          transport_cost_noise_level: float):
-        """ The quantity to be delivered is the quantity that was ordered (no rationning takes place)
+        """ The quantity to be delivered is the quantity that was ordered (no rationing takes place)
+
+        Parameters
+        ----------
+        transport_cost_noise_level
+        cost_repercussion_mode
+        account_capacity
+        monetary_units_in_model
+        rationing_mode
+        sectors_no_transport_network
+        transport_network
+        graph
+        price_increase_threshold
         """
         self.generalized_transport_cost = 0
         self.usd_transported = 0
@@ -184,31 +196,21 @@ class Country(Agent):
                     self.qty_sold += graph[self][edge[1]]['object'].delivery
                 # Otherwise, send shipment through transportation network
                 else:
-                    self.send_shipment(
-                        graph[self][edge[1]]['object'],
-                        transport_network,
-                        monetary_units_in_model,
-                        cost_repercussion_mode,
-                        account_capacity,
-                        transport_cost_noise_level
-                    )
+                    self.send_shipment(graph[self][edge[1]]['object'], transport_network, monetary_units_in_model,
+                                       cost_repercussion_mode, price_increase_threshold, account_capacity,
+                                       transport_cost_noise_level)
             else:
                 if (edge[1].odpoint != -1):  # to non-service firms, send shipment through transportation network
-                    self.send_shipment(
-                        graph[self][edge[1]]['object'],
-                        transport_network,
-                        monetary_units_in_model,
-                        cost_repercussion_mode,
-                        account_capacity,
-                        transport_cost_noise_level
-                    )
+                    self.send_shipment(graph[self][edge[1]]['object'], transport_network, monetary_units_in_model,
+                                       cost_repercussion_mode, price_increase_threshold, account_capacity,
+                                       transport_cost_noise_level)
                 else:  # if it sends to service firms, nothing to do. price is equilibrium price
                     graph[self][edge[1]]['object'].price = graph[self][edge[1]]['object'].eq_price
                     self.qty_sold += graph[self][edge[1]]['object'].delivery
 
     def send_shipment(self, commercial_link: "CommercialLink", transport_network: "TransportNetwork",
-                      monetary_units_in_model: str, cost_repercussion_mode: str, account_capacity: bool,
-                      transport_cost_noise_level: float):
+                      monetary_units_in_model: str, cost_repercussion_mode: str, price_increase_threshold: float,
+                      account_capacity: bool, transport_cost_noise_level: float):
 
         if commercial_link.delivery_in_tons == 0:
             print("delivery", commercial_link.delivery)
@@ -318,7 +320,7 @@ class Country(Agent):
                 commercial_link.price = commercial_link.eq_price * (1 + total_relative_price_change)
 
             # If there is an alternative route but it is too expensive
-            if relative_price_change_transport > 2:
+            if relative_price_change_transport > price_increase_threshold:
                 logging.info("Country " + str(self.pid) + ": found an alternative route to " +
                              str(commercial_link.buyer_id) + ", but it is costlier by " +
                              '{:.2f}'.format(100 * relative_price_change_transport) + "%, price would be " +

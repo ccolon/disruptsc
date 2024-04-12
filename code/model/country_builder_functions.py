@@ -7,6 +7,7 @@ import pandas as pd
 
 from code.agents.country import Country, CountryList
 from code.model.basic_functions import rescale_monetary_values
+from code.network.mrio import Mrio
 
 
 def create_countries(filepath_imports: Path, filepath_exports: Path, filepath_transit: Path,
@@ -57,12 +58,16 @@ def create_countries(filepath_imports: Path, filepath_exports: Path, filepath_tr
         target_units=target_units,
         input_units=input_units
     )
-    transit_matrix = rescale_monetary_values(
-        pd.read_csv(filepath_transit, index_col=0),
-        time_resolution=time_resolution,
-        target_units=target_units,
-        input_units=input_units
-    )
+    if filepath_transit:
+        transit_matrix = rescale_monetary_values(
+            pd.read_csv(filepath_transit, index_col=0),
+            time_resolution=time_resolution,
+            target_units=target_units,
+            input_units=input_units
+        )
+    else:
+        # if no transit matrix provide, create a mock one with 0s
+        transit_matrix = pd.DataFrame(0, index=import_table.index, columns=import_table.index)
     # entry_point_table = pd.read_csv(filepath_entry_points)
 
     # Keep only selected countries, if applicable
@@ -140,10 +145,14 @@ def create_countries_from_mrio(filepath_mrio: Path,
     logging.info('Creating country_list.')
 
     # Load mrio
-    mrio = pd.read_csv(filepath_mrio, index_col=0)
+    # mrio = pd.read_csv(filepath_mrio, header=[0, 1], index_col=[0, 1])
+    mrio = Mrio.load_mrio_from_filepath(filepath_mrio)
+
     # Extract countries from MRIO
-    buying_countries = [col for col in mrio.columns if len(col) == 3]  # TODO a bit specific to Ecuador, change
-    selling_countries = [col for col in mrio.index if len(col) == 3]
+    buying_countries = mrio.external_buying_countries
+    # buying_countries = [col for col in mrio.columns if len(col) == 3]  # TODO a bit specific to Ecuador, change
+    selling_countries = mrio.external_selling_countries
+    # selling_countries = [col for col in mrio.index if len(col) == 3]
     countries = list(set(buying_countries) | set(selling_countries))
 
     # Create country table
@@ -151,26 +160,32 @@ def create_countries_from_mrio(filepath_mrio: Path,
     logging.info(f"Select {country_table.shape[0]} countries")
 
     # Extract import, export, and transit matrices
-    importing_region_sectors = [col for col in mrio.columns if len(col) == 8]
+    # importing_region_sectors = [tup for tup in mrio.columns if tup[1] not in ['Exports', 'final_demand']]
     import_table = rescale_monetary_values(
-        mrio.loc[selling_countries, importing_region_sectors],
+        mrio.loc[(selling_countries, 'Imports'), mrio.region_sectors],
         time_resolution=time_resolution,
         target_units=target_units,
         input_units=input_units
     )
-    exporting_region_sectors = [row for row in mrio.index if len(row) == 8]
+    import_table.index = [tup[0] for tup in import_table.index]
+    import_table.columns = ['_'.join(tup) for tup in import_table.columns]
+    # exporting_region_sectors = [tup for tup in mrio.index if tup[1] not in ['Imports', 'final_demand']]
     export_table = rescale_monetary_values(
-        mrio.loc[exporting_region_sectors, buying_countries],
+        mrio.loc[mrio.region_sectors, (buying_countries, 'Exports')],
         time_resolution=time_resolution,
         target_units=target_units,
         input_units=input_units
     )
+    export_table.columns = [tup[0] for tup in export_table.columns]
+    export_table.index = ['_'.join(tup) for tup in export_table.index]
     transit_matrix = rescale_monetary_values(
-        mrio.loc[selling_countries, buying_countries],
+        mrio.loc[(selling_countries, 'Imports'), (buying_countries, 'Exports')],
         time_resolution=time_resolution,
         target_units=target_units,
         input_units=input_units
     )
+    transit_matrix.columns = [tup[0] for tup in transit_matrix.columns]
+    transit_matrix.index = [tup[0] for tup in transit_matrix.index]
 
     logging.info("Total imports per " + time_resolution + " is " +
                  "{:.01f} ".format(import_table.sum().sum()) + target_units)

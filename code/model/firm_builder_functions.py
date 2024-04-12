@@ -8,6 +8,7 @@ import pandas as pd
 import geopandas as gpd
 
 from code.agents.firm import Firm, FirmList
+from code.network.mrio import Mrio
 from code.model.builder_functions import get_index_closest_point, get_closest_road_nodes, get_long_lat
 
 
@@ -45,6 +46,8 @@ def create_firms(
     firm_table = firm_table.set_index('id')
     if "main_sector" not in firm_table.columns:  # case of MRIO
         firm_table['main_sector'] = firm_table['sector']
+    # print(firm_table.head())
+    # print(firm_table.iloc[0])
     firm_list = FirmList([
         Firm(i,
              sector=firm_table.loc[i, "sector"],
@@ -277,30 +280,50 @@ def define_firms_from_mrio(
         filepath_mrio: Path,
         filepath_sector_table: Path,
         filepath_region_table: Path,
-        transport_nodes: gpd.GeoDataFrame) -> pd.DataFrame:
+        transport_nodes: gpd.GeoDataFrame,
+        io_cutoff: float) -> pd.DataFrame:
     # Load mrio
-    mrio = pd.read_csv(filepath_mrio, index_col=0)
+    # mrio = pd.read_csv(filepath_mrio, index_col=0)
+    mrio = Mrio.load_mrio_from_filepath(filepath_mrio)
     # Extract region_sectors
-    region_sectors = list(set(mrio.index) | set(mrio.columns))
-    region_sectors = [region_sector for region_sector in region_sectors if
-                      len(region_sector) == 8]  # format 1011-FRE... :TODO a bit specific to Ecuador, change
-    # For region-sector with internal flows, need two firms
-    region_sectors_internal_flows = list(set(mrio.index) & set(mrio.columns))
-    region_sectors_internal_flows = [col for col in region_sectors_internal_flows if mrio.loc[col, col] > 0]
-    region_sectors = region_sectors + [region_sector + '-bis' for region_sector in region_sectors_internal_flows]
-
-    # Create firm_table
-    firm_table = pd.DataFrame({"name": region_sectors})
-    firm_table['admin_unit'] = firm_table['name'].str.extract(r'([0-9]*)-[A-Z0-9]{3}')
-    check_successful_extraction(firm_table, "admin_unit")
-    firm_table['main_sector'] = firm_table['name'].str.extract(r'[0-9]*-([A-Z]{2}[A-Z0-9]{1})')
-    check_successful_extraction(firm_table, "main_sector")
-    firm_table['sector'] = firm_table['name'].str.replace('-bis', '')
-    check_successful_extraction(firm_table, "sector")
-    logging.info(f"Select {firm_table.shape[0]} firms in {firm_table['admin_unit'].nunique()} admin units")
+    # region_sectors = list(set(mrio.index) | set(mrio.columns))
+    # region_sectors = [region_sector for region_sector in region_sectors if
+    #                   len(region_sector) == 8]  # format 1011-FRE... :TODO a bit specific to Ecuador, change
+    firm_table = pd.DataFrame({
+        'tuple': mrio.region_sectors,
+        'region': [tup[0] for tup in mrio.region_sectors],
+        'main_sector': [tup[1] for tup in mrio.region_sectors],
+        'sector': mrio.region_sector_names,
+        'name': mrio.region_sector_names
+    })
+    region_sectors_internal_flows = mrio.get_region_sectors_with_internal_flows(io_cutoff)
+    duplicated_firms = pd.DataFrame({
+        'tuple': region_sectors_internal_flows,
+        'region': [tup[0] for tup in region_sectors_internal_flows],
+        'main_sector': [tup[1] for tup in region_sectors_internal_flows],
+        'sector': ['_'.join(tup) for tup in region_sectors_internal_flows],
+        'name': ['_'.join([tup[0], tup[1], "bis"]) for tup in region_sectors_internal_flows]
+    })
+    firm_table = pd.concat([firm_table, duplicated_firms])
+    # region_sectors = ['_'.join(tup) for tup in mrio.columns]
+    # # For region-sector with internal flows, need two firms
+    # # region_sectors_internal_flows = list(set(mrio.index) & set(mrio.columns))
+    # region_sectors_internal_flows = [tup for tup in mrio.columns if mrio.loc[tup, tup] > 0]
+    # region_sectors = region_sectors + [region_sector + '-bis' for region_sector in region_sectors_internal_flows]
+    # # Create firm_table
+    # firm_table = pd.DataFrame({"name": region_sectors})
+    # # firm_table['admin_unit'] = firm_table['name'].str.extract(r'([0-9]*)-[A-Z0-9]{3}')
+    # firm_table['admin_unit'] = firm_table['name'].str.extract(r'([A-Z]{3})')
+    # check_successful_extraction(firm_table, "admin_unit")
+    # # firm_table['main_sector'] = firm_table['name'].str.extract(r'[0-9]*-([A-Z]{2}[A-Z0-9]{1})')
+    # firm_table['main_sector'] = firm_table['name'].str[4:]
+    # check_successful_extraction(firm_table, "main_sector")
+    # firm_table['sector'] = firm_table['name'].str.replace('-bis', '')
+    # check_successful_extraction(firm_table, "sector")
+    logging.info(f"Select {firm_table.shape[0]} firms in {firm_table['region'].nunique()} regions")
 
     # Assign firms to the nearest road node
-    firm_table['od_point'] = get_closest_road_nodes(firm_table['admin_unit'], transport_nodes, filepath_region_table)
+    firm_table['od_point'] = get_closest_road_nodes(firm_table['region'], transport_nodes, filepath_region_table)
 
     # Add long lat
     long_lat = get_long_lat(firm_table['od_point'], transport_nodes)
@@ -308,20 +331,21 @@ def define_firms_from_mrio(
     firm_table['lat'] = long_lat['lat']
 
     # Add importance
-    row_intermediary = [row for row in mrio.index if len(row) == 8]
-    tot_outputs_per_region_sector = mrio.loc[row_intermediary].sum(axis=1)
-    firm_table['importance'] = firm_table['sector'].map(tot_outputs_per_region_sector)
-    firm_with_two_firms_same_region_sector = firm_table['sector'].isin(region_sectors_internal_flows)
+    # row_intermediary = [row for row in mrio.index if len(row) == 8]
+    tot_outputs_per_region_sector = mrio.sum(axis=1)
+    firm_table['importance'] = firm_table['tuple'].map(tot_outputs_per_region_sector)
+    firm_with_two_firms_same_region_sector = firm_table['tuple'].isin(region_sectors_internal_flows)
     firm_table.loc[firm_with_two_firms_same_region_sector, "importance"] = \
         firm_table.loc[firm_with_two_firms_same_region_sector, "importance"] / 2
     check_successful_extraction(firm_table, "importance")
 
     # Add sector type
-    sector_table = gpd.read_file(filepath_sector_table)
-    firm_table['sector_type'] = firm_table['main_sector'].map(sector_table.set_index('sector')['type'])
+    sector_table = pd.read_csv(filepath_sector_table)
+    firm_table['sector_type'] = firm_table['sector'].map(sector_table.set_index('sector')['type'])
+    check_successful_extraction(firm_table, "sector_type")
 
     # Add id (where is it created otherwise?)
-    firm_table = firm_table.reset_index().rename(columns={"index": "id"})
+    firm_table['id'] = range(firm_table.shape[0])
 
     return firm_table
 
@@ -431,25 +455,26 @@ def load_technical_coefficients(
 
 def load_mrio_tech_coefs(
         firm_list: FirmList,
-        filepath_mrio: Path
+        filepath_mrio: Path,
+        io_cutoff: float
 ):
     # Load mrio
-    mrio = pd.read_csv(filepath_mrio, index_col=0)
+    mrio = Mrio.load_mrio_from_filepath(filepath_mrio)
+    # mrio = pd.read_csv(filepath_mrio, header=[0, 1], index_col=[0, 1])  # TODO: class mrio
+    # mrio = pd.read_csv(filepath_mrio, index_col=0)
 
     # Load technical coefficient matrix from data
-    region_sectors_with_inputs = [col for col in mrio.columns if len(col) == 8]
-    tot_outputs = mrio.loc[region_sectors_with_inputs].sum(axis=1)
-    matrix_output = pd.concat([tot_outputs] * mrio.shape[0], axis=1).transpose()
-    matrix_output.index = mrio[region_sectors_with_inputs].index
-    tech_coef_matrix = mrio[region_sectors_with_inputs] / matrix_output
-    tech_coef_dict = tech_coef_matrix.stack().reset_index() \
-        .groupby('level_1').apply(lambda df: df.set_index('level_0')[0].to_dict()) \
-        .to_dict()
+    # region_sectors = [tup for tup in mrio.index if tup[1] != "Imports"]
+    # tot_outputs = mrio.loc[region_sectors].sum(axis=1)
+    # matrix_output = pd.concat([tot_outputs] * len(mrio.index), axis=1).transpose()
+    # matrix_output.index = mrio.index
+    # tech_coef_matrix = mrio[region_sectors] / matrix_output
+    tech_coef_dict = mrio.get_tech_coef_dict(threshold=io_cutoff)
 
     # Load into firm_list
     for firm in firm_list:
-        if firm.name in region_sectors_with_inputs:
-            firm.input_mix = tech_coef_dict[firm.name]
+        if firm.sector in tech_coef_dict.keys():
+            firm.input_mix = tech_coef_dict[firm.sector]
         else:
             firm.input_mix = {}
 
@@ -457,15 +482,15 @@ def load_mrio_tech_coefs(
 
 
 def calibrate_input_mix(
-        firm_list: str,
+        firm_list: FirmList,
         firm_table: pd.DataFrame,
         sector_table: pd.DataFrame,
         filepath_transaction_table: str
 ):
     transaction_table = pd.read_csv(filepath_transaction_table)
 
-    domestic_B2B_sales_per_firm = transaction_table.groupby('supplier_id')['transaction'].sum()
-    firm_table['domestic_B2B_sales'] = firm_table['id'].map(domestic_B2B_sales_per_firm).fillna(0)
+    domestic_b2b_sales_per_firm = transaction_table.groupby('supplier_id')['transaction'].sum()
+    firm_table['domestic_B2B_sales'] = firm_table['id'].map(domestic_b2b_sales_per_firm).fillna(0)
     firm_table['output'] = firm_table['domestic_B2B_sales'] + firm_table['final_demand'] + firm_table['exports']
 
     # Identify the sector of the products exchanged recorded in the transaction table and whether they are essential
@@ -505,7 +530,7 @@ def load_inventories(firm_list: list, inventory_duration_target: int | str,
                      filepath_inventory_duration_targets: Path, extra_inventory_target: int | None = None,
                      inputs_with_extra_inventories: None | list = None,
                      buying_sectors_with_extra_inventories: None | list = None,
-                     min_inventory: int = 1, random_mean_sd: float | None = None):
+                     min_inventory: int = 1):
     """Load inventory duration target
 
     If inventory_duration_target is an integer, it is uniformly applied to all firms.
@@ -516,7 +541,7 @@ def load_inventories(firm_list: list, inventory_duration_target: int | str,
     - to specific inputs, all firms have extra agricultural inputs,
     - to specific buying firms, e.g., all manufacturing firms have more of all inputs,
     - to a combination of both. e.g., all manufacturing firms have more of agricultural inputs.
-    We can also add some noise on the distribution of inventories. Not yet imlemented.
+    We can also add some noise on the distribution of inventories. Not yet implemented.
 
     Parameters
     ----------
@@ -540,9 +565,6 @@ def load_inventories(firm_list: list, inventory_duration_target: int | str,
 
     min_inventory : int
         Set a minimum inventory level
-
-    random_mean_sd: None
-        Not yet implemented.
     """
 
     if isinstance(inventory_duration_target, int):
@@ -622,15 +644,9 @@ def load_inventories(firm_list: list, inventory_duration_target: int | str,
                 input_sector: max(min_inventory, inventory)
                 for input_sector, inventory in firm.inventory_duration_target.items()
             }
-    # inventory_table = pd.DataFrame({
-    #     'id': [firm.pid for firm in firm_list],
-    #     'buying_sector': [firm.sector for firm in firm_list],
-    #     'inventories': [firm.inventory_duration_target for firm in firm_list]
-    # })
-    # inventory_table.to_csv('inventory_check.csv')
-    # logging.info("Inventories: "+str({firm.pid: firm.inventory_duration_target for firm in firm_list}))
+
     logging.info('Inventory duration targets loaded')
     if extra_inventory_target:
-        logging.info("Extra inventory duration: " + str(extra_inventory_target) + \
-                     " for inputs " + str(inputs_with_extra_inventories) + \
-                     " for buying sectors " + str(buying_sectors_with_extra_inventories))
+        logging.info(f"Extra inventory duration: {extra_inventory_target} "
+                     f"for inputs {inputs_with_extra_inventories} "
+                     f"for buying sectors{buying_sectors_with_extra_inventories}")
