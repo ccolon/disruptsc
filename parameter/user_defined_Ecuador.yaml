@@ -5,7 +5,7 @@ filepaths:
   "inventory_duration_targets": "National/59sector_inventory_targets.csv"
   "admin_unit_data": "Subnational/59sector_2015_canton_data.geojson"
   "region_table": "Network/canton_reference.geojson"
-  "mrio": "Network/mrio_2015.csv"
+  "mrio": "Network/mrio_2015_div_cutoff_by_4.csv"
   "imports": "Trade/59sector_2016_import_table.csv"
   "exports": "Trade/59sector_2016_export_table.csv"
   "transit": "Trade/2016_transit_matrix.csv"
@@ -17,10 +17,12 @@ transport_cost_data:
   roads: surface-specific  # edge-specific for TR2 (Ximena's data), surface-specific for TR1 (OSM data)
 monetary_units_in_model: mUSD
 monetary_units_inputed: kUSD
-time_resolution: week
+time_resolution: day
 firm_data_type: "disaggregating IO"  #  'disaggregating IO' for GR-13 and GR-59, 'mrio' for TR-AGG
+sectors_no_transport_network: ['utility', 'transport', 'trade', 'service']  # remove trade for mrio
 io_cutoff: 0.01  # 0.01
 utilization_rate: 1
+price_increase_threshold: 2
 simulation_type: disruption  # initial_state, disruption
 export_files: True
 disruption_description:
