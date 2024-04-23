@@ -1,7 +1,6 @@
 # Indicate the subfolder of the input folder that contains the input files
 filepaths:
   "sector_table": "Network/sector_table.csv"
-  "tech_coef": "Network/tech_coef.csv"
   "inventory_duration_targets": "Network/inventory_targets.csv"
   "mrio": "Network/mrio.csv"
   "region_table": "Network/region_table.geojson"
