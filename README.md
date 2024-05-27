@@ -24,9 +24,11 @@ The model is launched by the following command:
 
 Argument `region` corresponds to the region that is studied, for instance, `Tanzania`. This string should
 be the same as:
-- the input subfolder containing the data in the `input` folder, e.g., "input/Tanzania"
+- the input subfolder containing the data in the `input` folder, e.g., "input/Tanzania".
+This folder should be created manually by the user.
 - the suffix of the user-defined parameters yaml file in the `parameter` folder, 
-e.g., "parameter/user_defined_Tanzania.yaml"
+e.g., "parameter/user_defined_Tanzania.yaml".
+This file should be created manually by the user.
 
 The optional argument is made to allow for some part of the initial state to be resued in a subsequent call:
 - `same_transport_network_new_agents`: the transport network is reused, but new agents, supplier-buyer links, 
@@ -39,12 +41,16 @@ but new logistic routes are generated
 The files are cached in the `tmp` folder as pickle files. Note that if you change region, you will first need 
 to call the script without optional argument.
 
+The default parameters are defined in the "parameter/default.yaml" file. This file also defines the filepath 
+to the input files. To change a parameter of filepath value, write it into the "parameter/user_defined_<region>.yaml"
+file.
+
 
 ## Concepts
 
 ### Geographic structure
 
-The model focuses on a country. A country is divided into some administrative units 
+The model focuses on a country or group of countries. A country is divided into some administrative units 
 (e.g., regions, districts, communes, cantones, etc.) We need to pick a relevant administrative level 
 for which the economic data are compiled. We call it "regions" in the remainder of the text.
 
@@ -56,6 +62,7 @@ The transport network is composed of edges and nodes. Edges are *LineString*, No
 Edges are identified by an integer ID, so are nodes.
 
 Each region is associated with one node in the transport network.
+
 
 ### Sector structure
 
@@ -80,32 +87,31 @@ Countries are associated to nodes which are located outside the country.
 use the *epsg:4326* coordinate reference system.
 
 
-## Using the model
+### Different versions of the model with different inputs needs
 
+The model can be used in different version, depending on how supply-chain linkages are inputed.
+Such versions are controlled by the `firm_data_type` parameter, which can takes three values:
+- *disaggregating IO* uses a global input-table which gets disaggregated using regional economic data
+- *mrio* use a multi-regional input-output table
+- *supplier buyer network* uses supplier buyer network data [not yet implemented]
 
 
 ## Inputs
 
-Create a subdirectory in the `input` directory, whose name should correspond to the `input_folder` variable 
-given in the `parameters.py` file. Usually, this name is the country under study. 
-Within this subdirectory, create 5 subdirectories:
-- Disruption: specific list of transport nodes or edges to test (optional)
-- National: country-wide data derived from input--output tables or other country-wide data
-- Subnational: subnational data, typically, for each region, population, location of the main city, sector size
-- Trade: import, export, transit flows
-- Transport: the transport network
+### Transport inputs are needed whatever the versions
 
-Note that the filepath of each data files are defined in `parameter/filepaths_default.py`. These default filepaths can be overriden using the `parameter/filepaths.py` path.
+Note that the filepath of each data files are defined in `parameter/filepaths_default.py`.
+These default filepaths can be overriden using the `parameter/filepaths.py` path.
 
+Within a subfolder `Transport`, there is a series of GeoJSON files and one YAML file.
 
-### Transport
-
-#### Transport network files
+#### Transport network files (GeoJSON)
 
 There should be two GeoJSON files per transport mode, one for nodes and one for edges. 
 Acceptable transport modes are : 'roads', 'airways', 'maritime', 'waterways', 'multimodal'. For instance, for roads:
 - `roads_nodes.geojson`
 - `roads_edges.geojson`
+
 There is only one file for the multimodal layer, which describe the edges. There is no multimodal node.
 
 The edge's geometry is *LineString*, the node's geometry is *Point*.
@@ -115,6 +121,8 @@ Nodes should contain at least the following attributes:
 
 Edges should contain at least the following attributes:
 - `id`: int, one unique id per mode
+- `end1`: int, the id of the node of the same mode where the linestring starts (leave empty for multimodal edges)
+- `end2`: int, the id of the node of the same mode where the linestring ends (leave empty for multimodal edges)
 - `surface`: paved or unpaved. If unknown you can put everything as "paved"
 - `class`: class category, for instance primary, secondary, etc. If unknown you can leave it empty.
 - `km`: length in km
@@ -128,14 +136,14 @@ Nodes and Edges should not contain the following attributes:
 
 Based on these input files, the model creates one *networkx.Graph* object representing the transport network.
 
-Multimodal edges:
+Note for multimodal edges:
 - in multimodes, it should start with `mode1-mode2`. The order of the modes does not matter. 
 - can write something after, e.g., 'roads-maritime-dom', but not before, e.g., 'roads-dom-maritime'.
 
 
-#### Transport Parameters
+#### Transport Parameters (YAML)
 
-A yaml file `transport_parameters.yaml` with the following structure. 
+A YAML file `transport_parameters.yaml` with the following structure. 
 It needs to be adjusted to the transport modes modelled.
 
 	speeds: #km/hour
@@ -206,10 +214,15 @@ from taking specific transport modes.
 To be further described
 
 
-### National
+### Inputs for *disaggregating IO* version
+
+Three subfolders are needed:
+- National: country-wide data derived from input--output tables or other country-wide data
+- Subnational: subnational data, typically, for each region, population, location of the main city, sector size
+- Trade: import, export, transit flows
 
 
-#### Sector Table
+#### National - Sector Table
 
 A CSV file `sector_table.csv`. One row = one sector. Required columns:
 - `sector`: the sector's trigram, for instance `AGR`
@@ -224,9 +237,9 @@ Set to 0 for sectors whose type is 'utility', 'transport', 'trade', 'service'
 - `share_exporting_firms`: the percentage of the firms that export per sector. 
 This value can be derived from country-specific data. 
 Without good data, we can simply use for instance the share of export per sector.
-- `supply_data` (when no network data are used): the attribute of the 'region_data' file 
+- `supply_data`: the attribute of the 'region_data' file 
 that the model will use to disaggregate the sectoral data
-- `cutoff` (when no network data are used): the cutoff value to apply. 
+- `cutoff`: the cutoff value to apply. 
 We will not model any firm for this sector in regions whose supply_data is below the cutoff
 
 Note that, when no network data are used, the model will create firms based on the geospatial economic data. To speed up computation, firms that would be too small are dropped.
@@ -235,12 +248,11 @@ Example:
 
 sector | type | output | final_demand | usd_per_ton | share_exporting_firms | supply_data | cutoff
 --- | --- | --- | ---  | ---  | --- |-------------| --- 
-AGR | agriculture | 415641365| 246213152 | 950 | 0.16 | ag_prod     | 3.50E+06
+AGR | agriculture | 415641365| 246213152 | 950 | 0.16 | ag_prod | 3.50E+06
 ... | ... | ... | ... | ... | ... | ...         | ... 
 
 
-
-#### Technical coefficients
+#### National - Technical coefficients
 
 Technical coefficients are derived from the symmetric industry-by-industry input-output table. 
 The matrix of technical coefficients are sometimes directly available. 
@@ -260,7 +272,7 @@ Example:
 
 
 
-#### Inventory Duration Target
+#### National - Inventory Duration Target
 
 Firms hold inventory of inputs, quantified by the number of weeks the firm can continue producing 
 without new supply, called "inventory duration target". Those targets are defined nationally 
@@ -274,9 +286,7 @@ TRD | AGR | 3.5
 ... | ... | ...
 
 
-### Subnational (when no network data are used)'
-
-#### Region Data
+#### Subnational - Region Data
 
 In this file are summarized the socioeconomic and spatial data on economic production for each region. 
 A GeoJSON file is expected.
@@ -299,10 +309,7 @@ admin_code | nb_workers_MAN | nb_workers_ELE | crop_production | ... | geometry
 ... | ... | ... | ... | ... | ...
 
 
-
-### Trade
-
-#### Country Transit Matrix
+#### Trade - Country Transit Matrix
 
 A CSV file representing a matrix. Country codes are row and column headers. It represents the yearly trade flow 
 from the row country to the column country that goes through the country-under-study's transport network. 
@@ -315,7 +322,7 @@ Example:
 **BDI** | 4563 | 4516 | ...
 ... | ... | ... | ...
 
-#### Import Table
+#### Trade - Import Table
 
 A CSV file representing a matrix. Country codes are row headers. Sector codes are column headers. 
 It represents the yearly imports from the different countries, in row, to the domestic sectors, in column. 
@@ -329,7 +336,7 @@ Example:
 ... | ... | ... | ...
 
 
-#### Export Table
+#### Trade - Export Table
 
 A CSV file representing a matrix. Country codes are row headers. Sector codes are column headers. 
 It represents the yearly exports from the domestic sectors, in columns, to the foreigh countries, in row. 
@@ -343,8 +350,83 @@ Example:
 ... | ... | ... | ...
 
 
+### Inputs for the *mrio* version
 
-## Data prep
+One subfolder is needed: *Network*
+
+#### MRIO (CSV)
+
+A CSV file which contains the multi-regional input-output data.
+
+It is a double-indexed matrix, with the following structure :
+
+... | ...     | AFG | AFG | FRA | FRA | AFG | FRA | ROW
+--- |---------| --- | --- | --- | --- | --- | --- | ---
+... | ...     | Sector1 | Sector2 | Sector1 | Sector2 | final_demand | final_demand | exports
+AFG | Sector1 | ... | ... | ... | ... | ... | ... | ...
+AFG | Sector2 | ... | ... | ... | ... | ... | ... | ...
+FRA | Sector1 | ... | ... | ... | ... | ... | ... | ...
+FRA | Sector2 | ... | ... | ... | ... | ... | ... | ...
+ROW | imports | ... | ... | ... | ... | ... | ... | ...
+
+The first row/column indicates the "admin_code" of the regions.
+The second row/column indicates the "sector_code" of the sectors.
+
+#### region_table (GeoJSON)
+
+A GeoJSON file with *Point* geometries indicating the origin-destination point associated to each region.
+It should contain the following attributes:
+- `admin_code`: should correspond to the admin_code of the mrio.csv
+- `geometry`: Point
+
+### sector_table (CSV)
+
+A CSV file `sector_table.csv`. One row = one region*sector. Required columns:
+- `sector`: the combination of <region_code>_<sector_code>
+- `type`: one of 'agriculture', 'mining', 'manufacturing', utility', 'transport', 'trade', 'service'
+- `output`: the total yearly output, derived from the input-output table. 
+The unit should be the same as defined in the parameter `monetary_unit_in_model`.
+- `final_demand`: the total yearly final demand, derived from the input-output table. 
+The unit should be the same as defined in the parameter `monetary_unit_in_model`.
+- `usd_per_ton`: the average monetary value, in USD, of a ton of good. 
+This value can be computed from UN COMTRADE data, in which trade flows are both reported in tons and in USD. 
+Set to 0 for sectors whose type is 'utility', 'transport', 'trade', 'service'
+- `share_exporting_firms`: the percentage of the firms that export per sector. 
+This value can be derived from country-specific data. 
+Without good data, we can simply use for instance the share of export per sector.
+- `supply_data`: the attribute of the 'region_data' file 
+that the model will use to disaggregate the sectoral data
+- `cutoff`: the cutoff value to apply. 
+We will not model any firm for this sector in regions whose supply_data is below the cutoff
+
+Note that, when no network data are used, the model will create firms based on the geospatial economic data. To speed up computation, firms that would be too small are dropped.
+
+Example:
+
+sector | type | output | final_demand | usd_per_ton | share_exporting_firms | supply_data | cutoff
+--- | --- | --- | ---  | ---  | --- |-------------| --- 
+AFG_agriculture | agriculture | 415641365| 246213152 | 950 | 0.16 | ag_prod | 3.50E+06
+... | ... | ... | ... | ... | ... | ...         | ... 
+
+
+#### Inventory Target (CSV)
+
+Firms hold inventory of inputs, quantified by the number of weeks the firm can continue producing 
+without new supply, called "inventory duration target". Those targets are defined nationally 
+for each combination of input * country*sector.
+
+Example:
+
+input_sector | buying_sector | inventory_duration_target
+--- | --- | --- 
+ESP_Electrical and Machinery | ESP_Recycling | 13
+ESP_Electrical and Machinery | SYR_Others | 14
+ESP_Electrical and Machinery | TUR_Public Administration  | 10
+ESP_Electrical and Machinery | USR_Agriculture  | 8
+... | ... | ...
+
+
+## Indicatives steps for data prep for *disaggregating IO* version 
 
 *Requisite:*
 - Say you have sales data per sector per region, *sales_csv*, preprated from business census data. 

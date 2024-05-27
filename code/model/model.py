@@ -133,8 +133,7 @@ class Model(object):
                     sectors_to_include=filtered_sectors,
                     transport_nodes=self.transport_nodes,
                     filepath_sector_table=self.parameters.filepaths['sector_table'],
-                    min_nb_firms_per_sector=self.parameters.min_nb_firms_per_sector
-                )
+                    min_nb_firms_per_sector=self.parameters.min_nb_firms_per_sector)
             elif self.parameters.firm_data_type == "supplier-buyer network":
                 self.firm_table = define_firms_from_network_data(
                     filepath_firm_table=self.parameters.filepaths['firm_table'],
@@ -148,8 +147,7 @@ class Model(object):
                     filepath_sector_table=self.parameters.filepaths['sector_table'],
                     filepath_region_table=self.parameters.filepaths['region_table'],
                     transport_nodes=self.transport_nodes,
-                    io_cutoff=self.parameters.io_cutoff
-                )
+                    io_cutoff=self.parameters.io_cutoff)
             else:
                 raise ValueError(f"{self.parameters.firm_data_type} should be one of 'disaggregating', "
                                  f"'supplier-buyer network', 'mrio'")
