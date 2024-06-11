@@ -12,12 +12,17 @@ def compare_production_purchase_plans(firm_list, country_list, household_list):
     # Evalute purchase plans
     # of firms
     df = pd.DataFrame({firm.pid: firm.purchase_plan for firm in firm_list})
+    
     df["tot_purchase_planned_by_firms"] = df.sum(axis=1)
     df['input_sector'] = df.index.map(dic_agent_id_to_sector)
     df_firms = df.groupby('input_sector')["tot_purchase_planned_by_firms"].sum()
 
     # of countries
-    df = pd.DataFrame({country.pid: country.purchase_plan for country in country_list})
+    if len(country_list) == 1:
+       country = country_list[0]
+       df = pd.DataFrame(pd.Series(country_list[0].purchase_plan, name=country_list[0].pid))
+    else:
+        df = pd.DataFrame({country.pid: country.purchase_plan for country in country_list})
     df["tot_purchase_planned_by_countries"] = df.sum(axis=1)
     df['input_sector'] = df.index.map(dic_agent_id_to_sector)
     df_countries = df.groupby('input_sector')["tot_purchase_planned_by_countries"].sum()

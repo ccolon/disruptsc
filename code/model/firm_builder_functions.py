@@ -266,6 +266,7 @@ def define_firms_from_mrio_data(
 
     # add id (where is it created otherwise?)
     firm_table = firm_table.reset_index().rename(columns={"index": "id"})
+    print(firm_table)
 
     return firm_table
 
@@ -341,6 +342,7 @@ def define_firms_from_mrio(
 
     # Add sector type
     sector_table = pd.read_csv(filepath_sector_table)
+    
     firm_table['sector_type'] = firm_table['sector'].map(sector_table.set_index('sector')['type'])
     check_successful_extraction(firm_table, "sector_type")
 
