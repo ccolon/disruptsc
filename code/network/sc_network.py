@@ -1,5 +1,9 @@
+import logging
+
 import networkx as nx
 import pandas as pd
+
+from code.agents.firm import Firm
 
 
 class ScNetwork(nx.DiGraph):
@@ -28,12 +32,28 @@ class ScNetwork(nx.DiGraph):
         return io_table
 
     def generate_edge_list(self):
-        edge_list = [(source.pid, source.agent_type, source.odpoint, target.pid, target.agent_type, target.odpoint)
+        edge_list = [(source.pid, source.agent_type, source.od_point, target.pid, target.agent_type, target.od_point)
                      for source, target in self.edges()]
         edge_list = pd.DataFrame(edge_list)
         edge_list.columns = ['source_id', 'source_type', 'source_od_point',
                              'target_id', 'target_type', 'target_od_point']
         return edge_list
+
+    def identify_firms_without_clients(self):
+        return [node for node in self.nodes() if (self.out_degree(node) == 0) and isinstance(node, Firm)]
+
+    def remove_useless_commercial_links(self):
+        firms_without_clients = self.identify_firms_without_clients()
+        # print(firms_without_clients)
+        logging.info(f"There are {len(firms_without_clients)} firms without clients. Removing associated links")
+        for firm_without_clients in firms_without_clients:
+            suppliers = [edge[0] for edge in self.in_edges(firm_without_clients)]
+            for supplier in suppliers:
+                self.remove_edge(supplier, firm_without_clients)
+                del supplier.clients[firm_without_clients.pid]
+                del firm_without_clients.suppliers[supplier.pid]
+        # logging.info(f"There remain {len(self.identify_firms_without_clients())} firms without clients.")
+        # print(self.identify_firms_without_clients())
 
 
 def add_or_append_to_dict(dictionary, key, value_to_add):

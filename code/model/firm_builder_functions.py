@@ -7,7 +7,7 @@ import pandas
 import pandas as pd
 import geopandas as gpd
 
-from code.agents.firm import Firm, FirmList
+from code.agents.firm import Firm, Firms
 from code.network.mrio import Mrio
 from code.model.builder_functions import get_index_closest_point, get_closest_road_nodes, get_long_lat
 
@@ -15,21 +15,23 @@ from code.model.builder_functions import get_index_closest_point, get_closest_ro
 def create_firms(
         firm_table: pd.DataFrame,
         keep_top_n_firms: object = None,
-        reactivity_rate: float = 0.1,
-        utilization_rate: float = 0.8
-) -> FirmList:
+        inventory_restoration_time: float = 4,
+        utilization_rate: float = 0.8,
+        capital_to_value_added_ratio: float = 4
+) -> Firms:
     """Create the firms
 
     It uses firm_table from rescaleNbFirms
 
     Parameters
     ----------
+    capital_to_value_added_ratio
     firm_table: pandas.DataFrame
         firm_table from rescaleNbFirms
     keep_top_n_firms: None (default) or integer
         (optional) can be specified if we want to keep only the first n firms, for testing purposes
-    reactivity_rate: float
-        Determines the speed at which firms try to reach their inventory duration target. Default to 0.1.
+    inventory_restoration_time: float
+        Determines the speed at which firms try to reach their inventory duration target
     utilization_rate: float
         Set the utilization rate, which determines the production capacity at the input-output equilibrium.
 
@@ -41,56 +43,57 @@ def create_firms(
     if isinstance(keep_top_n_firms, int):
         firm_table = firm_table.iloc[:keep_top_n_firms, :]
 
-    logging.debug('Creating firm_list')
+    logging.debug('Creating firms')
     ids = firm_table['id'].tolist()
     firm_table = firm_table.set_index('id')
     if "main_sector" not in firm_table.columns:  # case of MRIO
         firm_table['main_sector'] = firm_table['sector']
     # print(firm_table.head())
     # print(firm_table.iloc[0])
-    firm_list = FirmList([
+    firms = Firms([
         Firm(i,
              sector=firm_table.loc[i, "sector"],
              sector_type=firm_table.loc[i, "sector_type"],
              main_sector=firm_table.loc[i, "main_sector"],
-             odpoint=firm_table.loc[i, "od_point"],
+             od_point=firm_table.loc[i, "od_point"],
              importance=firm_table.loc[i, 'importance'],
              name=firm_table.loc[i, 'name'],
              # geometry=firm_table.loc[i, 'geometry'],
              long=float(firm_table.loc[i, 'long']),
              lat=float(firm_table.loc[i, 'lat']),
              utilization_rate=utilization_rate,
-             reactivity_rate=reactivity_rate
+             inventory_restoration_time=inventory_restoration_time,
+             capital_to_value_added_ratio=capital_to_value_added_ratio
              )
         for i in ids
     ])
     # We add a bit of noise to the long and lat coordinates
     # It allows to visually disentangle firms located at the same od-point when plotting the map.
-    for firm in firm_list:
+    for firm in firms.values():
         firm.add_noise_to_geometry()
 
-    return firm_list
+    return firms
 
 
-def define_firms_from_local_economic_data(filepath_admin_unit_economic_data: Path,
+def define_firms_from_local_economic_data(filepath_region_economic_data: Path,
                                           sectors_to_include: list, transport_nodes: geopandas.GeoDataFrame,
                                           filepath_sector_table: Path, min_nb_firms_per_sector: int):
-    """Define firms based on the admin_unit_economic_data.
+    """Define firms based on the region_economic_data.
     The output is a dataframe, 1 row = 1 firm.
     The instances Firms are created in the createFirm function.
 
     Steps:
-    1. Load the admin_unit_economic_data
-    2. It adds a row only when the sector in one admin_unit is higher than the sector_cutoffs
-    3. It identifies the node of the road network that is the closest to the admin_unit point
-    4. It combines the firms of the same sector that are in the same road node (case of 2 admin_unit close
+    1. Load the region_economic_data
+    2. It adds a row only when the sector in one region is higher than the sector_cutoffs
+    3. It identifies the node of the road network that is the closest to the region point
+    4. It combines the firms of the same sector that are in the same road node (case of 2 regions close
     to the same road node)
     5. It calculates the "importance" of each firm = their size relative to the sector size
 
     Parameters
     ----------
     min_nb_firms_per_sector
-    filepath_admin_unit_economic_data: string
+    filepath_region_economic_data: string
         Path to the district_data table
     sectors_to_include: list or 'all'
         if 'all', include all sectors, otherwise define the list of sector to include
@@ -102,71 +105,71 @@ def define_firms_from_local_economic_data(filepath_admin_unit_economic_data: Pat
 
     # A. Create firm table
     # A.1. load files
-    admin_unit_eco_data = gpd.read_file(filepath_admin_unit_economic_data)
+    region_eco_data = gpd.read_file(filepath_region_economic_data)
     sector_table = pd.read_csv(filepath_sector_table)
 
-    # A.2. for each sector, select admin_unit where supply_data is over threshold
+    # A.2. for each sector, select region where supply_data is over threshold
     # and populate firm table
-    firm_table_per_admin_unit = pd.DataFrame()
+    firm_table_per_region = pd.DataFrame()
     for sector, row in sector_table.set_index("sector").iterrows():
         if (sectors_to_include == "all") or (sector in sectors_to_include):
             # check that the supply metric is in the data
-            if row["supply_data"] not in admin_unit_eco_data.columns:
+            if row["supply_data"] not in region_eco_data.columns:
                 logging.warning(f"{row['supply_data']} for sector {sector} is missing from the economic data. "
                                 f"We will create by default firms in the {min_nb_firms_per_sector} "
-                                f"most populated admin units")
-                where_create_firm = admin_unit_eco_data["population"].nlargest(min_nb_firms_per_sector).index
+                                f"most populated regions")
+                where_create_firm = region_eco_data["population"].nlargest(min_nb_firms_per_sector).index
                 # populate firm table
                 new_firm_table = pd.DataFrame({
                     "sector": sector,
-                    "admin_unit": admin_unit_eco_data.loc[where_create_firm, "admin_code"].tolist(),
-                    "population": admin_unit_eco_data.loc[where_create_firm, "population"].tolist(),
-                    "absolute_size": admin_unit_eco_data.loc[where_create_firm, "population"].tolist()
+                    "region": region_eco_data.loc[where_create_firm, "region"].tolist(),
+                    "population": region_eco_data.loc[where_create_firm, "population"].tolist(),
+                    "absolute_size": region_eco_data.loc[where_create_firm, "population"].tolist()
                 })
             else:
                 # create one firm where economic metric is over threshold
-                where_create_firm = admin_unit_eco_data[row["supply_data"]] > row["cutoff"]
+                where_create_firm = region_eco_data[row["supply_data"]] > row["cutoff"]
                 # if it results in less than 5 firms, we go below the cutoff to get at least 5 firms,
-                # only if there are enough admin_units with positive supply_data
+                # only if there are enough regions with positive supply_data
                 if where_create_firm.sum() < min_nb_firms_per_sector:
-                    cond_positive_supply_data = admin_unit_eco_data[row["supply_data"]] > 0
-                    where_create_firm = admin_unit_eco_data.loc[cond_positive_supply_data, row["supply_data"]].nlargest(
+                    cond_positive_supply_data = region_eco_data[row["supply_data"]] > 0
+                    where_create_firm = region_eco_data.loc[cond_positive_supply_data, row["supply_data"]].nlargest(
                         min_nb_firms_per_sector).index
                 # populate firm table
                 new_firm_table = pd.DataFrame({
                     "sector": sector,
-                    "admin_unit": admin_unit_eco_data.loc[where_create_firm, "admin_code"].tolist(),
-                    "population": admin_unit_eco_data.loc[where_create_firm, "population"].tolist(),
-                    "absolute_size": admin_unit_eco_data.loc[where_create_firm, row["supply_data"]]
+                    "region": region_eco_data.loc[where_create_firm, "region"].tolist(),
+                    "population": region_eco_data.loc[where_create_firm, "population"].tolist(),
+                    "absolute_size": region_eco_data.loc[where_create_firm, row["supply_data"]]
                 })
 
             new_firm_table['relative_size'] = new_firm_table['absolute_size'] / new_firm_table['absolute_size'].sum()
-            firm_table_per_admin_unit = pd.concat([firm_table_per_admin_unit, new_firm_table], axis=0)
+            firm_table_per_region = pd.concat([firm_table_per_region, new_firm_table], axis=0)
 
     # B. Assign firms to the closest road nodes
-    # B.1. Create a dictionary that link a admin_unit to id of the closest road node
-    # Create dic that links admin_unit to points
-    selected_admin_units = list(firm_table_per_admin_unit['admin_unit'].unique())
-    logging.info('Select ' + str(firm_table_per_admin_unit.shape[0]) +
-                 " in " + str(len(selected_admin_units)) + ' admin units')
-    cond = admin_unit_eco_data['admin_code'].isin(selected_admin_units)
+    # B.1. Create a dictionary that link a region to id of the closest road node
+    # Create dic that links regions to points
+    selected_regions = list(firm_table_per_region['region'].unique())
+    logging.info('Select ' + str(firm_table_per_region.shape[0]) +
+                 " in " + str(len(selected_regions)) + ' regions')
+    cond = region_eco_data['region'].isin(selected_regions)
     logging.info('Assigning firms to od-points')
-    dic_selected_admin_unit_to_points = admin_unit_eco_data[cond].set_index('admin_code')['geometry'].to_dict()
+    dic_selected_region_to_points = region_eco_data[cond].set_index('region')['geometry'].to_dict()
     # Select road node points
     road_nodes = transport_nodes[transport_nodes['type'] == "roads"]
     # Create dic
-    dic_admin_unit_to_road_node_id = {
-        admin_unit: road_nodes.loc[get_index_closest_point(point, road_nodes), 'id']
-        for admin_unit, point in dic_selected_admin_unit_to_points.items()
+    dic_region_to_road_node_id = {
+        region: road_nodes.loc[get_index_closest_point(point, road_nodes), 'id']
+        for region, point in dic_selected_region_to_points.items()
     }
 
     # B.2. Map firm to the closest road node
-    firm_table_per_admin_unit['od_point'] = firm_table_per_admin_unit['admin_unit'].map(dic_admin_unit_to_road_node_id)
+    firm_table_per_region['od_point'] = firm_table_per_region['region'].map(dic_region_to_road_node_id)
 
     # C. Combine firms that are in the same od-point and in the same sector
     # group by od-point and sector
-    firm_table_per_od_point = firm_table_per_admin_unit \
-        .groupby(['admin_unit', 'od_point', 'sector'], as_index=False) \
+    firm_table_per_od_point = firm_table_per_region \
+        .groupby(['region', 'od_point', 'sector'], as_index=False) \
         .sum()
 
     # D. Add information required by the createFirms function
@@ -190,9 +193,9 @@ def define_firms_from_local_economic_data(filepath_admin_unit_economic_data: Pat
 
     # # E. Add final demand per firm
     # # evaluate share of population represented
-    # cond = admin_unit_eco_data['admin_code'].isin(selected_admin_units)
-    # represented_pop = admin_unit_eco_data.loc[cond, 'population'].sum()
-    # total_population = admin_unit_eco_data['population'].sum()
+    # cond = region_eco_data['region'].isin(selected_regions)
+    # represented_pop = region_eco_data.loc[cond, 'population'].sum()
+    # total_population = region_eco_data['population'].sum()
     # # evaluate final demand
     # rel_pop = firm_table['population'] / total_population
     # tot_demand_of_sector = firm_table['sector'].map(sector_table.set_index('sector')['final_demand'])
@@ -211,21 +214,21 @@ def define_firms_from_local_economic_data(filepath_admin_unit_economic_data: Pat
                  str(firm_table_per_od_point['od_point'].nunique()) + ' od points')
     for sector, row in sector_table.set_index("sector").iterrows():
         if (sectors_to_include == "all") or (sector in sectors_to_include):
-            if row["supply_data"] in admin_unit_eco_data.columns:
+            if row["supply_data"] in region_eco_data.columns:
                 cond = firm_table_per_od_point['sector'] == sector
                 logging.info(f"Sector {sector}: create {cond.sum()} firms that covers " +
                              "{:.0f}%".format(firm_table_per_od_point.loc[cond, 'absolute_size'].sum()
-                                              / admin_unit_eco_data[row['supply_data']].sum() * 100) +
+                                              / region_eco_data[row['supply_data']].sum() * 100) +
                              f" of total {row['supply_data']}")
             else:
                 cond = firm_table_per_od_point['sector'] == sector
-                logging.info(f"Sector {sector}: since {row['supply_data']} is not in the admin data, "
+                logging.info(f"Sector {sector}: since {row['supply_data']} is not in the data, "
                              f"create {cond.sum()} firms that covers " +
                              "{:.0f}%".format(firm_table_per_od_point.loc[cond, 'population'].sum()
-                                              / admin_unit_eco_data["population"].sum() * 100) +
+                                              / region_eco_data["population"].sum() * 100) +
                              f" of population")
 
-    return firm_table_per_od_point, firm_table_per_admin_unit
+    return firm_table_per_od_point, firm_table_per_region
 
 
 def define_firms_from_mrio_data(
@@ -240,18 +243,18 @@ def define_firms_from_mrio_data(
     # Duplicate the lines by concatenating the DataFrame with itself
     firm_table = pd.concat([firm_table] * 2, ignore_index=True)
     # Assign firms to closest road nodes
-    selected_admin_units = list(firm_table['country_ISO'].unique())
+    selected_regions = list(firm_table['country_ISO'].unique())
     logging.info('Select ' + str(firm_table.shape[0]) +
-                 " firms in " + str(len(selected_admin_units)) + ' admin units')
+                 " firms in " + str(len(selected_regions)) + ' regions')
     location_table = gpd.read_file(filepath_region_table)
-    cond_selected_admin_units = location_table['country_ISO'].isin(selected_admin_units)
-    dic_admin_unit_to_points = location_table[cond_selected_admin_units].set_index('country_ISO')['geometry'].to_dict()
+    cond_selected_regions = location_table['country_ISO'].isin(selected_regions)
+    dic_region_to_points = location_table[cond_selected_regions].set_index('country_ISO')['geometry'].to_dict()
     road_nodes = transport_nodes[transport_nodes['type'] == "roads"]
-    dic_admin_unit_to_road_node_id = {
-        admin_unit: road_nodes.loc[get_index_closest_point(point, road_nodes), 'id']
-        for admin_unit, point in dic_admin_unit_to_points.items()
+    dic_region_to_road_node_id = {
+        region: road_nodes.loc[get_index_closest_point(point, road_nodes), 'id']
+        for region, point in dic_region_to_points.items()
     }
-    firm_table['od_point'] = firm_table['country_ISO'].map(dic_admin_unit_to_road_node_id)
+    firm_table['od_point'] = firm_table['country_ISO'].map(dic_region_to_road_node_id)
 
     # Information required by the createFirms function
     # add long lat
@@ -312,9 +315,9 @@ def define_firms_from_mrio(
     # region_sectors = region_sectors + [region_sector + '-bis' for region_sector in region_sectors_internal_flows]
     # # Create firm_table
     # firm_table = pd.DataFrame({"name": region_sectors})
-    # # firm_table['admin_unit'] = firm_table['name'].str.extract(r'([0-9]*)-[A-Z0-9]{3}')
-    # firm_table['admin_unit'] = firm_table['name'].str.extract(r'([A-Z]{3})')
-    # check_successful_extraction(firm_table, "admin_unit")
+    # # firm_table['region'] = firm_table['name'].str.extract(r'([0-9]*)-[A-Z0-9]{3}')
+    # firm_table['region'] = firm_table['name'].str.extract(r'([A-Z]{3})')
+    # check_successful_extraction(firm_table, "region")
     # # firm_table['main_sector'] = firm_table['name'].str.extract(r'[0-9]*-([A-Z]{2}[A-Z0-9]{1})')
     # firm_table['main_sector'] = firm_table['name'].str[4:]
     # check_successful_extraction(firm_table, "main_sector")
@@ -362,25 +365,25 @@ def define_firms_from_network_data(
     The instances Firms are created in the createFirm function.
     """
     # Load firm table
-    firm_table = pd.read_csv(filepath_firm_table, dtype={'adminunit': str})
+    firm_table = pd.read_csv(filepath_firm_table, dtype={'region': str})
 
     # Filter out some sectors
     if sectors_to_include != "all":
         firm_table = firm_table[firm_table['sector'].isin(sectors_to_include)]
 
     # Assign firms to closest road nodes
-    selected_admin_units = list(firm_table['adminunit'].unique())
+    selected_regions = list(firm_table['region'].unique())
     logging.info('Select ' + str(firm_table.shape[0]) +
-                 " firms in " + str(len(selected_admin_units)) + ' admin units')
+                 " firms in " + str(len(selected_regions)) + ' regions')
     location_table = gpd.read_file(filepath_location_table)
-    cond_selected_admin_units = location_table['admin_code'].isin(selected_admin_units)
-    dic_admin_unit_to_points = location_table[cond_selected_admin_units].set_index('admin_code')['geometry'].to_dict()
+    cond_selected_regions = location_table['region'].isin(selected_regions)
+    dic_region_to_points = location_table[cond_selected_regions].set_index('region')['geometry'].to_dict()
     road_nodes = transport_nodes[transport_nodes['type'] == "roads"]
-    dic_admin_unit_to_road_node_id = {
-        admin_unit: road_nodes.loc[get_index_closest_point(point, road_nodes), 'id']
-        for admin_unit, point in dic_admin_unit_to_points.items()
+    dic_region_to_road_node_id = {
+        region: road_nodes.loc[get_index_closest_point(point, road_nodes), 'id']
+        for region, point in dic_region_to_points.items()
     }
-    firm_table['odpoint'] = firm_table['adminunit'].map(dic_admin_unit_to_road_node_id)
+    firm_table['od_point'] = firm_table['region'].map(dic_region_to_road_node_id)
 
     # Information required by the createFirms function
     # add sector type
@@ -388,12 +391,12 @@ def define_firms_from_network_data(
     sector_to_sector_type = sector_table.set_index('sector')['type']
     firm_table['sector_type'] = firm_table['sector'].map(sector_to_sector_type)
     # add long lat
-    od_point_table = road_nodes[road_nodes['id'].isin(firm_table['odpoint'])].copy()
+    od_point_table = road_nodes[road_nodes['id'].isin(firm_table['od_point'])].copy()
     od_point_table['long'] = od_point_table.geometry.x
     od_point_table['lat'] = od_point_table.geometry.y
     road_node_id_to_longlat = od_point_table.set_index('id')[['long', 'lat']]
-    firm_table['long'] = firm_table['odpoint'].map(road_node_id_to_longlat['long'])
-    firm_table['lat'] = firm_table['odpoint'].map(road_node_id_to_longlat['lat'])
+    firm_table['long'] = firm_table['od_point'].map(road_node_id_to_longlat['long'])
+    firm_table['lat'] = firm_table['od_point'].map(road_node_id_to_longlat['lat'])
     # add importance
     firm_table['importance'] = 10
 
@@ -401,7 +404,7 @@ def define_firms_from_network_data(
 
 
 def load_technical_coefficients(
-        firm_list: FirmList,
+        firms: Firms,
         filepath_tech_coef: str,
         io_cutoff: float = 0.1,
         import_sector_name: str | None = "IMP"
@@ -410,7 +413,7 @@ def load_technical_coefficients(
 
     Parameters
     ----------
-    firm_list : pandas.DataFrame
+    firms : pandas.DataFrame
         the list of Firms generated from the createFirms function
 
     filepath_tech_coef : string
@@ -433,7 +436,7 @@ def load_technical_coefficients(
 
     # We select only the technical coefficient between sectors that are actually represented in the economy
     # Note that, when filtering out small sector-district combination, some sector may not be present.
-    sector_present = list(set([firm.sector for firm in firm_list]))
+    sector_present = list(set([firm.sector for firm in firms.values()]))
     if import_sector_name:
         tech_coef_matrix = tech_coef_matrix.loc[sector_present + [import_sector_name], sector_present]
     else:
@@ -447,14 +450,14 @@ def load_technical_coefficients(
             + " Check this sector or reduce the io_coef cutoff")
 
     # Load input mix
-    for firm in firm_list:
+    for firm in firms.values():
         firm.input_mix = tech_coef_matrix.loc[tech_coef_matrix.loc[:, firm.sector] != 0, firm.sector].to_dict()
 
     logging.info('Technical coefficient loaded. io_cutoff: ' + str(io_cutoff))
 
 
 def load_mrio_tech_coefs(
-        firm_list: FirmList,
+        firms: Firms,
         filepath_mrio: Path,
         io_cutoff: float
 ):
@@ -471,8 +474,8 @@ def load_mrio_tech_coefs(
     # tech_coef_matrix = mrio[region_sectors] / matrix_output
     tech_coef_dict = mrio.get_tech_coef_dict(threshold=io_cutoff)
 
-    # Load into firm_list
-    for firm in firm_list:
+    # Load into firms
+    for firm in firms.values():
         if firm.sector in tech_coef_dict.keys():
             firm.input_mix = tech_coef_dict[firm.sector]
         else:
@@ -482,7 +485,7 @@ def load_mrio_tech_coefs(
 
 
 def calibrate_input_mix(
-        firm_list: FirmList,
+        firms: Firms,
         firm_table: pd.DataFrame,
         sector_table: pd.DataFrame,
         filepath_transaction_table: str
@@ -520,13 +523,13 @@ def calibrate_input_mix(
     input_mix = transaction_table.groupby('buyer_id').apply(get_input_mix, firm_table)
 
     # Load input mix into Firms
-    for firm in firm_list:
+    for firm in firms.values():
         firm.input_mix = input_mix[firm.pid]
 
-    return firm_list, transaction_table
+    return firms, transaction_table
 
 
-def load_inventories(firm_list: list, inventory_duration_target: int | str,
+def load_inventories(firms: Firms, inventory_duration_target: int | str, given_time_unit: str, model_time_unit: str,
                      filepath_inventory_duration_targets: Path, extra_inventory_target: int | None = None,
                      inputs_with_extra_inventories: None | list = None,
                      buying_sectors_with_extra_inventories: None | list = None,
@@ -545,8 +548,10 @@ def load_inventories(firm_list: list, inventory_duration_target: int | str,
 
     Parameters
     ----------
+    model_time_unit
+    given_time_unit
     filepath_inventory_duration_targets
-    firm_list : pandas.DataFrame
+    firms : pandas.DataFrame
         the list of Firms generated from the createFirms function
 
     inventory_duration_target : "inputed" or integer
@@ -566,19 +571,25 @@ def load_inventories(firm_list: list, inventory_duration_target: int | str,
     min_inventory : int
         Set a minimum inventory level
     """
+    time_unit_in_days = {
+        "day": 1,
+        "week": 7,
+        "month": 30,
+        "year": 365
+    }
+    time_adjustment = time_unit_in_days[given_time_unit] / time_unit_in_days[model_time_unit]
 
     if isinstance(inventory_duration_target, int):
-        for firm in firm_list:
-            firm.inventory_duration_target = {input_sector: inventory_duration_target for input_sector in
-                                              firm.input_mix.keys()}
+        for firm in firms.values():
+            firm.inventory_duration_target = {input_sector: time_adjustment * inventory_duration_target
+                                              for input_sector in firm.input_mix.keys()}
 
     elif inventory_duration_target == 'inputed':
-        dic_sector_inventory = \
-            pd.read_csv(filepath_inventory_duration_targets).set_index(['buying_sector', 'input_sector'])[
-                'inventory_duration_target'].to_dict()
-        for firm in firm_list:
+        dic_sector_inventory = pd.read_csv(filepath_inventory_duration_targets) \
+                               .set_index(['buying_sector', 'input_sector'])['inventory_duration_target'].to_dict()
+        for firm in firms.values():
             firm.inventory_duration_target = {
-                input_sector: dic_sector_inventory[(firm.sector, input_sector)]
+                input_sector: time_adjustment * dic_sector_inventory[(firm.sector, input_sector)]
                 for input_sector in firm.input_mix.keys()
             }
 
@@ -587,7 +598,7 @@ def load_inventories(firm_list: list, inventory_duration_target: int | str,
 
     # if random_mean_sd:
     #     if random_draw:
-    #         for firm in firm_list:
+    #         for firm in firms:
     #             firm.inventory_duration_target = {}
     #             for input_sector in firm.input_mix.keys():
     #                 mean = dic_sector_inventory[(firm.sector, input_sector)]['mean']
@@ -600,17 +611,17 @@ def load_inventories(firm_list: list, inventory_duration_target: int | str,
     # Add extra inventories if needed. Not the best programming maybe...
     if isinstance(extra_inventory_target, int):
         if isinstance(inputs_with_extra_inventories, list) and (buying_sectors_with_extra_inventories == 'all'):
-            for firm in firm_list:
+            for firm in firms.values():
                 firm.inventory_duration_target = {
-                    input_sector: firm.inventory_duration_target[input_sector] + extra_inventory_target
+                    input_sector: firm.inventory_duration_target[input_sector] + extra_inventory_target*time_adjustment
                     if (input_sector in inputs_with_extra_inventories) else firm.inventory_duration_target[input_sector]
                     for input_sector in firm.input_mix.keys()
                 }
 
         elif (inputs_with_extra_inventories == 'all') and isinstance(buying_sectors_with_extra_inventories, list):
-            for firm in firm_list:
+            for firm in firms.values():
                 firm.inventory_duration_target = {
-                    input_sector: firm.inventory_duration_target[input_sector] + extra_inventory_target
+                    input_sector: firm.inventory_duration_target[input_sector] + extra_inventory_target*time_adjustment
                     if (firm.sector in buying_sectors_with_extra_inventories) else firm.inventory_duration_target[
                         input_sector]
                     for input_sector in firm.input_mix.keys()
@@ -618,9 +629,9 @@ def load_inventories(firm_list: list, inventory_duration_target: int | str,
 
         elif isinstance(inputs_with_extra_inventories, list) and isinstance(buying_sectors_with_extra_inventories,
                                                                             list):
-            for firm in firm_list:
+            for firm in firms.values():
                 firm.inventory_duration_target = {
-                    input_sector: firm.inventory_duration_target[input_sector] + extra_inventory_target
+                    input_sector: firm.inventory_duration_target[input_sector] + extra_inventory_target*time_adjustment
                     if ((input_sector in inputs_with_extra_inventories) and (
                             firm.sector in buying_sectors_with_extra_inventories)) else
                     firm.inventory_duration_target[input_sector]
@@ -628,9 +639,9 @@ def load_inventories(firm_list: list, inventory_duration_target: int | str,
                 }
 
         elif (inputs_with_extra_inventories == 'all') and (buying_sectors_with_extra_inventories == 'all'):
-            for firm in firm_list:
+            for firm in firms.values():
                 firm.inventory_duration_target = {
-                    input_sector: firm.inventory_duration_target[input_sector] + extra_inventory_target
+                    input_sector: firm.inventory_duration_target[input_sector] + extra_inventory_target*time_adjustment
                     for input_sector in firm.input_mix.keys()
                 }
 
@@ -639,9 +650,9 @@ def load_inventories(firm_list: list, inventory_duration_target: int | str,
                              "'buying_sectors_with_extra_inventories'. Should be a list of string or 'all'")
 
     if min_inventory > 0:
-        for firm in firm_list:
+        for firm in firms.values():
             firm.inventory_duration_target = {
-                input_sector: max(min_inventory, inventory)
+                input_sector: max(min_inventory * time_adjustment, inventory)
                 for input_sector, inventory in firm.inventory_duration_target.items()
             }
 

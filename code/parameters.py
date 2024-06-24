@@ -9,10 +9,12 @@ from dataclasses import dataclass
 
 from code import paths
 
+EPSILON = 1e-6
+import_code = "IMP"
 
 @dataclass
 class Parameters:
-    region: str
+    scope: str
     export_details: dict
     specific_edges_to_monitor: dict
     logging_level: str
@@ -42,7 +44,7 @@ class Parameters:
     extra_inventory_target: None | int
     inputs_with_extra_inventories: str | list
     buying_sectors_with_extra_inventories: str | list
-    reactivity_rate: float
+    inventory_restoration_time: float
     utilization_rate: float
     io_cutoff: float
     rationing_mode: str
@@ -50,8 +52,9 @@ class Parameters:
     weight_localization_firm: float
     weight_localization_household: float
     force_local_retailer: bool
-    disruption_description: dict
+    events: list
     time_resolution: str
+    inventory_duration_target_unit: str
     nodeedge_tested_topn: None | int
     nodeedge_tested_skipn: None | int
     model_IO: bool
@@ -61,13 +64,16 @@ class Parameters:
     route_optimization_weight: str
     cost_repercussion_mode: str
     price_increase_threshold: float
-    account_capacity: bool
+    capacity_constraint: bool
     transport_cost_noise_level: float
     firm_sampling_mode: str
     filepaths: dict
     export_files: bool
     simulation_type: str
+    adaptive_inventories: bool
+    adaptive_supplier_weight: bool
     transport_cost_data: dict
+    capital_to_value_added_ratio: float
     export_folder: Path | str = ""
 
     @classmethod
@@ -77,14 +83,14 @@ class Parameters:
         return cls(**default_parameters)
 
     @classmethod
-    def load_parameters(cls, parameter_folder: Path, region: str):
+    def load_parameters(cls, parameter_folder: Path, scope: str):
         # Load default and user_defined parameters
         with open(parameter_folder / "default.yaml", 'r') as f:
             parameters = yaml.safe_load(f)
-        user_defined_parameter_filepath = parameter_folder / f"user_defined_{region}.yaml"
+        user_defined_parameter_filepath = parameter_folder / f"user_defined_{scope}.yaml"
         if os.path.exists(user_defined_parameter_filepath):
-            logging.info(f'User defined parameter file found for {region}')
-            with open(parameter_folder / f"user_defined_{region}.yaml", 'r') as f:
+            logging.info(f'User defined parameter file found for {scope}')
+            with open(parameter_folder / f"user_defined_{scope}.yaml", 'r') as f:
                 overriding_parameters = yaml.safe_load(f)
             # Merge both
             for key, val in parameters.items():
@@ -94,10 +100,10 @@ class Parameters:
                     else:
                         parameters[key] = overriding_parameters[key]
         else:
-            logging.info(f'No user defined parameter file found named user_defined_{region}.yaml, '
+            logging.info(f'No user defined parameter file found named user_defined_{scope}.yaml, '
                          f'using default parameters')
-        # Load region
-        parameters['region'] = region
+        # Load scope
+        parameters['scope'] = scope
         # Create parameters
         parameters = cls(**parameters)
         # Adjust filepath
@@ -116,21 +122,29 @@ class Parameters:
             if key in overriding_dict:
                 default_dict[key] = overriding_dict[key]
 
+    def get_full_filepath(self, filepath):
+        return paths.INPUT_FOLDER / self.scope / filepath
+
     def build_full_filepath(self):
         for key, val in self.filepaths.items():
             if val == "None":
                 self.filepaths[key] = None
             else:
-                self.filepaths[key] = paths.INPUT_FOLDER / self.region / val
+                self.filepaths[key] = self.get_full_filepath(val)
+        if self.events:
+            for event in self.events:
+                for key, item in event.items():
+                    if "filepath" in key:
+                        event[key] = self.get_full_filepath(item)
 
     def export(self):
         with open(self.export_folder / 'parameters.yaml', 'w') as file:
             yaml.dump(self, file)
 
     def create_export_folder(self):
-        if not os.path.isdir(paths.OUTPUT_FOLDER / self.region):
-            os.mkdir(paths.OUTPUT_FOLDER / self.region)
-        self.export_folder = paths.OUTPUT_FOLDER / self.region / datetime.now().strftime('%Y%m%d_%H%M%S')
+        if not os.path.isdir(paths.OUTPUT_FOLDER / self.scope):
+            os.mkdir(paths.OUTPUT_FOLDER / self.scope)
+        self.export_folder = paths.OUTPUT_FOLDER / self.scope / datetime.now().strftime('%Y%m%d_%H%M%S')
         os.mkdir(self.export_folder)
 
     def adjust_logging_behavior(self):

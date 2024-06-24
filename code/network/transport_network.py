@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 import geopandas
 import networkx as nx
 import numpy as np
@@ -5,6 +7,9 @@ import pandas as pd
 import logging
 
 from code.network.route import Route
+
+if TYPE_CHECKING:
+    from code.network.commercial_link import CommercialLink
 
 
 class TransportNetwork(nx.Graph):
@@ -57,14 +62,15 @@ class TransportNetwork(nx.Graph):
         self[end_ids[0]][end_ids[1]]['disruption_duration'] = 0
         self[end_ids[0]][end_ids[1]]['current_load'] = 0
         self[end_ids[0]][end_ids[1]]['overused'] = False
+        self[end_ids[0]][end_ids[1]]['current_capacity'] = self[end_ids[0]][end_ids[1]]['capacity']
 
     def define_weights(self, route_optimization_weight):
-        logging.info('Generating shortest-path weights on transport network')
+        logging.debug('Generating shortest-path weights on transport network')
         for edge in self.edges:
             self[edge[0]][edge[1]]['weight'] = self[edge[0]][edge[1]][route_optimization_weight]
             self[edge[0]][edge[1]]['capacity_weight'] = self[edge[0]][edge[1]][route_optimization_weight]
 
-    def locate_firms_on_nodes(self, firm_list, transport_nodes):
+    def locate_firms_on_nodes(self, firms, transport_nodes):
         '''The nodes of the transport network stores the list of firms located there
         using the attribute "firms_there".
         There can be several firms in one node.
@@ -78,11 +84,11 @@ class TransportNetwork(nx.Graph):
         for node_id in self.nodes:
             self._node[node_id]['firms_there'] = []
         # Locate firms
-        for firm in firm_list:
-            self._node[firm.odpoint]['firms_there'].append(firm.pid)
-            transport_nodes.loc[transport_nodes['id'] == firm.odpoint, "firms_there"] += (',' + str(firm.pid))
+        for firm in firms.values():
+            self._node[firm.od_point]['firms_there'].append(firm.pid)
+            transport_nodes.loc[transport_nodes['id'] == firm.od_point, "firms_there"] += (',' + str(firm.pid))
 
-    def locate_households_on_nodes(self, household_list, transport_nodes):
+    def locate_households_on_nodes(self, households, transport_nodes):
         '''The nodes of the transport network stores the list of households located there
         using the attribute "household_there".
         There can only be one householod in one node.
@@ -92,9 +98,9 @@ class TransportNetwork(nx.Graph):
         '''
         # Reinitialize
         transport_nodes['household_there'] = None
-        for household in household_list:
-            self._node[household.odpoint]['household_there'] = household.pid
-            transport_nodes.loc[transport_nodes['id'] == household.odpoint, "household_there"] = household.pid
+        for pid, household in households.items():
+            self._node[household.od_point]['household_there'] = pid
+            transport_nodes.loc[transport_nodes['id'] == household.od_point, "household_there"] = pid
 
     def provide_shortest_route(self, origin_node: int, destination_node: int,
                                route_weight: str, noise_level: float) -> Route or None:
@@ -117,8 +123,6 @@ class TransportNetwork(nx.Graph):
                 sp = nx.shortest_path(self, origin_node, destination_node, weight=route_weight + '_noise')
             else:
                 sp = nx.shortest_path(self, origin_node, destination_node, weight=route_weight)
-            # route = [[(sp[0],)]] + [[(sp[i], sp[i + 1]), (sp[i + 1],)] for i in range(0, len(sp) - 1)]
-            # route = [item for item_tuple in route for item in item_tuple]
             route = Route(sp, self)
             return route
 
@@ -154,14 +158,10 @@ class TransportNetwork(nx.Graph):
                                  ' gets disrupted for ' + str(disruption['duration']) + ' time steps')
                     self[edge[0]][edge[1]]['disruption_duration'] = disruption['duration']
 
-    def disrupt_edges(self, edge_id_duration_reduction_dict: dict):
-        for edge in self.edges:
-            edge_id = self[edge[0]][edge[1]]['id']
-            if edge_id in list(edge_id_duration_reduction_dict.keys()):
-                logging.info('Road edge ' + str(edge_id) +
-                             ' gets disrupted for ' + str(edge_id_duration_reduction_dict[edge_id]['duration']) +
-                             ' time steps')
-                self[edge[0]][edge[1]]['disruption_duration'] = edge_id_duration_reduction_dict[edge_id]['duration']
+    def disrupt_one_edge(self, edge, capacity_reduction: float, duration: int):
+        logging.info(f"Road edge {self[edge[0]][edge[1]]['id']} gets disrupted for {duration} time steps, "
+                     f"capacity reduction is {capacity_reduction}")
+        self[edge[0]][edge[1]]['disruption_duration'] = capacity_reduction
 
     def update_road_disruption_state(self):
         """
@@ -175,7 +175,7 @@ class TransportNetwork(nx.Graph):
             if self[edge[0]][edge[1]]['disruption_duration'] > 0:
                 self[edge[0]][edge[1]]['disruption_duration'] -= 1
 
-    def transport_shipment(self, commercial_link):
+    def transport_shipment(self, commercial_link: "CommercialLink", capacity_constraint: bool):
         # Select the route to transport the shimpment: main or alternative
         if commercial_link.current_route == 'main':
             route_to_take = commercial_link.route
@@ -208,9 +208,9 @@ class TransportNetwork(nx.Graph):
                 }
 
         # Propagate the load
-        self.update_load_on_route(route_to_take, commercial_link.delivery_in_tons)
+        self.update_load_on_route(route_to_take, commercial_link.delivery_in_tons, capacity_constraint)
 
-    def update_load_on_route(self, route: "Route", load):
+    def update_load_on_route(self, route: "Route", load: float, capacity_constraint: bool = False):
         '''Affect a load to a route
 
         The current_load attribute of each edge in the route will be increased by the new load.
@@ -222,17 +222,19 @@ class TransportNetwork(nx.Graph):
         # edges_along_the_route = [item for item in route if len(item) == 2]
         for edge in route.transport_edges:
             # Add the load
-            if self[edge[0]][edge[1]]['overused']:
-                logging.warning(f"Edge {edge} ({self[edge[0]][edge[1]]['type']}) is over capacity and got selected")
+            if capacity_constraint:
+                if self[edge[0]][edge[1]]['overused']:
+                    logging.warning(f"Edge {edge} ({self[edge[0]][edge[1]]['type']}) is over capacity and got selected")
             self[edge[0]][edge[1]]['current_load'] += load
             # If it exceeds capacity, add the capacity_burden to both the mode_weight and the capacity_weight
-            if ~self[edge[0]][edge[1]]['overused'] and \
-                    (self[edge[0]][edge[1]]['current_load'] > self[edge[0]][edge[1]]['capacity']):
-                logging.info(f"Edge {edge} ({self[edge[0]][edge[1]]['type']}) "
-                             f"has exceeded its capacity. Current load is {self[edge[0]][edge[1]]['current_load']}, "
-                             f"capacity is ({self[edge[0]][edge[1]]['capacity']})")
-                self[edge[0]][edge[1]]['overused'] = True
-                self[edge[0]][edge[1]]["capacity_weight"] += capacity_burden
+            if capacity_constraint:
+                if ~self[edge[0]][edge[1]]['overused'] and \
+                        (self[edge[0]][edge[1]]['current_load'] > self[edge[0]][edge[1]]['capacity']):
+                    logging.info(f"Edge {edge} ({self[edge[0]][edge[1]]['type']}) "
+                                 f"has exceeded its capacity. Current load is {self[edge[0]][edge[1]]['current_load']}, "
+                                 f"capacity is ({self[edge[0]][edge[1]]['capacity']})")
+                    self[edge[0]][edge[1]]['overused'] = True
+                    self[edge[0]][edge[1]]["capacity_weight"] += capacity_burden
 
     def reset_current_loads(self, route_optimization_weight):
         """

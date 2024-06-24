@@ -20,8 +20,8 @@ filepaths:
   "sector_table": "National/sector_table.csv"
   "tech_coef": "National/tech_coef.csv"
   "inventory_duration_targets": "National/inventory_targets.csv"
-  # District data
-  "admin_unit_data": "Subnational/admin_unit_data.geojson"
+  # Region data
+  "region_data": "Subnational/region_data.geojson"
   # Trade
   "imports": "Trade/import_table.csv"
   "exports": "Trade/export_table.csv"
@@ -190,12 +190,12 @@ combine_sector_cutoff: "and"
 districts_to_include: "all"
 
 # Population density cutoff, in capita / km2
-# Adminunit below this cutoff are eliminated for demand odpoint
+# Adminunit below this cutoff are eliminated for demand od_point
 # If set to 0, deactivate this filter
 pop_density_cutoff: 0
 
 # Population cutoff
-# Adminunit below this cutoff are eliminated for demand odpoint
+# Adminunit below this cutoff are eliminated for demand od_point
 # If set to 0, deactivate this filter
 pop_cutoff: 0
 
@@ -216,7 +216,7 @@ countries_to_include: "all"
 # "accepted_multimodal_links": list of string that should correspond to the attribute "multimodes" of the multimodal_edges input file
 #logistics_modes:
 #  'domestic':
-#    "accepted_modes": ['roads']
+#    "accepted_modes": ['roads'rebuilding_sectors]
 #    "accepted_multimodal_links": []
 #  'international':
 #    "accepted_modes": ['roads', 'maritime', 'multimodal']
@@ -257,6 +257,9 @@ explicit_service_firm: True
 # - 'inputed': values are provided in an external file, which a specific duration target to each input-sector, buying-firm-sector combination
 inventory_duration_target: 2
 
+# Units of the duration target, either given as int in inventory_duration_target, or in the input file
+inventory_duration_target_unit: week
+
 # Extend the inventory duration targets of all firms, uniformly
 # Possible values:
 # - integer, which represents the number of time steps to add
@@ -279,7 +282,11 @@ buying_sectors_with_extra_inventories: "all"
 # Determines the speed at which firms try to reach their inventory duration target
 # See Henriet, Hallegatte, and Tabourier 2011 for the formulas
 # A too large value leads to dynamic instabilities, called Bullwhip effect
-reactivity_rate: 0.1
+inventory_restoration_time: 4
+
+# In case firms have more than one supplier for an input, determines whether to adapt the order to each supplier 
+# based on how well they covered the previous order
+adaptive_supplier_weight: False
 
 # Determines the initial utilization rate of firms
 # It is used to determine, based on the production of the input-output equilibrium, the production capacity of the firms
@@ -298,7 +305,7 @@ io_cutoff: 0.01
 # Possible values are:
 # - 'equal': all clients are equally rationned in proportion of their order
 # - 'household_first': if the firm sells to both households and other firms, then households are served first
-rationing_mode: "household_first"
+rationing_mode: "equal"
 
 # Set the number of supplier that firms have for each type of input
 # Possible values are:
@@ -325,22 +332,8 @@ force_local_retailer: True
 # The type of simulation to run
 simulation_type: initial_state
 
-# Determines the type of disruption analysis to be done : TODO to review
-# Possible values are:
-# - None: no disruption is made. The model is only initialized at t=0, and stops.
-# Metrics describing the initial state are exported.
-# - a dic: {
-#       "disrupt_nodes_or_edges": "nodes" or "edges",
-#        "nodeedge_tested": object
-#   }
-#   - "disrupt_nodes_or_edges" determines whether nodes or edges are to be dirupted.
-#   - "nodeedge_tested" determines" what is disrupted. Possible values are:
-#       - integer: a single node or edge ID. The time series are exported.
-#       - a list of node/edge ids. Criticality exports.
-#       - "all": test all nodes or edges, ordered by their ID. Criticality exports.
-#       - a path to a list of node or edges. Criticality exports.
-#   - "duration" determines" the duration of a disruption
-disruption_description: None
+# Determines the disruptive events to model TODO elaborate
+events: null
 
 # What time interval does a time step represents
 # Possible values are: 'day', 'week', 'month', 'year'
@@ -366,6 +359,7 @@ model_IO: False
 
 # Provides default simulation duration Tfinal for different disruption duration
 duration_dic:
+  0: 10
   1: 4
   2: 8
   3: 11
@@ -394,17 +388,21 @@ cost_repercussion_mode: "type1"
 # the product
 price_increase_threshold: 2
 
+# If False, firms try to restore their initial (=equilibrium) inventories
+# If True, they reassess their inventory targets based on current orders
+adaptive_inventories: False
+
 # Whether to account for transport network capacity
 # If True, then each shipment adds a "load" on transport edges
 # it the load exceed the capacity, then the edges cannot be used anymore
-account_capacity: True
+capacity_constraint: True
 
 # Level of the noise to be added to the 'route_optimization_weight' attributes of the transport edges
 # when agents choose the lowest cost route. If 0, then no noise is added.
 transport_cost_noise_level: 0
 
 # How to create firms from economic data
-# - "economic_adminunit_data" is a new method developped for Cambodia
+# - "economic_region_data" is a new method developped for Cambodia
 #   We have econmic data for each sector at the commune level
 #   We use a cutoff value per sector, over which we create a firm
 #   That way we select the commune, hence the od points
@@ -414,4 +412,8 @@ transport_cost_noise_level: 0
 #   We have precalculated the relative importance of each district for each sector
 #   We use a single cutoff values (in fact one for agriculture, and another for the other sectors)
 #   that is applied to these relative importance
-firm_sampling_mode: "economic_adminunit_data"
+firm_sampling_mode: "economic_region_data"
+
+
+# Define how much built capital firms have given their level of output
+capital_to_value_added_ratio: 3

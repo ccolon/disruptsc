@@ -10,6 +10,8 @@ from code.network.sc_network import ScNetwork
 
 class Simulation(object):
     def __init__(self, simulation_type: str):
+        if simulation_type not in ["initial_state", "event"]:
+            raise ValueError("Simulation type should be initial_state or event")
         self.type = simulation_type
         self.firm_data = []
         self.country_data = []
@@ -45,17 +47,17 @@ class Simulation(object):
             logging.info(f'Exporting edgelist to {export_folder}')
             sc_network.generate_edge_list().to_csv(export_folder / "sc_network_edgelist.csv")
 
-        elif self.type == "disruption":
+        elif self.type == "event":
             # export loss time series for households
             logging.info(f'Exporting loss time series of households per region sector to {export_folder}')
             household_result_table = pd.DataFrame(self.household_data)
             loss_per_region_sector_time = household_result_table.groupby('household').apply(
                 self.summarize_results_one_household).reset_index().drop(columns=['level_1'])
             household_table['id'] = 'hh_' + household_table['id'].astype(str)
-            loss_per_region_sector_time['admin_code'] = loss_per_region_sector_time['household'].map(
-                household_table.set_index('id')['admin_code'])
+            loss_per_region_sector_time['region'] = loss_per_region_sector_time['household'].map(
+                household_table.set_index('id')['region'])
             loss_per_region_sector_time = \
-                loss_per_region_sector_time.groupby(['admin_code', 'sector', 'time_step'], as_index=False)['loss'].sum()
+                loss_per_region_sector_time.groupby(['region', 'sector', 'time_step'], as_index=False)['loss'].sum()
             loss_per_region_sector_time.to_csv(export_folder / "loss_per_region_sector_time.csv", index=False)
             household_loss = loss_per_region_sector_time['loss'].sum()
             logging.info(f'Exporting loss time series of countries to {export_folder}')

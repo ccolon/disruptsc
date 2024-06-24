@@ -1,46 +1,105 @@
 import random
 from typing import TYPE_CHECKING
 import logging
-from collections import UserList
 
-import numpy as np
 import pandas
-
-from code.model.basic_functions import add_or_increment_dict_key, generate_weights, rescale_values, \
-    calculate_distance_between_agents
 
 if TYPE_CHECKING:
     from code.network.sc_network import ScNetwork
     from code.network.transport_network import TransportNetwork
-    from code.agents.firm import FirmList
+    from code.network.commercial_link import CommercialLink
+
+
+EPSILON = 1e-6
 
 
 class Agent(object):
-    def __init__(self, agent_type, pid, odpoint=0, name=None,
+    def __init__(self, agent_type, pid, od_point=0, name=None,
                  long=None, lat=None):
         self.agent_type = agent_type
         self.pid = pid
-        self.odpoint = odpoint
+        self.od_point = od_point
         self.name = name
         self.long = long
         self.lat = lat
         self.usd_per_ton = None
 
     def id_str(self):
-        return f"{self.agent_type} {self.pid} located {self.odpoint}".capitalize()
+        return f"{self.agent_type} {self.pid} located {self.od_point}".capitalize()
+
+    def receive_shipment_and_pay(self, commercial_link: "CommercialLink", transport_network: "TransportNetwork"):
+        """Firm look for shipments in the transport nodes it is located
+        It takes those which correspond to the commercial link
+        It receives them, thereby removing them from the transport network
+        Then it pays the corresponding supplier along the commecial link
+        """
+        # Look at available shipment
+        available_shipments = transport_network._node[self.od_point]['shipments']
+        if commercial_link.pid in available_shipments.keys():
+            # Identify shipment
+            shipment = available_shipments[commercial_link.pid]
+            # Get quantity and price
+            quantity_delivered = shipment['quantity']
+            price = shipment['price']
+            # Remove shipment from transport
+            transport_network.remove_shipment(commercial_link)
+            # Make payment
+            commercial_link.payment = quantity_delivered * price
+            # If firm, add to inventory
+            if self.agent_type == 'firm':
+                self.inventory[commercial_link.product] += quantity_delivered
+
+        # If none is available and if there was order, log it
+        else:
+            if (commercial_link.delivery > 0) and (commercial_link.order > 0):
+                logging.info(f"{self.id_str()} - no shipment available for commercial link {commercial_link.pid} "
+                             f"({commercial_link.delivery}) of {commercial_link.product})")
+            quantity_delivered = 0
+            price = 1
+
+        self.update_indicator(quantity_delivered, price, commercial_link)
+
+    def receive_products_and_pay(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
+                                 sectors_no_transport_network: list):
+        # reset variable
+        self.reset_indicators()
+
+        # for each incoming link, receive product and pay
+        # the way differs between service and shipment
+        for edge in sc_network.in_edges(self):
+            if sc_network[edge[0]][self]['object'].product_type in sectors_no_transport_network:
+                self.receive_service_and_pay(sc_network[edge[0]][self]['object'])
+            else:
+                self.receive_shipment_and_pay(sc_network[edge[0]][self]['object'], transport_network)
+
+    def receive_service_and_pay(self, commercial_link):
+        # Always available, same price
+        quantity_delivered = commercial_link.delivery
+        commercial_link.payment = quantity_delivered * commercial_link.price
+        # Update indicator
+        self.update_indicator(quantity_delivered, commercial_link.price, commercial_link)
+
+    def update_indicator(self, quantity_delivered: float, price: float, commercial_link: "CommercialLink"):
+        """When receiving product, agents update some internal variables
+        """
+        # Log if quantity received differs from what it was supposed to be
+        if abs(commercial_link.delivery - quantity_delivered) > EPSILON:
+            logging.debug(
+                f"{self.id_str()} - Quantity delivered by {commercial_link.supplier_id} is {quantity_delivered};"
+                f" It was supposed to be {commercial_link.delivery}.")
 
     def choose_initial_routes(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
-                              logistic_modes: str | pandas.DataFrame, account_capacity: bool,
+                              logistic_modes: str | pandas.DataFrame, capacity_constraint: bool,
                               transport_cost_noise_level: float, monetary_unit_flow: str):
         for edge in sc_network.out_edges(self):
-            if edge[1].pid == -1:  # we do not create route for households
+            if edge[1].pid == -1:  # we do not create route for households if single representative agent
                 continue
-            elif edge[1].odpoint == -1:  # we do not create route for service firms if explicit_service_firms = False
+            elif edge[1].od_point == -1:  # we do not create route for service firms if explicit_service_firms = False
                 continue
             else:
                 # Get the id of the origin and destination node
-                origin_node = self.odpoint
-                destination_node = edge[1].odpoint
+                origin_node = self.od_point
+                destination_node = edge[1].od_point
                 if logistic_modes == "specific":
                     cond_from, cond_to = self.get_transport_cond(edge, logistic_modes)
                     logistic_modes = logistic_modes.loc[cond_from & cond_to, "transport_mode"].iloc[0]
@@ -50,13 +109,13 @@ class Agent(object):
                     transport_network=transport_network,
                     origin_node=origin_node,
                     destination_node=destination_node,
-                    account_capacity=account_capacity,
+                    capacity_constraint=capacity_constraint,
                     transport_cost_noise_level=transport_cost_noise_level,
                     accepted_logistics_modes=logistic_modes
                 )
-                # print(str(self.pid)+" located "+str(self.odpoint)+": I choose this transport mode "+
+                # print(str(self.pid)+" located "+str(self.od_point)+": I choose this transport mode "+
                 #     str(transport_network.give_route_mode(route))+ " to connect to "+
-                #     str(edge[1].pid)+" located "+str(edge[1].odpoint))
+                #     str(edge[1].pid)+" located "+str(edge[1].od_point))
                 # Store it into commercial link object
                 sc_network[self][edge[1]]['object'].store_route_information(
                     route=route,
@@ -64,7 +123,7 @@ class Agent(object):
                     main_or_alternative="main"
                 )
 
-                if account_capacity:
+                if capacity_constraint:
                     self.update_transport_load(edge, monetary_unit_flow, route, sc_network, transport_network)
 
     def get_transport_cond(self, edge, transport_modes):
@@ -92,7 +151,7 @@ class Agent(object):
         transport_network.update_load_on_route(route, new_load_in_tons)
 
     def choose_route(self, transport_network: "TransportNetwork", origin_node: int, destination_node: int,
-                     account_capacity: bool, transport_cost_noise_level: float, accepted_logistics_modes: str | list):
+                     capacity_constraint: bool, transport_cost_noise_level: float, accepted_logistics_modes: str | list):
         """
         The agent choose the delivery route
 
@@ -110,7 +169,7 @@ class Agent(object):
 
         transport. So we use this to "force" some flow to take the other routes.
         """
-        if account_capacity:
+        if capacity_constraint:
             weight_considered = "capacity_weight"
         else:
             weight_considered = "weight"
@@ -220,40 +279,87 @@ class Agent(object):
             factor = monetary_unit_factor[monetary_unit]
             return monetary_flow / (usd_per_ton / factor)
 
+    def reset_indicators(self):
+        pass
 
-class AgentList(UserList):  # TODO: should rather define a dictionary, such that FirmList[a_pid] return the Firm object
-    def __init__(self, agent_list: list[Agent]):
-        super().__init__(agent for agent in agent_list if isinstance(agent, Agent))
+
+class Agents(dict):
+    def __init__(self, agent_list=None):
+        super().__init__()
+        if agent_list is not None:
+            for agent in agent_list:
+                self[agent.pid] = agent
+
+    def __setitem__(self, key, value):
+        if not isinstance(value, Agent):
+            raise KeyError("Value must be an Agent")
+        if not hasattr(value, 'pid'):
+            raise ValueError("Value must have a 'pid' attribute")
+        super().__setitem__(key, value)
+
+    def add(self, agent: Agent):
+        if not hasattr(agent, 'pid'):
+            raise ValueError("Object must have a 'pid' attribute")
+        self[agent.pid] = agent
+
+    def __repr__(self):
+        return f"PidDict({super().__repr__()})"
+
+    def sum(self, property_name):
+        total = 0
+        for agent in self.values():
+            if hasattr(agent, property_name):
+                total += getattr(agent, property_name)
+            else:
+                raise AttributeError(f"Agent does not have the property '{property_name}'")
+        return total
+
+    def mean(self, property_name):
+        total = 0
+        count = 0
+        for agent in self.values():
+            if hasattr(agent, property_name):
+                total += getattr(agent, property_name)
+                count += 1
+            else:
+                raise AttributeError(f"Agent does not have the property '{property_name}'")
+        if count == 0:
+            raise ValueError(f"No agents with the property '{property_name}' found.")
+        return total / count
+
+    def get_properties(self, property_name):
+        return {pid: getattr(agent, property_name) for pid, agent in self.items()}
 
     def send_purchase_orders(self, sc_network: "ScNetwork"):
-        for agent in self:
+        for agent in self.values():
             agent.send_purchase_orders(sc_network)
 
     def deliver(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
-                sectors_no_transport_network: list, rationing_mode: str, account_capacity: bool,
+                sectors_no_transport_network: list, rationing_mode: str, capacity_constraint: bool,
                 monetary_units_in_model: str, cost_repercussion_mode: str, price_increase_threshold: float,
                 transport_cost_noise_level: float):
-        for agent in self:
+        for agent in self.values():
             agent.deliver_products(sc_network, transport_network,
                                    sectors_no_transport_network=sectors_no_transport_network,
                                    rationing_mode=rationing_mode, monetary_units_in_model=monetary_units_in_model,
                                    cost_repercussion_mode=cost_repercussion_mode,
-                                   price_increase_threshold=price_increase_threshold, account_capacity=account_capacity,
+                                   price_increase_threshold=price_increase_threshold,
+                                   capacity_constraint=capacity_constraint,
                                    transport_cost_noise_level=transport_cost_noise_level)
 
     def receive_products(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
                          sectors_no_transport_network: list):
-        for agent in self:
+        for agent in self.values():
             agent.receive_products_and_pay(sc_network, transport_network, sectors_no_transport_network)
 
 
 def determine_nb_suppliers(nb_suppliers_per_input: float, max_nb_of_suppliers=None):
-    '''Draw 1 or 2 depending on the 'nb_suppliers_per_input' parameters
+    """Draw 1 or 2 depending on the 'nb_suppliers_per_input' parameters
 
     nb_suppliers_per_input is a float number between 1 and 2
 
     max_nb_of_suppliers: maximum value not to exceed
-    '''
+    """
     if (nb_suppliers_per_input < 1) or (nb_suppliers_per_input > 2):
         raise ValueError("'nb_suppliers_per_input' should be between 1 and 2")
 
@@ -273,104 +379,3 @@ def determine_nb_suppliers(nb_suppliers_per_input: float, max_nb_of_suppliers=No
         nb_suppliers = min(nb_suppliers, max_nb_of_suppliers)
 
     return nb_suppliers
-
-
-
-
-
-def agent_receive_products_and_pay(agent, graph, transport_network, sectors_no_transport_network):
-    # reset variable
-    if agent.agent_type == 'country':
-        agent.extra_spending = 0
-        agent.consumption_loss = 0
-    elif agent.agent_type == 'household':
-        agent.reset_variables()
-
-    # for each incoming link, receive product and pay
-    # the way differs between service and shipment
-    for edge in graph.in_edges(agent):
-        if graph[edge[0]][agent]['object'].product_type in sectors_no_transport_network:
-            agent_receive_service_and_pay(agent, graph[edge[0]][agent]['object'])
-        else:
-            agent_receive_shipment_and_pay(agent, graph[edge[0]][agent]['object'], transport_network)
-
-
-def agent_receive_service_and_pay(agent, commercial_link):
-    # Always available, same price
-    quantity_delivered = commercial_link.delivery
-    commercial_link.payment = quantity_delivered * commercial_link.price
-    if agent.agent_type == 'firm':
-        agent.inventory[commercial_link.product] += quantity_delivered
-    # Update indicator
-    agent_update_indicator(agent, quantity_delivered, commercial_link.price, commercial_link)
-
-
-def agent_update_indicator(agent, quantity_delivered, price, commercial_link):
-    """When receiving product, agents update some internal variables
-
-    Parameters
-    ----------
-    """
-    if agent.agent_type == "country":
-        agent.extra_spending += quantity_delivered * (price - commercial_link.eq_price)
-        agent.consumption_loss += commercial_link.delivery - quantity_delivered
-
-    elif agent.agent_type == 'household':
-        agent.consumption_per_retailer[commercial_link.supplier_id] = quantity_delivered
-        agent.tot_consumption += quantity_delivered
-        agent.spending_per_retailer[commercial_link.supplier_id] = quantity_delivered * price
-        agent.tot_spending += quantity_delivered * price
-        new_extra_spending = quantity_delivered * (price - commercial_link.eq_price)
-        agent.extra_spending += new_extra_spending
-        add_or_increment_dict_key(agent.extra_spending_per_sector, commercial_link.product, new_extra_spending)
-        new_consumption_loss = (agent.purchase_plan[commercial_link.supplier_id] - quantity_delivered) * \
-                               commercial_link.eq_price
-        agent.consumption_loss += new_consumption_loss
-        add_or_increment_dict_key(agent.consumption_loss_per_sector, commercial_link.product, new_consumption_loss)
-        # if consum_loss >= 1e-6:
-        #     logging.debug("Household "+agent.pid+" Firm "+
-        #         str(commercial_link.supplier_id)+" supposed to deliver "+
-        #         str(agent.purchase_plan[commercial_link.supplier_id])+
-        #         " but delivered "+str(quantity_delivered)
-        #     )
-    # Log if quantity received differs from what it was supposed to be
-    if abs(commercial_link.delivery - quantity_delivered) > 1e-6:
-        logging.debug("Agent " + str(agent.pid) + ": quantity delivered by " +
-                      str(commercial_link.supplier_id) + " is " + str(quantity_delivered) +
-                      ". It was supposed to be " + str(commercial_link.delivery) + ".")
-
-
-def agent_receive_shipment_and_pay(agent, commercial_link, transport_network):
-    """Firm look for shipments in the transport nodes it is located
-    It takes those which correspond to the commercial link
-    It receives them, thereby removing them from the transport network
-    Then it pays the corresponding supplier along the commecial link
-    """
-    # Look at available shipment
-    available_shipments = transport_network._node[agent.odpoint]['shipments']
-    if commercial_link.pid in available_shipments.keys():
-        # Identify shipment
-        shipment = available_shipments[commercial_link.pid]
-        # Get quantity and price
-        quantity_delivered = shipment['quantity']
-        price = shipment['price']
-        # Remove shipment from transport
-        transport_network.remove_shipment(commercial_link)
-        # Make payment
-        commercial_link.payment = quantity_delivered * price
-        # If firm, add to inventory
-        if agent.agent_type == 'firm':
-            agent.inventory[commercial_link.product] += quantity_delivered
-
-    # If none is available, log it
-    else:
-        if commercial_link.delivery > 0:
-            logging.info("Agent " + str(agent.pid) +
-                         ": no shipment available for commercial link " +
-                         str(commercial_link.pid) + ' (' + str(
-                commercial_link.delivery) + ' of ' + commercial_link.product + ')'
-                         )
-        quantity_delivered = 0
-        price = 1
-
-    agent_update_indicator(agent, quantity_delivered, price, commercial_link)

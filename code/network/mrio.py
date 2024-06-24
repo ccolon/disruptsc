@@ -53,7 +53,7 @@ class Mrio(pd.DataFrame):
         if region_sectors_in_columns != region_sectors_in_rows:
             logging.info(set(region_sectors_in_columns) - set(region_sectors_in_rows))
             logging.info(set(region_sectors_in_rows) - set(region_sectors_in_columns))
-            raise ValueError('Inconsistencies between region sectors in rows and columns')
+            raise ValueError('Inconsistencies between scope sectors in rows and columns')
 
     def adjust_output(self):
         total_output = self.get_total_output_per_region_sectors()

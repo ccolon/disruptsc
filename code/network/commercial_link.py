@@ -1,6 +1,7 @@
 import pandas as pd
 
 from code.network.route import Route
+from code.parameters import EPSILON
 
 
 class CommercialLink(object):
@@ -38,6 +39,7 @@ class CommercialLink(object):
         self.alternative_route_cost_per_ton = 0
         self.alternative_route_mode = None
         self.price = 1
+        self.fulfilment_rate = 1  # ratio deliver / order
 
     def print_info(self):
         # print("\nCommercial Link from "+str(self.supplier_id)+" to "+str(self.buyer_id)+":")
@@ -57,10 +59,19 @@ class CommercialLink(object):
         self.order = 0  # flows upstream
         self.delivery = 0  # flows downstream
         self.payment = 0  # flows upstream
+        self.fulfilment_rate = 1
         self.alternative_route = []
         self.alternative_route_time_cost = 0
         self.alternative_route_cost_per_ton = 0
         self.price = 1
+
+    def calculate_fulfilment_rate(self):
+        if self.order < EPSILON:
+            self.fulfilment_rate = 1
+        elif self.delivery > self.order + EPSILON:
+            self.fulfilment_rate = 1
+        else:
+            self.fulfilment_rate = self.delivery / self.order
 
     def store_route_information(self, route: Route, transport_mode: str, main_or_alternative: str):
 

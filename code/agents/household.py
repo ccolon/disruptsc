@@ -2,34 +2,35 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from code.model.basic_functions import calculate_distance_between_agents, rescale_values, generate_weights
-from code.agents.agent import determine_nb_suppliers, agent_receive_products_and_pay
+from code.model.basic_functions import calculate_distance_between_agents, rescale_values, generate_weights, \
+    add_or_increment_dict_key
 
 import logging
 
-from code.agents.agent import Agent, AgentList
+from code.agents.agent import Agent, Agents
 from code.network.commercial_link import CommercialLink
 from code.network.mrio import import_label
 
 if TYPE_CHECKING:
     from code.network.sc_network import ScNetwork
-    from code.agents.firm import FirmList
-    from code.agents.country import CountryList
+    from code.agents.firm import Firms
+    from code.agents.country import Countries
 
 
 class Household(Agent):
 
-    def __init__(self, pid, odpoint, name, long, lat, sector_consumption):
+    def __init__(self, pid, od_point, name, long, lat, population, sector_consumption):
         super().__init__(
             agent_type="household",
             name=name,
             pid=pid,
-            odpoint=odpoint,
+            od_point=od_point,
             long=long,
             lat=lat
         )
         # Parameters depending on data
         self.sector_consumption = sector_consumption
+        self.population = population
         # Parameters depending on network
         self.purchase_plan = {}
         self.retailers = {}
@@ -56,6 +57,30 @@ class Household(Agent):
         self.extra_spending_per_sector = {}
         self.consumption_loss_per_sector = {}
 
+    def reset_indicators(self):
+        self.consumption_per_retailer = {}
+        self.tot_consumption = 0
+        self.spending_per_retailer = {}
+        self.tot_spending = 0
+        self.extra_spending = 0
+        self.consumption_loss = 0
+        self.extra_spending_per_sector = {}
+        self.consumption_loss_per_sector = {}
+
+    def update_indicator(self, quantity_delivered: float, price: float, commercial_link: "CommercialLink"):
+        super().update_indicator(quantity_delivered, price, commercial_link)
+        self.consumption_per_retailer[commercial_link.supplier_id] = quantity_delivered
+        self.tot_consumption += quantity_delivered
+        self.spending_per_retailer[commercial_link.supplier_id] = quantity_delivered * price
+        self.tot_spending += quantity_delivered * price
+        new_extra_spending = quantity_delivered * (price - commercial_link.eq_price)
+        self.extra_spending += new_extra_spending
+        add_or_increment_dict_key(self.extra_spending_per_sector, commercial_link.product, new_extra_spending)
+        new_consumption_loss = (self.purchase_plan[commercial_link.supplier_id] - quantity_delivered) \
+                               * commercial_link.eq_price
+        self.consumption_loss += new_consumption_loss
+        add_or_increment_dict_key(self.consumption_loss_per_sector, commercial_link.product, new_consumption_loss)
+
     def initialize_var_on_purchase_plan(self):
         if len(self.purchase_plan) == 0:
             logging.warning("Households initialize variables based on purchase plan, but it is empty.")
@@ -67,7 +92,7 @@ class Household(Agent):
         self.tot_spending = self.tot_consumption
         self.extra_spending_per_sector = {sector: 0 for sector in self.purchase_plan.keys()}
 
-    def identify_suppliers(self, sector: str, firm_list, country_list,
+    def identify_suppliers(self, sector: str, firms: "Firms", countries: "Countries",
                            nb_suppliers_per_input: float, weight_localization: float, force_local: bool,
                            firm_data_type: str):
         if firm_data_type == "mrio":
@@ -79,11 +104,11 @@ class Household(Agent):
 
             else:  # case of firms
                 supplier_type = "firm"
-                potential_supplier_pids = [firm.pid for firm in firm_list if firm.sector == sector]
+                potential_supplier_pids = [pid for pid, firm in firms.items() if firm.sector == sector]
                 if len(potential_supplier_pids) == 0:
                     raise ValueError(f"{self.id_str().capitalize()}: there should be one supplier for {sector}")
                 # Choose based on importance
-                prob_to_be_selected = np.array(rescale_values([firm_list[firm_pid].importance for firm_pid in
+                prob_to_be_selected = np.array(rescale_values([firms[firm_pid].importance for firm_pid in
                                                                potential_supplier_pids]))
                 prob_to_be_selected /= prob_to_be_selected.sum()
                 selected_supplier_ids = np.random.choice(potential_supplier_pids,
@@ -97,13 +122,13 @@ class Household(Agent):
                 # Identify countries as suppliers if the corresponding sector does export
                 importance_threshold = 1e-6
                 potential_suppliers = [
-                    country.pid
-                    for country in country_list
+                    pid
+                    for pid, country in countries.items()
                     if country.supply_importance > importance_threshold
                 ]
                 importance_of_each = [
                     country.supply_importance
-                    for country in country_list
+                    for country in countries.values()
                     if country.supply_importance > importance_threshold
                 ]
                 prob_to_be_selected = np.array(importance_of_each)
@@ -113,29 +138,30 @@ class Household(Agent):
             # calculate their probability to be chosen, based on distance and importance
             else:
                 supplier_type = "firm"
-                potential_suppliers = [firm.pid for firm in firm_list if firm.sector == sector]
+                potential_suppliers = [pid for pid, firm in firms.items() if firm.sector == sector]
                 if len(potential_suppliers) == 0:
                     raise ValueError(f"{self.id_str().capitalize()}: no supplier for input {sector}")
                 if force_local:
                     potential_local_suppliers = [firm_id for firm_id in potential_suppliers
-                                                 if firm_list[firm_id].odpoint == self.odpoint]
+                                                 if firms[firm_id].od_point == self.od_point]
                     if len(potential_local_suppliers) > 0:
                         potential_suppliers = potential_local_suppliers
                     else:
                         pass
                         # logging.debug(f"{self.id_str().capitalize()}: no local supplier for input {sector_id}")
                 distance_to_each = rescale_values([
-                    calculate_distance_between_agents(self, firm_list[firm_id])
+                    calculate_distance_between_agents(self, firms[firm_id])
                     for firm_id in potential_suppliers
                 ])
 
-                importance_of_each = rescale_values([firm_list[firm_id].importance for firm_id in potential_suppliers])
+                importance_of_each = rescale_values([firms[firm_id].importance for firm_id in potential_suppliers])
 
                 prob_to_be_selected = np.array(importance_of_each) / (np.array(distance_to_each) ** weight_localization)
                 prob_to_be_selected /= prob_to_be_selected.sum()
 
             # Determine the number of supplier(s) to select. 1 or 2.
-            nb_suppliers_to_choose = determine_nb_suppliers(nb_suppliers_per_input)
+            # nb_suppliers_to_choose = determine_nb_suppliers(nb_suppliers_per_input)
+            nb_suppliers_to_choose = 1  # for households, always 1
 
             # Select the supplier(s). It there is 2 suppliers, then we generate
             # random weight. It determines how much is bought from each supplier.
@@ -149,12 +175,12 @@ class Household(Agent):
 
         return supplier_type, selected_supplier_ids, supplier_weights
 
-    def select_suppliers(self, graph: "ScNetwork", firm_list: "FirmList", country_list: "CountryList",
+    def select_suppliers(self, graph: "ScNetwork", firms: "Firms", countries: "Countries",
                          nb_retailers: float, force_local: bool,
                          weight_localization: float, firm_data_type: str):
-        print(f"{self.id_str()}: consumption {self.sector_consumption}")
+        # print(f"{self.id_str()}: consumption {self.sector_consumption}")
         for sector, amount in self.sector_consumption.items():
-            supplier_type, retailers, retailer_weights = self.identify_suppliers(sector, firm_list, country_list,
+            supplier_type, retailers, retailer_weights = self.identify_suppliers(sector, firms, countries,
                                                                                  nb_retailers,
                                                                                  weight_localization,
                                                                                  force_local,
@@ -166,13 +192,13 @@ class Household(Agent):
                 # If it is a country we get it from the country list
                 # If it is a firm we get it from the firm list
                 if supplier_type == "country":
-                    supplier_object = [country for country in country_list if country.pid == retailer_id][0]
+                    supplier_object = [country for pid, country in countries.items() if pid == retailer_id][0]
                     link_category = 'import_B2C'
                     product_type = "imports"
                 else:
-                    supplier_object = firm_list[retailer_id]
+                    supplier_object = firms[retailer_id]
                     link_category = 'domestic_B2C'
-                    product_type = firm_list[retailer_id].sector_type
+                    product_type = firms[retailer_id].sector_type
 
                 # For each retailer, create an edge in the economic network
                 graph.add_edge(supplier_object, self,
@@ -203,10 +229,7 @@ class Household(Agent):
                 quantity_to_buy = 0
             graph[edge[0]][self]['object'].order = quantity_to_buy
 
-    def receive_products_and_pay(self, graph, transport_network, sectors_no_transport_network):
-        agent_receive_products_and_pay(self, graph, transport_network, sectors_no_transport_network)
-
-    def select_supplier_from_list(self, firm_list: "FirmList",
+    def select_supplier_from_list(self, firm_list: "Firms",
                                   nb_suppliers_to_choose: int, potential_firm_ids: list,
                                   distance: bool, importance: bool, weight_localization: float,
                                   force_same_odpoint=False):
@@ -215,15 +238,15 @@ class Household(Agent):
             same_odpoint_firms = [
                 firm_id
                 for firm_id in potential_firm_ids
-                if firm_list[firm_id].odpoint == self.odpoint
+                if firm_list[firm_id].odpoint == self.od_point
             ]
             if len(same_odpoint_firms) > 0:
                 potential_firm_ids = same_odpoint_firms
-            #     logging.info('retailer available locally at odpoint '+str(agent.odpoint)+
-            #         " for "+firm_list[potential_firm_ids[0]].sector)
+            #     logging.info('retailer available locally at od_point '+str(agent.od_point)+
+            #         " for "+firms[potential_firm_ids[0]].sector)
             # else:
-            #     logging.warning('force_same_odpoint but no retailer available at odpoint '+str(agent.odpoint)+
-            #         " for "+firm_list[potential_firm_ids[0]].sector)
+            #     logging.warning('force_same_odpoint but no retailer available at od_point '+str(agent.od_point)+
+            #         " for "+firms[potential_firm_ids[0]].sector)
 
         # distance weight
         if distance:
@@ -263,7 +286,5 @@ class Household(Agent):
         return selected_supplier_ids, supplier_weights
 
 
-class HouseholdList(AgentList):
-    # def __init__(self, household_list: list[Household]):
-    #     super().__init__(household for household in household_list if isinstance(household, Household))
+class Households(Agents):
     pass

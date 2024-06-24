@@ -41,7 +41,7 @@ def rescale_values(input_list, minimum=0.1, maximum=1, max_val=None, alpha=1, no
 
 
 def calculate_distance_between_agents(agentA, agentB):
-    if (agentA.odpoint == -1) or (agentB.odpoint == -1):
+    if (agentA.od_point == -1) or (agentB.od_point == -1):
         logging.warning("Try to calculate distance between agents, but one of them does not have real od point")
         return 1
     else:

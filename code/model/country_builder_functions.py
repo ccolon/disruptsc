@@ -5,7 +5,7 @@ import geopandas
 import pandas
 import pandas as pd
 
-from code.agents.country import Country, CountryList
+from code.agents.country import Country, Countries
 from code.model.basic_functions import rescale_monetary_values
 from code.network.mrio import Mrio
 
@@ -13,7 +13,7 @@ from code.network.mrio import Mrio
 def create_countries(filepath_imports: Path, filepath_exports: Path, filepath_transit: Path,
                      transport_nodes: geopandas.GeoDataFrame, present_sectors: list,
                      countries_to_include: list | str = 'all', time_resolution: str = "week",
-                     target_units: str = "mUSD", input_units: str = "USD") -> CountryList:
+                     target_units: str = "mUSD", input_units: str = "USD") -> Countries:
     """Create the countries
 
     Parameters
@@ -44,7 +44,7 @@ def create_countries(filepath_imports: Path, filepath_exports: Path, filepath_tr
     -------
     list of Countries
     """
-    logging.info('Creating country_list. Countries included: ' + str(countries_to_include))
+    logging.info('Creating countries. Countries included: ' + str(countries_to_include))
 
     import_table = rescale_monetary_values(
         pd.read_csv(filepath_imports, index_col=0),
@@ -125,24 +125,24 @@ def create_countries(filepath_imports: Path, filepath_exports: Path, filepath_tr
         country_list += [Country(pid=country,
                                  qty_sold=qty_sold,
                                  qty_purchased=qty_purchased,
-                                 odpoint=od_point,
+                                 od_point=od_point,
                                  long=lon,
                                  lat=lat,
                                  transit_from=transit_from,
                                  transit_to=transit_to,
                                  supply_importance=supply_importance
                                  )]
-    country_list = CountryList(country_list)
+    countries = Countries(country_list)
 
     logging.info('Country_list created: ' + str([country.pid for country in country_list]))
 
-    return country_list
+    return countries
 
 
 def create_countries_from_mrio(filepath_mrio: Path,
                                transport_nodes: geopandas.GeoDataFrame, time_resolution: str,
-                               target_units: str, input_units: str) -> CountryList:
-    logging.info('Creating country_list.')
+                               target_units: str, input_units: str) -> Countries:
+    logging.info('Creating countries.')
 
     # Load mrio
     # mrio = pd.read_csv(filepath_mrio, header=[0, 1], index_col=[0, 1])
@@ -194,7 +194,7 @@ def create_countries_from_mrio(filepath_mrio: Path,
     logging.info("Total transit per " + time_resolution + " is " +
                  "{:.01f} ".format(transit_matrix.sum().sum()) + target_units)
 
-    country_list = []
+    countries = []
     total_imports = import_table.sum().sum()
     for country in countries:
         cond_country = transport_nodes['special'] == country
@@ -202,9 +202,9 @@ def create_countries_from_mrio(filepath_mrio: Path,
         lon = transport_nodes.geometry.x
         lat = transport_nodes.geometry.y
         if len(od_point) == 0:
-            raise ValueError('No odpoint found for ' + country)
+            raise ValueError('No od_point found for ' + country)
         elif len(od_point) > 2:
-            raise ValueError('More than 1 odpoint for ' + country)
+            raise ValueError('More than 1 od_point for ' + country)
         else:
             od_point = od_point.iloc[0]
             lon = lon.iloc[0]
@@ -241,20 +241,20 @@ def create_countries_from_mrio(filepath_mrio: Path,
             transit_to = {}
 
         # create the list of Country object
-        country_list += [Country(pid=country,
+        countries += [Country(pid=country,
                                  qty_sold=qty_sold,
                                  qty_purchased=qty_purchased,
-                                 odpoint=od_point,
+                                 od_point=od_point,
                                  long=lon,
                                  lat=lat,
                                  transit_from=transit_from,
                                  transit_to=transit_to,
                                  supply_importance=supply_importance
                                  )]
-    country_list = CountryList(country_list)
+    countries = Countries(countries)
 
-    logging.info('Country_list created: ' + str([country.pid for country in country_list]))
+    logging.info('Countries created: ' + str([country.pid for country in countries]))
 
-    return country_list
+    return countries
 
 

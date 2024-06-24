@@ -6,7 +6,7 @@ import pandas as pd
 import geopandas as gpd
 import numpy as np
 
-from code.agents.household import Household, HouseholdList
+from code.agents.household import Household, Households
 from code.model.builder_functions import get_index_closest_point, get_long_lat, \
     get_closest_road_nodes
 from code.model.basic_functions import rescale_monetary_values
@@ -33,21 +33,22 @@ def create_households(
     list of Household
     """
 
-    logging.debug('Creating household_list')
+    logging.debug('Creating households')
     household_table = household_table.set_index('id')
-    household_list = HouseholdList([
+    households = Households([
         Household('hh_' + str(i),
                   name=household_table.loc[i, "name"],
-                  odpoint=household_table.loc[i, "od_point"],
+                  od_point=household_table.loc[i, "od_point"],
                   long=float(household_table.loc[i, 'long']),
                   lat=float(household_table.loc[i, 'lat']),
+                  population=household_table.loc[i, "population"],
                   sector_consumption=household_sector_consumption[i]
                   )
         for i in household_table.index.tolist()
     ])
     logging.info('Households generated')
 
-    return household_list
+    return households
 
 
 def define_households_from_mrio_data(
@@ -84,27 +85,27 @@ def define_households_from_mrio_data(
 
     # Reshape the household table
     household_table = household_table.stack().reset_index()
-    household_table.columns = ['admin_code', 'column', 'value']
+    household_table.columns = ['region', 'column', 'value']
 
     ## Fin TEST
 
     # C. Create one household per OD point
     logging.info('Assigning households to od-points')
-    dic_select_admin_unit_to_points = household_table.set_index('admin_code')['geometry'].to_dict()
+    dic_select_region_to_points = household_table.set_index('region')['geometry'].to_dict()
     # Select road node points
     road_nodes = transport_nodes[transport_nodes['type'] == "roads"]
     # Create dic
-    dic_admin_unit_to_road_node_id = {
-        admin_unit: road_nodes.loc[get_index_closest_point(point, road_nodes), 'id']
-        for admin_unit, point in dic_select_admin_unit_to_points.items()
+    dic_region_to_road_node_id = {
+        region: road_nodes.loc[get_index_closest_point(point, road_nodes), 'id']
+        for region, point in dic_select_region_to_points.items()
     }
     # Map household to closest road nodes
-    household_table['od_point'] = household_table['admin_code'].map(dic_admin_unit_to_road_node_id)
+    household_table['od_point'] = household_table['region'].map(dic_region_to_road_node_id)
 
     # Combine households that are in the same od-point
     household_table = household_table \
         .drop(columns=['geometry']) \
-        .groupby(['admin_code', 'od_point'], as_index=False) \
+        .groupby(['region', 'od_point'], as_index=False) \
         .sum()
     logging.info(str(household_table.shape[0]) + ' od-point selected for demand')
 
@@ -184,8 +185,8 @@ def define_households_from_mrio(
         'name': [tup[0] + '_households' for tup in mrio.region_households]
     })
     # household_table = pd.DataFrame({"name": region_households})
-    # household_table['admin_code'] = household_table['name'].str.extract('([0-9]*)-H')
-    # household_table['admin_code'] = household_table['name'].str.extract('([A-Z]{3})_H')
+    # household_table['region'] = household_table['name'].str.extract('([0-9]*)-H')
+    # household_table['region'] = household_table['name'].str.extract('([A-Z]{3})_H')
     logging.info(f"Select {household_table.shape[0]} households in {household_table['region'].nunique()} regions")
 
     # Identify OD point
@@ -237,7 +238,7 @@ def define_households_from_mrio(
 
 def define_households(
         sector_table: pd.DataFrame,
-        filepath_admin_unit_data: Path,
+        filepath_region_data: Path,
         filtered_sectors: list,
         pop_cutoff: float,
         pop_density_cutoff: float,
@@ -260,7 +261,7 @@ def define_households(
     pop_density_cutoff
     pop_cutoff
     filtered_sectors
-    filepath_admin_unit_data
+    filepath_region_data
     sector_table
 
     Returns
@@ -269,22 +270,19 @@ def define_households(
     household_purchase_plan
 
     '''
-    # A. Filter admin unit based on density
+    # A. Filter regions based on density
     # load file
-    admin_unit_data = gpd.read_file(filepath_admin_unit_data)
+    region_data = gpd.read_file(filepath_region_data)
     # filter & keep household were firms are
-    cond = pd.Series(True, index=admin_unit_data.index)
+    cond = region_data['population'] > 0
     if pop_density_cutoff > 0:
-        cond = cond & (admin_unit_data['pop_density'] >= pop_density_cutoff)
+        cond = cond & (region_data['pop_density'] >= pop_density_cutoff)
     if pop_cutoff > 0:
-        cond = cond & (admin_unit_data['population'] >= pop_cutoff)
+        cond = cond & (region_data['population'] >= pop_cutoff)
     # create household_table
-    household_table = admin_unit_data.loc[cond, ['population', 'geometry', 'admin_code']].copy()
-    logging.info(
-        str(cond.sum()) + ' admin units selected over ' + str(admin_unit_data.shape[0]) + ' representing ' +
-        "{:.0f}%".format(household_table['population'].sum() / admin_unit_data['population'].sum() * 100) +
-        ' of population'
-    )
+    household_table = region_data.loc[cond, ['population', 'geometry', 'region']].copy()
+    logging.info(f"{cond.sum()} regions selected over {region_data.shape[0]} representing "
+                 f"{(household_table['population'].sum() / region_data['population'].sum() * 100):.0f}% of population")
 
     # B. Add final demand
     # Add imports... weird filtering: add if larger than the lowest sectoral final_demand filtered
@@ -302,28 +300,28 @@ def define_households(
     final_demand_each_household = pd.concat([final_demand_as_row for i in range(household_table.shape[0])])
     # align index and concat
     final_demand_each_household.index = household_table.index
-    # compute final demand per admin unit
-    rel_pop = household_table['population'] / admin_unit_data['population'].sum()
+    # compute final demand per region
+    rel_pop = household_table['population'] / region_data['population'].sum()
     final_demand_each_household = final_demand_each_household.multiply(rel_pop, axis='index')
     # add to household table
     household_table = pd.concat([household_table, final_demand_each_household], axis=1)
 
     # C. Create one household per OD point
     logging.info('Assigning households to od-points')
-    dic_select_admin_unit_to_points = household_table.set_index('admin_code')['geometry'].to_dict()
+    dic_select_region_to_points = household_table.set_index('region')['geometry'].to_dict()
     # Select road node points
     road_nodes = transport_nodes[transport_nodes['type'] == "roads"]
     # Create dic
-    dic_admin_unit_to_road_node_id = {
-        admin_unit: road_nodes.loc[get_index_closest_point(point, road_nodes), 'id']
-        for admin_unit, point in dic_select_admin_unit_to_points.items()
+    dic_region_to_road_node_id = {
+        region: road_nodes.loc[get_index_closest_point(point, road_nodes), 'id']
+        for region, point in dic_select_region_to_points.items()
     }
-    # Map household to closest road nodes
-    household_table['od_point'] = household_table['admin_code'].map(dic_admin_unit_to_road_node_id)
+    # Map household to the closest road nodes
+    household_table['od_point'] = household_table['region'].map(dic_region_to_road_node_id)
     # Combine households that are in the same od-point
     household_table = household_table \
         .drop(columns=['geometry']) \
-        .groupby(['od_point', 'admin_code'], as_index=False) \
+        .groupby(['od_point', 'region'], as_index=False) \
         .sum()
     logging.info(str(household_table.shape[0]) + ' od-point selected for demand')
 
@@ -349,13 +347,13 @@ def define_households(
     od_point_table = road_nodes[road_nodes['id'].isin(household_table['od_point'])].copy()
     od_point_table['long'] = od_point_table.geometry.x
     od_point_table['lat'] = od_point_table.geometry.y
-    road_node_id_to_longlat = od_point_table.set_index('id')[['long', 'lat']]
-    household_table['long'] = household_table['od_point'].map(road_node_id_to_longlat['long'])
-    household_table['lat'] = household_table['od_point'].map(road_node_id_to_longlat['lat'])
+    road_node_id_to_long_lat = od_point_table.set_index('id')[['long', 'lat']]
+    household_table['long'] = household_table['od_point'].map(road_node_id_to_long_lat['long'])
+    household_table['lat'] = household_table['od_point'].map(road_node_id_to_long_lat['lat'])
     # add id
     household_table['id'] = list(range(household_table.shape[0]))
-    # add name, not really useful
-    household_table['name'] = household_table['od_point'].astype(str) + "-H"
+    # # add name, not really useful
+    household_table['name'] = "hh_" + household_table['od_point'].astype(str)
 
     # F. Create purchase plan per household
     # rescale according to time resolution
@@ -383,7 +381,7 @@ def define_households(
 def add_households_for_firms(
         firm_table: pd.DataFrame,
         household_table: pd.DataFrame,
-        filepath_admin_unit_data: str,
+        filepath_region_data: str,
         sector_table: pd.DataFrame,
         filtered_sectors: list,
         time_resolution: str,
@@ -406,11 +404,11 @@ def add_households_for_firms(
     # B. Create new household table
     added_household_table = firm_table[cond_no_household].groupby('od_point', as_index=False)['population'].max()
     od_point_long_lat = firm_table.loc[cond_no_household, ["od_point", 'long', "lat"]].drop_duplicates()
-    added_household_table = added_household_table.merge(od_point_long_lat, how='left', on='odpoint')
+    added_household_table = added_household_table.merge(od_point_long_lat, how='left', on='od_point')
 
-    # B1. Load admin data to get tot population
-    admin_unit_data = gpd.read_file(filepath_admin_unit_data)
-    tot_pop = admin_unit_data['population'].sum()
+    # B1. Load region data to get tot population
+    region_data = gpd.read_file(filepath_region_data)
+    tot_pop = region_data['population'].sum()
 
     # B2. Load sector table to get final demand
     final_demand = sector_table.loc[sector_table['sector'].isin(filtered_sectors), ['sector', 'final_demand']]
@@ -448,7 +446,7 @@ def add_households_for_firms(
 
     # D. Log info
     logging.info('Create ' + str(household_table.shape[0]) + " households in " +
-                 str(household_table['odpoint'].nunique()) + ' od points')
+                 str(household_table['od_point'].nunique()) + ' od points')
     for sector in filtered_sectors:
         tot_demand = rescale_monetary_values(sector_table.set_index('sector').loc[sector, 'final_demand'],
                                              time_resolution=time_resolution, target_units=target_units,

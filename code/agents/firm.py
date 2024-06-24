@@ -10,28 +10,30 @@ from shapely.geometry import Point
 from code.model.basic_functions import generate_weights, \
     compute_distance_from_arcmin, rescale_values
 
-from code.agents.agent import Agent, AgentList, agent_receive_products_and_pay
+from code.agents.agent import Agent, Agents
 from code.network.commercial_link import CommercialLink
 from code.network.mrio import import_label
 
 if TYPE_CHECKING:
-    from code.agents.country import CountryList
+    from code.agents.country import Countries
     from code.network.sc_network import ScNetwork
     from code.network.transport_network import TransportNetwork
+
+EPSILON = 1e-6
 
 
 class Firm(Agent):
 
-    def __init__(self, pid, odpoint=0, sector=0, sector_type=None, main_sector=None, name=None, input_mix=None,
+    def __init__(self, pid, od_point=0, sector=0, sector_type=None, main_sector=None, name=None, input_mix=None,
                  target_margin=0.2, utilization_rate=0.8,
                  importance=1, long=None, lat=None, geometry=None,
-                 suppliers=None, clients=None, production=0, inventory_duration_target=1, reactivity_rate=1,
-                 usd_per_ton=2864):
+                 suppliers=None, clients=None, production=0, inventory_duration_target=1, inventory_restoration_time=1,
+                 usd_per_ton=2864, capital_to_value_added_ratio=4):
         super().__init__(
             agent_type="firm",
             pid=pid,
             name=name,
-            odpoint=odpoint,
+            od_point=od_point,
             long=long,
             lat=lat
         )
@@ -49,10 +51,11 @@ class Firm(Agent):
             self.inventory_duration_target = inventory_duration_target
         else:
             self.inventory_duration_target = {key: inventory_duration_target for key in input_mix.keys()}
-        self.reactivity_rate = reactivity_rate
+        self.inventory_restoration_time = inventory_restoration_time
         self.eq_production_capacity = production / utilization_rate
         self.utilization_rate = utilization_rate
         self.target_margin = target_margin
+        self.capital_to_value_added_ratio = capital_to_value_added_ratio
 
         # Parameters depending on supplier-buyer network
         self.suppliers = suppliers or {}
@@ -68,7 +71,10 @@ class Firm(Agent):
         self.production = production
         self.production_target = production
         self.production_capacity = production / utilization_rate
+        self.current_production_capacity = production
+        self.capital_initial = 0
         self.purchase_plan = {}
+        self.purchase_plan_per_input = {}
         self.order_book = {}
         self.total_order = 0
         self.input_needs = {}
@@ -86,8 +92,12 @@ class Firm(Agent):
         self.tonkm_transported = 0
 
         # Disruption
+        self.capital_destroyed = 0
         self.remaining_disrupted_time = 0
         self.production_capacity_reduction = 0
+        self.capital_demanded = 0
+        self.reconstruction_demand = 0
+        self.reconstruction_produced = 0
 
     def reset_variables(self):
         self.eq_finance = {"sales": 0, 'costs': {"input": 0, "transport": 0, "other": 0}}
@@ -112,11 +122,15 @@ class Firm(Agent):
         self.usd_transported = 0
         self.tons_transported = 0
         self.tonkm_transported = 0
+        self.capital_destroyed = 0
+
+    def reset_indicators(self):
+        pass
 
     def id_str(self):
         return super().id_str() + f" sector {self.sector}"
 
-    def update_production_capacity(self):
+    def update_disrupted_production_capacity(self):
         is_back_to_normal = self.remaining_disrupted_time == 1  # Identify those who will be back to normal
         if self.remaining_disrupted_time > 0:  # Update the remaining time in disruption
             self.remaining_disrupted_time -= 1
@@ -124,13 +138,13 @@ class Firm(Agent):
             self.production_capacity_reduction = 0
             logging.info(f'The production capacity of firm {self.pid} is back to normal')
 
-    def reduce_production_capacity(self, disruption_duration: int, reduction: float):
+    def disrupt_production_capacity(self, disruption_duration: int, reduction: float):
         self.remaining_disrupted_time = disruption_duration
         self.production_capacity_reduction = reduction
         logging.info(f'The production capacity of firm {self.pid} is reduced by {reduction} '
                      f'for {disruption_duration} time steps')
 
-    def initialize_ope_var_using_eq_production(self, eq_production):
+    def initialize_operational_variables(self, eq_production):
         self.production_target = eq_production
         self.production = self.production_target
         self.eq_production_capacity = self.production_target / self.utilization_rate
@@ -141,10 +155,11 @@ class Firm(Agent):
             input_id: need * (1 + self.inventory_duration_target[input_id])
             for input_id, need in self.input_needs.items()
         }
-        self.decide_purchase_plan()
+        self.decide_purchase_plan(adaptive_inventories=False, adapt_weight_based_on_satisfaction=False)
+        self.capital_initial = self.capital_to_value_added_ratio * eq_production
 
-    def initialize_fin_var_using_eq_cost(self, eq_production, eq_input_cost,
-                                         eq_transport_cost, eq_other_cost):
+    def initialize_financial_variables(self, eq_production, eq_input_cost,
+                                       eq_transport_cost, eq_other_cost):
         self.eq_finance['sales'] = eq_production
         self.eq_finance['costs']['input'] = eq_input_cost
         self.eq_finance['costs']['transport'] = eq_transport_cost
@@ -162,7 +177,7 @@ class Firm(Agent):
                               self.lat + noise_level * random.uniform(0, 1))
 
     def distance_to_other(self, other_firm):
-        if (self.odpoint == -1) or (other_firm.odpoint == -1):  # if virtual firms
+        if (self.od_point == -1) or (other_firm.od_point == -1):  # if virtual firms
             return 1
         else:
             return compute_distance_from_arcmin(self.long, self.lat, other_firm.long, other_firm.lat)
@@ -192,9 +207,10 @@ class Firm(Agent):
             total_input_same_sector = inputed_supplier_links.loc[
                 inputed_supplier_links['product_sector'] == product_sector, "transaction"].sum()
             weight_among_same_product = inputed_supplier_link['transaction'] / total_input_same_sector
-            self.suppliers[supplier_id] = {'sector': product_sector, 'weight': weight_among_same_product}
+            self.suppliers[supplier_id] = {'sector': product_sector, 'weight': weight_among_same_product,
+                                           "satisfaction": 1}
 
-    def identify_suppliers(self, sector: str, firm_list, country_list,
+    def identify_suppliers(self, sector: str, firms, countries,
                            nb_suppliers_per_input: float, weight_localization: float,
                            firm_data_type: str, import_code: str):
         if firm_data_type == "mrio":
@@ -205,13 +221,13 @@ class Firm(Agent):
 
             else:  # case of firms
                 supplier_type = "firm"
-                potential_supplier_pids = [firm.pid for firm in firm_list if firm.sector == sector]
+                potential_supplier_pids = [pid for pid, firm in firms.items() if firm.sector == sector]
                 if sector == self.sector:
                     potential_supplier_pids.remove(self.pid)  # remove oneself
                 if len(potential_supplier_pids) == 0:
                     raise ValueError(f"Firm {self.pid}: there should be one supplier for {sector}")
                 # Choose based on importance
-                prob_to_be_selected = np.array(rescale_values([firm_list[firm_pid].importance for firm_pid in
+                prob_to_be_selected = np.array(rescale_values([firms[firm_pid].importance for firm_pid in
                                                                potential_supplier_pids]))
                 prob_to_be_selected /= prob_to_be_selected.sum()
                 selected_supplier_ids = np.random.choice(potential_supplier_pids,
@@ -225,13 +241,13 @@ class Firm(Agent):
                 # Identify countries as suppliers if the corresponding sector does export
                 importance_threshold = 1e-6
                 potential_supplier_pid = [
-                    country.pid
-                    for country in country_list
+                    pid
+                    for pid, country in countries.items()
                     if country.supply_importance > importance_threshold
                 ]
                 importance_of_each = [
                     country.supply_importance
-                    for country in country_list
+                    for country in countries.values()
                     if country.supply_importance > importance_threshold
                 ]
                 prob_to_be_selected = np.array(importance_of_each)
@@ -241,17 +257,16 @@ class Firm(Agent):
             # calculate their probability to be chosen, based on distance and importance
             else:
                 supplier_type = "firm"
-                potential_supplier_pid = [firm.pid for firm in firm_list if firm.sector == sector]
+                potential_supplier_pid = [pid for pid, firm in firms.items() if firm.sector == sector]
                 if sector == self.sector:
                     potential_supplier_pid.remove(self.pid)  # remove oneself
                 if len(potential_supplier_pid) == 0:
                     raise ValueError(f"Firm {self.pid}: no potential supplier for input {sector}")
                 distance_to_each = rescale_values([
-                    self.distance_to_other(firm_list[firm_pid])
+                    self.distance_to_other(firms[firm_pid])
                     for firm_pid in potential_supplier_pid
                 ])  # Compute distance to each of them (vol d oiseau)
-                # print(distance_to_each)
-                importance_of_each = rescale_values([firm_list[firm_pid].importance for firm_pid in
+                importance_of_each = rescale_values([firms[firm_pid].importance for firm_pid in
                                                      potential_supplier_pid])  # Get importance for each of them
                 prob_to_be_selected = np.array(importance_of_each) / (np.array(distance_to_each) ** weight_localization)
                 prob_to_be_selected /= prob_to_be_selected.sum()
@@ -276,7 +291,7 @@ class Firm(Agent):
 
         return supplier_type, selected_supplier_ids, supplier_weights
 
-    def select_suppliers(self, graph: "ScNetwork", firm_list: "FirmList", country_list: "CountryList",
+    def select_suppliers(self, graph: "ScNetwork", firms: "Firms", countries: "Countries",
                          nb_suppliers_per_input: float, weight_localization: float,
                          firm_data_type: str, import_code: str):
         """
@@ -295,10 +310,10 @@ class Firm(Agent):
         firm_data_type
         graph : networkx.DiGraph
             Supply chain graph
-        firm_list : list of Firms
+        firms : list of Firms
             Generated by createFirms function
-        country_list : list of Countries
-            Generated by createCountriesfunction
+        countries : list of Countries
+            Generated by createCountries function
         nb_suppliers_per_input : float between 1 and 2
             Nb of suppliers per type of inputs. If it is a decimal between 1 and 2,
             some firms will have 1 supplier, other 2 suppliers, such that the
@@ -315,13 +330,12 @@ class Firm(Agent):
             0
 
         """
-        # print(f"{self.id_str()}: input mix {self.input_mix}")
         for sector_id, sector_weight in self.input_mix.items():
 
             # If it is imports, identify international suppliers and calculate
             # their probability to be chosen, which is based on importance.
             supplier_type, selected_supplier_ids, supplier_weights = self.identify_suppliers(sector_id,
-                                                                                             firm_list, country_list,
+                                                                                             firms, countries,
                                                                                              nb_suppliers_per_input,
                                                                                              weight_localization,
                                                                                              firm_data_type,
@@ -334,13 +348,13 @@ class Firm(Agent):
                 # If it is a country we get it from the country list
                 # If it is a firm we get it from the firm list
                 if supplier_type == "country":
-                    supplier_object = [country for country in country_list if country.pid == supplier_id][0]
+                    supplier_object = [country for pid, country in countries.items() if pid == supplier_id][0]
                     link_category = 'import'
                     product_type = "imports"
                 else:
-                    supplier_object = firm_list[supplier_id]
+                    supplier_object = firms[supplier_id]
                     link_category = 'domestic_B2B'
-                    product_type = firm_list[supplier_id].sector_type
+                    product_type = firms[supplier_id].sector_type
                 # Create an edge in the graph
                 graph.add_edge(supplier_object, self,
                                object=CommercialLink(
@@ -355,7 +369,7 @@ class Firm(Agent):
                 supplier_weight = supplier_weights.pop()
                 graph[supplier_object][self]['weight'] = sector_weight * supplier_weight
                 # The firm saves the name of the supplier, its sector, its weight (without I/O technical coefficient)
-                self.suppliers[supplier_id] = {'sector': sector_id, 'weight': supplier_weight}
+                self.suppliers[supplier_id] = {'sector': sector_id, 'weight': supplier_weight, "satisfaction": 1}
                 # The supplier saves the name of the client, its sector, and distance to it.
                 # The share of sales cannot be calculated now
                 distance = self.distance_to_other(supplier_object)
@@ -378,7 +392,8 @@ class Firm(Agent):
 
         # If some clients ordered to me, but distance is 0 (no transport), then equal share of transport
         elif total_qty_km == 0:
-            nb_active_clients = sum([order > 0 for client_pid, order in self.order_book.items()])
+            nb_active_clients = sum([order > 0 for client_pid, order in self.order_book.items()
+                                     if client_pid != "reconstruction"])
             for client_pid, info in self.clients.items():
                 info['share'] = self.order_book[client_pid] / self.total_order
                 info['transport_share'] = 1 / nb_active_clients
@@ -390,14 +405,14 @@ class Firm(Agent):
                 info['transport_share'] = self.order_book[client_pid] * self.clients[client_pid][
                     'distance'] / total_qty_km
 
-    def aggregate_orders(self, print_info=False):
+    def aggregate_orders(self, log_info=False):
         self.total_order = sum([order for client_pid, order in self.order_book.items()])
-        if print_info:
+        if log_info:
             if self.total_order == 0:
-                logging.debug(f'Firm {self.pid} ({self.sector}): no-one ordered to me')
+                logging.debug(f'Firm {self.pid} ({self.sector}): noone ordered to me')
 
     def decide_production_plan(self):
-        self.production_target = self.total_order - self.product_stock
+        self.production_target = max(0.0, self.total_order - self.product_stock)
 
     def calculate_price(self, graph):
         """
@@ -443,20 +458,16 @@ class Firm(Agent):
             for input_pid, mix in self.input_mix.items()
         }
 
-    def decide_purchase_plan(self, mode="equilibrium"):
+    def decide_purchase_plan(self, adaptive_inventories: bool, adapt_weight_based_on_satisfaction: bool):
         """
-        If mode="equilibrium", it aims to come back to equilibrium inventories
-        If mode="reactive", it uses current orders to evaluate the target inventories
+        If adaptive_inventories, it aims to come back to equilibrium inventories
+        Else, it uses current orders to evaluate the target inventories
         """
 
-        if mode == "reactive":
+        if adaptive_inventories:
             ref_input_needs = self.input_needs
-
-        elif mode == "equilibrium":
-            ref_input_needs = self.eq_needs
-
         else:
-            raise NotImplementedError(f"Mode {mode} not implemented")
+            ref_input_needs = self.eq_needs
 
         # Evaluate the current safety days
         self.current_inventory_duration = {
@@ -466,63 +477,114 @@ class Firm(Agent):
         }
 
         # Alert if there is less than a day of an input
-        if True:
-            for input_id, inventory_duration in self.current_inventory_duration.items():
-                if inventory_duration is not None:
-                    if inventory_duration < 1 - 1e-6:
-                        if -1 in self.clients.keys():
-                            sales_to_hh = self.clients[-1]['share'] * self.production_target
-                        else:
-                            sales_to_hh = 0
-                        logging.debug('Firm ' + str(self.pid) + " of sector " + str(
-                            self.sector) + " selling to households " + str(
-                            sales_to_hh) + " less than 1 day of inventory for input type " + str(input_id))
+        for input_id, inventory_duration in self.current_inventory_duration.items():
+            if inventory_duration is not None:
+                if inventory_duration < 1 - EPSILON:
+                    # if -1 in self.clients.keys():
+                    #     sales_to_hh = self.clients[-1]['share'] * self.production_target
+                    # else:
+                    #     sales_to_hh = 0
+                    logging.debug(f"{self.id_str()} - Less than 1 day of inventory for input type {input_id}: "
+                                  f"{inventory_duration} vs. {self.inventory_duration_target[input_id]}")
 
         # Evaluate purchase plan for each sector
-        purchase_plan_per_sector = {
+        self.purchase_plan_per_input = {
             input_id: purchase_planning_function(need, self.inventory[input_id],
-                                                 self.inventory_duration_target[input_id], self.reactivity_rate)
+                                                 self.inventory_duration_target[input_id],
+                                                 self.inventory_restoration_time)
             # input_id: purchase_planning_function(need, self.inventory[input_id],
             # self.inventory_duration_old, self.reactivity_rate)
             for input_id, need in ref_input_needs.items()
         }
-        # print(self.input_mix)
-        # print(self.eq_needs)
-        # print(self.inventory)
-        # print(self.inventory_duration_target)
-        # print(purchase_plan_per_sector)
+
         # Deduce the purchase plan for each supplier
-        self.purchase_plan = {
-            supplier_id: purchase_plan_per_sector[info['sector']] * info['weight']
-            for supplier_id, info in self.suppliers.items()
-        }
+        if adapt_weight_based_on_satisfaction:
+            self.purchase_plan = {}
+            for sector, need in self.purchase_plan_per_input.items():
+                suppliers_from_this_sector = [pid for pid, supplier_info in self.suppliers.items()
+                                              if supplier_info['sector'] == sector]
+                total_satisfaction_suppliers = sum([supplier_info['satisfaction']
+                                                    for pid, supplier_info in self.suppliers.items()
+                                                    if pid in suppliers_from_this_sector])
+                # print(self.id_str(), sector, need, "total_satisfaction_suppliers", total_satisfaction_suppliers)
+                for supplier_id in suppliers_from_this_sector:
+                    supplier_info = self.suppliers[supplier_id]
+                    if total_satisfaction_suppliers < EPSILON:
+                        self.purchase_plan[supplier_id] = need * supplier_info['weight']
+                    else:
+                        relative_satisfaction = supplier_info['satisfaction'] / total_satisfaction_suppliers
+                        self.purchase_plan[supplier_id] = need * supplier_info['weight'] * relative_satisfaction
 
-    def send_purchase_orders(self, graph):
-        for edge in graph.in_edges(self):
-            if edge[0].pid in self.purchase_plan.keys():
-                quantity_to_buy = self.purchase_plan[edge[0].pid]
+        else:
+            self.purchase_plan = {
+                supplier_id: self.purchase_plan_per_input[info['sector']] * info['weight']
+                for supplier_id, info in self.suppliers.items()
+            }
+
+    def send_purchase_orders(self, sc_network: "ScNetwork"):
+        for edge in sc_network.in_edges(self):
+            supplier_id = edge[0].pid
+            input_sector = edge[0].sector
+            if supplier_id in self.purchase_plan.keys():
+                quantity_to_buy = self.purchase_plan[supplier_id]
                 if quantity_to_buy == 0:
-                    logging.debug("Firm " + str(self.pid) + ": I am not planning to buy anything from supplier " + str(
-                        edge[0].pid))
+                    logging.debug(f"{self.id_str()} - I am not planning to buy anything from supplier {supplier_id} "
+                                  f"of sector {input_sector}. ")
+                    if self.purchase_plan_per_input[input_sector] == 0:
+                        logging.debug(f"{self.id_str()} - I am not planning to buy this input at all. "
+                                      f"My needs is {self.input_needs[input_sector]}, "
+                                      f"my inventory is {self.inventory[input_sector]}, "
+                                      f"my inventory target is {self.inventory_duration_target[input_sector]} and "
+                                      f"this input counts {self.input_mix[input_sector]} in my input mix.")
+                    else:
+                        logging.debug(f"But I plan to buy {self.purchase_plan_per_input[input_sector]} of this input")
             else:
-                logging.error(
-                    "Firm " + str(self.pid) + ": supplier " + str(edge[0].pid) + " is not in my purchase plan")
+                logging.error(f"{self.id_str()} - Supplier {supplier_id} is not in my purchase plan")
                 quantity_to_buy = 0
-            graph[edge[0]][self]['object'].order = quantity_to_buy
+            sc_network[edge[0]][self]['object'].order = quantity_to_buy
 
-    def retrieve_orders(self, graph):
-        for edge in graph.out_edges(self):
-            quantity_ordered = graph[self][edge[1]]['object'].order
+    def retrieve_orders(self, sc_network: "ScNetwork"):
+        for edge in sc_network.out_edges(self):
+            quantity_ordered = sc_network[self][edge[1]]['object'].order
             self.order_book[edge[1].pid] = quantity_ordered
 
+    def add_reconstruction_order_to_order_book(self):
+        self.order_book["reconstruction"] = self.reconstruction_demand
+
+    def evaluate_capacity(self):
+        if self.capital_destroyed > EPSILON:
+            self.production_capacity_reduction = min(self.capital_destroyed / self.capital_initial, 1)
+            logging.debug(f"{self.id_str()} - due to capital destruction, "
+                          f"my production capacity is reduced by {self.production_capacity_reduction}")
+        else:
+            self.production_capacity_reduction = 0
+        self.current_production_capacity = self.production_capacity * (1 - self.production_capacity_reduction)
+
+    def incur_capital_destruction(self, amount: float):
+        if amount > self.capital_initial:
+            logging.warning(f"{self.id_str()} - initial capital is lower than destroyed capital "
+                            f"({self.capital_initial} vs. {amount})")
+            self.capital_destroyed = self.capital_initial
+        else:
+            self.capital_destroyed = amount
+
+    def get_spare_production_potential(self):
+        if len(self.input_mix) == 0:  # If no need for inputs
+            potential_production = self.current_production_capacity
+        else:
+            # max_production = production_function(self.inventory, self.input_mix, mode)  # Max prod given inventory
+            max_production = production_function(self.inventory, self.input_mix)  # Max prod given inventory
+            potential_production = min([max_production, self.current_production_capacity])
+        return max(0, potential_production - (self.total_order - self.product_stock))
+
     def produce(self, mode="Leontief"):
-        current_production_capacity = self.production_capacity * (1 - self.production_capacity_reduction)
         # Produce
         if len(self.input_mix) == 0:  # If no need for inputs
-            self.production = min([self.production_target, current_production_capacity])
+            self.production = min([self.production_target, self.current_production_capacity])
         else:
+            # max_production = production_function(self.inventory, self.input_mix, mode)  # Max prod given inventory
             max_production = production_function(self.inventory, self.input_mix, mode)  # Max prod given inventory
-            self.production = min([max_production, self.production_target, current_production_capacity])
+            self.production = min([max_production, self.production_target, self.current_production_capacity])
 
         # Add to stock of finished goods
         self.product_stock += self.production
@@ -536,7 +598,7 @@ class Firm(Agent):
             raise ValueError("Wrong mode chosen")
 
     def calculate_input_induced_price_change(self, graph):
-        """The firm evaluates the input costs of producting one unit of output if it had to buy the inputs at current
+        """The firm evaluates the input costs of producing one unit of output if it had to buy the inputs at current
         price It is a theoretical cost, because in simulations it may use inventory
         """
         eq_theoretical_input_cost, current_theoretical_input_cost = self.get_input_costs(graph)
@@ -556,25 +618,23 @@ class Firm(Agent):
 
     def deliver_products(self, graph: "ScNetwork", transport_network: "TransportNetwork",
                          sectors_no_transport_network: list, rationing_mode: str, monetary_units_in_model: str,
-                         cost_repercussion_mode: str, price_increase_threshold: float, account_capacity: bool,
+                         cost_repercussion_mode: str, price_increase_threshold: float, capacity_constraint: bool,
                          transport_cost_noise_level: float):
 
         # Do nothing if no orders
         if self.total_order == 0:
-            # logging.warning('Firm '+str(self.pid)+' ('+self.sector+'): no one ordered to me')
             return 0
 
         # Otherwise compute rationing factor
-        epsilon = 1e-6
         self.rationing = self.product_stock / self.total_order
         # Check the case in which the firm has too much product to sale
         # It should not happen, hence a warning
-        if self.rationing > 1 + epsilon:
+        if self.rationing > 1 + EPSILON:
             logging.warning(f'Firm {self.pid}: I have produced too much. {self.product_stock} vs. {self.total_order}')
             self.rationing = 1
             quantity_to_deliver = {buyer_id: order for buyer_id, order in self.order_book.items()}
         # If rationing factor is 1, then it delivers what was ordered
-        elif self.rationing >= 1 - epsilon:
+        elif abs(self.rationing - 1) < EPSILON:
             quantity_to_deliver = {buyer_id: order for buyer_id, order in self.order_book.items()}
         # If rationing occurs, then two rationing behavior: equal or household_first
         else:
@@ -583,26 +643,26 @@ class Firm(Agent):
             if rationing_mode == "equal":
                 quantity_to_deliver = {buyer_id: order * self.rationing for buyer_id, order in self.order_book.items()}
 
-            elif rationing_mode == "household_first":
-                if -1 not in self.order_book.keys():
-                    quantity_to_deliver = {buyer_id: order * self.rationing for buyer_id, order in
-                                           self.order_book.items()}
-                elif len(self.order_book.keys()) == 1:  # only households order to this firm
-                    quantity_to_deliver = {-1: self.total_order}
-                else:
-                    order_households = self.order_book[-1]
-                    if order_households < self.product_stock:
-                        remaining_product_stock = self.product_stock - order_households
-                        if (self.total_order - order_households) <= 0:
-                            logging.warning("Firm " + str(self.pid) + ': ' + str(self.total_order - order_households))
-                        rationing_for_business = remaining_product_stock / (self.total_order - order_households)
-                        quantity_to_deliver = {buyer_id: order * rationing_for_business for buyer_id, order in
-                                               self.order_book.items() if buyer_id != -1}
-                        quantity_to_deliver[-1] = order_households
-                    else:
-                        quantity_to_deliver = {buyer_id: 0 for buyer_id, order in self.order_book.items() if
-                                               buyer_id != -1}
-                        quantity_to_deliver[-1] = self.product_stock
+            # elif rationing_mode == "household_first": TODO: redo, does not work anymore
+            #     if -1 not in self.order_book.keys():
+            #         quantity_to_deliver = {buyer_id: order * self.rationing for buyer_id, order in
+            #                                self.order_book.items()}
+            #     elif len(self.order_book.keys()) == 1:  # only households order to this firm
+            #         quantity_to_deliver = {-1: self.total_order}
+            #     else:
+            #         order_households = self.order_book[-1]
+            #         if order_households < self.product_stock:
+            #             remaining_product_stock = self.product_stock - order_households
+            #             if (self.total_order - order_households) <= 0:
+            #                 logging.warning("Firm " + str(self.pid) + ': ' + str(self.total_order - order_households))
+            #             rationing_for_business = remaining_product_stock / (self.total_order - order_households)
+            #             quantity_to_deliver = {buyer_id: order * rationing_for_business for buyer_id, order in
+            #                                    self.order_book.items() if buyer_id != -1}
+            #             quantity_to_deliver[-1] = order_households
+            #         else:
+            #             quantity_to_deliver = {buyer_id: 0 for buyer_id, order in self.order_book.items() if
+            #                                    buyer_id != -1}
+            #             quantity_to_deliver[-1] = self.product_stock
             else:
                 raise ValueError('Wrong rationing_mode chosen')
         # We initialize transport costs, it will be updated for each shipment
@@ -615,8 +675,8 @@ class Firm(Agent):
         # For each client, we define the quantity to deliver then send the shipment
         for edge in graph.out_edges(self):
             if graph[self][edge[1]]['object'].order == 0:
-                logging.debug("Agent " + str(self.pid) + ": " +
-                              str(graph[self][edge[1]]['object'].buyer_id) + " is my client but did not order")
+                logging.debug(f"{self.id_str()} - {graph[self][edge[1]]['object'].buyer_id} "
+                              f"is my client but did not order")
                 continue
             graph[self][edge[1]]['object'].delivery = quantity_to_deliver[edge[1].pid]
             graph[self][edge[1]]['object'].delivery_in_tons = \
@@ -631,13 +691,19 @@ class Firm(Agent):
             # otherwise use infrastructure
             else:
                 self.send_shipment(graph[self][edge[1]]['object'], transport_network, monetary_units_in_model,
-                                   cost_repercussion_mode, price_increase_threshold, account_capacity,
+                                   cost_repercussion_mode, price_increase_threshold, capacity_constraint,
                                    transport_cost_noise_level)
+
+        # For reconstruction orders, we register it
+        # if self.sector == "CON":
+        #     print(quantity_to_deliver)
+        if "reconstruction" in quantity_to_deliver.keys():
+            self.reconstruction_produced = quantity_to_deliver['reconstruction']
 
     def deliver_without_infrastructure(self, commercial_link):
         """ The firm deliver its products without using transportation infrastructure
         This case applies to service firm and to households
-        Note that we still account for transport cost, proportionnaly to the share of the clients
+        Note that we still account for transport cost, proportionally to the share of the clients
         Price can be higher than 1, if there are changes in price inputs
         """
         commercial_link.price = commercial_link.eq_price * (1 + self.delta_price_input)
@@ -647,7 +713,7 @@ class Firm(Agent):
 
     def send_shipment(self, commercial_link: "CommercialLink", transport_network: "TransportNetwork",
                       monetary_units_in_model: str, cost_repercussion_mode: str, price_increase_threshold: float,
-                      account_capacity: bool, transport_cost_noise_level: float):
+                      capacity_constraint: bool, transport_cost_noise_level: float):
 
         monetary_unit_factor = {
             "mUSD": 1e6,
@@ -659,19 +725,16 @@ class Firm(Agent):
         """Only apply to B2B flows 
         """
         if len(commercial_link.route) == 0:
-            raise ValueError("Firm " + str(self.pid) + " " + str(self.sector) +
-                             ": commercial link " + str(commercial_link.pid) + " (qty " +
-                             str(commercial_link.order) +
-                             ") is not associated to any route, I cannot send any shipment to client " +
-                             str(commercial_link.buyer_id)
-                             )
+            raise ValueError(f"{self.id_str()} - commercial link {commercial_link.pid} "
+                             f"(qty {commercial_link.order:.02} is not associated to any route, "
+                             f"I cannot send any shipment to the client")
 
         if self.check_route_availability(commercial_link, transport_network, 'main') == 'available':
             # If the normal route is available, we can send the shipment as usual
             # and pay the usual price
             commercial_link.price = commercial_link.eq_price * (1 + self.delta_price_input)
             commercial_link.current_route = 'main'
-            transport_network.transport_shipment(commercial_link)
+            transport_network.transport_shipment(commercial_link, capacity_constraint)
             self.product_stock -= commercial_link.delivery
             self.generalized_transport_cost += (commercial_link.route_time_cost
                                                 + commercial_link.delivery_in_tons * commercial_link.route_cost_per_ton)
@@ -691,12 +754,12 @@ class Firm(Agent):
         # Otherwise we need to discover a new one
         else:
             route = self.discover_new_route(commercial_link, transport_network,
-                                            account_capacity, transport_cost_noise_level)
+                                            capacity_constraint, transport_cost_noise_level)
 
         # If the alternative route is available, or if we discovered one, we proceed
         if route is not None:
             commercial_link.current_route = 'alternative'
-            # Calculate contribution to generalized transport cost, to usd/tons/tonkms transported
+            # Calculate contribution to generalized transport cost, to usd/tons/(ton*kms) transported
             self.generalized_transport_cost += (commercial_link.alternative_route_time_cost
                                                 + Firm.transformUSD_to_tons(commercial_link.delivery,
                                                                             monetary_units_in_model, self.usd_per_ton)
@@ -731,16 +794,16 @@ class Firm(Agent):
 
             elif cost_repercussion_mode == "type2":  # actual repercussion de la bill
                 added_cost_usd_per_ton = max(commercial_link.alternative_route_cost_per_ton -
-                                            commercial_link.route_cost_per_ton,
-                                            0)
+                                             commercial_link.route_cost_per_ton,
+                                             0)
                 added_cost_usd_per_musd = added_cost_usd_per_ton / (self.usd_per_ton / factor)
-                added_costm_usd_per_musd = added_cost_usd_per_musd / factor
-                added_transport_bill = added_costm_usd_per_musd * commercial_link.delivery
+                added_cost_usd_per_musd = added_cost_usd_per_musd / factor
+                added_transport_bill = added_cost_usd_per_musd * commercial_link.delivery
                 self.finance['costs']['transport'] += \
                     self.eq_finance['costs']['transport'] + added_transport_bill
                 commercial_link.price = (commercial_link.eq_price
                                          + self.delta_price_input
-                                         + added_costm_usd_per_musd)
+                                         + added_cost_usd_per_musd)
                 relative_price_change_transport = \
                     commercial_link.price / (commercial_link.eq_price + self.delta_price_input) - 1
                 if (commercial_link.price is None) or (commercial_link.price is np.nan):
@@ -752,7 +815,7 @@ class Firm(Agent):
                 logging.debug(f"Firm {self.pid}"
                               f": qty {commercial_link.delivery_in_tons} tons"
                               f" increase in route cost per ton {cost_increase}"
-                              f" increased bill mUSD {added_costm_usd_per_musd * commercial_link.delivery}"
+                              f" increased bill mUSD {added_cost_usd_per_musd * commercial_link.delivery}"
                               )
 
             elif cost_repercussion_mode == "type3":
@@ -783,7 +846,7 @@ class Firm(Agent):
                 # commercial_link.delivery = 0
             # Otherwise, we deliver
             else:
-                transport_network.transport_shipment(commercial_link)
+                transport_network.transport_shipment(commercial_link, capacity_constraint)
                 self.product_stock -= commercial_link.delivery
                 # Print information
                 logging.info("Firm " + str(self.pid) + ": found an alternative route to " +
@@ -805,13 +868,13 @@ class Firm(Agent):
 
     def discover_new_route(self, commercial_link: "CommercialLink", transport_network: "TransportNetwork",
                            account_capacity: bool, transport_cost_noise_level: float):
-        origin_node = self.odpoint
+        origin_node = self.od_point
         destination_node = commercial_link.route[-1][0]
         route, selected_mode = self.choose_route(
             transport_network=transport_network.get_undisrupted_network(),
             origin_node=origin_node,
             destination_node=destination_node,
-            account_capacity=account_capacity,
+            capacity_constraint=account_capacity,
             transport_cost_noise_level=transport_cost_noise_level,
             accepted_logistics_modes=commercial_link.possible_transport_modes
         )
@@ -824,8 +887,15 @@ class Firm(Agent):
             )
         return route
 
-    def receive_products_and_pay(self, graph, transport_network, sectors_no_transport_network):
-        agent_receive_products_and_pay(self, graph, transport_network, sectors_no_transport_network)
+    def receive_service_and_pay(self, commercial_link: "CommercialLink"):
+        super().receive_service_and_pay(commercial_link)
+        quantity_delivered = commercial_link.delivery
+        self.inventory[commercial_link.product] += quantity_delivered
+
+    def update_indicator(self, quantity_delivered: float, price: float, commercial_link: "CommercialLink"):
+        super().update_indicator(quantity_delivered, price, commercial_link)
+        commercial_link.calculate_fulfilment_rate()
+        self.suppliers[commercial_link.supplier_id]['satisfaction'] = commercial_link.fulfilment_rate
 
     def evaluate_profit(self, graph):
         # Collect all payments received
@@ -845,7 +915,7 @@ class Firm(Agent):
                        - self.finance['costs']['transport'])
         # Compute Margins
         expected_gross_margin_no_transport = 1 - sum(list(self.input_mix.values()))
-        if self.finance['sales'] > 0:
+        if self.finance['sales'] > EPSILON:
             realized_gross_margin_no_transport = ((self.finance['sales'] - self.finance['costs']['input'])
                                                   / self.finance['sales'])
             realized_margin = self.profit / self.finance['sales']
@@ -863,56 +933,51 @@ class Firm(Agent):
             logging.debug('Firm ' + str(self.pid) + ': my margin differs from the target one: ' +
                           '{:.3f}'.format(realized_margin) + ' instead of ' + str(self.target_margin))
 
-    def print_info(self):
-        print("\nFirm " + str(self.pid) + " from sector " + str(self.sector) + ":")
-        print("suppliers:", self.suppliers)
-        print("clients:", self.clients)
-        print("input_mix:", self.input_mix)
-        print("order_book:", self.order_book, "; total_order:", self.total_order)
-        print("input_needs:", self.input_needs)
-        print("purchase_plan:", self.purchase_plan)
-        print("inventory:", self.inventory)
-        print("production:", self.production, "; production target:", self.production_target, "; product stock:",
-              self.product_stock)
-        print("profit:", self.profit, ";", self.finance)
 
+class Firms(Agents):
+    def __init__(self, agent_list=None):
+        super().__init__(agent_list)
 
-class FirmList(AgentList):
-    # def __init__(self, firm_list: list[Firm]):
-    #     super().__init__(firm for firm in firm_list if isinstance(firm, Firm))
+    def filter_by_sector(self, sector):
+        filtered_agents = Firms()
+        for agent in self.values():
+            if agent.sector == sector:
+                filtered_agents[agent.pid] = agent
+        return filtered_agents
 
-    def retrieve_orders(self, sc_network: networkx.DiGraph):
-        for firm in self:
+    def retrieve_orders(self, sc_network: "ScNetwork"):
+        for firm in self.values():
             firm.retrieve_orders(sc_network)
 
-    def plan_production(self, sc_network: networkx.DiGraph, propagate_input_price_change: bool = True):
-        for firm in self:
-            firm.aggregate_orders(print_info=True)
+    def plan_production(self, sc_network: "ScNetwork", propagate_input_price_change: bool = True):
+        for firm in self.values():
+            firm.evaluate_capacity()
+            firm.aggregate_orders(log_info=True)
             firm.decide_production_plan()
             if propagate_input_price_change:
                 firm.calculate_price(sc_network)
 
-    def plan_purchase(self):
-        for firm in self:
+    def plan_purchase(self, adaptive_inventories: bool, adapt_weight_based_on_satisfaction: bool):
+        for firm in self.values():
             firm.evaluate_input_needs()
-            firm.decide_purchase_plan()  # mode="reactive"
+            firm.decide_purchase_plan(adaptive_inventories, adapt_weight_based_on_satisfaction)  # mode="reactive"
 
     def produce(self):
-        for firm in self:
+        for firm in self.values():
             firm.produce()
 
-    def evaluate_profit(self, sc_network: networkx.DiGraph):
-        for firm in self:
+    def evaluate_profit(self, sc_network: "ScNetwork"):
+        for firm in self.values():
             firm.evaluate_profit(sc_network)
 
-    def update_production_capacity(self):
-        for firm in self:
-            firm.update_production_capacity()
+    def update_disrupted_production_capacity(self):
+        for firm in self.values():
+            firm.update_disrupted_production_capacity()
 
     def get_disrupted(self, firm_id_duration_reduction_dict: dict):
-        for firm in self:
+        for firm in self.values():
             if firm.pid in list(firm_id_duration_reduction_dict.keys()):
-                firm.reduce_production_capacity(
+                firm.disrupt_production_capacity(
                     firm_id_duration_reduction_dict[firm.pid]['duration'],
                     firm_id_duration_reduction_dict[firm.pid]['reduction']
                 )
@@ -930,17 +995,20 @@ def production_function(inputs, input_mix, function_type="Leontief"):
         raise ValueError("Wrong mode selected")
 
 
-def purchase_planning_function(estimated_need, inventory, inventory_duration_target=1, reactivity_rate=1):
+def purchase_planning_function(estimated_need: float, inventory: float, inventory_duration_target: float,
+                               inventory_restoration_time: float):
     """Decide the quantity of each input to buy according to a dynamical rule
     """
-    target_inventory = (1 + inventory_duration_target) * estimated_need
-    if inventory >= target_inventory + estimated_need:
-        return 0
-    elif inventory >= target_inventory:
-        return target_inventory + estimated_need - inventory
-    else:
-        return (1 - reactivity_rate) * estimated_need + reactivity_rate * (
-                estimated_need + target_inventory - inventory)
+    # target_inventory = (1 + inventory_duration_target) * estimated_need
+    target_inventory = inventory_duration_target * estimated_need
+    # if inventory >= target_inventory + estimated_need:
+    #     return 0
+    # elif inventory >= target_inventory:
+    #     return target_inventory + estimated_need - inventory
+    # else:
+    #     # return (1 - 1 / inventory_restoration_time) * estimated_need + inventory_restoration_time * (
+    #     #         estimated_need + target_inventory - inventory)
+    return max(0.0, estimated_need + 1 / inventory_restoration_time * (target_inventory - inventory))
 
 
 def evaluate_inventory_duration(estimated_need, inventory):

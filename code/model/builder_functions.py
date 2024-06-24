@@ -10,8 +10,8 @@ import geopandas as gpd
 from pandas import Series
 
 if TYPE_CHECKING:
-    from code.agents.firm import FirmList
-    from code.agents.country import CountryList
+    from code.agents.firm import Firms
+    from code.agents.country import Countries
 
 
 def filter_sector(sector_table, cutoff_sector_output, cutoff_sector_demand,
@@ -117,20 +117,20 @@ def apply_sector_filter(sector_table, filter_column, cut_off_dic):
     return filtered_sectors
 
 
-def get_closest_road_nodes(admin_unit_ids: pd.Series,
+def get_closest_road_nodes(regions: pd.Series,
                            transport_nodes: geopandas.GeoDataFrame, filepath_region_table: Path) -> pd.Series:
     region_table = gpd.read_file(filepath_region_table)
-    dic_region_to_points = region_table.set_index('admin_code')['geometry'].to_dict()
+    dic_region_to_points = region_table.set_index('region')['geometry'].to_dict()
     road_nodes = transport_nodes[transport_nodes['type'] == "roads"]
     dic_region_to_road_node_id = {
-        admin_unit: road_nodes.loc[get_index_closest_point(point, road_nodes), 'id']
-        for admin_unit, point in dic_region_to_points.items()
+        region: road_nodes.loc[get_index_closest_point(point, road_nodes), 'id']
+        for region, point in dic_region_to_points.items()
     }
-    closest_road_nodes = admin_unit_ids.map(dic_region_to_road_node_id)
+    closest_road_nodes = regions.map(dic_region_to_road_node_id)
     if closest_road_nodes.isnull().sum() > 0:
         logging.warning(f"{closest_road_nodes.isnull().sum()} regions not found")
         raise KeyError(f"{closest_road_nodes.isnull().sum()} regions not found: "
-                       f"{admin_unit_ids[closest_road_nodes.isnull()].to_list()}")
+                       f"{regions[closest_road_nodes.isnull()].to_list()}")
     return closest_road_nodes
 
 
@@ -153,7 +153,7 @@ def get_index_closest_point(point, df_with_points):
     point: shapely.Point
         Point object of which we want to find the closest point
     df_with_points: geopandas.GeoDataFrame
-        GeoDataFrame containing the points among which we want to find the
+        containing the points among which we want to find the
         one that is the closest to point
 
     Returns
@@ -165,9 +165,9 @@ def get_index_closest_point(point, df_with_points):
     return df_with_points.index[distance_list.index(min(distance_list))]
 
 
-def extract_final_list_of_sector(firm_list: "FirmList"):
-    n = len(firm_list)
-    present_sectors = list(set([firm.main_sector for firm in firm_list]))
+def extract_final_list_of_sector(firms: "Firms"):
+    n = len(firms)
+    present_sectors = list(set([firm.main_sector for firm in firms.values()]))
     present_sectors.sort()
     flow_types_to_export = present_sectors + ['domestic_B2C', 'domestic_B2B', 'transit', 'import',
                                               'import_B2C', 'export', 'total']
@@ -177,25 +177,25 @@ def extract_final_list_of_sector(firm_list: "FirmList"):
 
 
 def load_ton_usd_equivalence(sector_table: pd.DataFrame, firm_table: pd.DataFrame,
-                             firm_list: "FirmList", country_list: "CountryList"):
+                             firms: "Firms", countries: "Countries"):
     """Load equivalence between usd and ton
 
-    It updates the firm_list and country_list.
+    It updates the firms and countries.
     It updates the 'usd_per_ton' attribute of firms, based on their sector.
     It updates the 'usd_per_ton' attribute of countries, it gives the average.
     Note that this will be applied only to goods that are delivered by those agents.
 
     sector_table : pandas.DataFrame
         Sector table
-    firm_list : list(Firm objects)
+    firms : list(Firm objects)
         list of firms
-    country_list : list(Country objects)
+    countries : list(Country objects)
         list of countries
     """
     sector_to_usd_per_ton = sector_table.set_index('sector')['usd_per_ton']
     firm_table['usd_per_ton'] = firm_table['sector'].map(sector_to_usd_per_ton)
-    for firm in firm_list:
+    for firm in firms.values():
         firm.usd_per_ton = sector_to_usd_per_ton[firm.sector]
 
-    for country in country_list:
+    for country in countries.values():
         country.usd_per_ton = sector_to_usd_per_ton['IMP']

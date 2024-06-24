@@ -7,9 +7,7 @@ import logging
 
 from code.model.basic_functions import calculate_distance_between_agents, rescale_values, \
     generate_weights_from_list
-from code.agents.agent import agent_receive_products_and_pay
-
-from code.agents.agent import Agent, AgentList
+from code.agents.agent import Agent, Agents
 from code.network.commercial_link import CommercialLink
 
 if TYPE_CHECKING:
@@ -19,17 +17,18 @@ if TYPE_CHECKING:
 
 class Country(Agent):
 
-    def __init__(self, pid=None, qty_sold=None, qty_purchased=None, odpoint=None, long=None, lat=None,
+    def __init__(self, pid=None, qty_sold=None, qty_purchased=None, od_point=None, long=None, lat=None,
                  purchase_plan=None, transit_from=None, transit_to=None, supply_importance=None,
-                 usd_per_ton=None):
+                 usd_per_ton=None, sector="IMP"):
         # Intrinsic parameters
         super().__init__(
             agent_type="country",
             pid=pid,
-            odpoint=odpoint,
+            od_point=od_point,
             long=long,
             lat=lat
         )
+        self.sector = sector
 
         # Parameter based on data
         self.usd_per_ton = usd_per_ton
@@ -61,9 +60,18 @@ class Country(Agent):
         self.extra_spending = 0
         self.consumption_loss = 0
 
-    def create_transit_links(self, graph, country_list):
+    def reset_indicators(self):
+        self.extra_spending = 0
+        self.consumption_loss = 0
+
+    def update_indicator(self, quantity_delivered: float, price: float, commercial_link: "CommercialLink"):
+        super().update_indicator(quantity_delivered, price, commercial_link)
+        self.extra_spending += quantity_delivered * (price - commercial_link.eq_price)
+        self.consumption_loss += commercial_link.delivery - quantity_delivered
+
+    def create_transit_links(self, graph, countries):
         for selling_country_pid, quantity in self.transit_from.items():
-            selling_country_object = [country for country in country_list if country.pid == selling_country_pid][0]
+            selling_country_object = [country for pid, country in countries.items() if pid == selling_country_pid][0]
             graph.add_edge(selling_country_object, self,
                            object=CommercialLink(
                                pid=str(selling_country_pid) + '->' + str(self.pid),
@@ -76,13 +84,13 @@ class Country(Agent):
             self.purchase_plan[selling_country_pid] = quantity
             selling_country_object.clients[self.pid] = {'sector': self.pid, 'share': 0, 'transport_share': 0}
 
-    def select_suppliers(self, graph, firm_list, country_list,
+    def select_suppliers(self, graph, firms, country_list,
                          sector_table: pd.DataFrame, transport_nodes: gpd.GeoDataFrame):
         # Select other country as supplier: transit flows
         self.create_transit_links(graph, country_list)
 
         # Identify firms from each sector
-        dic_sector_to_firm_id = identify_firms_in_each_sector(firm_list)
+        dic_sector_to_firm_id = identify_firms_in_each_sector(firms)
         share_exporting_firms = sector_table.set_index('sector')['share_exporting_firms'].to_dict()
         # Identify od_points which exports (optional)
         export_od_points = transport_nodes.dropna(subset=['special'])
@@ -115,23 +123,23 @@ class Country(Agent):
             selected_supplier_ids, supplier_weights = determine_suppliers_and_weights(
                 potential_supplier_pid,
                 nb_suppliers_to_select,
-                firm_list,
+                firms,
                 mode=supplier_selection_mode
             )
             # Materialize the link
             for supplier_id in selected_supplier_ids:
                 # For each supplier, create an edge in the economic network
-                graph.add_edge(firm_list[supplier_id], self,
+                graph.add_edge(firms[supplier_id], self,
                                object=CommercialLink(
                                    pid=str(supplier_id) + '->' + str(self.pid),
                                    product=sector,
-                                   product_type=firm_list[supplier_id].sector_type,
+                                   product_type=firms[supplier_id].sector_type,
                                    category="export",
                                    supplier_id=supplier_id,
                                    buyer_id=self.pid))
                 # Associate a weight
                 weight = supplier_weights.pop(0)
-                graph[firm_list[supplier_id]][self]['weight'] = weight
+                graph[firms[supplier_id]][self]['weight'] = weight
                 # Households save the name of the retailer, its sector, its weight, and adds it to its purchase plan
                 self.qty_purchased_perfirm[supplier_id] = {
                     'sector': sector,
@@ -141,8 +149,8 @@ class Country(Agent):
                 self.purchase_plan[supplier_id] = self.qty_purchased[sector] * weight
                 # The supplier saves the fact that it exports to this country.
                 # The share of sales cannot be calculated now, we put 0 for the moment
-                distance = calculate_distance_between_agents(self, firm_list[supplier_id])
-                firm_list[supplier_id].clients[self.pid] = {
+                distance = calculate_distance_between_agents(self, firms[supplier_id])
+                firms[supplier_id].clients[self.pid] = {
                     'sector': self.pid, 'share': 0, 'transport_share': 0, 'distance': distance
                 }
 
@@ -157,7 +165,7 @@ class Country(Agent):
 
     def deliver_products(self, graph: "ScNetwork", transport_network: "TransportNetwork",
                          sectors_no_transport_network: list[str], rationing_mode: str, monetary_units_in_model: str,
-                         cost_repercussion_mode: str, price_increase_threshold: float, account_capacity: bool,
+                         cost_repercussion_mode: str, price_increase_threshold: float, capacity_constraint: bool,
                          transport_cost_noise_level: float):
         """ The quantity to be delivered is the quantity that was ordered (no rationing takes place)
 
@@ -165,7 +173,7 @@ class Country(Agent):
         ----------
         transport_cost_noise_level
         cost_repercussion_mode
-        account_capacity
+        capacity_constraint
         monetary_units_in_model
         rationing_mode
         sectors_no_transport_network
@@ -180,8 +188,7 @@ class Country(Agent):
         self.qty_sold = 0
         for edge in graph.out_edges(self):
             if graph[self][edge[1]]['object'].order == 0:
-                logging.debug("Agent " + str(self.pid) + ": " +
-                              str(graph[self][edge[1]]['object'].buyer_id) + " is my client but did not order")
+                logging.debug(f"{self.id_str()} - {edge[1].id_str()} is my client but did not order")
                 continue
             graph[self][edge[1]]['object'].delivery = graph[self][edge[1]]['object'].order
             graph[self][edge[1]]['object'].delivery_in_tons = \
@@ -197,12 +204,12 @@ class Country(Agent):
                 # Otherwise, send shipment through transportation network
                 else:
                     self.send_shipment(graph[self][edge[1]]['object'], transport_network, monetary_units_in_model,
-                                       cost_repercussion_mode, price_increase_threshold, account_capacity,
+                                       cost_repercussion_mode, price_increase_threshold, capacity_constraint,
                                        transport_cost_noise_level)
             else:
-                if (edge[1].odpoint != -1):  # to non-service firms, send shipment through transportation network
+                if (edge[1].od_point != -1):  # to non-service firms, send shipment through transportation network
                     self.send_shipment(graph[self][edge[1]]['object'], transport_network, monetary_units_in_model,
-                                       cost_repercussion_mode, price_increase_threshold, account_capacity,
+                                       cost_repercussion_mode, price_increase_threshold, capacity_constraint,
                                        transport_cost_noise_level)
                 else:  # if it sends to service firms, nothing to do. price is equilibrium price
                     graph[self][edge[1]]['object'].price = graph[self][edge[1]]['object'].eq_price
@@ -210,7 +217,7 @@ class Country(Agent):
 
     def send_shipment(self, commercial_link: "CommercialLink", transport_network: "TransportNetwork",
                       monetary_units_in_model: str, cost_repercussion_mode: str, price_increase_threshold: float,
-                      account_capacity: bool, transport_cost_noise_level: float):
+                      capacity_constraint: bool, transport_cost_noise_level: float):
 
         if commercial_link.delivery_in_tons == 0:
             print("delivery", commercial_link.delivery)
@@ -235,7 +242,7 @@ class Country(Agent):
             # If the normal route is available, we can send the shipment as usual and pay the usual price
             commercial_link.current_route = 'main'
             commercial_link.price = commercial_link.eq_price
-            transport_network.transport_shipment(commercial_link)
+            transport_network.transport_shipment(commercial_link, capacity_constraint)
 
             self.generalized_transport_cost += commercial_link.route_time_cost \
                                                + commercial_link.delivery_in_tons * commercial_link.route_cost_per_ton
@@ -252,13 +259,13 @@ class Country(Agent):
             route = commercial_link.alternative_route
         # Otherwise we have to find a new one
         else:
-            origin_node = self.odpoint
+            origin_node = self.od_point
             destination_node = commercial_link.route[-1][0]
             route, selected_mode = self.choose_route(
                 transport_network=transport_network.get_undisrupted_network(),
                 origin_node=origin_node,
                 destination_node=destination_node,
-                account_capacity=account_capacity,
+                capacity_constraint=capacity_constraint,
                 transport_cost_noise_level=transport_cost_noise_level,
                 accepted_logistics_modes=commercial_link.possible_transport_modes
             )
@@ -334,7 +341,7 @@ class Country(Agent):
 
             # If there is an alternative route which is not too expensive
             else:
-                transport_network.transport_shipment(commercial_link)
+                transport_network.transport_shipment(commercial_link, capacity_constraint)
                 logging.info(f"{self.id_str().capitalize()}: found an alternative route "
                              f" client {commercial_link.buyer_id}, it is costlier by "
                              f"{100 * relative_price_change_transport:.0f}%, price is "
@@ -348,9 +355,6 @@ class Country(Agent):
             commercial_link.price = commercial_link.eq_price
             # We do not pay the transporter, so we don't increment the transport cost
 
-    def receive_products_and_pay(self, graph, transport_network, sectors_no_transport_network):
-        agent_receive_products_and_pay(self, graph, transport_network, sectors_no_transport_network)
-
     def evaluate_commercial_balance(self, graph):
         exports = sum([graph[self][edge[1]]['object'].payment for edge in graph.out_edges(self)])
         imports = sum([graph[edge[0]][self]['object'].payment for edge in graph.in_edges(self)])
@@ -358,14 +362,14 @@ class Country(Agent):
             exports) + " to Tanzania")
 
 
-class CountryList(AgentList):
+class Countries(Agents):
     pass
 
 
-def identify_firms_in_each_sector(firm_list):
+def identify_firms_in_each_sector(firms):
     firm_id_each_sector = pd.DataFrame({
-        'firm': [firm.pid for firm in firm_list],
-        'sector': [firm.sector for firm in firm_list]})
+        'firm': list(firms.keys()),
+        'sector': [firm.sector for firm in firms.values()]})
     dic_sector_to_firmid = firm_id_each_sector \
         .groupby('sector')['firm'] \
         .apply(lambda x: list(x)) \
@@ -374,18 +378,18 @@ def identify_firms_in_each_sector(firm_list):
 
 
 def determine_suppliers_and_weights(potential_supplier_pids,
-                                    nb_selected_suppliers, firm_list, mode):
+                                    nb_selected_suppliers, firms, mode):
     # Get importance for each of them
     if "importance_export" in mode.keys():
         importance_of_each = rescale_values([
-            firm_list[firm_pid].importance * mode['importance_export']['bonus']
-            if firm_list[firm_pid].odpoint in mode['importance_export']['export_od_points']
-            else firm_list[firm_pid].importance
+            firms[firm_pid].importance * mode['importance_export']['bonus']
+            if firms[firm_pid].od_point in mode['importance_export']['export_od_points']
+            else firms[firm_pid].importance
             for firm_pid in potential_supplier_pids
         ])
     elif "importance" in mode.keys():
         importance_of_each = rescale_values([
-            firm_list[firm_pid].importance
+            firms[firm_pid].importance
             for firm_pid in potential_supplier_pids
         ])
 
@@ -399,7 +403,7 @@ def determine_suppliers_and_weights(potential_supplier_pids,
 
     # Compute weights, based on importance only
     supplier_weights = generate_weights_from_list([
-        firm_list[firm_pid].importance
+        firms[firm_pid].importance
         for firm_pid in selected_supplier_ids
     ])
 

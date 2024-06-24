@@ -8,7 +8,7 @@ from pathlib import Path
 
 def check_script_call(arguments: list[str]):
     """
-    Usage should be python main.py region <one optional argument>
+    Usage should be python main.py scope <one optional argument>
 
     Parameters
     ----------
@@ -19,11 +19,11 @@ def check_script_call(arguments: list[str]):
 
     """
     if len(arguments) < 2:
-        raise ValueError('The script takes at least one argument: the region to be studied. '
-                         'Ex. python main.py region <one optional argument>')
+        raise ValueError('The script takes at least one argument: the scope to be studied. '
+                         'Ex. python main.py scope <one optional argument>')
     if len(arguments) > 3:
         raise ValueError('The script does not take more than one optional argument '
-                         'Ex. python main.py region <one optional argument>')
+                         'Ex. python main.py scope <one optional argument>')
     accepted_optional_arguments: list[str] = [
         'same_transport_network_new_agents',
         'same_agents_new_sc_network',

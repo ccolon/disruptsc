@@ -98,15 +98,15 @@ def load_cached_agent_data():
     # loaded_flow_types_to_export = tmp_data['flow_types_to_export']
     loaded_firm_table = tmp_data['firm_table']
     loaded_household_table = tmp_data['household_table']
-    loaded_firm_list = tmp_data['firm_list']
-    loaded_household_list = tmp_data['household_list']
-    loaded_country_list = tmp_data['country_list']
+    loaded_firms = tmp_data['firms']
+    loaded_households = tmp_data['households']
+    loaded_countries = tmp_data['countries']
     logging.info('Firms, households, and countries generated from temp file.')
-    logging.info("Nb firms: " + str(len(loaded_firm_list)))
-    logging.info("Nb households: " + str(len(loaded_household_list)))
-    logging.info("Nb countries: " + str(len(loaded_country_list)))
-    return loaded_sector_table, loaded_firm_list, loaded_firm_table, \
-        loaded_household_list, loaded_household_table, loaded_country_list
+    logging.info("Nb firms: " + str(len(loaded_firms)))
+    logging.info("Nb households: " + str(len(loaded_households)))
+    logging.info("Nb countries: " + str(len(loaded_countries)))
+    return loaded_sector_table, loaded_firms, loaded_firm_table, \
+        loaded_households, loaded_household_table, loaded_countries
 
 
 def load_cached_transaction_table():
@@ -130,11 +130,11 @@ def load_cached_sc_network():
     pickle_filename = TMP_FOLDER / 'supply_chain_pickle'
     tmp_data = pickle.load(open(pickle_filename, 'rb'))
     loaded_sc_network = tmp_data['supply_chain_network']
-    loaded_firm_list = tmp_data['firm_list']
-    loaded_household_list = tmp_data['household_list']
-    loaded_country_list = tmp_data['country_list']
+    loaded_firms = tmp_data['firms']
+    loaded_households = tmp_data['households']
+    loaded_countries = tmp_data['countries']
     logging.info('Supply chain generated from temp file.')
-    return loaded_sc_network, loaded_firm_list, loaded_household_list, loaded_country_list
+    return loaded_sc_network, loaded_firms, loaded_households, loaded_countries
 
 
 def load_cached_logistic_routes():
@@ -142,8 +142,8 @@ def load_cached_logistic_routes():
     tmp_data = pickle.load(open(pickle_filename, 'rb'))
     loaded_sc_network = tmp_data['supply_chain_network']
     loaded_transport_network = tmp_data['transport_network']
-    loaded_firm_list = tmp_data['firm_list']
-    loaded_household_list = tmp_data['household_list']
-    loaded_country_list = tmp_data['country_list']
+    loaded_firms = tmp_data['firms']
+    loaded_households = tmp_data['households']
+    loaded_countries = tmp_data['countries']
     logging.info('Logistic routes generated from temp file.')
-    return loaded_sc_network, loaded_transport_network, loaded_firm_list, loaded_household_list, loaded_country_list
+    return loaded_sc_network, loaded_transport_network, loaded_firms, loaded_households, loaded_countries
