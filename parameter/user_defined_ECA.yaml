@@ -1,0 +1,24 @@
+# Indicate the subfolder of the input folder that contains the input files
+filepaths:
+  "sector_table": "Network/sector_table.csv"
+  "inventory_duration_targets": "Network/inventory_targets.csv"
+  "mrio": "Network/mrio.csv"
+  "region_table": "Network/region_table.geojson"
+transport_modes: [roads, maritime] #, waterways, airways]
+monetary_units_in_model: mUSD
+monetary_units_inputed: kUSD
+time_resolution: week
+io_cutoff: 0.00001
+#simulation_type: disruption
+export_files: True
+export_details:
+  "flows": True
+firm_data_type: "mrio"
+#disruption_description:
+#  type: compound
+#  events:
+#    - item_type: transport_edges
+#      attribute: id
+#      values: [465]
+#      start_time: 1
+#      duration: 1
