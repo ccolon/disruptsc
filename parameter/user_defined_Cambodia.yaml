@@ -12,6 +12,8 @@ monetary_units_in_model: mUSD
 monetary_units_inputed: USD
 time_resolution: week
 io_cutoff: 0.02
+inventory_duration_target: inputed
+inventory_duration_target_unit: week
 transport_cost_noise_level: 0
 countries_to_include: ['AFR', 'AME', 'ASI', 'EUR', 'OCE', 'THA', 'VNM']
 simulation_type: initial_state  # disruption
