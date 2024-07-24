@@ -150,13 +150,11 @@ def create_countries_from_mrio(filepath_mrio: Path,
 
     # Extract countries from MRIO
     buying_countries = mrio.external_buying_countries
-    # buying_countries = [col for col in mrio.columns if len(col) == 3]  # TODO a bit specific to Ecuador, change
     selling_countries = mrio.external_selling_countries
-    # selling_countries = [col for col in mrio.index if len(col) == 3]
-    countries = list(set(buying_countries) | set(selling_countries))
+    country_list = list(set(buying_countries) | set(selling_countries))
 
     # Create country table
-    country_table = pd.DataFrame({"pid": countries})
+    country_table = pd.DataFrame({"pid": country_list})
     logging.info(f"Select {country_table.shape[0]} countries")
 
     # Extract import, export, and transit matrices
@@ -194,9 +192,9 @@ def create_countries_from_mrio(filepath_mrio: Path,
     logging.info("Total transit per " + time_resolution + " is " +
                  "{:.01f} ".format(transit_matrix.sum().sum()) + target_units)
 
-    countries = []
     total_imports = import_table.sum().sum()
-    for country in countries:
+    countries = Countries()
+    for country in country_list:
         cond_country = transport_nodes['special'] == country
         od_point = transport_nodes.loc[cond_country, "id"]
         lon = transport_nodes.geometry.x
@@ -211,7 +209,7 @@ def create_countries_from_mrio(filepath_mrio: Path,
             lat = lat.iloc[0]
 
         # imports, i.e., sales of countries
-        if country in selling_countries:
+        if country in selling_countries and total_imports > 0:
             qty_sold = import_table.loc[country, :]
             qty_sold = qty_sold[qty_sold > 0].to_dict()
             supply_importance = sum(qty_sold.values()) / total_imports
@@ -240,21 +238,17 @@ def create_countries_from_mrio(filepath_mrio: Path,
         else:
             transit_to = {}
 
-        # create the list of Country object
-        countries += [Country(pid=country,
-                                 qty_sold=qty_sold,
-                                 qty_purchased=qty_purchased,
-                                 od_point=od_point,
-                                 long=lon,
-                                 lat=lat,
-                                 transit_from=transit_from,
-                                 transit_to=transit_to,
-                                 supply_importance=supply_importance
-                                 )]
-    countries = Countries(countries)
-
-    logging.info('Countries created: ' + str([country.pid for country in countries]))
+        # Populate countries
+        countries[country] = Country(pid=country,
+                                     qty_sold=qty_sold,
+                                     qty_purchased=qty_purchased,
+                                     od_point=od_point,
+                                     long=lon,
+                                     lat=lat,
+                                     transit_from=transit_from,
+                                     transit_to=transit_to,
+                                     supply_importance=supply_importance)
+    print(len(countries))
+    logging.info('Countries created: ' + str(countries.get_properties('pid')))
 
     return countries
-
-

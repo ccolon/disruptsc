@@ -192,7 +192,7 @@ class Household(Agent):
                 # If it is a country we get it from the country list
                 # If it is a firm we get it from the firm list
                 if supplier_type == "country":
-                    supplier_object = [country for pid, country in countries.items() if pid == retailer_id][0]
+                    supplier_object = countries[retailer_id]
                     link_category = 'import_B2C'
                     product_type = "imports"
                 else:

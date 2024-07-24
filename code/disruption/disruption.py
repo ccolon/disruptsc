@@ -121,12 +121,13 @@ class TransportDisruption(dict):
     def __repr__(self):
         return f"EventDict(start_time={self.start_time}, data={super().__repr__()})"
 
-    def print_info(self):
+    def log_info(self):
         if self.recovery:
-            print(f"{len(self)} transport edges are disrupted at {self.start_time} time steps. "
-                  f"They recover after {self.recovery.duration} time steps.")
+            logging.info(f"{len(self)} transport edges are disrupted at {self.start_time} time steps. "
+                         f"They recover after {self.recovery.duration} time steps.")
         else:
-            print(f"{len(self)} transport edges are disrupted at {self.start_time} time steps. There is no recovery.")
+            logging.info(f"{len(self)} transport edges are disrupted at {self.start_time} time steps. "
+                         f"There is no recovery.")
 
     @classmethod
     def from_edge_attributes(cls, edges: geopandas.GeoDataFrame, attribute: str, values: list):
@@ -139,7 +140,7 @@ class TransportDisruption(dict):
         else:
             condition = edges[attribute].isin(values)
         item_ids = edges.sort_values('id').loc[condition, 'id'].tolist()
-        description = pd.Series(1, index=item_ids).to_dict()
+        description = pd.Series(1.0, index=item_ids).to_dict()
 
         return cls(
             description=description,

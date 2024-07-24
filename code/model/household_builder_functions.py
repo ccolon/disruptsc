@@ -201,6 +201,10 @@ def define_households_from_mrio(
     # Add id
     household_table['id'] = range(household_table.shape[0])
 
+    # Add population
+    region_table = gpd.read_file(filepath_region_table)
+    household_table['population'] = household_table['region'].map(region_table.set_index('region')['population'])
+
     # Identify final demand per region_sector
     consumption = mrio[mrio.region_households].copy(deep=True)   # TODO to put in the class Mrio
     consumption.index = ['_'.join(tup) for tup in consumption.index]
