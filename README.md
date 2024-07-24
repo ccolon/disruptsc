@@ -544,10 +544,33 @@ A capital destruction is defined by:
   If `False`, the capital is never rebuilt.
 - _start_time_ [int]: the time step at which the disruption starts
 
+
+## Model run
+
+The model is launched by the following command:
+
+	python code/main.py <region> <optional argument>
+
+See the section "Calling the script" for more details.
+
+This is the general workflow of the model:
+
 ```mermaid
 graph TD;
-    A-->B;
-    A-->C;
-    B-->D;
-    C-->D;
+    A[1. Setup transport network]-->B[2. Setup agents];
+    B-->C[3. Setup supply chain network];
+    C-->D[4. Setup logistic routes];
+    D-->E[5. Initialize economic variables];
+    E-->F[6. Run time step 0 to set up flows];
+    F-->G[7. Run disruption scenario];
 ```
+
+Effect of the optional argument in the model run:
+- When using no optional argument, the model starts at step 1.
+- When using `same_transport_network_new_agents`, the model starts at step 2.
+- When using `same_agents_new_sc_network`, the model starts at step 3.
+- When using `same_sc_network_new_logistic_routes`, the model starts at step 4.
+- When using `same_logistic_routes`, the model starts at step 5.
+
+Note that only step 3, setup supply chain network, is stochastic. To capture the stochasticity,
+the model can be run multiple times restarting at step 3.
