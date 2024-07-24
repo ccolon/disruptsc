@@ -514,3 +514,40 @@ ComTrade for the relevant year (not splitted by sector)
 - Get the inventory data and map ii into the sector classification
 - Calculate the inventory duration targets for each pair of supplying sector to buying sector
 - Create the inventory target table
+
+
+## Running a disruption scenario
+
+In the user_defined parameters file, set _simulation_type_ to `disruption`.
+In the `events` parameter, write a list of disruption events. Each disruption event is a dictionary.
+
+There are two types of events: transport disruptions and capital destructions.
+
+A transport disruption is defined by:
+- _type_ [str]: `transport_disruption`
+- _description_type_ [str]: `edge_attributes` (more are possible, to be described)
+- _attribute_ [str]: the attribute of the edge.geojson file that the model will use to identify the edge to disrupt, 
+  for isntance
+- _value_ [list[str]]: the value of the attribute that indicates wether that an edge is disrupted or not. 
+  This is a list, so multiple values can be given
+- _start_time_ [int]: the time step at which the disruption starts
+- _duration_ [int]: the amount of time steps the disruption lasts. After that, the edge is back to normal
+ 
+A capital destruction is defined by:
+- _type_ [str]: `- type: `capital_destruction`
+- _description_type_ [str]: `region_sector_file`
+- `region_sector_filepath` [str]: filepath of the CSV file describing the amount of destroyed capital in each
+  region sector, e.g., "Disruption/earthquake_capital_destruction.csv" (other formats to be described)
+- `unit` [str]: monetary units used in the region_sector_filepath, possible values are USD, kUSD, mUSD 
+- _reconstruction_market_ [bool]: if `True`, a reconstruction market is created, and capital is rebuilt. 
+  The parameters of this market is, until now, hard-coded in the model.
+  If `False`, the capital is never rebuilt.
+- _start_time_ [int]: the time step at which the disruption starts
+
+```mermaid
+graph TD;
+    A-->B;
+    A-->C;
+    B-->D;
+    C-->D;
+```
