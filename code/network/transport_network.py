@@ -224,13 +224,13 @@ class TransportNetwork(nx.Graph):
             # Add the load
             if capacity_constraint:
                 if self[edge[0]][edge[1]]['overused']:
-                    logging.warning(f"Edge {edge} ({self[edge[0]][edge[1]]['type']}) is over capacity and got selected")
+                    logging.debug(f"Edge {edge} ({self[edge[0]][edge[1]]['type']}) is over capacity and got selected")
             self[edge[0]][edge[1]]['current_load'] += load
             # If it exceeds capacity, add the capacity_burden to both the mode_weight and the capacity_weight
             if capacity_constraint:
                 if ~self[edge[0]][edge[1]]['overused'] and \
                         (self[edge[0]][edge[1]]['current_load'] > self[edge[0]][edge[1]]['capacity']):
-                    logging.info(f"Edge {edge} ({self[edge[0]][edge[1]]['type']}) "
+                    logging.debug(f"Edge {edge} ({self[edge[0]][edge[1]]['type']}) "
                                  f"has exceeded its capacity. Current load is {self[edge[0]][edge[1]]['current_load']}, "
                                  f"capacity is ({self[edge[0]][edge[1]]['capacity']})")
                     self[edge[0]][edge[1]]['overused'] = True
