@@ -34,20 +34,20 @@ transport_cost_per_tonkm: #USD/(ton*km)
     paved: 0.065
     unpaved: 0.13
   railways: 0.020
-  waterways: 0.029
+  waterways: 0.037
   maritime: 0.002
 
 loading_cost_per_ton: #USD/ton
-  roads-waterways: 1.1
-  roads-maritime-shv: 1.1
-  roads-maritime-vnm: 1.1
-  roads-railways: 1.1
-  railways-maritime: 1.1
-  waterways-maritime: 0.55
+  roads-waterways: 8.4
+  roads-maritime-shv: 8.4
+  roads-maritime-vnm: 5.2
+  roads-railways: 4.4
+  railways-maritime: 8.4
+  waterways-maritime: 8.4
 
 custom_cost: #USD/ton
-  roads: 27
-  waterways: 11.5
+  roads: 33.25
+  waterways: 28.0
   maritime: 11.5
 
 custom_time: #hours
