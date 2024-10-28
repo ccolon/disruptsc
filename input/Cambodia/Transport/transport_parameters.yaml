@@ -47,8 +47,8 @@ loading_cost_per_ton: #USD/ton
 
 custom_cost: #USD/ton
   roads: 27
-  waterways: 9.2
-  maritime: 9.2
+  waterways: 11.5
+  maritime: 11.5
 
 custom_time: #hours
   roads: 1.5 #from JICA (2016) International Logistics Function Strengthening. See excel

@@ -5,14 +5,14 @@ import pandas as pd
 import geopandas as gpd
 import logging
 
-from code.model.basic_functions import calculate_distance_between_agents, rescale_values, \
+from src.model.basic_functions import calculate_distance_between_agents, rescale_values, \
     generate_weights_from_list
-from code.agents.agent import Agent, Agents
-from code.network.commercial_link import CommercialLink
+from src.agents.agent import Agent, Agents
+from src.network.commercial_link import CommercialLink
 
 if TYPE_CHECKING:
-    from code.network.transport_network import TransportNetwork
-    from code.network.sc_network import ScNetwork
+    from src.network.transport_network import TransportNetwork
+    from src.network.sc_network import ScNetwork
 
 
 class Country(Agent):

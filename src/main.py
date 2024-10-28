@@ -3,9 +3,9 @@ import logging
 import sys
 import time
 import paths
-from code.model.caching_functions import generate_cache_parameters_from_command_line_argument
-from code.parameters import Parameters
-from code.simulation.handling_functions import check_script_call
+from src.model.caching_functions import generate_cache_parameters_from_command_line_argument
+from src.parameters import Parameters
+from src.simulation.handling_functions import check_script_call
 from model.model import Model
 
 # Start run

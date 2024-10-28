@@ -10,29 +10,29 @@ from .caching_functions import \
     load_cached_transaction_table, \
     cache_transport_network, \
     cache_agent_data, load_cached_sc_network, cache_sc_network, load_cached_logistic_routes, cache_logistic_routes
-from code.model.check_functions import compare_production_purchase_plans
-from code.model.country_builder_functions import create_countries_from_mrio, create_countries
-from code.model.firm_builder_functions import define_firms_from_local_economic_data, define_firms_from_network_data, \
+from src.model.check_functions import compare_production_purchase_plans
+from src.model.country_builder_functions import create_countries_from_mrio, create_countries
+from src.model.firm_builder_functions import define_firms_from_local_economic_data, define_firms_from_network_data, \
     define_firms_from_mrio, create_firms, load_technical_coefficients, calibrate_input_mix, load_mrio_tech_coefs, \
     load_inventories
-from code.model.household_builder_functions import define_households_from_mrio, define_households, \
+from src.model.household_builder_functions import define_households_from_mrio, define_households, \
     add_households_for_firms, \
     create_households
-from code.model.transport_network_builder_functions import \
+from src.model.transport_network_builder_functions import \
     create_transport_network
-from code.model.builder_functions import \
+from src.model.builder_functions import \
     filter_sector, \
     extract_final_list_of_sector, \
     load_ton_usd_equivalence
-from code.parameters import Parameters
-from code.disruption.disruption import DisruptionList, TransportDisruption, CapitalDestruction
-from code.simulation.simulation import Simulation
-from code.network.sc_network import ScNetwork
+from src.parameters import Parameters
+from src.disruption.disruption import DisruptionList, TransportDisruption, CapitalDestruction
+from src.simulation.simulation import Simulation
+from src.network.sc_network import ScNetwork
 
 if TYPE_CHECKING:
-    from code.agents.country import Countries
-    from code.agents.firm import Firms
-    from code.agents.household import Households
+    from src.agents.country import Countries
+    from src.agents.firm import Firms
+    from src.agents.household import Households
 
 
 class Model(object):
@@ -79,7 +79,8 @@ class Model(object):
                 create_transport_network(
                     transport_modes=self.parameters.transport_modes,
                     filepaths=self.parameters.filepaths,
-                    transport_cost_data=self.parameters.transport_cost_data
+                    transport_cost_data=self.parameters.transport_cost_data,
+                    time_resolution=self.parameters.time_resolution
                 )
 
             data_to_cache = {

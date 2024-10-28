@@ -5,9 +5,9 @@ import logging
 import pandas
 
 if TYPE_CHECKING:
-    from code.network.sc_network import ScNetwork
-    from code.network.transport_network import TransportNetwork
-    from code.network.commercial_link import CommercialLink
+    from src.network.sc_network import ScNetwork
+    from src.network.transport_network import TransportNetwork
+    from src.network.commercial_link import CommercialLink
 
 
 EPSILON = 1e-6
@@ -92,9 +92,7 @@ class Agent(object):
                               logistic_modes: str | pandas.DataFrame, capacity_constraint: bool,
                               transport_cost_noise_level: float, monetary_unit_flow: str):
         for edge in sc_network.out_edges(self):
-            if edge[1].pid == -1:  # we do not create route for households if single representative agent
-                continue
-            elif edge[1].od_point == -1:  # we do not create route for service firms if explicit_service_firms = False
+            if edge[1].od_point == -1:  # we do not create route for service firms if explicit_service_firms = False
                 continue
             else:
                 # Get the id of the origin and destination node
@@ -124,7 +122,8 @@ class Agent(object):
                 )
 
                 if capacity_constraint:
-                    self.update_transport_load(edge, monetary_unit_flow, route, sc_network, transport_network)
+                    self.update_transport_load(edge, monetary_unit_flow, route, sc_network, transport_network,
+                                               capacity_constraint)
 
     def get_transport_cond(self, edge, transport_modes):
         # Define the type of transport mode to use by looking in the transport_mode table
@@ -143,12 +142,12 @@ class Agent(object):
             # we have not implemented a "sector" condition
         return cond_from, cond_to
 
-    def update_transport_load(self, edge, monetary_unit_flow, route, sc_network, transport_network):
+    def update_transport_load(self, edge, monetary_unit_flow, route, sc_network, transport_network, capacity_constraint):
         # Update the "current load" on the transport network
         # if current_load exceed burden, then add burden to the weight
         new_load_in_usd = sc_network[self][edge[1]]['object'].order
         new_load_in_tons = Agent.transformUSD_to_tons(new_load_in_usd, monetary_unit_flow, self.usd_per_ton)
-        transport_network.update_load_on_route(route, new_load_in_tons)
+        transport_network.update_load_on_route(route, new_load_in_tons, capacity_constraint)
 
     def choose_route(self, transport_network: "TransportNetwork", origin_node: int, destination_node: int,
                      capacity_constraint: bool, transport_cost_noise_level: float, accepted_logistics_modes: str | list):
@@ -166,7 +165,6 @@ class Agent(object):
         one per accepted_logistics_mode. They will then pick one, with a certain probability taking into account the
         weight This more complex mode is used when, according to the capacity and cost data, all the exports or
         imports are using one route, whereas in the data, we observe still some flows using another mode of
-
         transport. So we use this to "force" some flow to take the other routes.
         """
         if capacity_constraint:

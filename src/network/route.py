@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 import pandas as pd
 
 if TYPE_CHECKING:
-    from code.network.transport_network import TransportNetwork
+    from src.network.transport_network import TransportNetwork
 
 
 class Route(list):
@@ -25,6 +25,12 @@ class Route(list):
         # self.cost_per_ton = transport_edges.loc[self.transport_edge_ids, 'cost_per_ton'].sum()
         self.length = sum([transport_network[source][target]['km']
                            for source, target in self.transport_edges])
+
+    def check_edge_in_route(self, route, searched_edge):
+        for edge in self.transport_edges:
+            if (searched_edge[0] == edge[0]) and (searched_edge[1] == edge[1]):
+                return True
+        return False
 
     def sum_indicator(self, transport_network: "TransportNetwork", indicator: str, per_type: bool = False):
         if per_type:

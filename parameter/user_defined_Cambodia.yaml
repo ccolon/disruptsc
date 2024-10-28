@@ -16,12 +16,18 @@ inventory_duration_target: inputed
 inventory_duration_target_unit: week
 transport_cost_noise_level: 0
 countries_to_include: ['AFR', 'AME', 'ASI', 'EUR', 'OCE', 'THA', 'VNM']
-simulation_type: disruption  # disruption
+simulation_type: initial_state  # disruption
 export_files: True
 events:
   - type: transport_disruption
     description_type: edge_attributes
     attribute: disruption_test_1
-    values: [1]
+    values: ["1"]
     start_time: 1
     duration: 1
+  - type: transport_disruption
+    description_type: edge_attributes
+    attribute: disruption_test_1
+    values: ["1"]
+    start_time: 3
+    duration: 2

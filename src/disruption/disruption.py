@@ -8,12 +8,12 @@ import geopandas
 import pandas
 import pandas as pd
 
-from code.parameters import EPSILON, import_code
+from src.parameters import EPSILON, import_code
 
 if TYPE_CHECKING:
-    from code.agents.firm import Firms
-    from code.network.transport_network import TransportNetwork
-    from code.model.model import Model
+    from src.agents.firm import Firms
+    from src.network.transport_network import TransportNetwork
+    from src.model.model import Model
 
 
 class ReconstructionMarket:

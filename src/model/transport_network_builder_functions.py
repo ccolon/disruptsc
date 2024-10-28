@@ -6,10 +6,11 @@ import pandas as pd
 import yaml
 from shapely.geometry import Point
 
-from code.network.transport_network import TransportNetwork
+from src.network.transport_network import TransportNetwork
 
 
-def load_transport_data(filepaths, transport_params, transport_mode, transport_cost_data, additional_roads=None):
+def load_transport_data(filepaths, transport_params, transport_mode, transport_cost_data, time_resolution,
+                        additional_roads=None):
     # Determines whether there are nodes and/or edges to load
     any_edge = True
     any_node = True
@@ -51,7 +52,6 @@ def load_transport_data(filepaths, transport_params, transport_mode, transport_c
 
         # Adapt capacity (given in tons per day) to time resolution
         time_resolution_in_days = {'day': 1, 'week': 7, 'month': 365.25/12, 'year': 365.25}
-        time_resolution = "week"
         edges['capacity'] = pd.to_numeric(edges['capacity'], errors="coerce")
         edges['capacity'] = edges['capacity'] * time_resolution_in_days[time_resolution]
 
@@ -95,7 +95,8 @@ def offset_ids(nodes, edges, offset_node_id, offset_edge_id):
     return nodes, edges
 
 
-def create_transport_network(transport_modes: list, filepaths: dict, transport_cost_data: dict, extra_roads=False):
+def create_transport_network(transport_modes: list, filepaths: dict, transport_cost_data: dict, time_resolution: str,
+                             extra_roads=False):
     """Create the transport network object
 
     It uses one shapefile for the nodes and another for the edges.
@@ -139,23 +140,29 @@ def create_transport_network(transport_modes: list, filepaths: dict, transport_c
     nodes, edges = load_transport_data(filepaths, transport_params,
                                        transport_mode="roads",
                                        transport_cost_data=transport_cost_data,
-                                       additional_roads=extra_roads)
+                                       additional_roads=extra_roads,
+                                       time_resolution=time_resolution)
     logging.info(f"Transport modes modeled: {transport_modes}")
     if "railways" in transport_modes:
-        nodes, edges = add_transport_mode("railways", nodes, edges, filepaths, transport_params, transport_cost_data)
+        nodes, edges = add_transport_mode("railways", nodes, edges, filepaths, transport_params, transport_cost_data,
+                                          time_resolution)
 
     if "waterways" in transport_modes:
-        nodes, edges = add_transport_mode("waterways", nodes, edges, filepaths, transport_params, transport_cost_data)
+        nodes, edges = add_transport_mode("waterways", nodes, edges, filepaths, transport_params, transport_cost_data,
+                                          time_resolution)
 
     if "maritime" in transport_modes:
-        nodes, edges = add_transport_mode("maritime", nodes, edges, filepaths, transport_params, transport_cost_data)
+        nodes, edges = add_transport_mode("maritime", nodes, edges, filepaths, transport_params, transport_cost_data,
+                                          time_resolution)
 
     if "airways" in transport_modes:
-        nodes, edges = add_transport_mode("airways", nodes, edges, filepaths, transport_params, transport_cost_data)
+        nodes, edges = add_transport_mode("airways", nodes, edges, filepaths, transport_params, transport_cost_data,
+                                          time_resolution)
 
     if len(transport_modes) >= 2:
         logging.debug('Loading multimodal data')
-        multimodal_edges = load_transport_data(filepaths, transport_params, "multimodal", transport_cost_data)
+        multimodal_edges = load_transport_data(filepaths, transport_params, "multimodal", transport_cost_data,
+                                               time_resolution=time_resolution)
         multimodal_edges = select_multimodal_edges_needed(multimodal_edges, transport_modes)
         logging.debug(str(multimodal_edges.shape[0]) + " multimodal edges")
         multimodal_edges = assign_endpoints(multimodal_edges, nodes)
@@ -197,10 +204,12 @@ def add_transport_mode(
         edges: geopandas.GeoDataFrame,
         filepaths: dict,
         transport_params: dict,
-        transport_cost_data: dict
+        transport_cost_data: dict,
+        time_resolution: str
 ):
     logging.debug(f'Loading {mode} data')
-    new_mode_nodes, new_mode_edges = load_transport_data(filepaths, transport_params, mode, transport_cost_data)
+    new_mode_nodes, new_mode_edges = load_transport_data(filepaths, transport_params, mode, transport_cost_data,
+                                                         time_resolution=time_resolution)
     logging.debug(f"{new_mode_nodes.shape[0]} {mode} nodes and {new_mode_edges.shape[0]} {mode} edges")
     new_mode_nodes, new_mode_edges = offset_ids(new_mode_nodes, new_mode_edges,
                                                 offset_node_id=nodes['id'].max() + 1,

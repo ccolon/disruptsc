@@ -10,8 +10,8 @@ import geopandas as gpd
 from pandas import Series
 
 if TYPE_CHECKING:
-    from code.agents.firm import Firms
-    from code.agents.country import Countries
+    from src.agents.firm import Firms
+    from src.agents.country import Countries
 
 
 def filter_sector(sector_table, cutoff_sector_output, cutoff_sector_demand,

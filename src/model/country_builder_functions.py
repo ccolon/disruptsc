@@ -5,9 +5,9 @@ import geopandas
 import pandas
 import pandas as pd
 
-from code.agents.country import Country, Countries
-from code.model.basic_functions import rescale_monetary_values
-from code.network.mrio import Mrio
+from src.agents.country import Country, Countries
+from src.model.basic_functions import rescale_monetary_values
+from src.network.mrio import Mrio
 
 
 def create_countries(filepath_imports: Path, filepath_exports: Path, filepath_transit: Path,

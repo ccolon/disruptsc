@@ -3,7 +3,7 @@ import pickle
 import os
 from typing import List
 
-from code.paths import TMP_FOLDER
+from src.paths import TMP_FOLDER
 
 
 def generate_cache_parameters_from_command_line_argument(arguments: list[str]):

@@ -6,11 +6,11 @@ import pandas as pd
 import geopandas as gpd
 import numpy as np
 
-from code.agents.household import Household, Households
-from code.model.builder_functions import get_index_closest_point, get_long_lat, \
+from src.agents.household import Household, Households
+from src.model.builder_functions import get_index_closest_point, get_long_lat, \
     get_closest_road_nodes
-from code.model.basic_functions import rescale_monetary_values
-from code.network.mrio import Mrio
+from src.model.basic_functions import rescale_monetary_values
+from src.network.mrio import Mrio
 
 
 def create_households(

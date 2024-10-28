@@ -7,7 +7,7 @@ from pathlib import Path
 import yaml
 from dataclasses import dataclass
 
-from code import paths
+from src import paths
 
 EPSILON = 1e-6
 import_code = "IMP"

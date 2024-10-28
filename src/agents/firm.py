@@ -7,17 +7,17 @@ import networkx
 import numpy as np
 from shapely.geometry import Point
 
-from code.model.basic_functions import generate_weights, \
+from src.model.basic_functions import generate_weights, \
     compute_distance_from_arcmin, rescale_values
 
-from code.agents.agent import Agent, Agents
-from code.network.commercial_link import CommercialLink
-from code.network.mrio import import_label
+from src.agents.agent import Agent, Agents
+from src.network.commercial_link import CommercialLink
+from src.network.mrio import import_label
 
 if TYPE_CHECKING:
-    from code.agents.country import Countries
-    from code.network.sc_network import ScNetwork
-    from code.network.transport_network import TransportNetwork
+    from src.agents.country import Countries
+    from src.network.sc_network import ScNetwork
+    from src.network.transport_network import TransportNetwork
 
 EPSILON = 1e-6
 

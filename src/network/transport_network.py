@@ -6,10 +6,11 @@ import numpy as np
 import pandas as pd
 import logging
 
-from code.network.route import Route
+from src.model.basic_functions import add_or_append_to_dict
+from src.network.route import Route
 
 if TYPE_CHECKING:
-    from code.network.commercial_link import CommercialLink
+    from src.network.commercial_link import CommercialLink
 
 
 class TransportNetwork(nx.Graph):
@@ -65,7 +66,7 @@ class TransportNetwork(nx.Graph):
         self[end_ids[0]][end_ids[1]]['current_capacity'] = self[end_ids[0]][end_ids[1]]['capacity']
 
     def define_weights(self, route_optimization_weight):
-        logging.debug('Generating shortest-path weights on transport network')
+        logging.debug('Transport network: defining weights that will be used for shortest-path algorithm')
         for edge in self.edges:
             self[edge[0]][edge[1]]['weight'] = self[edge[0]][edge[1]][route_optimization_weight]
             self[edge[0]][edge[1]]['capacity_weight'] = self[edge[0]][edge[1]][route_optimization_weight]
@@ -103,7 +104,7 @@ class TransportNetwork(nx.Graph):
             transport_nodes.loc[transport_nodes['id'] == household.od_point, "household_there"] = pid
 
     def provide_shortest_route(self, origin_node: int, destination_node: int,
-                               route_weight: str, noise_level: float) -> Route or None:
+                               route_weight: str, noise_level: float = 0.0) -> Route or None:
         '''
         nx.shortest_path returns path as list of nodes
         we transform it into a route, which contains nodes and edges:
@@ -210,27 +211,30 @@ class TransportNetwork(nx.Graph):
         # Propagate the load
         self.update_load_on_route(route_to_take, commercial_link.delivery_in_tons, capacity_constraint)
 
-    def update_load_on_route(self, route: "Route", load: float, capacity_constraint: bool = False):
-        '''Affect a load to a route
+    def access_edge(self, edge):
+        return self[edge[0]][edge[1]]
+
+    def update_load_on_route(self, route: "Route", load: float, capacity_constraint: bool):
+        """Affect a load to a route
 
         The current_load attribute of each edge in the route will be increased by the new load.
         A load is typically expressed in tons. If the current_load exceeds the capacity,
         then capacity_burden is added to the capacity_weight. This will prevent firms from choosing this route
-        '''
+        """
         # logging.info("Edge (2610, 2589): current_load "+str(self[2610][2589]['current_load']))
         capacity_burden = 1e10
-        # edges_along_the_route = [item for item in route if len(item) == 2]
         for edge in route.transport_edges:
-            # Add the load
+            # Check if the edge to be used is not over capacity already
             if capacity_constraint:
                 if self[edge[0]][edge[1]]['overused']:
-                    logging.debug(f"Edge {edge} ({self[edge[0]][edge[1]]['type']}) is over capacity and got selected")
+                    logging.info(f"Edge {edge} ({self[edge[0]][edge[1]]['type']}) is over capacity and got selected")
+            # Add the load
             self[edge[0]][edge[1]]['current_load'] += load
             # If it exceeds capacity, add the capacity_burden to both the mode_weight and the capacity_weight
             if capacity_constraint:
                 if ~self[edge[0]][edge[1]]['overused'] and \
                         (self[edge[0]][edge[1]]['current_load'] > self[edge[0]][edge[1]]['capacity']):
-                    logging.debug(f"Edge {edge} ({self[edge[0]][edge[1]]['type']}) "
+                    logging.info(f"Edge {edge} ({self[edge[0]][edge[1]]['type']}) "
                                  f"has exceeded its capacity. Current load is {self[edge[0]][edge[1]]['current_load']}, "
                                  f"capacity is ({self[edge[0]][edge[1]]['capacity']})")
                     self[edge[0]][edge[1]]['overused'] = True
@@ -257,13 +261,6 @@ class TransportNetwork(nx.Graph):
         for edge in all_edges:
             modes += [self[edge[0]][edge[1]]['type']]
         return list(dict.fromkeys(modes))
-
-    def check_edge_in_route(self, route, searched_edge):
-        all_edges = [item for item in route if len(item) == 2]
-        for edge in all_edges:
-            if (searched_edge[0] == edge[0]) and (searched_edge[1] == edge[1]):
-                return True
-        return False
 
     def remove_shipment(self, commercial_link):
         """Look for the shipment corresponding to the commercial link
@@ -334,10 +331,3 @@ class TransportNetwork(nx.Graph):
             # self[edge[0]][edge[1]]['congestion'] = 0
             self[edge[0]][edge[1]]['current_load'] = 0
             self[edge[0]][edge[1]]['overused'] = False
-
-
-def add_or_append_to_dict(dictionary, key, value_to_add):
-    if key in dictionary.keys():
-        dictionary[key] += value_to_add
-    else:
-        dictionary[key] = value_to_add

@@ -97,3 +97,10 @@ def rescale_monetary_values(
     values = values * units[input_units] / units[target_units]
 
     return values
+
+
+def add_or_append_to_dict(dictionary, key, value_to_add):
+    if key in dictionary.keys():
+        dictionary[key] += value_to_add
+    else:
+        dictionary[key] = value_to_add

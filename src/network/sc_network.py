@@ -3,10 +3,14 @@ import logging
 import networkx as nx
 import pandas as pd
 
-from code.agents.firm import Firm
+from src.agents.firm import Firm
+from src.model.basic_functions import add_or_append_to_dict
 
 
 class ScNetwork(nx.DiGraph):
+
+    def access_commercial_link(self, edge):
+        return self[edge[0]][edge[1]]['object']
 
     def calculate_io_matrix(self):
         io = {}
@@ -54,10 +58,3 @@ class ScNetwork(nx.DiGraph):
                 del firm_without_clients.suppliers[supplier.pid]
         # logging.info(f"There remain {len(self.identify_firms_without_clients())} firms without clients.")
         # print(self.identify_firms_without_clients())
-
-
-def add_or_append_to_dict(dictionary, key, value_to_add):
-    if key in dictionary.keys():
-        dictionary[key] += value_to_add
-    else:
-        dictionary[key] = value_to_add
