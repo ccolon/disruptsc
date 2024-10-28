@@ -72,14 +72,14 @@ class TransportNetwork(nx.Graph):
             self[edge[0]][edge[1]]['capacity_weight'] = self[edge[0]][edge[1]][route_optimization_weight]
 
     def locate_firms_on_nodes(self, firms, transport_nodes):
-        '''The nodes of the transport network stores the list of firms located there
+        """The nodes of the transport network stores the list of firms located there
         using the attribute "firms_there".
         There can be several firms in one node.
-        "transport_nodes" is a geodataframe of the nodes. It also contains this list in the colums
+        "transport_nodes" is a geodataframe of the nodes. It also contains this list in the columns
         "firm_there" as a comma-separated string
 
         This function reinitialize those fields and repopulate them with the adequate information
-        '''
+        """
         # Reinitialize
         transport_nodes['firms_there'] = ""
         for node_id in self.nodes:
@@ -90,13 +90,13 @@ class TransportNetwork(nx.Graph):
             transport_nodes.loc[transport_nodes['id'] == firm.od_point, "firms_there"] += (',' + str(firm.pid))
 
     def locate_households_on_nodes(self, households, transport_nodes):
-        '''The nodes of the transport network stores the list of households located there
+        """The nodes of the transport network stores the list of households located there
         using the attribute "household_there".
-        There can only be one householod in one node.
+        There can only be one household in one node.
         "transport_nodes" is a geodataframe of the nodes. It also contains the id of the household.
 
         This function reinitialize those fields and repopulate them with the adequate information
-        '''
+        """
         # Reinitialize
         transport_nodes['household_there'] = None
         for pid, household in households.items():
@@ -105,11 +105,10 @@ class TransportNetwork(nx.Graph):
 
     def provide_shortest_route(self, origin_node: int, destination_node: int,
                                route_weight: str, noise_level: float = 0.0) -> Route or None:
-        '''
-        nx.shortest_path returns path as list of nodes
+        """nx.shortest_path returns path as list of nodes
         we transform it into a route, which contains nodes and edges:
         [(1,), (1,5), (5,), (5,8), (8,)]
-        '''
+        """
         if origin_node not in self.nodes:
             logging.info("Origin node " + str(origin_node) + " not in the available transport network")
             return None
@@ -177,7 +176,7 @@ class TransportNetwork(nx.Graph):
                 self[edge[0]][edge[1]]['disruption_duration'] -= 1
 
     def transport_shipment(self, commercial_link: "CommercialLink", capacity_constraint: bool):
-        # Select the route to transport the shimpment: main or alternative
+        # Select the route to transport the shipment: main or alternative
         if commercial_link.current_route == 'main':
             route_to_take = commercial_link.route
         elif commercial_link.current_route == 'alternative':
@@ -235,8 +234,8 @@ class TransportNetwork(nx.Graph):
                 if ~self[edge[0]][edge[1]]['overused'] and \
                         (self[edge[0]][edge[1]]['current_load'] > self[edge[0]][edge[1]]['capacity']):
                     logging.info(f"Edge {edge} ({self[edge[0]][edge[1]]['type']}) "
-                                 f"has exceeded its capacity. Current load is {self[edge[0]][edge[1]]['current_load']}, "
-                                 f"capacity is ({self[edge[0]][edge[1]]['capacity']})")
+                                 f"has exceeded its capacity. Current load is {self[edge[0]][edge[1]]['current_load']},"
+                                 f" capacity is ({self[edge[0]][edge[1]]['capacity']})")
                     self[edge[0]][edge[1]]['overused'] = True
                     self[edge[0]][edge[1]]["capacity_weight"] += capacity_burden
 

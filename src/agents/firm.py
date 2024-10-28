@@ -875,8 +875,7 @@ class Firm(Agent):
             origin_node=origin_node,
             destination_node=destination_node,
             capacity_constraint=account_capacity,
-            transport_cost_noise_level=transport_cost_noise_level,
-            accepted_logistics_modes=commercial_link.possible_transport_modes
+            transport_cost_noise_level=transport_cost_noise_level
         )
         # If we find a new route, we save it as the alternative one
         if route is not None:

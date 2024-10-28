@@ -390,20 +390,16 @@ class Model(object):
         else:
             logging.info('The supplier--buyer graph is being connected to the transport network')
             logging.info('Each B2B and transit edge is being linked to a route of the transport network')
-            if self.parameters.logistic_modes == "specific":
-                logistics_modes = pd.read_csv(self.parameters.filepaths['transport_modes'])
-            else:
-                logistics_modes = "any"
             logging.info('Routes for transit and import flows are being selected by trading countries')
             for country in self.countries.values():
-                country.choose_initial_routes(self.sc_network, self.transport_network, logistics_modes,
+                country.choose_initial_routes(self.sc_network, self.transport_network,
                                               self.parameters.capacity_constraint,
                                               self.parameters.transport_cost_noise_level,
                                               self.parameters.monetary_units_in_model)
             logging.info('Routes for exports and B2B domestic flows are being selected by domestic firms')
             for firm in self.firms.values():
                 if firm.sector_type not in self.parameters.sectors_no_transport_network:
-                    firm.choose_initial_routes(self.sc_network, self.transport_network, logistics_modes,
+                    firm.choose_initial_routes(self.sc_network, self.transport_network,
                                                self.parameters.capacity_constraint,
                                                self.parameters.transport_cost_noise_level,
                                                self.parameters.monetary_units_in_model)

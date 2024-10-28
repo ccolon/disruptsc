@@ -211,23 +211,6 @@ local_demand_cutoff: 0
 # - list of countries
 countries_to_include: "all"
 
-# Defines the different parts of the transport network that a commercial link can use TODO: deprecated
-# "accepted_modes": list of "roads", "railways", "waterways", "maritime", "multimodal"
-# "accepted_multimodal_links": list of string that should correspond to the attribute "multimodes" of the multimodal_edges input file
-#logistics_modes:
-#  'domestic':
-#    "accepted_modes": ['roads'rebuilding_sectors]
-#    "accepted_multimodal_links": []
-#  'international':
-#    "accepted_modes": ['roads', 'maritime', 'multimodal']
-#    "accepted_multimodal_links": ['roads-maritime']
-
-# Can all types of goods take any route?
-# If "any", then yes
-# If "specific", then it is described in a 'transport_mode' file, to be added in the filepaths
-logistic_modes: "any"
-
-
 # Any sector in a district that have an importance lower than this value is discarded
 # 2 exceptions apply:
 # - for each sector, the most important district is kept, even if its importance is lower.

@@ -1,7 +1,5 @@
 import logging
 import pickle
-import os
-from typing import List
 
 from src.paths import TMP_FOLDER
 
@@ -49,10 +47,10 @@ def generate_cache_parameters_from_command_line_argument(arguments: list[str]):
             cache_parameters['sc_network'] = True
             cache_parameters['logistic_routes'] = True
         if argument == accepted_script_arguments[4]:
-            cache_parameters['transport_network'] = True
-            cache_parameters['agents'] = False
+            cache_parameters['transport_network'] = False
+            cache_parameters['agents'] = True
             cache_parameters['sc_network'] = False
-            cache_parameters['logistic_routes'] = True
+            cache_parameters['logistic_routes'] = False
         if argument == accepted_script_arguments[5]:
             cache_parameters['transport_network'] = False
             cache_parameters['agents'] = True

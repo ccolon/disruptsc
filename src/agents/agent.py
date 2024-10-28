@@ -89,7 +89,7 @@ class Agent(object):
                 f" It was supposed to be {commercial_link.delivery}.")
 
     def choose_initial_routes(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
-                              logistic_modes: str | pandas.DataFrame, capacity_constraint: bool,
+                              capacity_constraint: bool,
                               transport_cost_noise_level: float, monetary_unit_flow: str):
         for edge in sc_network.out_edges(self):
             if edge[1].od_point == -1:  # we do not create route for service firms if explicit_service_firms = False
@@ -98,18 +98,13 @@ class Agent(object):
                 # Get the id of the origin and destination node
                 origin_node = self.od_point
                 destination_node = edge[1].od_point
-                if logistic_modes == "specific":
-                    cond_from, cond_to = self.get_transport_cond(edge, logistic_modes)
-                    logistic_modes = logistic_modes.loc[cond_from & cond_to, "transport_mode"].iloc[0]
-                sc_network[self][edge[1]]['object'].transport_mode = logistic_modes
                 # Choose the route and the corresponding mode
                 route, selected_mode = self.choose_route(
                     transport_network=transport_network,
                     origin_node=origin_node,
                     destination_node=destination_node,
                     capacity_constraint=capacity_constraint,
-                    transport_cost_noise_level=transport_cost_noise_level,
-                    accepted_logistics_modes=logistic_modes
+                    transport_cost_noise_level=transport_cost_noise_level
                 )
                 # print(str(self.pid)+" located "+str(self.od_point)+": I choose this transport mode "+
                 #     str(transport_network.give_route_mode(route))+ " to connect to "+
@@ -150,7 +145,7 @@ class Agent(object):
         transport_network.update_load_on_route(route, new_load_in_tons, capacity_constraint)
 
     def choose_route(self, transport_network: "TransportNetwork", origin_node: int, destination_node: int,
-                     capacity_constraint: bool, transport_cost_noise_level: float, accepted_logistics_modes: str | list):
+                     capacity_constraint: bool, transport_cost_noise_level: float):
         """
         The agent choose the delivery route
 
@@ -178,63 +173,7 @@ class Agent(object):
         # if route is None:
         #     raise ValueError(f"Agent {self.pid} - No route found from {origin_node} to {destination_node}")
         # else:
-        return route, accepted_logistics_modes
-        # TODO: check if I want to reimplement this complex route choice procedure
-        # if accepted_logistics_modes == "any":
-        #     route = transport_network.provide_shortest_route(origin_node,
-        #                                                      destination_node,
-        #                                                      route_weight="weight")
-        #     return route, accepted_logistics_modes
-        #
-        # else:
-        #     logging.error(f'accepted_logistics_modes is {accepted_logistics_modes}')
-        #     raise ValueError("The only implemented accepted_logistics_modes is 'any'")
-        # # If it is a list, it means that the agent will chosen between different logistic corridors
-        # # with a certain probability
-        # elif isinstance(accepted_logistics_modes, list):
-        #     # pick routes for each modes
-        #     routes = {
-        #         mode: transport_network.provide_shortest_route(origin_node,
-        #                                                        destination_node, route_weight=mode + "_weight")
-        #         for mode in accepted_logistics_modes
-        #     }
-        #     # compute associated weight and capacity_weight
-        #     modes_weight = {
-        #         mode: {
-        #             mode + "_weight": transport_network.sum_indicator_on_route(route, mode + "_weight"),
-        #             "weight": transport_network.sum_indicator_on_route(route, "weight"),
-        #             "capacity_weight": transport_network.sum_indicator_on_route(route, "capacity_weight")
-        #         }
-        #         for mode, route in routes.items()
-        #     }
-        #     # remove any mode which is over capacity (where capacity_weight > capacity_burden)
-        #     for mode, route in routes.items():
-        #         if mode != "intl_rail":
-        #             if transport_network.check_edge_in_route(route, (2610, 2589)):
-        #                 print("(2610, 2589) in", mode)
-        #     modes_weight = {
-        #         mode: weight_dic['weight']
-        #         for mode, weight_dic in modes_weight.items()
-        #         if weight_dic['capacity_weight'] < capacity_burden
-        #     }
-        #     if len(modes_weight) == 0:
-        #         logging.warning("All transport modes are over capacity, no route selected!")
-        #         return None
-        #     # and select one route choosing random weighted choice
-        #     selection_weights = rescale_values(list(modes_weight.values()), minimum=0, maximum=0.5)
-        #     selection_weights = [1 - w for w in selection_weights]
-        #     selected_mode = random.choices(
-        #         list(modes_weight.keys()),
-        #         weights=selection_weights,
-        #         k=1
-        #     )[0]
-        #     # print("Firm "+str(self.pid)+" chooses "+selected_mode+
-        #     #     " to serve a client located "+str(destination_node))
-        #     route = routes[selected_mode]
-        #     return route, selected_mode
-        #
-        # raise ValueError("The transport_mode attributes of the commerical link\
-        #                   does not belong to ('roads', 'intl_multimodes')")
+        return route
 
     @staticmethod
     def check_route_availability(commercial_link, transport_network, which_route='main'):

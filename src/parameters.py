@@ -36,7 +36,6 @@ class Parameters:
     min_nb_firms_per_sector: int
     local_demand_cutoff: float
     countries_to_include: str | list
-    logistic_modes: str
     district_sector_cutoff: str
     nb_top_district_per_sector: None | int
     explicit_service_firm: bool

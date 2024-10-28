@@ -266,8 +266,7 @@ class Country(Agent):
                 origin_node=origin_node,
                 destination_node=destination_node,
                 capacity_constraint=capacity_constraint,
-                transport_cost_noise_level=transport_cost_noise_level,
-                accepted_logistics_modes=commercial_link.possible_transport_modes
+                transport_cost_noise_level=transport_cost_noise_level
             )
             # We evaluate the cost of this new route
             if route is not None:
