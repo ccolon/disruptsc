@@ -776,9 +776,9 @@ class Firm(Agent):
                 # print(normal_transport_bill, new_transport_bill)
                 relative_cost_change = max(new_transport_bill - normal_transport_bill, 0) / normal_transport_bill
                 # If switched transport mode, add switching cost
-                switching_cost = 0.5
-                if commercial_link.alternative_route_mode != commercial_link.route_mode:
-                    relative_cost_change = relative_cost_change + switching_cost
+                # switching_cost = 0.5
+                # if commercial_link.alternative_route_mode != commercial_link.route_mode:
+                #     relative_cost_change = relative_cost_change + switching_cost
                 # Translate that into an increase in transport costs in the balance sheet
                 self.finance['costs']['transport'] += \
                     self.eq_finance['costs']['transport'] \
@@ -870,7 +870,7 @@ class Firm(Agent):
                            account_capacity: bool, transport_cost_noise_level: float):
         origin_node = self.od_point
         destination_node = commercial_link.route[-1][0]
-        route, selected_mode = self.choose_route(
+        route = self.choose_route(
             transport_network=transport_network.get_undisrupted_network(),
             origin_node=origin_node,
             destination_node=destination_node,
@@ -881,7 +881,6 @@ class Firm(Agent):
         if route is not None:
             commercial_link.store_route_information(
                 route=route,
-                transport_mode=selected_mode,
                 main_or_alternative="alternative"
             )
         return route

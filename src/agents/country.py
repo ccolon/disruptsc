@@ -261,7 +261,7 @@ class Country(Agent):
         else:
             origin_node = self.od_point
             destination_node = commercial_link.route[-1][0]
-            route, selected_mode = self.choose_route(
+            route = self.choose_route(
                 transport_network=transport_network.get_undisrupted_network(),
                 origin_node=origin_node,
                 destination_node=destination_node,
@@ -272,7 +272,6 @@ class Country(Agent):
             if route is not None:
                 commercial_link.store_route_information(
                     route=route,
-                    transport_mode=selected_mode,
                     main_or_alternative="alternative"
                 )
 
@@ -300,9 +299,9 @@ class Country(Agent):
                 #     relative_cost_change
                 # )
                 # If switched transport mode, add switching cost
-                switching_cost = 0.5
-                if commercial_link.alternative_route_mode != commercial_link.route_mode:
-                    relative_cost_change = relative_cost_change + switching_cost
+                # switching_cost = 0.5
+                # if commercial_link.alternative_route_mode != commercial_link.route_mode:
+                #     relative_cost_change = relative_cost_change + switching_cost
                 # Translate that into an increase in transport costs in the balance sheet
                 relative_price_change_transport = 0.2 * relative_cost_change
                 total_relative_price_change = relative_price_change_transport

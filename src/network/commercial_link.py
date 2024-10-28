@@ -19,7 +19,6 @@ class CommercialLink(object):
         self.route_length = 1
         self.route_time_cost = 0
         self.route_cost_per_ton = 0
-        self.route_mode = "road"
         self.supplier_id = supplier_id
         self.buyer_id = buyer_id
         self.eq_price = 1
@@ -37,7 +36,6 @@ class CommercialLink(object):
         self.alternative_route_length = 1
         self.alternative_route_time_cost = 0
         self.alternative_route_cost_per_ton = 0
-        self.alternative_route_mode = None
         self.price = 1
         self.fulfilment_rate = 1  # ratio deliver / order
 
@@ -73,34 +71,19 @@ class CommercialLink(object):
         else:
             self.fulfilment_rate = self.delivery / self.order
 
-    def store_route_information(self, route: Route, transport_mode: str, main_or_alternative: str):
-
-        # distance, route_time_cost, cost_per_ton = transport_network.get_route_features(route)
-        # if pd.isna(cost_per_ton):
-        #     print(route, distance, route_time_cost, cost_per_ton)
-        #     transport_network.giveRouteCaracteristics(route, debug=True)
-        #
-        # if self.supplier_id == 'COL' and self.buyer_id == 3254:
-        #     print(route, distance, route_time_cost, cost_per_ton)
-        #     transport_network.giveRouteCaracteristics(route, debug=True)
+    def store_route_information(self, route: Route, main_or_alternative: str):
 
         if main_or_alternative == "main":
             self.route = route
-            self.route_mode = transport_mode
             self.route_length = route.length
             # self.route_time_cost = route_time_cost
             self.route_cost_per_ton = route.cost_per_ton
 
         elif main_or_alternative == "alternative":
             self.alternative_route = route
-            self.alternative_route_mode = transport_mode
             self.alternative_route_length = route.length
             # self.alternative_route_time_cost = route_time_cost
             self.alternative_route_cost_per_ton = route.cost_per_ton
-
-            # switching_cost = 0.05
-            # if self.alternative_route_mode != self.route_mode:
-            #     self.alternative_route_cost_per_ton * (1 + switching_cost)
 
         else:
             raise ValueError("'main_or_alternative' is not in ['main', 'alternative']")

@@ -99,20 +99,16 @@ class Agent(object):
                 origin_node = self.od_point
                 destination_node = edge[1].od_point
                 # Choose the route and the corresponding mode
-                route, selected_mode = self.choose_route(
+                route = self.choose_route(
                     transport_network=transport_network,
                     origin_node=origin_node,
                     destination_node=destination_node,
                     capacity_constraint=capacity_constraint,
                     transport_cost_noise_level=transport_cost_noise_level
                 )
-                # print(str(self.pid)+" located "+str(self.od_point)+": I choose this transport mode "+
-                #     str(transport_network.give_route_mode(route))+ " to connect to "+
-                #     str(edge[1].pid)+" located "+str(edge[1].od_point))
                 # Store it into commercial link object
                 sc_network[self][edge[1]]['object'].store_route_information(
                     route=route,
-                    transport_mode=selected_mode,
                     main_or_alternative="main"
                 )
 
