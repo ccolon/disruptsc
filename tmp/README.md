@@ -1,0 +1,1 @@
+Folder used to stored pickle files used by the model to cache data

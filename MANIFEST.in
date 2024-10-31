@@ -1,0 +1,17 @@
+# MANIFEST.in
+
+global-exclude .gitkeep
+
+prune .git
+prune .idea
+prune .ipynb_checkpoints
+prune __pycache__
+prune input
+prune output
+prune parameter
+
+recursive-include input/Testkistan *
+include parameter/default.yaml
+include parameter/user_defined_Testkistan.yaml
+include output/README.md
+include tmp/README.md
