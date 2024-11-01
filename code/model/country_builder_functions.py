@@ -196,6 +196,7 @@ def create_countries_from_mrio(filepath_mrio: Path,
 
     country_list = []
     total_imports = import_table.sum().sum()
+    print(transport_nodes)
     for country in countries:
         cond_country = transport_nodes['special'] == country
         od_point = transport_nodes.loc[cond_country, "id"]

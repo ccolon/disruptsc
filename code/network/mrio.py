@@ -50,6 +50,7 @@ class Mrio(pd.DataFrame):
     def check_square_structure(self):
         region_sectors_in_columns = [tup for tup in self.columns if tup[1] not in [final_demand_label, export_label]]
         region_sectors_in_rows = [tup for tup in self.index if tup[1] != import_label]
+        
         if region_sectors_in_columns != region_sectors_in_rows:
             logging.info(set(region_sectors_in_columns) - set(region_sectors_in_rows))
             logging.info(set(region_sectors_in_rows) - set(region_sectors_in_columns))
