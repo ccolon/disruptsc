@@ -7,24 +7,24 @@ import networkx
 import numpy as np
 from shapely.geometry import Point
 
-from src.model.basic_functions import generate_weights, \
+from disruptsc.model.basic_functions import generate_weights, \
     compute_distance_from_arcmin, rescale_values
 
-from src.agents.agent import Agent, Agents
-from src.network.commercial_link import CommercialLink
-from src.network.mrio import import_label
+from disruptsc.agents.agent import Agent, Agents
+from disruptsc.network.commercial_link import CommercialLink
+from disruptsc.network.mrio import IMPORT_LABEL
 
 if TYPE_CHECKING:
-    from src.agents.country import Countries
-    from src.network.sc_network import ScNetwork
-    from src.network.transport_network import TransportNetwork
+    from disruptsc.agents.country import Countries
+    from disruptsc.network.sc_network import ScNetwork
+    from disruptsc.network.transport_network import TransportNetwork
 
 EPSILON = 1e-6
 
 
 class Firm(Agent):
 
-    def __init__(self, pid, od_point=0, sector=0, sector_type=None, main_sector=None, name=None, input_mix=None,
+    def __init__(self, pid, od_point, sector, region_sector, region, sector_type=None, name="noname", input_mix=None,
                  target_margin=0.2, utilization_rate=0.8,
                  importance=1, long=None, lat=None, geometry=None,
                  suppliers=None, clients=None, production=0, inventory_duration_target=1, inventory_restoration_time=1,
@@ -34,6 +34,7 @@ class Firm(Agent):
             pid=pid,
             name=name,
             od_point=od_point,
+            region=region,
             long=long,
             lat=lat
         )
@@ -41,9 +42,9 @@ class Firm(Agent):
         self.usd_per_ton = usd_per_ton
         self.geometry = geometry
         self.importance = importance
-        self.sector = sector
+        self.region_sector = region_sector
         self.sector_type = sector_type
-        self.main_sector = main_sector
+        self.sector = sector
         self.input_mix = input_mix or {}
 
         # Free parameters
@@ -210,36 +211,43 @@ class Firm(Agent):
             self.suppliers[supplier_id] = {'sector': product_sector, 'weight': weight_among_same_product,
                                            "satisfaction": 1}
 
-    def identify_suppliers(self, sector: str, firms, countries,
+    def identify_suppliers(self, region_sector: str, firms: "Firms", countries: "Countries",
                            nb_suppliers_per_input: float, weight_localization: float,
                            firm_data_type: str, import_code: str):
         if firm_data_type == "mrio":
-            if import_label in sector:  # case of countries
+            if IMPORT_LABEL in region_sector:  # case of countries
                 supplier_type = "country"
-                selected_supplier_ids = [sector[:3]]  # for countries, the id is extracted from the name
+                selected_supplier_ids = [region_sector.split("_")[0]]  # for countries, the id is extracted from the name
                 supplier_weights = [1]
 
             else:  # case of firms
                 supplier_type = "firm"
-                potential_supplier_pids = [pid for pid, firm in firms.items() if firm.sector == sector]
-                if sector == self.sector:
+                potential_supplier_pids = [pid for pid, firm in firms.items() if firm.region_sector == region_sector]
+                if region_sector == self.region_sector:
                     potential_supplier_pids.remove(self.pid)  # remove oneself
                 if len(potential_supplier_pids) == 0:
-                    raise ValueError(f"Firm {self.pid}: there should be one supplier for {sector}")
+                    raise ValueError(f"Firm {self.pid}: there should be one supplier for {region_sector}")
                 # Choose based on importance
                 prob_to_be_selected = np.array(rescale_values([firms[firm_pid].importance for firm_pid in
                                                                potential_supplier_pids]))
                 prob_to_be_selected /= prob_to_be_selected.sum()
-                selected_supplier_ids = np.random.choice(potential_supplier_pids,
-                                                         p=prob_to_be_selected, size=1,
-                                                         replace=False).tolist()
-                supplier_weights = [1]
+                if nb_suppliers_per_input >= len(potential_supplier_pids):
+                    selected_supplier_ids = potential_supplier_pids
+                    selected_prob = prob_to_be_selected
+                else:
+                    selected_supplier_ids = np.random.choice(potential_supplier_pids,
+                                                             p=prob_to_be_selected, size=1,
+                                                             replace=False).tolist()
+                    index_map = {supplier_id: position for position, supplier_id in enumerate(potential_supplier_pids)}
+                    selected_positions = [index_map[supplier_id] for supplier_id in selected_supplier_ids]
+                    selected_prob = [prob_to_be_selected[position] for position in selected_positions]
+                supplier_weights = generate_weights(len(selected_prob), selected_prob)
 
         else:
-            if sector == import_code:
+            if import_code in region_sector:
                 supplier_type = "country"
                 # Identify countries as suppliers if the corresponding sector does export
-                importance_threshold = 1e-6
+                importance_threshold = 1e-6  # TODO remove
                 potential_supplier_pid = [
                     pid
                     for pid, country in countries.items()
@@ -257,11 +265,11 @@ class Firm(Agent):
             # calculate their probability to be chosen, based on distance and importance
             else:
                 supplier_type = "firm"
-                potential_supplier_pid = [pid for pid, firm in firms.items() if firm.sector == sector]
-                if sector == self.sector:
+                potential_supplier_pid = [pid for pid, firm in firms.items() if firm.region_sector == region_sector]
+                if region_sector == self.region_sector:
                     potential_supplier_pid.remove(self.pid)  # remove oneself
                 if len(potential_supplier_pid) == 0:
-                    raise ValueError(f"Firm {self.pid}: no potential supplier for input {sector}")
+                    raise ValueError(f"Firm {self.pid}: no potential supplier for input {region_sector}")
                 distance_to_each = rescale_values([
                     self.distance_to_other(firms[firm_pid])
                     for firm_pid in potential_supplier_pid
@@ -348,7 +356,7 @@ class Firm(Agent):
                 # If it is a country we get it from the country list
                 # If it is a firm we get it from the firm list
                 if supplier_type == "country":
-                    supplier_object = [country for pid, country in countries.items() if pid == supplier_id][0]
+                    supplier_object = countries[supplier_id]
                     link_category = 'import'
                     product_type = "imports"
                 else:
@@ -409,7 +417,7 @@ class Firm(Agent):
         self.total_order = sum([order for client_pid, order in self.order_book.items()])
         if log_info:
             if self.total_order == 0:
-                logging.debug(f'Firm {self.pid} ({self.sector}): noone ordered to me')
+                logging.debug(f'Firm {self.pid} ({self.region_sector}): noone ordered to me')
 
     def decide_production_plan(self):
         self.production_target = max(0.0, self.total_order - self.product_stock)
@@ -524,7 +532,7 @@ class Firm(Agent):
     def send_purchase_orders(self, sc_network: "ScNetwork"):
         for edge in sc_network.in_edges(self):
             supplier_id = edge[0].pid
-            input_sector = edge[0].sector
+            input_sector = edge[0].region_sector
             if supplier_id in self.purchase_plan.keys():
                 quantity_to_buy = self.purchase_plan[supplier_id]
                 if quantity_to_buy == 0:
@@ -683,10 +691,9 @@ class Firm(Agent):
                 Firm.transformUSD_to_tons(quantity_to_deliver[edge[1].pid], monetary_units_in_model, self.usd_per_ton)
 
             # If the client is B2C (applied only we had one single representative agent for all households)
-            if edge[1].pid == -1:
-                self.deliver_without_infrastructure(graph[self][edge[1]]['object'])
-            # If this is service flow, deliver without infrastructure
-            elif self.sector_type in sectors_no_transport_network:
+            cases_no_transport = (edge[1].pid == -1) or (self.sector_type in sectors_no_transport_network) or \
+                                 (edge[1].agent_type == "household")
+            if cases_no_transport:
                 self.deliver_without_infrastructure(graph[self][edge[1]]['object'])
             # otherwise use infrastructure
             else:

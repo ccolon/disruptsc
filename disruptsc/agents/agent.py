@@ -5,16 +5,16 @@ import logging
 import pandas
 
 if TYPE_CHECKING:
-    from src.network.sc_network import ScNetwork
-    from src.network.transport_network import TransportNetwork
-    from src.network.commercial_link import CommercialLink
+    from disruptsc.network.sc_network import ScNetwork
+    from disruptsc.network.transport_network import TransportNetwork
+    from disruptsc.network.commercial_link import CommercialLink
 
 
 EPSILON = 1e-6
 
 
 class Agent(object):
-    def __init__(self, agent_type, pid, od_point=0, name=None,
+    def __init__(self, agent_type, pid, od_point=0, region=None, name=None,
                  long=None, lat=None):
         self.agent_type = agent_type
         self.pid = pid
@@ -23,9 +23,10 @@ class Agent(object):
         self.long = long
         self.lat = lat
         self.usd_per_ton = None
+        self.region = region
 
     def id_str(self):
-        return f"{self.agent_type} {self.pid} located {self.od_point}".capitalize()
+        return f"{self.agent_type} {self.pid} located {self.od_point} in {self.region}".capitalize()
 
     def receive_shipment_and_pay(self, commercial_link: "CommercialLink", transport_network: "TransportNetwork"):
         """Firm look for shipments in the transport nodes it is located
@@ -93,6 +94,8 @@ class Agent(object):
                               transport_cost_noise_level: float, monetary_unit_flow: str):
         for edge in sc_network.out_edges(self):
             if edge[1].od_point == -1:  # we do not create route for service firms if explicit_service_firms = False
+                continue
+            elif edge[1].agent_type == 'household':  # we do not create route for households
                 continue
             else:
                 # Get the id of the origin and destination node

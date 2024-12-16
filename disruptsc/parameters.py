@@ -7,7 +7,7 @@ from pathlib import Path
 import yaml
 from dataclasses import dataclass
 
-from src import paths
+from disruptsc import paths
 
 EPSILON = 1e-6
 import_code = "IMP"
@@ -20,7 +20,7 @@ class Parameters:
     logging_level: str
     transport_modes: list
     monetary_units_in_model: str
-    monetary_units_inputed: str
+    monetary_units_in_data: str
     firm_data_type: str
     congestion: bool
     propagate_input_price_change: bool
@@ -30,6 +30,8 @@ class Parameters:
     cutoff_sector_output: dict
     cutoff_sector_demand: dict
     combine_sector_cutoff: str
+    cutoff_firm_output: dict
+    cutoff_household_demand: dict
     districts_to_include: str | list
     pop_density_cutoff: float
     pop_cutoff: float
@@ -117,9 +119,12 @@ class Parameters:
 
     @staticmethod
     def merge_dict_with_priority(default_dict: dict, overriding_dict: dict):
-        for key, val in default_dict.items():
-            if key in overriding_dict:
-                default_dict[key] = overriding_dict[key]
+        for key, val in overriding_dict.items():
+            default_dict[key] = val
+            # if key in default_dict:
+            #     default_dict[key] = overriding_dict[key]
+            # else:
+            #     default_dict[key] = val
 
     def get_full_filepath(self, filepath):
         return paths.INPUT_FOLDER / self.scope / filepath

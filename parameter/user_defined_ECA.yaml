@@ -2,13 +2,18 @@
 filepaths:
   "sector_table": "Network/sector_table.csv"
   "inventory_duration_targets": "Network/inventory_targets.csv"
-  "mrio": "Network/mrio.csv"
-  "region_table": "Network/region_table.geojson"
-transport_modes: [roads, maritime] #, waterways, airways]
+  "mrio": "Network/mrio_MC_only.csv"
+  "region_table": "Network/regions.geojson"
+transport_modes: ["roads", "maritime", "railways"] #, waterways, airways]
 monetary_units_in_model: mUSD
-monetary_units_inputed: kUSD
+monetary_units_in_data: mUSD
 time_resolution: week
-io_cutoff: 0.00001
+cutoff_sector_demand:
+  'type': 'absolute'
+  'value': 100
+  'unit': 'kUSD'
+io_cutoff: 0.01
+nb_suppliers_per_input: 5
 #simulation_type: disruption
 export_files: True
 export_details:

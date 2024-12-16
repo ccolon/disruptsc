@@ -3,11 +3,13 @@ output/*
 !output/.gitkeep
 tmp/*
 !tmp/.gitkeep
-input/*
-!input/Testkistan/
+input/Cambodia
+input/Ecuador
+#input/*
+#!input/Testkistan/
 parameter/*
-!parameter/user_defined_Testkistan.yaml
-!parameter/default.yaml
+#!parameter/user_defined_Testkistan.yaml
+#!parameter/default.yaml
 
 # PyCharm
 .idea/

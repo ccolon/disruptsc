@@ -5,9 +5,10 @@ import geopandas
 import pandas
 import pandas as pd
 
-from src.agents.country import Country, Countries
-from src.model.basic_functions import rescale_monetary_values
-from src.network.mrio import Mrio
+from disruptsc.agents.country import Country, Countries
+from disruptsc.model.basic_functions import rescale_monetary_values
+from disruptsc.model.builder_functions import get_index_closest_point
+from disruptsc.network.mrio import Mrio
 
 
 def create_countries(filepath_imports: Path, filepath_exports: Path, filepath_transit: Path,
@@ -126,6 +127,7 @@ def create_countries(filepath_imports: Path, filepath_exports: Path, filepath_tr
                                  qty_sold=qty_sold,
                                  qty_purchased=qty_purchased,
                                  od_point=od_point,
+                                 region=country,
                                  long=lon,
                                  lat=lat,
                                  transit_from=transit_from,
@@ -140,13 +142,14 @@ def create_countries(filepath_imports: Path, filepath_exports: Path, filepath_tr
 
 
 def create_countries_from_mrio(filepath_mrio: Path,
-                               transport_nodes: geopandas.GeoDataFrame, time_resolution: str,
+                               transport_nodes: geopandas.GeoDataFrame,
+                               filepath_regions: Path, filepath_sectors: Path,
+                               time_resolution: str,
                                target_units: str, input_units: str) -> Countries:
     logging.info('Creating countries.')
 
     # Load mrio
-    # mrio = pd.read_csv(filepath_mrio, header=[0, 1], index_col=[0, 1])
-    mrio = Mrio.load_mrio_from_filepath(filepath_mrio)
+    mrio = Mrio.load_mrio_from_filepath(filepath_mrio, input_units)
 
     # Extract countries from MRIO
     buying_countries = mrio.external_buying_countries
@@ -195,18 +198,10 @@ def create_countries_from_mrio(filepath_mrio: Path,
     total_imports = import_table.sum().sum()
     countries = Countries()
     for country in country_list:
-        cond_country = transport_nodes['special'] == country
-        od_point = transport_nodes.loc[cond_country, "id"]
-        lon = transport_nodes.geometry.x
-        lat = transport_nodes.geometry.y
-        if len(od_point) == 0:
-            raise ValueError('No od_point found for ' + country)
-        elif len(od_point) > 2:
-            raise ValueError('More than 1 od_point for ' + country)
-        else:
-            od_point = od_point.iloc[0]
-            lon = lon.iloc[0]
-            lat = lat.iloc[0]
+        region_table = geopandas.read_file(filepath_regions).set_index('region')
+        od_point_id = get_index_closest_point(region_table.loc[country, "geometry"], transport_nodes)
+        lon = transport_nodes.loc[od_point_id, "geometry"].x
+        lat = transport_nodes.loc[od_point_id, "geometry"].y
 
         # imports, i.e., sales of countries
         if country in selling_countries and total_imports > 0:
@@ -238,17 +233,19 @@ def create_countries_from_mrio(filepath_mrio: Path,
         else:
             transit_to = {}
 
+        # get country usd per ton
+        country_usd_per_ton = pd.read_csv(filepath_sectors).set_index("sector").loc['IMP', 'usd_per_ton']
         # Populate countries
         countries[country] = Country(pid=country,
                                      qty_sold=qty_sold,
                                      qty_purchased=qty_purchased,
-                                     od_point=od_point,
+                                     od_point=od_point_id,
                                      long=lon,
                                      lat=lat,
                                      transit_from=transit_from,
                                      transit_to=transit_to,
+                                     usd_per_ton=country_usd_per_ton,
                                      supply_importance=supply_importance)
-    print(len(countries))
     logging.info('Countries created: ' + str(countries.get_properties('pid')))
 
     return countries

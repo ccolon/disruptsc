@@ -30,6 +30,7 @@ filepaths:
   "firm_table": "Network/firm_table.csv"
   "region_table": "Network/region_table.geojson"
   "transaction_table": "Network/transaction_table.csv"
+  "disag": "Disag"
   # MRIO
   "mrio": "Network/mrio.csv"
 
@@ -124,7 +125,7 @@ transport_modes: ['roads', "maritime"]
 monetary_units_in_model: "mUSD"
 
 # Monetary units in input files. 'USD', 'kUSD', 'mUSD'
-monetary_units_inputed: "USD"
+monetary_units_in_data: "USD"
 
 # Define the type of input data to calibrate the model
 # - 'disaggregating IO' uses national input-table (tech_coef) with business census (district_economic_data)
@@ -163,20 +164,34 @@ sectors_to_exclude: None
 sectors_no_transport_network: ['utility', 'transport', 'trade', 'services', 'service']
 
 # Filter out sectors whose output is below that cutoff value
-# - if 'type' is 'percentage', test cutoff againt the sector's relative output
-# - if 'type' is 'absolute', test cutoff againt the sector's absolute output
+# - if 'type' is 'percentage', test cutoff against the sector's relative output
+# - if 'type' is 'absolute', test cutoff against the sector's absolute output
 # - if 'type' is 'relative_to_average', the cutoff is (cutoff value) * (country's total output) / (nb sectors)
 cutoff_sector_output:
-  'type': 'relative_to_average'
-  'value': 0.1
+  'type': 'absolute'
+  'value': 1.0
+  'unit': 'mUSD'
 
 # Filter out sectors whose final demand is below that cutoff value
-# - if 'type' is 'percentage', test cutoff againt the sector's relative output
-# - if 'type' is 'absolute', test cutoff againt the sector's absolute output
-# - if 'type' is 'relative_to_average', the cutoff is is set to (cutoff value) * (country's total demand) / (nb sectors)
+# - if 'type' is 'percentage', test cutoff against the sector's relative output
+# - if 'type' is 'absolute', test cutoff against the sector's absolute output
+# - if 'type' is 'relative_to_average', the cutoff is set to (cutoff value) * (country's total demand) / (nb sectors)
 cutoff_sector_demand:
-  'type': 'relative_to_average'
-  'value': 0.1
+  'type': 'absolute'
+  'value': 1.0
+  'unit': 'mUSD'
+
+# Filter out sectors firms output is below that cutoff value
+cutoff_firm_output:
+  'type': 'absolute'
+  'value': 10
+  "unit": "kUSD"
+
+# Filter out region_sector to households links if purchase is below that cutoff value
+cutoff_household_demand:
+  'type': 'absolute'
+  'value': 10
+  "unit": "kUSD"
 
 # How much firms of filtered sectors should at least be modeled
 min_nb_firms_per_sector: 5

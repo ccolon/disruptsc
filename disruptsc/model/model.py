@@ -10,29 +10,29 @@ from .caching_functions import \
     load_cached_transaction_table, \
     cache_transport_network, \
     cache_agent_data, load_cached_sc_network, cache_sc_network, load_cached_logistic_routes, cache_logistic_routes
-from src.model.check_functions import compare_production_purchase_plans
-from src.model.country_builder_functions import create_countries_from_mrio, create_countries
-from src.model.firm_builder_functions import define_firms_from_local_economic_data, define_firms_from_network_data, \
+from disruptsc.model.check_functions import compare_production_purchase_plans
+from disruptsc.model.country_builder_functions import create_countries_from_mrio, create_countries
+from disruptsc.model.firm_builder_functions import define_firms_from_local_economic_data, define_firms_from_network_data, \
     define_firms_from_mrio, create_firms, load_technical_coefficients, calibrate_input_mix, load_mrio_tech_coefs, \
     load_inventories
-from src.model.household_builder_functions import define_households_from_mrio, define_households, \
+from disruptsc.model.household_builder_functions import define_households_from_mrio, define_households, \
     add_households_for_firms, \
     create_households
-from src.model.transport_network_builder_functions import \
+from disruptsc.model.transport_network_builder_functions import \
     create_transport_network
-from src.model.builder_functions import \
+from disruptsc.model.builder_functions import \
     filter_sector, \
     extract_final_list_of_sector, \
     load_ton_usd_equivalence
-from src.parameters import Parameters
-from src.disruption.disruption import DisruptionList, TransportDisruption, CapitalDestruction
-from src.simulation.simulation import Simulation
-from src.network.sc_network import ScNetwork
+from disruptsc.parameters import Parameters
+from disruptsc.disruption.disruption import DisruptionList, TransportDisruption, CapitalDestruction
+from disruptsc.simulation.simulation import Simulation
+from disruptsc.network.sc_network import ScNetwork
 
 if TYPE_CHECKING:
-    from src.agents.country import Countries
-    from src.agents.firm import Firms
-    from src.agents.household import Households
+    from disruptsc.agents.country import Countries
+    from disruptsc.agents.firm import Firms
+    from disruptsc.agents.household import Households
 
 
 class Model(object):
@@ -70,7 +70,7 @@ class Model(object):
         else:
             return False
 
-    def setup_transport_network(self, cached: bool):
+    def setup_transport_network(self, cached: bool = False):
         if cached:
             self.transport_network, self.transport_nodes, self.transport_edges = \
                 load_cached_transport_network()
@@ -106,7 +106,7 @@ class Model(object):
     def setup_countries(self):
         pass
 
-    def setup_agents(self, cached: bool):
+    def setup_agents(self, cached: bool = False):
         if cached:
             self.sector_table, self.firms, self.firm_table, self.households, self.household_table, \
                 self.countries = load_cached_agent_data()
@@ -122,7 +122,8 @@ class Model(object):
                                              cutoff_sector_demand=self.parameters.cutoff_sector_demand,
                                              combine_sector_cutoff=self.parameters.combine_sector_cutoff,
                                              sectors_to_include=self.parameters.sectors_to_include,
-                                             sectors_to_exclude=self.parameters.sectors_to_exclude)
+                                             sectors_to_exclude=self.parameters.sectors_to_exclude,
+                                             monetary_units_in_data=self.parameters.monetary_units_in_data)
             output_selected = self.sector_table.loc[self.sector_table['sector'].isin(filtered_sectors), 'output'].sum()
             final_demand_selected = self.sector_table.loc[
                 self.sector_table['sector'].isin(filtered_sectors), 'final_demand'].sum()
@@ -151,12 +152,14 @@ class Model(object):
                     transport_nodes=self.transport_nodes,
                     filepath_sector_table=self.parameters.filepaths['sector_table'])
             elif self.parameters.firm_data_type == "mrio":
-                self.firm_table = define_firms_from_mrio(
-                    filepath_mrio=self.parameters.filepaths['mrio'],
-                    filepath_sector_table=self.parameters.filepaths['sector_table'],
-                    filepath_region_table=self.parameters.filepaths['region_table'],
-                    transport_nodes=self.transport_nodes,
-                    io_cutoff=self.parameters.io_cutoff)
+                self.firm_table = define_firms_from_mrio(filepath_mrio=self.parameters.filepaths['mrio'],
+                                                         filepath_sectors=self.parameters.filepaths['sector_table'],
+                                                         filepath_regions=self.parameters.filepaths['region_table'],
+                                                         path_disag=self.parameters.filepaths['disag'],
+                                                         transport_nodes=self.transport_nodes,
+                                                         io_cutoff=self.parameters.io_cutoff,
+                                                         cutoff_firm_output=self.parameters.cutoff_firm_output,
+                                                         monetary_units_in_data=self.parameters.monetary_units_in_data)
             else:
                 raise ValueError(f"{self.parameters.firm_data_type} should be one of 'disaggregating', "
                                  f"'supplier-buyer network', 'mrio'")
@@ -183,7 +186,8 @@ class Model(object):
                     transport_nodes=self.transport_nodes,
                     time_resolution=self.parameters.time_resolution,
                     target_units=self.parameters.monetary_units_in_model,
-                    input_units=self.parameters.monetary_units_inputed
+                    input_units=self.parameters.monetary_units_in_data,
+                    final_demand_cutoff=self.parameters.cutoff_household_demand
                 )
             else:
                 self.household_table, household_sector_consumption = define_households(
@@ -196,7 +200,7 @@ class Model(object):
                     transport_nodes=self.transport_nodes,
                     time_resolution=self.parameters.time_resolution,
                     target_units=self.parameters.monetary_units_in_model,
-                    input_units=self.parameters.monetary_units_inputed
+                    input_units=self.parameters.monetary_units_in_data
                 )
                 cond_no_household = ~self.firm_table['od_point'].isin(self.household_table['od_point'])
                 if cond_no_household.sum() > 0:
@@ -209,7 +213,7 @@ class Model(object):
                         filtered_sectors=present_sectors,
                         time_resolution=self.parameters.time_resolution,
                         target_units=self.parameters.monetary_units_in_model,
-                        input_units=self.parameters.monetary_units_inputed
+                        input_units=self.parameters.monetary_units_in_data
                     )
             self.households = create_households(
                 household_table=self.household_table,
@@ -237,7 +241,8 @@ class Model(object):
                 load_mrio_tech_coefs(
                     firms=self.firms,
                     filepath_mrio=self.parameters.filepaths['mrio'],
-                    io_cutoff=self.parameters.io_cutoff
+                    io_cutoff=self.parameters.io_cutoff,
+                    monetary_units_in_data=self.parameters.monetary_units_in_data
                 )
 
             else:
@@ -264,9 +269,11 @@ class Model(object):
                 self.countries = create_countries_from_mrio(
                     filepath_mrio=self.parameters.filepaths['mrio'],
                     transport_nodes=self.transport_nodes,
+                    filepath_regions=self.parameters.filepaths['region_table'],
+                    filepath_sectors=self.parameters.filepaths['sector_table'],
                     time_resolution=self.parameters.time_resolution,
                     target_units=self.parameters.monetary_units_in_model,
-                    input_units=self.parameters.monetary_units_inputed
+                    input_units=self.parameters.monetary_units_in_data
                 )
             else:
                 self.countries = create_countries(
@@ -278,18 +285,8 @@ class Model(object):
                     countries_to_include=self.parameters.countries_to_include,
                     time_resolution=self.parameters.time_resolution,
                     target_units=self.parameters.monetary_units_in_model,
-                    input_units=self.parameters.monetary_units_inputed
+                    input_units=self.parameters.monetary_units_in_data
                 )
-
-            # Specify the weight of a unit worth of good, which may differ according to sector, or even to each
-            # firm/countries Note that for imports, i.e. for the goods delivered by a country, and for transit flows,
-            # we do not disentangle sectors In this case, we use an average.
-            load_ton_usd_equivalence(
-                sector_table=self.sector_table,
-                firm_table=self.firm_table,
-                firms=self.firms,
-                countries=self.countries
-            )
 
             # Save to tmp folder
             data_to_cache = {
@@ -311,7 +308,7 @@ class Model(object):
         self.transport_network.locate_households_on_nodes(self.households, self.transport_nodes)
         self.agents_initialized = True
 
-    def setup_sc_network(self, cached: bool):
+    def setup_sc_network(self, cached: bool = False):
         if cached:
             self.sc_network, self.firms, self.households, self.countries = load_cached_sc_network()
 
@@ -324,7 +321,7 @@ class Model(object):
             logging.info('Households are selecting their retailers (domestic B2C flows and import B2C flows)')
             for household in self.households.values():
                 household.select_suppliers(self.sc_network, self.firms, self.countries,
-                                           self.parameters.nb_suppliers_per_input, self.parameters.force_local_retailer,
+                                           self.parameters.force_local_retailer,
                                            self.parameters.weight_localization_household,
                                            self.parameters.firm_data_type)
 
@@ -338,7 +335,6 @@ class Model(object):
                 f'Firms are selecting their domestic and international suppliers (import B2B flows) '
                 f'(domestic B2B flows). Weight localisation is {self.parameters.weight_localization_firm}'
             )
-            import_code_from_table = self.sector_table.loc[self.sector_table['type'] == 'imports', 'sector'].iloc[0]
 
             if self.parameters.firm_data_type in ["disaggregating IO", 'mrio']:
                 for firm in self.firms.values():
@@ -346,7 +342,7 @@ class Model(object):
                                           self.parameters.nb_suppliers_per_input,
                                           self.parameters.weight_localization_firm,
                                           self.parameters.firm_data_type,
-                                          import_code=import_code_from_table)
+                                          import_code="IMP")
 
             elif self.parameters.firm_data_type == "supplier-buyer network":
                 for firm in self.firms.values():
@@ -354,22 +350,28 @@ class Model(object):
                     output = self.firm_table.set_index('id').loc[firm.pid, "output"]
                     firm.select_suppliers_from_data(self.sc_network, self.firms, self.countries,
                                                     inputed_supplier_links, output,
-                                                    import_code=import_code_from_table)
+                                                    import_code='IMP')
 
             else:
                 raise ValueError(self.parameters.firm_data_type +
                                  " should be one of 'disaggregating IO', 'supplier-buyer network', 'mrio'")
 
-            firm_pids = list(self.firms.keys())
-            node_pid_in_sc_network = [node.pid for node in self.sc_network]
-            if len(set(firm_pids) - set(node_pid_in_sc_network)) > 0:
-                unconnected_firms = list(set(firm_pids) - set(node_pid_in_sc_network))
+            firm_ids = list(self.firms.keys())
+            node_id_in_sc_network = [node.pid for node in self.sc_network]
+            if len(set(firm_ids) - set(node_id_in_sc_network)) > 0:
+                unconnected_firms = list(set(firm_ids) - set(node_id_in_sc_network))
                 for firm_pid in unconnected_firms:
                     print(self.firms[firm_pid].id_str())
                 raise ValueError('Some firms are not in the sc network')
 
-            self.sc_network.remove_useless_commercial_links()
+            for _ in range(10):
+                self.sc_network.remove_useless_commercial_links()
 
+            connected_countries = [node.pid for node in self.sc_network.nodes if node.agent_type == "country"]
+            unconnected_countries = set(self.countries) - set(connected_countries)
+            for unconnected_country in unconnected_countries:
+                logging.info(f"Country {unconnected_country} is not connected, removing it")
+                del self.countries[unconnected_country]
             logging.info('The nodes and edges of the supplier--buyer have been created')
             # Save to tmp folder
             data_to_cache = {
@@ -382,7 +384,7 @@ class Model(object):
 
             self.sc_network_initialized = True
 
-    def setup_logistic_routes(self, cached: bool):
+    def setup_logistic_routes(self, cached: bool = False):
         if cached:
             self.sc_network, self.transport_network, self.firms, self.households, \
                 self.countries = load_cached_logistic_routes()
@@ -776,5 +778,11 @@ class Model(object):
             driver="GeoJSON", index=False)
 
     def export_agent_tables(self):
-        self.firm_table.to_csv(self.parameters.export_folder / 'firm_table.csv', index=False)
-        self.household_table.to_csv(self.parameters.export_folder / 'household_table.csv', index=False)
+        firm_table_to_export = self.firm_table.drop(columns=['id'])
+        if 'tuple' in self.firm_table.columns:
+            firm_table_to_export = firm_table_to_export.drop(columns=['tuple'])
+        firm_table_to_export.to_file(self.parameters.export_folder / 'firm_table.geojson', driver="GeoJSON")
+        household_table_to_export = self.household_table.drop(columns=['id'])
+        if 'tuple' in self.household_table.columns:
+            household_table_to_export = household_table_to_export.drop(columns=['tuple'])
+        household_table_to_export.to_file(self.parameters.export_folder / 'household_table.geojson', index="GeoJSON")

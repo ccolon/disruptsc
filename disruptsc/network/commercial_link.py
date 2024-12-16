@@ -1,7 +1,7 @@
 import pandas as pd
 
-from src.network.route import Route
-from src.parameters import EPSILON
+from disruptsc.network.route import Route
+from disruptsc.parameters import EPSILON
 
 
 class CommercialLink(object):

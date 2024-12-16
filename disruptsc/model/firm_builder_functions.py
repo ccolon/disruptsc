@@ -7,9 +7,9 @@ import pandas
 import pandas as pd
 import geopandas as gpd
 
-from src.agents.firm import Firm, Firms
-from src.network.mrio import Mrio
-from src.model.builder_functions import get_index_closest_point, get_closest_road_nodes, get_long_lat
+from disruptsc.agents.firm import Firm, Firms
+from disruptsc.network.mrio import Mrio
+from disruptsc.model.builder_functions import get_index_closest_point, get_long_lat, get_absolute_cutoff_value
 
 
 def create_firms(
@@ -46,15 +46,13 @@ def create_firms(
     logging.debug('Creating firms')
     ids = firm_table['id'].tolist()
     firm_table = firm_table.set_index('id')
-    if "main_sector" not in firm_table.columns:  # case of MRIO
-        firm_table['main_sector'] = firm_table['sector']
-    # print(firm_table.head())
-    # print(firm_table.iloc[0])
+
     firms = Firms([
         Firm(i,
-             sector=firm_table.loc[i, "sector"],
+             region_sector=firm_table.loc[i, "region_sector"],
+             region=firm_table.loc[i, "region"],
              sector_type=firm_table.loc[i, "sector_type"],
-             main_sector=firm_table.loc[i, "main_sector"],
+             sector=firm_table.loc[i, "sector"],
              od_point=firm_table.loc[i, "od_point"],
              importance=firm_table.loc[i, 'importance'],
              name=firm_table.loc[i, 'name'],
@@ -180,9 +178,9 @@ def define_firms_from_local_economic_data(filepath_region_economic_data: Path,
     od_point_table = road_nodes[road_nodes['id'].isin(firm_table_per_od_point['od_point'])].copy()
     od_point_table['long'] = od_point_table.geometry.x
     od_point_table['lat'] = od_point_table.geometry.y
-    road_node_id_to_longlat = od_point_table.set_index('id')[['long', 'lat']]
-    firm_table_per_od_point['long'] = firm_table_per_od_point['od_point'].map(road_node_id_to_longlat['long'])
-    firm_table_per_od_point['lat'] = firm_table_per_od_point['od_point'].map(road_node_id_to_longlat['lat'])
+    road_node_id_to_long_lat = od_point_table.set_index('id')[['long', 'lat']]
+    firm_table_per_od_point['long'] = firm_table_per_od_point['od_point'].map(road_node_id_to_long_lat['long'])
+    firm_table_per_od_point['lat'] = firm_table_per_od_point['od_point'].map(road_node_id_to_long_lat['lat'])
     # add id
     firm_table_per_od_point['id'] = list(range(firm_table_per_od_point.shape[0]))
     # add name, not really useful
@@ -191,23 +189,25 @@ def define_firms_from_local_economic_data(filepath_region_economic_data: Path,
     # add importance
     firm_table_per_od_point['importance'] = firm_table_per_od_point['relative_size']
 
-    # # E. Add final demand per firm
-    # # evaluate share of population represented
-    # cond = region_eco_data['region'].isin(selected_regions)
-    # represented_pop = region_eco_data.loc[cond, 'population'].sum()
-    # total_population = region_eco_data['population'].sum()
-    # # evaluate final demand
-    # rel_pop = firm_table['population'] / total_population
-    # tot_demand_of_sector = firm_table['sector'].map(sector_table.set_index('sector')['final_demand'])
-    # firm_table['final_demand'] = rel_pop * tot_demand_of_sector
-    # # print info
-    # logging.info("{:.0f}%".format(represented_pop / total_population * 100)+
-    #     " of population represented")
-    # logging.info("{:.0f}%".format(firm_table['final_demand'].sum() / sector_table['final_demand'].sum() * 100)+
-    #     " of final demand is captured")
-    # logging.info("{:.0f}%".format(firm_table['final_demand'].sum() / \
-    #     sector_table.set_index('sector').loc[sectors_to_include, 'final_demand'].sum() * 100)+
-    #     " of final demand of selected sector is captured")
+    """
+    # E. Add final demand per firm
+    # evaluate share of population represented
+    cond = region_eco_data['region'].isin(selected_regions)
+    represented_pop = region_eco_data.loc[cond, 'population'].sum()
+    total_population = region_eco_data['population'].sum()
+    # evaluate final demand
+    rel_pop = firm_table['population'] / total_population
+    tot_demand_of_sector = firm_table['sector'].map(sector_table.set_index('sector')['final_demand'])
+    firm_table['final_demand'] = rel_pop * tot_demand_of_sector
+    # print info
+    logging.info("{:.0f}%".format(represented_pop / total_population * 100)+
+        " of population represented")
+    logging.info("{:.0f}%".format(firm_table['final_demand'].sum() / sector_table['final_demand'].sum() * 100)+
+        " of final demand is captured")
+    logging.info("{:.0f}%".format(firm_table['final_demand'].sum() / \
+        sector_table.set_index('sector').loc[sectors_to_include, 'final_demand'].sum() * 100)+
+        " of final demand of selected sector is captured")
+    """
 
     # F. Log information
     logging.info('Create ' + str(firm_table_per_od_point.shape[0]) + " firms in " +
@@ -242,7 +242,7 @@ def define_firms_from_mrio_data(
 
     # Duplicate the lines by concatenating the DataFrame with itself
     firm_table = pd.concat([firm_table] * 2, ignore_index=True)
-    # Assign firms to closest road nodes
+    # Assign firms to the closest road nodes
     selected_regions = list(firm_table['country_ISO'].unique())
     logging.info('Select ' + str(firm_table.shape[0]) +
                  " firms in " + str(len(selected_regions)) + ' regions')
@@ -261,9 +261,9 @@ def define_firms_from_mrio_data(
     od_point_table = road_nodes[road_nodes['id'].isin(firm_table['od_point'])].copy()
     od_point_table['long'] = od_point_table.geometry.x
     od_point_table['lat'] = od_point_table.geometry.y
-    road_node_id_to_longlat = od_point_table.set_index('id')[['long', 'lat']]
-    firm_table['long'] = firm_table['od_point'].map(road_node_id_to_longlat['long'])
-    firm_table['lat'] = firm_table['od_point'].map(road_node_id_to_longlat['lat'])
+    road_node_id_to_long_lat = od_point_table.set_index('id')[['long', 'lat']]
+    firm_table['long'] = firm_table['od_point'].map(road_node_id_to_long_lat['long'])
+    firm_table['lat'] = firm_table['od_point'].map(road_node_id_to_long_lat['lat'])
     # add importance
     firm_table['importance'] = 10
 
@@ -276,79 +276,173 @@ def define_firms_from_mrio_data(
 def check_successful_extraction(firm_table: pd.DataFrame, attribute: str):
     if firm_table[attribute].isnull().sum() > 0:
         logging.warning(f"Unsuccessful extraction of {attribute} for "
-                        f"{firm_table.loc[firm_table[attribute].isnull(), 'name']}")
+                        f"{firm_table[firm_table[attribute].isnull()].index}")
 
 
-def define_firms_from_mrio(
-        filepath_mrio: Path,
-        filepath_sector_table: Path,
-        filepath_region_table: Path,
-        transport_nodes: gpd.GeoDataFrame,
-        io_cutoff: float) -> pd.DataFrame:
+def load_disag_data(folder_path: Path, accepted_sectors: list, accepted_regions: list) -> gpd.GeoDataFrame:
+    """
+    Load all geojson files within the folder defined in parameters, then check if they have a region column,
+    if the geometries are Points, then concatenate them.
+
+    Parameters
+    ----------
+    accepted_regions
+    accepted_sectors
+    folder_path : Path
+        Path to the folder containing geojson files.
+
+    Returns
+    -------
+    gpd.GeoDataFrame
+        Concatenated GeoDataFrame containing all valid geojson files.
+    """
+    geojson_files = list(folder_path.glob("*.geojson"))
+    logging.info(f'Processing files {geojson_files}')
+    geo_dfs = []
+
+    for file in geojson_files:
+        gdf = gpd.read_file(file)
+        if 'region' in gdf.columns and gdf.geometry.geom_type.eq('Point').all():
+            useless_regions = list(set(gdf['region'].unique()) - set(accepted_regions))
+            logging.info(f"In file {file}, the following regions will not be used: {useless_regions} because "
+                         f"they are no part of the MRIO table: {accepted_regions}")
+            gdf = gdf[~gdf['region'].isin(useless_regions)]
+            useless_cols = [col for col in gdf.columns if col not in ['region', "geometry"] + accepted_sectors]
+            logging.info(f"In file {file}, the following columns will not be used: {useless_cols} because "
+                         f"they are no part of the list of sectors defined in the MRIO table: {accepted_sectors}")
+            disag_sectors = list(set(gdf.columns) & set(accepted_sectors))
+            gdf = gdf[['region', 'geometry'] + disag_sectors]
+            geo_dfs.append(gdf)
+
+    if geo_dfs:
+        concatenated_gdf = gpd.GeoDataFrame(pd.concat(geo_dfs, ignore_index=True))
+        return concatenated_gdf
+    else:
+        return gpd.GeoDataFrame()
+
+
+def create_disag_firm_table(disag_data: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    disag_firm_table = disag_data.reset_index().drop("geometry", axis=1) \
+        .set_index(['index', 'region']).stack().reset_index()
+    disag_firm_table['geometry'] = disag_firm_table['index'].map(disag_data['geometry'])
+    disag_firm_table = disag_firm_table.drop('index', axis=1)
+    disag_firm_table.columns = ['region', 'sector', 'importance', 'geometry']
+    disag_firm_table = disag_firm_table[disag_firm_table['importance'].notnull()]
+    disag_firm_table = disag_firm_table[disag_firm_table['importance'] > 0]
+    disag_firm_table['tuple'] = list(zip(disag_firm_table['region'], disag_firm_table['sector']))
+    disag_firm_table['region_sector'] = disag_firm_table['region'] + '_' + disag_firm_table['sector']
+    return gpd.GeoDataFrame(disag_firm_table, crs=disag_data.crs)
+
+
+def define_firms_from_mrio(filepath_mrio: Path, filepath_sectors: Path, filepath_regions: Path, path_disag: Path,
+                           transport_nodes: gpd.GeoDataFrame, io_cutoff: float, cutoff_firm_output: dict,
+                           monetary_units_in_data: str) -> pd.DataFrame:
     # Load mrio
-    # mrio = pd.read_csv(filepath_mrio, index_col=0)
-    mrio = Mrio.load_mrio_from_filepath(filepath_mrio)
+    mrio = Mrio.load_mrio_from_filepath(filepath_mrio, monetary_units_in_data)
+
     # Extract region_sectors
-    # region_sectors = list(set(mrio.index) | set(mrio.columns))
-    # region_sectors = [region_sector for region_sector in region_sectors if
-    #                   len(region_sector) == 8]  # format 1011-FRE... :TODO a bit specific to Ecuador, change
     firm_table = pd.DataFrame({
         'tuple': mrio.region_sectors,
         'region': [tup[0] for tup in mrio.region_sectors],
-        'main_sector': [tup[1] for tup in mrio.region_sectors],
-        'sector': mrio.region_sector_names,
-        'name': mrio.region_sector_names
+        'sector': [tup[1] for tup in mrio.region_sectors],
+        'region_sector': mrio.region_sector_names
     })
+    # Add importance
+    tot_outputs_per_region_sector = mrio.sum(axis=1)
+    firm_table['importance'] = firm_table['tuple'].map(tot_outputs_per_region_sector)
+    check_successful_extraction(firm_table, "importance")
+    # Add point
+    region_table = gpd.read_file(filepath_regions)
+    firm_table['geometry'] = firm_table['region'].map(region_table.set_index('region')['geometry'])
+    firm_table = gpd.GeoDataFrame(firm_table, crs=region_table.crs)
+    logging.info(f'Number of firms from MRIO only: {firm_table.shape}')
+
+    # For some region sector, we have further data
+    disag_data = load_disag_data(path_disag, mrio.sectors, mrio.regions)
+    # disag_data = pd.DataFrame()
+    if disag_data.empty:
+        logging.info("No disaggregated data found")
+    else:
+        logging.info("Processing disaggregated data")
+        disag_firm_table = create_disag_firm_table(disag_data)
+        # disag_firm_table = disag_firm_table.iloc[:100]
+        # Remove the firms in the original table for which we have the disag info
+        firm_table = firm_table[~firm_table['tuple'].isin(disag_firm_table['tuple'])]
+        # Add the disaggregated firms
+        firm_table = pd.concat([firm_table, disag_firm_table])
+        logging.info(f'Number of firms added from disaggregated data: {disag_firm_table.shape}')
+
+    # For each region_sector, in which there are internal flows, if there are only one firms, add another one
+    logging.info("Duplicating firms where internal region_sector flows")
     region_sectors_internal_flows = mrio.get_region_sectors_with_internal_flows(io_cutoff)
+    region_sectors_one_firm = (firm_table['tuple'].value_counts()[firm_table['tuple'].value_counts() == 1]
+                               .index.to_list())
+    where_to_add_one_firm = list(set(region_sectors_internal_flows) & set(region_sectors_one_firm))
     duplicated_firms = pd.DataFrame({
-        'tuple': region_sectors_internal_flows,
-        'region': [tup[0] for tup in region_sectors_internal_flows],
-        'main_sector': [tup[1] for tup in region_sectors_internal_flows],
-        'sector': ['_'.join(tup) for tup in region_sectors_internal_flows],
-        'name': ['_'.join([tup[0], tup[1], "bis"]) for tup in region_sectors_internal_flows]
+        'tuple': where_to_add_one_firm,
+        'region': [tup[0] for tup in where_to_add_one_firm],
+        'sector': [tup[1] for tup in where_to_add_one_firm],
+        'region_sector': ['_'.join(tup) for tup in where_to_add_one_firm],
+        'geometry': firm_table.set_index('tuple').loc[where_to_add_one_firm, 'geometry']
     })
+    # Add importance
+    duplicated_firms['importance'] = duplicated_firms['tuple'].map(tot_outputs_per_region_sector)
+    check_successful_extraction(duplicated_firms, "importance")
+    logging.info(f'Number of firms added for internal flows: {duplicated_firms.shape}')
+
+    # Merge with the firm table, and divide the importance by 2 where we added a firm
     firm_table = pd.concat([firm_table, duplicated_firms])
-    # region_sectors = ['_'.join(tup) for tup in mrio.columns]
-    # # For region-sector with internal flows, need two firms
-    # # region_sectors_internal_flows = list(set(mrio.index) & set(mrio.columns))
-    # region_sectors_internal_flows = [tup for tup in mrio.columns if mrio.loc[tup, tup] > 0]
-    # region_sectors = region_sectors + [region_sector + '-bis' for region_sector in region_sectors_internal_flows]
-    # # Create firm_table
-    # firm_table = pd.DataFrame({"name": region_sectors})
-    # # firm_table['region'] = firm_table['name'].str.extract(r'([0-9]*)-[A-Z0-9]{3}')
-    # firm_table['region'] = firm_table['name'].str.extract(r'([A-Z]{3})')
-    # check_successful_extraction(firm_table, "region")
-    # # firm_table['main_sector'] = firm_table['name'].str.extract(r'[0-9]*-([A-Z]{2}[A-Z0-9]{1})')
-    # firm_table['main_sector'] = firm_table['name'].str[4:]
-    # check_successful_extraction(firm_table, "main_sector")
-    # firm_table['sector'] = firm_table['name'].str.replace('-bis', '')
-    # check_successful_extraction(firm_table, "sector")
-    logging.info(f"Select {firm_table.shape[0]} firms in {firm_table['region'].nunique()} regions")
+    firm_table.loc[firm_table['tuple'].isin(where_to_add_one_firm), 'importance'] = \
+        firm_table.loc[firm_table['tuple'].isin(where_to_add_one_firm), 'importance'] / 2
+
+    # Add id
+    firm_table['id'] = range(firm_table.shape[0])
+    firm_table.index = firm_table['id']
+
+    # Filter out too small firms (note that, if one firm got duplicated and then got filtered out
+    # both duplicates will be filtered out, so no consequence for internal flows)
+    output_per_region_sector = mrio.get_total_output_per_region_sectors().to_dict()
+    estimated_region_sector_output = firm_table['tuple'].map(output_per_region_sector)
+    estimated_output = firm_table.groupby('region_sector', as_index=False, group_keys=False)['importance']\
+        .apply(lambda s: s / s.sum()).sort_index(ascending=True)
+    estimated_output = estimated_output * estimated_region_sector_output
+    cutoff = get_absolute_cutoff_value(cutoff_firm_output, monetary_units_in_data)
+    logging.info(f'Filtering out firms with an estimated output '
+                 f'of less than {cutoff} {monetary_units_in_data}')
+    cond_low_output = estimated_output <= cutoff
+    firm_table = firm_table[~cond_low_output]
+    logging.info(f'Number of firms removed by the firm cutoff condition: {cond_low_output.sum()}')
+
+    # Reset ids
+    firm_table['id'] = range(firm_table.shape[0])
+    firm_table.index = firm_table['id']
+
+    # Add name
+    firm_table['name'] = firm_table.groupby('region_sector').cumcount().astype(str)
+    firm_table['name'] = firm_table['region_sector'] + '_' + firm_table['name']
 
     # Assign firms to the nearest road node
-    firm_table['od_point'] = get_closest_road_nodes(firm_table['region'], transport_nodes, filepath_region_table)
+    logging.info("Assign firms to nearest road node")
+    unique_points_with_firms = list(firm_table['geometry'].unique())
+    corresponding_od_point_ids = {point.wkt: get_index_closest_point(point, transport_nodes)
+                                  for point in unique_points_with_firms}
+    firm_table['od_point'] = firm_table['geometry'].map(lambda point: corresponding_od_point_ids[point.wkt])
+    check_successful_extraction(firm_table, "od_point")
 
     # Add long lat
     long_lat = get_long_lat(firm_table['od_point'], transport_nodes)
     firm_table['long'] = long_lat['long']
     firm_table['lat'] = long_lat['lat']
 
-    # Add importance
-    # row_intermediary = [row for row in mrio.index if len(row) == 8]
-    tot_outputs_per_region_sector = mrio.sum(axis=1)
-    firm_table['importance'] = firm_table['tuple'].map(tot_outputs_per_region_sector)
-    firm_with_two_firms_same_region_sector = firm_table['tuple'].isin(region_sectors_internal_flows)
-    firm_table.loc[firm_with_two_firms_same_region_sector, "importance"] = \
-        firm_table.loc[firm_with_two_firms_same_region_sector, "importance"] / 2
-    check_successful_extraction(firm_table, "importance")
-
     # Add sector type
-    sector_table = pd.read_csv(filepath_sector_table)
-    firm_table['sector_type'] = firm_table['sector'].map(sector_table.set_index('sector')['type'])
+    sector_table = pd.read_csv(filepath_sectors)  # should use sector only...
+    firm_table['sector_type'] = firm_table['region_sector'].map(sector_table.set_index('sector')['type'])
     check_successful_extraction(firm_table, "sector_type")
 
-    # Add id (where is it created otherwise?)
-    firm_table['id'] = range(firm_table.shape[0])
+    # Add usd per ton
+    firm_table['usd_per_ton'] = firm_table['region_sector'].map(sector_table.set_index('sector')['usd_per_ton'])
+
+    logging.info(f"Create {firm_table.shape[0]} firms in {firm_table['region'].nunique()} regions")
 
     return firm_table
 
@@ -371,7 +465,7 @@ def define_firms_from_network_data(
     if sectors_to_include != "all":
         firm_table = firm_table[firm_table['sector'].isin(sectors_to_include)]
 
-    # Assign firms to closest road nodes
+    # Assign firms to the closest road nodes
     selected_regions = list(firm_table['region'].unique())
     logging.info('Select ' + str(firm_table.shape[0]) +
                  " firms in " + str(len(selected_regions)) + ' regions')
@@ -394,9 +488,9 @@ def define_firms_from_network_data(
     od_point_table = road_nodes[road_nodes['id'].isin(firm_table['od_point'])].copy()
     od_point_table['long'] = od_point_table.geometry.x
     od_point_table['lat'] = od_point_table.geometry.y
-    road_node_id_to_longlat = od_point_table.set_index('id')[['long', 'lat']]
-    firm_table['long'] = firm_table['od_point'].map(road_node_id_to_longlat['long'])
-    firm_table['lat'] = firm_table['od_point'].map(road_node_id_to_longlat['lat'])
+    road_node_id_to_long_lat = od_point_table.set_index('id')[['long', 'lat']]
+    firm_table['long'] = firm_table['od_point'].map(road_node_id_to_long_lat['long'])
+    firm_table['lat'] = firm_table['od_point'].map(road_node_id_to_long_lat['lat'])
     # add importance
     firm_table['importance'] = 10
 
@@ -459,25 +553,17 @@ def load_technical_coefficients(
 def load_mrio_tech_coefs(
         firms: Firms,
         filepath_mrio: Path,
-        io_cutoff: float
+        io_cutoff: float,
+        monetary_units_in_data: str
 ):
-    # Load mrio
-    mrio = Mrio.load_mrio_from_filepath(filepath_mrio)
-    # mrio = pd.read_csv(filepath_mrio, header=[0, 1], index_col=[0, 1])  # TODO: class mrio
-    # mrio = pd.read_csv(filepath_mrio, index_col=0)
-
-    # Load technical coefficient matrix from data
-    # region_sectors = [tup for tup in mrio.index if tup[1] != "Imports"]
-    # tot_outputs = mrio.loc[region_sectors].sum(axis=1)
-    # matrix_output = pd.concat([tot_outputs] * len(mrio.index), axis=1).transpose()
-    # matrix_output.index = mrio.index
-    # tech_coef_matrix = mrio[region_sectors] / matrix_output
+    # Load tech coef
+    mrio = Mrio.load_mrio_from_filepath(filepath_mrio, monetary_units_in_data)
     tech_coef_dict = mrio.get_tech_coef_dict(threshold=io_cutoff)
 
-    # Load into firms
+    # Inject into firms
     for firm in firms.values():
-        if firm.sector in tech_coef_dict.keys():
-            firm.input_mix = tech_coef_dict[firm.sector]
+        if firm.region_sector in tech_coef_dict.keys():
+            firm.input_mix = tech_coef_dict[firm.region_sector]
         else:
             firm.input_mix = {}
 
@@ -586,7 +672,7 @@ def load_inventories(firms: Firms, inventory_duration_target: int | str, given_t
 
     elif inventory_duration_target == 'inputed':
         dic_sector_inventory = pd.read_csv(filepath_inventory_duration_targets) \
-                               .set_index(['buying_sector', 'input_sector'])['inventory_duration_target'].to_dict()
+            .set_index(['buying_sector', 'input_sector'])['inventory_duration_target'].to_dict()
         for firm in firms.values():
             firm.inventory_duration_target = {
                 input_sector: time_adjustment * dic_sector_inventory[(firm.sector, input_sector)]
@@ -613,7 +699,8 @@ def load_inventories(firms: Firms, inventory_duration_target: int | str, given_t
         if isinstance(inputs_with_extra_inventories, list) and (buying_sectors_with_extra_inventories == 'all'):
             for firm in firms.values():
                 firm.inventory_duration_target = {
-                    input_sector: firm.inventory_duration_target[input_sector] + extra_inventory_target*time_adjustment
+                    input_sector: firm.inventory_duration_target[
+                                      input_sector] + extra_inventory_target * time_adjustment
                     if (input_sector in inputs_with_extra_inventories) else firm.inventory_duration_target[input_sector]
                     for input_sector in firm.input_mix.keys()
                 }
@@ -621,7 +708,8 @@ def load_inventories(firms: Firms, inventory_duration_target: int | str, given_t
         elif (inputs_with_extra_inventories == 'all') and isinstance(buying_sectors_with_extra_inventories, list):
             for firm in firms.values():
                 firm.inventory_duration_target = {
-                    input_sector: firm.inventory_duration_target[input_sector] + extra_inventory_target*time_adjustment
+                    input_sector: firm.inventory_duration_target[
+                                      input_sector] + extra_inventory_target * time_adjustment
                     if (firm.sector in buying_sectors_with_extra_inventories) else firm.inventory_duration_target[
                         input_sector]
                     for input_sector in firm.input_mix.keys()
@@ -631,7 +719,8 @@ def load_inventories(firms: Firms, inventory_duration_target: int | str, given_t
                                                                             list):
             for firm in firms.values():
                 firm.inventory_duration_target = {
-                    input_sector: firm.inventory_duration_target[input_sector] + extra_inventory_target*time_adjustment
+                    input_sector: firm.inventory_duration_target[
+                                      input_sector] + extra_inventory_target * time_adjustment
                     if ((input_sector in inputs_with_extra_inventories) and (
                             firm.sector in buying_sectors_with_extra_inventories)) else
                     firm.inventory_duration_target[input_sector]
@@ -641,7 +730,8 @@ def load_inventories(firms: Firms, inventory_duration_target: int | str, given_t
         elif (inputs_with_extra_inventories == 'all') and (buying_sectors_with_extra_inventories == 'all'):
             for firm in firms.values():
                 firm.inventory_duration_target = {
-                    input_sector: firm.inventory_duration_target[input_sector] + extra_inventory_target*time_adjustment
+                    input_sector: firm.inventory_duration_target[
+                                      input_sector] + extra_inventory_target * time_adjustment
                     for input_sector in firm.input_mix.keys()
                 }
 

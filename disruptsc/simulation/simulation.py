@@ -5,7 +5,7 @@ from pathlib import Path
 import pandas as pd
 import geopandas as gpd
 
-from src.network.sc_network import ScNetwork
+from disruptsc.network.sc_network import ScNetwork
 
 
 class Simulation(object):

@@ -11,13 +11,13 @@ def generate_weights(nb_suppliers: int, importance_of_each: list or None):
         return [1]
 
     # if there are several and importance are provided, choose according to importance
-    if importance_of_each:
-        return [x / sum(importance_of_each) for x in importance_of_each]
+    if importance_of_each is None:
+        rdm_values = np.random.uniform(0, 1, size=nb_suppliers)
+        return list(rdm_values / sum(rdm_values))
 
     # otherwise choose random values
     else:
-        rdm_values = np.random.uniform(0, 1, size=nb_suppliers)
-        return list(rdm_values / sum(rdm_values))
+        return [x / sum(importance_of_each) for x in importance_of_each]
 
 
 def generate_weights_from_list(list_nb):

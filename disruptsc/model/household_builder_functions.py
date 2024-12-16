@@ -6,11 +6,11 @@ import pandas as pd
 import geopandas as gpd
 import numpy as np
 
-from src.agents.household import Household, Households
-from src.model.builder_functions import get_index_closest_point, get_long_lat, \
-    get_closest_road_nodes
-from src.model.basic_functions import rescale_monetary_values
-from src.network.mrio import Mrio
+from disruptsc.agents.household import Household, Households
+from disruptsc.model.builder_functions import get_index_closest_point, get_long_lat, \
+    get_closest_road_nodes, get_absolute_cutoff_value
+from disruptsc.model.basic_functions import rescale_monetary_values
+from disruptsc.network.mrio import Mrio
 
 
 def create_households(
@@ -39,6 +39,7 @@ def create_households(
         Household('hh_' + str(i),
                   name=household_table.loc[i, "name"],
                   od_point=household_table.loc[i, "od_point"],
+                  region=household_table.loc[i, "region"],
                   long=float(household_table.loc[i, 'long']),
                   lat=float(household_table.loc[i, 'lat']),
                   population=household_table.loc[i, "population"],
@@ -169,10 +170,11 @@ def define_households_from_mrio(
         transport_nodes: gpd.GeoDataFrame,
         time_resolution: str,
         target_units: str,
-        input_units: str
+        input_units: str,
+        final_demand_cutoff: dict
 ):
     # Load mrio
-    mrio = Mrio.load_mrio_from_filepath(filepath_mrio)
+    mrio = Mrio.load_mrio_from_filepath(filepath_mrio, input_units)
     # mrio = pd.read_csv(filepath_mrio, header=[0, 1], index_col=[0, 1])
     # # Extract region_households
     # region_households = mrio.columns.to_list()
@@ -190,8 +192,12 @@ def define_households_from_mrio(
     logging.info(f"Select {household_table.shape[0]} households in {household_table['region'].nunique()} regions")
 
     # Identify OD point
-    household_table['od_point'] = get_closest_road_nodes(household_table['region'], transport_nodes,
-                                                         filepath_region_table)
+    region_table = gpd.read_file(filepath_region_table)
+    household_table['geometry'] = household_table['region'].map(region_table.set_index('region')['geometry'])
+    household_table = gpd.GeoDataFrame(household_table, crs=region_table.crs)
+    corresponding_od_point_ids = {str(point): get_index_closest_point(point, transport_nodes)
+                                  for point in household_table['geometry'].to_list()}
+    household_table['od_point'] = household_table['geometry'].astype(str).map(corresponding_od_point_ids)
 
     # Add long lat
     long_lat = get_long_lat(household_table['od_point'], transport_nodes)
@@ -202,8 +208,10 @@ def define_households_from_mrio(
     household_table['id'] = range(household_table.shape[0])
 
     # Add population
-    region_table = gpd.read_file(filepath_region_table)
-    household_table['population'] = household_table['region'].map(region_table.set_index('region')['population'])
+    if "population" in region_table.columns:
+        household_table['population'] = household_table['region'].map(region_table.set_index('region')['population'])
+    else:
+        household_table['population'] = 1
 
     # Identify final demand per region_sector
     consumption = mrio[mrio.region_households].copy(deep=True)   # TODO to put in the class Mrio
@@ -216,20 +224,13 @@ def define_households_from_mrio(
         target_units=target_units,
         input_units=input_units
     )
-    # col_final_demand = [col for col in mrio.columns if col[-2:] == "-H"]  #TODO too specific
-    # col_final_demand = [col for col in mrio.columns if col[-2:] == "_H"]  #TODO too specific
-    # household_sector_consumption = mrio[col_final_demand].stack().reset_index() \
-    #     .groupby('level_1') \
-    #     .apply(lambda df: df.set_index('level_0')[0].to_dict()) \
-    #     .to_dict()
-    # Replace name by id :TODO use name as id to makes this unecessary
-    # dic_name_to_id = household_table.set_index('name')['id']
     household_sector_consumption = consumption.to_dict()
+    cutoff = get_absolute_cutoff_value(final_demand_cutoff, input_units)
     household_sector_consumption = {
         household: {
             key: value
             for key, value in sublist.items()
-            if value > 0
+            if value > cutoff
         }
         for household, sublist in household_sector_consumption.items()
     }

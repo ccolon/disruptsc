@@ -8,12 +8,12 @@ import geopandas
 import pandas
 import pandas as pd
 
-from src.parameters import EPSILON, import_code
+from disruptsc.parameters import EPSILON, import_code
 
 if TYPE_CHECKING:
-    from src.agents.firm import Firms
-    from src.network.transport_network import TransportNetwork
-    from src.model.model import Model
+    from disruptsc.agents.firm import Firms
+    from disruptsc.network.transport_network import TransportNetwork
+    from disruptsc.model.model import Model
 
 
 class ReconstructionMarket:

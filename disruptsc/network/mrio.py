@@ -1,30 +1,37 @@
+from typing import TYPE_CHECKING
+
 import logging
 
 import pandas as pd
 
-final_demand_label = "final_demand"
-export_label = "Exports"
-import_label = "Imports"
+if TYPE_CHECKING:
+    from pathlib import Path
+
+FINAL_DEMAND_LABEL = "final_demand"
+EXPORT_LABEL = "Exports"
+IMPORT_LABEL = "Imports"
 EPSILON = 1e-6
+
 
 class Mrio(pd.DataFrame):
     _metadata = ['region_sectors', "region_sector_names", "regions", "sectors", "external_buying_countries",
                  "external_selling_countries", "region_households"]
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, monetary_units, **kwargs):
         super(Mrio, self).__init__(*args, **kwargs)
         self.check_square_structure()
-        self.region_sectors = [tup for tup in self.columns if tup[1] not in [final_demand_label, export_label]]
+        self.region_sectors = [tup for tup in self.columns if tup[1] not in [FINAL_DEMAND_LABEL, EXPORT_LABEL]]
         self.region_sector_names = ['_'.join(tup) for tup in self.region_sectors]
         self.regions = list(set([tup[0] for tup in self.region_sectors]))
         self.sectors = list(set([tup[1] for tup in self.region_sectors]))
-        self.external_buying_countries = [tup[0] for tup in self.columns if tup[1] == export_label]
-        self.external_selling_countries = [tup[0] for tup in self.index if tup[1] == import_label]
-        self.region_households = [tup for tup in self.columns.to_list() if tup[1] == final_demand_label]
+        self.external_buying_countries = [tup[0] for tup in self.columns if tup[1] == EXPORT_LABEL]
+        self.external_selling_countries = [tup[0] for tup in self.index if tup[1] == IMPORT_LABEL]
+        self.region_households = [tup for tup in self.columns.to_list() if tup[1] == FINAL_DEMAND_LABEL]
+        self.monetary_units = monetary_units
         self.adjust_output()
 
     @classmethod
-    def load_mrio_from_filepath(cls, filepath_mrio):
+    def load_mrio_from_filepath(cls, filepath_mrio: "Path", monetary_units: str):
         table = pd.read_csv(filepath_mrio, header=[0, 1], index_col=[0, 1])
         # remove region_sectors with no flows
         zero_output = table.index[table.sum(axis=1) == 0].to_list()
@@ -32,7 +39,7 @@ class Mrio(pd.DataFrame):
         no_flow_region_sectors = list(set(zero_output) & set(zero_input))
         table.drop(index=no_flow_region_sectors, inplace=True)
         table.drop(columns=no_flow_region_sectors, inplace=True)
-        return cls(table)
+        return cls(table, monetary_units=monetary_units)
 
     def get_total_output_per_region_sectors(self):
         return self.loc[self.region_sectors].sum(axis=1)
@@ -48,8 +55,10 @@ class Mrio(pd.DataFrame):
         return [tup for tup in self.region_sectors if tech_coef_matrix.loc[tup, tup] > threshold]
 
     def check_square_structure(self):
-        region_sectors_in_columns = [tup for tup in self.columns if tup[1] not in [final_demand_label, export_label]]
-        region_sectors_in_rows = [tup for tup in self.index if tup[1] != import_label]
+        region_sectors_in_columns = [tup for tup in self.columns if tup[1] not in [FINAL_DEMAND_LABEL, EXPORT_LABEL]]
+        region_sectors_in_columns.sort()
+        region_sectors_in_rows = [tup for tup in self.index if tup[1] != IMPORT_LABEL]
+        region_sectors_in_rows.sort()
         if region_sectors_in_columns != region_sectors_in_rows:
             logging.info(set(region_sectors_in_columns) - set(region_sectors_in_rows))
             logging.info(set(region_sectors_in_rows) - set(region_sectors_in_columns))
@@ -63,7 +72,8 @@ class Mrio(pd.DataFrame):
             logging.warning(f"There are {len(unbalanced_region_sectors)} region_sectors with more inputs than outputs")
             # TODO very ad-hoc and dirty to accommodate with bad input file
             for region_sector in unbalanced_region_sectors:
-                self.loc[region_sector, ('ROW', export_label)] += total_input[region_sector] - total_output[region_sector] + EPSILON
+                self.loc[region_sector, ('ROW', EXPORT_LABEL)] += total_input[region_sector] - total_output[
+                    region_sector] + EPSILON
 
     def get_tech_coef_dict(self, threshold=0):
         """

@@ -1,7 +1,7 @@
 import logging
 import pickle
 
-from src.paths import TMP_FOLDER
+from disruptsc.paths import TMP_FOLDER
 
 
 def generate_cache_parameters_from_command_line_argument(arguments: list[str]):

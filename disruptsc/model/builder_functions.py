@@ -10,17 +10,18 @@ import geopandas as gpd
 from pandas import Series
 
 if TYPE_CHECKING:
-    from src.agents.firm import Firms
-    from src.agents.country import Countries
+    from disruptsc.agents.firm import Firms
+    from disruptsc.agents.country import Countries
 
 
 def filter_sector(sector_table, cutoff_sector_output, cutoff_sector_demand,
-                  combine_sector_cutoff='and', sectors_to_include="all", sectors_to_exclude=None):
+                  combine_sector_cutoff, sectors_to_include, sectors_to_exclude, monetary_units_in_data):
     """Filter the sector table to sector whose output and/or final demand is larger than cutoff values
     In addition to filters, we can force to exclude or include some sectors
 
     Parameters
     ----------
+    monetary_units_in_data
     sector_table : pandas.DataFrame
         Sector table
     cutoff_sector_output : dictionary
@@ -45,8 +46,10 @@ def filter_sector(sector_table, cutoff_sector_output, cutoff_sector_demand,
     list of filtered sectors
     """
     # Select sectors based on output
-    filtered_sectors_output = apply_sector_filter(sector_table, 'output', cutoff_sector_output)
-    filtered_sectors_demand = apply_sector_filter(sector_table, 'final_demand', cutoff_sector_demand)
+    filtered_sectors_output = apply_sector_filter(sector_table, 'output', cutoff_sector_output,
+                                                  units_in_data=monetary_units_in_data)
+    filtered_sectors_demand = apply_sector_filter(sector_table, 'final_demand', cutoff_sector_demand,
+                                                  units_in_data=monetary_units_in_data)
 
     # Merge both list
     if combine_sector_cutoff == 'and':
@@ -56,7 +59,7 @@ def filter_sector(sector_table, cutoff_sector_output, cutoff_sector_demand,
     else:
         raise ValueError("'combine_sector_cutoff' should be 'and' or 'or'")
 
-        # Force to include some sector
+    # Force to include some sector
     if isinstance(sectors_to_include, list):
         if len(set(sectors_to_include) - set(filtered_sectors)) > 0:
             selected_but_filtered_out_sectors = list(set(sectors_to_include) - set(filtered_sectors))
@@ -75,7 +78,14 @@ def filter_sector(sector_table, cutoff_sector_output, cutoff_sector_demand,
     return filtered_sectors
 
 
-def apply_sector_filter(sector_table, filter_column, cut_off_dic):
+def get_absolute_cutoff_value(cutoff_dict: dict, units_in_data: str):
+    assert cutoff_dict['type'] == "absolute"
+    units = {"USD": 1, "kUSD": 1e3, "mUSD": 1e6}
+    unit_adjusted_cutoff = cutoff_dict['value'] * units[cutoff_dict['unit']] / units[units_in_data]
+    return unit_adjusted_cutoff
+
+
+def apply_sector_filter(sector_table, filter_column, cut_off_dic, units_in_data):
     """Filter the sector_table using the filter_column
     The way to cut_off is defined in cut_off_dic
 
@@ -98,8 +108,9 @@ def apply_sector_filter(sector_table, filter_column, cut_off_dic):
             "sector"
         ].tolist()
     elif cut_off_dic['type'] == "absolute":
+        unit_adjusted_cutoff = get_absolute_cutoff_value(cut_off_dic, units_in_data)
         filtered_sectors = sector_table_no_import.loc[
-            sector_table_no_import[filter_column] > cut_off_dic['value'],
+            sector_table_no_import[filter_column] > unit_adjusted_cutoff,
             "sector"
         ].tolist()
     elif cut_off_dic['type'] == "relative_to_average":
@@ -128,7 +139,6 @@ def get_closest_road_nodes(regions: pd.Series,
     }
     closest_road_nodes = regions.map(dic_region_to_road_node_id)
     if closest_road_nodes.isnull().sum() > 0:
-        logging.warning(f"{closest_road_nodes.isnull().sum()} regions not found")
         raise KeyError(f"{closest_road_nodes.isnull().sum()} regions not found: "
                        f"{regions[closest_road_nodes.isnull()].to_list()}")
     return closest_road_nodes
@@ -167,7 +177,7 @@ def get_index_closest_point(point, df_with_points):
 
 def extract_final_list_of_sector(firms: "Firms"):
     n = len(firms)
-    present_sectors = list(set([firm.main_sector for firm in firms.values()]))
+    present_sectors = list(set([firm.sector for firm in firms.values()]))
     present_sectors.sort()
     flow_types_to_export = present_sectors + ['domestic_B2C', 'domestic_B2B', 'transit', 'import',
                                               'import_B2C', 'export', 'total']
@@ -193,9 +203,9 @@ def load_ton_usd_equivalence(sector_table: pd.DataFrame, firm_table: pd.DataFram
         list of countries
     """
     sector_to_usd_per_ton = sector_table.set_index('sector')['usd_per_ton']
-    firm_table['usd_per_ton'] = firm_table['sector'].map(sector_to_usd_per_ton)
+    firm_table['usd_per_ton'] = firm_table['region_sector'].map(sector_to_usd_per_ton)
     for firm in firms.values():
-        firm.usd_per_ton = sector_to_usd_per_ton[firm.sector]
+        firm.usd_per_ton = sector_to_usd_per_ton[firm.region_sector]
 
     for country in countries.values():
         country.usd_per_ton = sector_to_usd_per_ton['IMP']

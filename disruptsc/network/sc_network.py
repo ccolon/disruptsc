@@ -3,8 +3,8 @@ import logging
 import networkx as nx
 import pandas as pd
 
-from src.agents.firm import Firm
-from src.model.basic_functions import add_or_append_to_dict
+from disruptsc.agents.firm import Firm
+from disruptsc.model.basic_functions import add_or_append_to_dict
 
 
 class ScNetwork(nx.DiGraph):
@@ -36,15 +36,18 @@ class ScNetwork(nx.DiGraph):
         return io_table
 
     def generate_edge_list(self):
-        edge_list = [(source.pid, source.agent_type, source.od_point, target.pid, target.agent_type, target.od_point)
+        edge_list = [(source.pid, source.id_str(), source.agent_type, source.od_point,
+                      target.pid, target.id_str(), target.agent_type, target.od_point)
                      for source, target in self.edges()]
         edge_list = pd.DataFrame(edge_list)
-        edge_list.columns = ['source_id', 'source_type', 'source_od_point',
-                             'target_id', 'target_type', 'target_od_point']
+        edge_list.columns = ['source_id', 'source_str_id', 'source_type', 'source_od_point',
+                             'target_id', 'target_str_id', 'target_type', 'target_od_point']
         return edge_list
 
     def identify_firms_without_clients(self):
         return [node for node in self.nodes() if (self.out_degree(node) == 0) and isinstance(node, Firm)]
+
+    # def identify_disconnected_nodes(self):
 
     def remove_useless_commercial_links(self):
         firms_without_clients = self.identify_firms_without_clients()

@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 import logging
 
 import geopandas
@@ -6,7 +8,15 @@ import pandas as pd
 import yaml
 from shapely.geometry import Point
 
-from src.network.transport_network import TransportNetwork
+from disruptsc.network.transport_network import TransportNetwork
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+
+def load_transport_data_new(filepath: "Path", transport_mode):
+    edges = gpd.read_file(filepath)
+    edges['type'] = transport_mode
 
 
 def load_transport_data(filepaths, transport_params, transport_mode, transport_cost_data, time_resolution,
@@ -22,8 +32,9 @@ def load_transport_data(filepaths, transport_params, transport_mode, transport_c
         nodes = gpd.read_file(filepaths[transport_mode + '_nodes'])
         # if 'index' in nodes.columns: #remove any column named "index". Seems to create issues
         #     nodes = nodes.drop('index', axis=1)
-        nodes.index = nodes['id']
+        nodes.index = range(nodes.shape[0])#nodes['id']
         nodes.index.name = 'index'
+        nodes['id'] = nodes.index
         nodes['type'] = transport_mode
 
     # Load edges
@@ -127,7 +138,6 @@ def create_transport_network(transport_modes: list, filepaths: dict, transport_c
     if extra_roads:
         logging.info('Including extra roads')
     transport_network = TransportNetwork()
-    # T.graph['unit_cost'] = transport_params['transport_cost_per_tonkm']
 
     # Load node and edge data
     # Load in the following order: roads, railways, waterways
@@ -183,9 +193,9 @@ def create_transport_network(transport_modes: list, filepaths: dict, transport_c
                          edges.loc[edges['id'].duplicated(), "id"])
     edge_ends = set(edges['end1'].tolist() + edges['end2'].tolist())
     edge_ends_not_in_node_data = edge_ends - set(nodes['id'])
-    if len(edge_ends_not_in_node_data) > 0:
-        raise KeyError("The following node ids are given as 'end1' or 'end2' in edge data " + \
-                       "but are not in the node data: " + str(edge_ends_not_in_node_data))
+    # if len(edge_ends_not_in_node_data) > 0:
+    #     raise KeyError("The following node ids are given as 'end1' or 'end2' in edge data " + \
+    #                    "but are not in the node data: " + str(edge_ends_not_in_node_data))
 
     # Load the nodes and edges on the transport network object
     logging.debug('Creating transport nodes and edges as a network')
@@ -284,10 +294,11 @@ def compute_cost_travel_time_edges(edges: geopandas.GeoDataFrame, transport_para
         raise ValueError("'edge_type' should be 'roads', 'railways', 'waterways', 'airways', or 'multimodal'")
 
     # A2. Forwarding charges at borders
-    if not edges['special'].isnull().all():
-        boolean_custom_edge = edges['special'].str.contains("custom", na=False)
-        edges.loc[boolean_custom_edge, "cost_per_ton"] = edges.loc[boolean_custom_edge, "type"] \
-            .map(transport_params['custom_cost'])
+    if "special" in edges.columns:
+        if not edges['special'].isnull().all():
+            boolean_custom_edge = edges['special'].str.contains("custom", na=False)
+            edges.loc[boolean_custom_edge, "cost_per_ton"] = edges.loc[boolean_custom_edge, "type"] \
+                .map(transport_params['custom_cost'])
 
     # B. Compute generalized cost of transport
     # B.1a. Compute travel time
@@ -307,10 +318,11 @@ def compute_cost_travel_time_edges(edges: geopandas.GeoDataFrame, transport_para
         raise ValueError("'edge_type' should be 'roads', 'railways', 'waterways', 'airways', or 'multimodal'")
 
     # B.1b. Add crossing border time
-    if not edges['special'].isnull().all():
-        boolean_custom_edge = edges['special'].str.contains("custom", na=False)
-        edges.loc[boolean_custom_edge, "travel_time"] = edges.loc[boolean_custom_edge, "type"] \
-                .map(transport_params['custom_time'])
+    if "special" in edges.columns:
+        if not edges['special'].isnull().all():
+            boolean_custom_edge = edges['special'].str.contains("custom", na=False)
+            edges.loc[boolean_custom_edge, "travel_time"] = edges.loc[boolean_custom_edge, "type"] \
+                    .map(transport_params['custom_time'])
 
     # B.2. Compute cost of travel time
     edges['cost_travel_time'] = edges['travel_time'] * transport_params["travel_cost_of_time"]

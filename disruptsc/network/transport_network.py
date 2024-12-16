@@ -6,17 +6,26 @@ import numpy as np
 import pandas as pd
 import logging
 
-from src.model.basic_functions import add_or_append_to_dict
-from src.network.route import Route
+from disruptsc.model.basic_functions import add_or_append_to_dict
+from disruptsc.network.route import Route
 
 if TYPE_CHECKING:
-    from src.network.commercial_link import CommercialLink
+    from disruptsc.network.commercial_link import CommercialLink
 
 
 class TransportNetwork(nx.Graph):
 
+    def info(self):
+        transport_modes = self.get_transport_modes()
+        return f"Transport network with {len(transport_modes)} modes: {transport_modes}\n" \
+               f"Nb of nodes: {len(self.nodes)}, nb of edges: {len(self.edges)}"
+
     def add_transport_node(self, node_id, all_nodes_data):  # used in add_transport_edge_with_nodes
-        node_attributes = ["id", "geometry", "special", "name"]
+        node_attributes = ["id", "geometry"]
+        if "special" in all_nodes_data.columns:
+            node_attributes += ['special']
+        if "name" in all_nodes_data.columns:
+            node_attributes += ['name']
         node_data = all_nodes_data.loc[node_id, node_attributes].to_dict()
         node_data['shipments'] = {}
         node_data['disruption_duration'] = 0
@@ -24,6 +33,9 @@ class TransportNetwork(nx.Graph):
         node_data['households_there'] = None
         node_data['type'] = 'road'
         self.add_node(node_id, **node_data)
+
+    def get_transport_modes(self):
+        return list(set(nx.get_edge_attributes(self, "type").values()))
 
     def log_km_per_transport_modes(self):
         km_per_mode = pd.DataFrame({
@@ -35,7 +47,7 @@ class TransportNetwork(nx.Graph):
                      "{:.0f} km".format(sum(km_per_mode.values())))
         for mode, km in km_per_mode.items():
             logging.info(mode + ": {:.0f} km".format(km))
-        logging.info('Nb of nodes: ' + str(len(self.nodes)) + ', Nb of edges: ' + str(len(self.edges)))
+        logging.info(f'Nb of nodes: {len(self.nodes)}, nb of edges: {len(self.edges)}')
 
     def add_transport_edge_with_nodes(self, edge_id: int,
                                       all_edges_data: geopandas.GeoDataFrame,

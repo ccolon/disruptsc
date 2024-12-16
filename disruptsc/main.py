@@ -1,12 +1,18 @@
 # Import modules
+import cProfile
 import logging
+import pstats
 import sys
 import time
+
 import paths
-from src.model.caching_functions import generate_cache_parameters_from_command_line_argument
-from src.parameters import Parameters
-from src.simulation.handling_functions import check_script_call
+from disruptsc.model.caching_functions import generate_cache_parameters_from_command_line_argument
+from disruptsc.parameters import Parameters
+from disruptsc.simulation.handling_functions import check_script_call
 from model.model import Model
+
+profiler = cProfile.Profile()
+profiler.enable()
 
 # Start run
 t0 = time.time()
@@ -60,4 +66,8 @@ if parameters.export_files:
     simulation.calculate_and_export_summary_result(model.sc_network, model.household_table,
                                                    parameters.monetary_units_in_model, parameters.export_folder)
 
-logging.info("End of simulation")
+logging.info(f"End of simulation, running time {time.time() - t0}")
+
+profiler.disable()
+stats = pstats.Stats(profiler).sort_stats('cumtime')
+stats.print_stats()

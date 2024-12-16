@@ -1,4 +1,4 @@
-name: dsc
+name: dscinter
 channels:
   - conda-forge
   - defaults
@@ -7,3 +7,4 @@ dependencies:
   - geopandas
   - networkx
   - PyYAML
+  - jupyterlab

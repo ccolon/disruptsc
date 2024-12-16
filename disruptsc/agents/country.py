@@ -5,19 +5,20 @@ import pandas as pd
 import geopandas as gpd
 import logging
 
-from src.model.basic_functions import calculate_distance_between_agents, rescale_values, \
+from disruptsc.model.basic_functions import calculate_distance_between_agents, rescale_values, \
     generate_weights_from_list
-from src.agents.agent import Agent, Agents
-from src.network.commercial_link import CommercialLink
+from disruptsc.agents.agent import Agent, Agents
+from disruptsc.network.commercial_link import CommercialLink
+from disruptsc.network.mrio import IMPORT_LABEL
 
 if TYPE_CHECKING:
-    from src.network.transport_network import TransportNetwork
-    from src.network.sc_network import ScNetwork
+    from disruptsc.network.transport_network import TransportNetwork
+    from disruptsc.network.sc_network import ScNetwork
 
 
 class Country(Agent):
 
-    def __init__(self, pid=None, qty_sold=None, qty_purchased=None, od_point=None, long=None, lat=None,
+    def __init__(self, pid=None, qty_sold=None, qty_purchased=None, od_point=None, region=None, long=None, lat=None,
                  purchase_plan=None, transit_from=None, transit_to=None, supply_importance=None,
                  usd_per_ton=None, sector="IMP"):
         # Intrinsic parameters
@@ -25,10 +26,12 @@ class Country(Agent):
             agent_type="country",
             pid=pid,
             od_point=od_point,
+            region=region,
             long=long,
             lat=lat
         )
-        self.sector = sector
+        self.sector = IMPORT_LABEL
+        self.region_sector = pid + "_" + IMPORT_LABEL  # actually, we could specify the country...
 
         # Parameter based on data
         self.usd_per_ton = usd_per_ton
@@ -93,20 +96,23 @@ class Country(Agent):
         dic_sector_to_firm_id = identify_firms_in_each_sector(firms)
         share_exporting_firms = sector_table.set_index('sector')['share_exporting_firms'].to_dict()
         # Identify od_points which exports (optional)
-        export_od_points = transport_nodes.dropna(subset=['special'])
-        export_od_points = export_od_points.loc[export_od_points['special'].str.contains("export"), "id"].tolist()
+        if "special" in transport_nodes.columns:  # clean data, make it a transport network method
+            export_od_points = transport_nodes.dropna(subset=['special'])
+            export_od_points = export_od_points.loc[export_od_points['special'].str.contains("export"), "id"].tolist()
+            supplier_selection_mode = {
+                "importance_export": {
+                    "export_od_points": export_od_points,
+                    "bonus": 10
+                    # give more weight to firms located in transport node identified as "export points" (e.g., SEZs)
+                }
+            }
+        else:
+            supplier_selection_mode = {}
         # Identify sectors to buy from
         present_sectors = list(set(list(dic_sector_to_firm_id.keys())))
         sectors_to_buy_from = list(self.qty_purchased.keys())
         present_sectors_to_buy_from = list(set(present_sectors) & set(sectors_to_buy_from))
         # For each one of these sectors, select suppliers
-        supplier_selection_mode = {
-            "importance_export": {
-                "export_od_points": export_od_points,
-                "bonus": 10
-                # give more weight to firms located in transport node identified as "export points" (e.g., SEZs)
-            }
-        }
         for sector in present_sectors_to_buy_from:  # only select suppliers from sectors that are present
             # Identify potential suppliers
             potential_supplier_pid = dic_sector_to_firm_id[sector]
@@ -198,7 +204,9 @@ class Country(Agent):
             explicit_service_firm = True
             if explicit_service_firm:
                 # If send services, no use of transport network
-                if graph[self][edge[1]]['object'].product_type in sectors_no_transport_network:
+                cases_no_transport = (graph[self][edge[1]]['object'].product_type in sectors_no_transport_network) or \
+                                        (edge[1].agent_type == 'household')
+                if cases_no_transport:
                     graph[self][edge[1]]['object'].price = graph[self][edge[1]]['object'].eq_price
                     self.qty_sold += graph[self][edge[1]]['object'].delivery
                 # Otherwise, send shipment through transportation network
@@ -385,7 +393,7 @@ def determine_suppliers_and_weights(potential_supplier_pids,
             else firms[firm_pid].importance
             for firm_pid in potential_supplier_pids
         ])
-    elif "importance" in mode.keys():
+    else:
         importance_of_each = rescale_values([
             firms[firm_pid].importance
             for firm_pid in potential_supplier_pids

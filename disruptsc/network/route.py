@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 import pandas as pd
 
 if TYPE_CHECKING:
-    from src.network.transport_network import TransportNetwork
+    from disruptsc.network.transport_network import TransportNetwork
 
 
 class Route(list):
