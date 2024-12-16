@@ -60,12 +60,11 @@ elif parameters.simulation_type == "disruption":
     simulation = model.run_disruption()
 
 elif parameters.simulation_type == "criticality":
-    output_file = paths.OUTPUT_FOLDER / parameters.scope / "criticality.csv"
+    suffix = round(datetime.now().timestamp() * 1000)
+    output_file = paths.OUTPUT_FOLDER / parameters.scope / f"criticality_{suffix}.csv"
     with open(output_file, mode="w", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(["edge", "household_loss", "country_loss"])  # Writing the header
-
-    suffix = round(datetime.now().timestamp() * 1000)
     model.save_pickle(suffix)
     edges_to_test = parameters.criticality['edges']
     disruption_duration = parameters.criticality['duration']
