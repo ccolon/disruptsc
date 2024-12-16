@@ -10,8 +10,8 @@ from disruptsc.network.sc_network import ScNetwork
 
 class Simulation(object):
     def __init__(self, simulation_type: str):
-        if simulation_type not in ["initial_state", "event"]:
-            raise ValueError("Simulation type should be initial_state or event")
+        if simulation_type not in ["initial_state", "event", "criticality"]:
+            raise ValueError("Simulation type should be 'initial_state', 'event', 'criticality'")
         self.type = simulation_type
         self.firm_data = []
         self.country_data = []
@@ -74,6 +74,12 @@ class Simulation(object):
             total_loss = pd.DataFrame({"households": household_loss, "countries": country_loss}, index=[0])
             total_loss.to_csv(export_folder / "loss_summary.csv", index=False)
 
+        # elif self.type == "criticality":
+        #     household_loss = self.calculate_household_loss()
+        #     country_loss = self.calculate_country_loss()
+
+
+
     @staticmethod
     def summarize_results_one_household(household_result_table_one_household):
         extra_spending_per_sector_table = pd.DataFrame(
@@ -86,3 +92,16 @@ class Simulation(object):
         result = loss_per_sector.stack().reset_index()
         result.columns = ['time_step', 'sector', 'loss']
         return result
+
+    def calculate_household_loss(self):
+        household_result_table = pd.DataFrame(self.household_data)
+        loss_per_region_sector_time = household_result_table.groupby('household').apply(
+            self.summarize_results_one_household).reset_index().drop(columns=['level_1'])
+        return float(loss_per_region_sector_time['loss'].sum().value)
+
+    def calculate_country_loss(self):
+        country_result_table = pd.DataFrame(self.country_data)
+        country_result_table['loss'] = country_result_table['extra_spending'] \
+                                       + country_result_table['consumption_loss']
+        country_result_table = country_result_table[['time_step', 'country', 'loss']]
+        return float(country_result_table['loss'].sum())

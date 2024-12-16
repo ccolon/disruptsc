@@ -54,6 +54,7 @@ class Parameters:
     weight_localization_household: float
     force_local_retailer: bool
     events: list
+    criticality: None | dict
     time_resolution: str
     inventory_duration_target_unit: str
     nodeedge_tested_topn: None | int
@@ -151,13 +152,13 @@ class Parameters:
         self.export_folder = paths.OUTPUT_FOLDER / self.scope / datetime.now().strftime('%Y%m%d_%H%M%S')
         os.mkdir(self.export_folder)
 
-    def adjust_logging_behavior(self):
+    def adjust_logging_behavior(self, export_log_file: bool):
         if self.logging_level == "info":
             logging_level = logging.INFO
         else:
             logging_level = logging.DEBUG
 
-        if self.export_files:
+        if export_log_file and self.export_files:
             importlib.reload(logging)
             logging.basicConfig(
                 filename=self.export_folder / 'exp.log',

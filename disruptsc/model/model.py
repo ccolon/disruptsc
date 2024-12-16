@@ -9,10 +9,12 @@ from .caching_functions import \
     load_cached_agent_data, \
     load_cached_transaction_table, \
     cache_transport_network, \
-    cache_agent_data, load_cached_sc_network, cache_sc_network, load_cached_logistic_routes, cache_logistic_routes
+    cache_agent_data, load_cached_sc_network, cache_sc_network, load_cached_logistic_routes, cache_logistic_routes, \
+    cache_model
 from disruptsc.model.check_functions import compare_production_purchase_plans
 from disruptsc.model.country_builder_functions import create_countries_from_mrio, create_countries
-from disruptsc.model.firm_builder_functions import define_firms_from_local_economic_data, define_firms_from_network_data, \
+from disruptsc.model.firm_builder_functions import define_firms_from_local_economic_data, \
+    define_firms_from_network_data, \
     define_firms_from_mrio, create_firms, load_technical_coefficients, calibrate_input_mix, load_mrio_tech_coefs, \
     load_inventories
 from disruptsc.model.household_builder_functions import define_households_from_mrio, define_households, \
@@ -25,7 +27,7 @@ from disruptsc.model.builder_functions import \
     extract_final_list_of_sector, \
     load_ton_usd_equivalence
 from disruptsc.parameters import Parameters
-from disruptsc.disruption.disruption import DisruptionList, TransportDisruption, CapitalDestruction
+from disruptsc.disruption.disruption import DisruptionList, TransportDisruption, CapitalDestruction, Recovery
 from disruptsc.simulation.simulation import Simulation
 from disruptsc.network.sc_network import ScNetwork
 
@@ -577,6 +579,40 @@ class Model(object):
         simulation = Simulation("initial_state")
         logging.info("Simulating the initial state")
         self.run_one_time_step(time_step=0, current_simulation=simulation)
+        return simulation
+
+    def save_pickle(self, suffix):
+        cache_model(self, suffix)
+
+    def run_criticality_disruption(self, disrupted_edge, duration):
+        # Initialize the model
+        simulation = Simulation("criticality")
+        logging.info("Simulating the initial state")
+        self.run_one_time_step(time_step=0, current_simulation=simulation)
+
+        # Get disruptions
+        self.disruption_list = DisruptionList([
+            TransportDisruption({edge: 1.0},
+                                Recovery(duration=1, shape="threshold"))
+            for edge in self.parameters.criticality["edges"]])
+        if len(self.disruption_list) == 0:
+            raise ValueError("No disruption could be read")
+        logging.info(f"{len(self.disruption_list)} disruption(s) will occur")
+
+        # Adjust t_final
+        t_final = self.parameters.duration_dic[self.disruption_list.end_time]
+        logging.info('Simulation will last at max ' + str(t_final) + ' time steps.')
+
+        logging.info("Starting time loop")
+        for t in range(1, t_final + 1):
+            logging.info(f'Time t={t}')
+            self.run_one_time_step(time_step=t, current_simulation=simulation)
+
+            if (t > max([disruption.start_time for disruption in
+                         self.disruption_list])) and self.parameters.epsilon_stop_condition:
+                if self.is_back_to_equilibrium:
+                    logging.info("Simulation stops")
+                    break
         return simulation
 
     def run_disruption(self):

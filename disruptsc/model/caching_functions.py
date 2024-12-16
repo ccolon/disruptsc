@@ -70,6 +70,12 @@ def cache_agent_data(data_dic):
     logging.info(f'Firms, households, and countries saved in tmp folder: {pickle_filename}')
 
 
+def cache_model(model, suffix):
+    pickle_filename = TMP_FOLDER / f'model_{suffix}.pickle'
+    pickle.dump(model, open(pickle_filename, 'wb'))
+    logging.info(f'Model saved in tmp folder: {pickle_filename}')
+
+
 def cache_transport_network(data_dic):
     pickle_filename = TMP_FOLDER / 'transport_network_pickle'
     pickle.dump(data_dic, open(pickle_filename, 'wb'))
@@ -112,6 +118,12 @@ def load_cached_transaction_table():
     tmp_data = pickle.load(open(pickle_filename, 'rb'))
     loaded_transaction_table = tmp_data['transaction_table']
     return loaded_transaction_table
+
+
+def load_cached_model(suffix):
+    pickle_filename = TMP_FOLDER / f'model_{suffix}.pickle'
+    model = pickle.load(open(pickle_filename, 'rb'))
+    return model
 
 
 def load_cached_transport_network():

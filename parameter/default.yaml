@@ -357,14 +357,18 @@ model_IO: False
 
 # Provides default simulation duration Tfinal for different disruption duration
 duration_dic:
-  0: 10
+  0: 1
   1: 4
   2: 8
   3: 11
   4: 14
 
+# Defines the criticality loop
+criticality:
+    edges: []
+    duration: 1
 
-# Whether or not to load extra roads in the model
+# Whether to load extra roads in the model
 extra_roads: False
 
 # Value of the household extra spending and consumption loss under which we stop the simulation

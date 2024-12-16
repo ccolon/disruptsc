@@ -103,7 +103,7 @@ class Recovery:
 
 
 class TransportDisruption(dict):
-    def __init__(self, description: dict, recovery: Recovery | None = None, start_time: int = 0):
+    def __init__(self, description: dict, recovery: Recovery | None = None, start_time: int = 1):
         self.start_time = start_time
         self.recovery = recovery
         if description is not None:
