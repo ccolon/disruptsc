@@ -97,11 +97,11 @@ class Simulation(object):
         household_result_table = pd.DataFrame(self.household_data)
         loss_per_region_sector_time = household_result_table.groupby('household').apply(
             self.summarize_results_one_household).reset_index().drop(columns=['level_1'])
-        return float(loss_per_region_sector_time['loss'].sum().value)
+        return loss_per_region_sector_time['loss'].sum()
 
     def calculate_country_loss(self):
         country_result_table = pd.DataFrame(self.country_data)
         country_result_table['loss'] = country_result_table['extra_spending'] \
                                        + country_result_table['consumption_loss']
         country_result_table = country_result_table[['time_step', 'country', 'loss']]
-        return float(country_result_table['loss'].sum())
+        return country_result_table['loss'].sum()
