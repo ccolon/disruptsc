@@ -33,12 +33,12 @@ cache_parameters = generate_cache_parameters_from_command_line_argument(sys.argv
 parameters = Parameters.load_parameters(paths.PARAMETER_FOLDER, scope)
 
 # Create the output folder and adjust logging behavior
-if parameters.export_files:
+if parameters.export_files and parameters.simulation_type != "criticality":
     parameters.create_export_folder()
     parameters.export()
     logging.info(f'Output folder is {parameters.export_folder}')
 
-parameters.adjust_logging_behavior(parameters.simulation_type == "criticality")
+parameters.adjust_logging_behavior(parameters.simulation_type != "criticality")
 
 # Initialize model
 model = Model(parameters)
@@ -82,7 +82,7 @@ elif parameters.simulation_type == "criticality":
 else:
     raise ValueError('Unimplemented simulation type chosen')
 
-if parameters.export_files:
+if parameters.export_files and parameters.simulation_type != "criticality":
     simulation.export_agent_data(parameters.export_folder)
     simulation.export_transport_network_data(model.transport_edges, parameters.export_folder)
     simulation.calculate_and_export_summary_result(model.sc_network, model.household_table,
