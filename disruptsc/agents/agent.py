@@ -61,7 +61,7 @@ class Agent(object):
         self.update_indicator(quantity_delivered, price, commercial_link)
 
     def receive_products_and_pay(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
-                                 sectors_no_transport_network: list):
+                                 sectors_no_transport_network: list, transport_to_households: bool = False):
         # reset variable
         self.reset_indicators()
 
@@ -284,9 +284,10 @@ class Agents(dict):
                                    transport_cost_noise_level=transport_cost_noise_level)
 
     def receive_products(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
-                         sectors_no_transport_network: list):
+                         sectors_no_transport_network: list, transport_to_households: bool = False):
         for agent in self.values():
-            agent.receive_products_and_pay(sc_network, transport_network, sectors_no_transport_network)
+            agent.receive_products_and_pay(sc_network, transport_network, sectors_no_transport_network,
+                                           transport_to_households)
 
 
 def determine_nb_suppliers(nb_suppliers_per_input: float, max_nb_of_suppliers=None):

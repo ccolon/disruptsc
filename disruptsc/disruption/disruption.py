@@ -225,7 +225,7 @@ class DisruptionList(UserList):
                          if isinstance(disruption, CapitalDestruction) or isinstance(disruption, TransportDisruption))
         if len(disruption_list) > 0:
             self.start_time = min([disruption.start_time for disruption in disruption_list])
-            self.end_time = 0
+            self.end_time = max([disruption.start_time + 1 for disruption in disruption_list])
             # self.end_time = max([disruption.start_time + disruption.duration for disruption in disruption_list])
             # self.transport_nodes = [
             #     disruption.item_id

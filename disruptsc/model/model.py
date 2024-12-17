@@ -592,9 +592,8 @@ class Model(object):
 
         # Get disruptions
         self.disruption_list = DisruptionList([
-            TransportDisruption({edge: 1.0},
-                                Recovery(duration=1, shape="threshold"))
-            for edge in self.parameters.criticality["edges"]])
+            TransportDisruption({disrupted_edge: 1.0},
+                                Recovery(duration=duration, shape="threshold"))])
         if len(self.disruption_list) == 0:
             raise ValueError("No disruption could be read")
         logging.info(f"{len(self.disruption_list)} disruption(s) will occur")
@@ -608,8 +607,7 @@ class Model(object):
             logging.info(f'Time t={t}')
             self.run_one_time_step(time_step=t, current_simulation=simulation)
 
-            if (t > max([disruption.start_time for disruption in
-                         self.disruption_list])) and self.parameters.epsilon_stop_condition:
+            if (t > self.disruption_list.end_time + 1) and self.parameters.epsilon_stop_condition:
                 if self.is_back_to_equilibrium:
                     logging.info("Simulation stops")
                     break
@@ -712,7 +710,8 @@ class Model(object):
         #     analyzeSupplyChainFlows(sc_network, firms, export_folder)
         #
         self.households.receive_products(self.sc_network, self.transport_network,
-                                         self.parameters.sectors_no_transport_network)
+                                         self.parameters.sectors_no_transport_network,
+                                         self.parameters.transport_to_households)
         self.countries.receive_products(self.sc_network, self.transport_network,
                                         self.parameters.sectors_no_transport_network)
         self.firms.receive_products(self.sc_network, self.transport_network,

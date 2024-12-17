@@ -27,6 +27,7 @@ class Parameters:
     sectors_to_include: str
     sectors_to_exclude: list | None
     sectors_no_transport_network: list
+    transport_to_households: bool
     cutoff_sector_output: dict
     cutoff_sector_demand: dict
     combine_sector_cutoff: str

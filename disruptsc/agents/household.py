@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from disruptsc.network.sc_network import ScNetwork
     from disruptsc.agents.firm import Firms
     from disruptsc.agents.country import Countries
+    from disruptsc.network.transport_network import TransportNetwork
 
 
 class Household(Agent):
@@ -285,6 +286,16 @@ class Household(Agent):
 
         # return
         return selected_supplier_ids, supplier_weights
+
+    def receive_products_and_pay(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
+                                 sectors_no_transport_network: list, transport_to_households: bool = False):
+        if ~transport_to_households:
+            self.reset_indicators()
+            for edge in sc_network.in_edges(self):
+                self.receive_service_and_pay(sc_network[edge[0]][self]['object'])
+
+        else:
+            super().receive_products_and_pay(sc_network, transport_network, sectors_no_transport_network)
 
 
 class Households(Agents):

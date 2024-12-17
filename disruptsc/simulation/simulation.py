@@ -47,7 +47,7 @@ class Simulation(object):
             logging.info(f'Exporting edgelist to {export_folder}')
             sc_network.generate_edge_list().to_csv(export_folder / "sc_network_edgelist.csv")
 
-        elif self.type == "event":
+        else:# self.type == "event":
             # export loss time series for households
             logging.info(f'Exporting loss time series of households per region sector to {export_folder}')
             household_result_table = pd.DataFrame(self.household_data)
