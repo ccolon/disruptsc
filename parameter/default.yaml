@@ -164,7 +164,7 @@ sectors_to_exclude: None
 sectors_no_transport_network: ['utility', 'transport', 'trade', 'services', 'service']
 
 # Whether the B2C flows are transported on the transport network
-transport_to_households: False
+transport_to_households: True
 
 # Filter out sectors whose output is below that cutoff value
 # - if 'type' is 'percentage', test cutoff against the sector's relative output

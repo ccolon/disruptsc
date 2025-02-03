@@ -8,6 +8,7 @@ import pandas as pd
 import geopandas as gpd
 
 from disruptsc.agents.firm import Firm, Firms
+from disruptsc.model.basic_functions import find_nearest_node_id
 from disruptsc.network.mrio import Mrio
 from disruptsc.model.builder_functions import get_index_closest_point, get_long_lat, get_absolute_cutoff_value
 
@@ -351,9 +352,11 @@ def define_firms_from_mrio(filepath_mrio: Path, filepath_sectors: Path, filepath
     tot_outputs_per_region_sector = mrio.sum(axis=1)
     firm_table['importance'] = firm_table['tuple'].map(tot_outputs_per_region_sector)
     check_successful_extraction(firm_table, "importance")
-    # Add point
+    # Add point (largest populated node)
     region_table = gpd.read_file(filepath_regions)
-    firm_table['geometry'] = firm_table['region'].map(region_table.set_index('region')['geometry'])
+    mapping_region_to_point = (region_table[region_table['region'].isin(mrio.regions)]
+                               .groupby('region').apply(lambda df: df.loc[df['population'].idxmax(), "geometry"]))
+    firm_table['geometry'] = firm_table['region'].map(mapping_region_to_point)
     firm_table = gpd.GeoDataFrame(firm_table, crs=region_table.crs)
     logging.info(f'Number of firms from MRIO only: {firm_table.shape}')
 
@@ -423,10 +426,11 @@ def define_firms_from_mrio(filepath_mrio: Path, filepath_sectors: Path, filepath
 
     # Assign firms to the nearest road node
     logging.info("Assign firms to nearest road node")
-    unique_points_with_firms = list(firm_table['geometry'].unique())
-    corresponding_od_point_ids = {point.wkt: get_index_closest_point(point, transport_nodes)
-                                  for point in unique_points_with_firms}
-    firm_table['od_point'] = firm_table['geometry'].map(lambda point: corresponding_od_point_ids[point.wkt])
+    # unique_points_with_firms = list(firm_table['geometry'].unique())
+    # corresponding_od_point_ids = {point.wkt: get_index_closest_point(point, transport_nodes)
+    #                               for point in unique_points_with_firms}
+    # firm_table['od_point'] = firm_table['geometry'].map(lambda point: corresponding_od_point_ids[point.wkt])
+    firm_table['od_point'] = find_nearest_node_id(transport_nodes, firm_table)
     check_successful_extraction(firm_table, "od_point")
 
     # Add long lat

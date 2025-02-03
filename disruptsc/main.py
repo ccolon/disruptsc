@@ -13,8 +13,8 @@ from disruptsc.parameters import Parameters
 from disruptsc.simulation.handling_functions import check_script_call
 from model.model import Model
 
-# profiler = cProfile.Profile()
-# profiler.enable()
+profiler = cProfile.Profile()
+profiler.enable()
 
 # Start run
 t0 = time.time()
@@ -43,8 +43,8 @@ parameters.adjust_logging_behavior(parameters.simulation_type != "criticality")
 # Initialize model
 model = Model(parameters)
 model.setup_transport_network(cached=cache_parameters['transport_network'])
-if parameters.export_files and parameters.simulation_type != "criticality":
-    model.export_transport_nodes_edges()
+# if parameters.export_files and parameters.simulation_type != "criticality":
+#     model.export_transport_nodes_edges()
 model.setup_agents(cached=cache_parameters['agents'])
 if parameters.export_files and parameters.simulation_type != "criticality":
     model.export_agent_tables()
@@ -56,7 +56,7 @@ model.setup_logistic_routes(cached=cache_parameters['logistic_routes'])
 if parameters.simulation_type == "initial_state":
     simulation = model.run_static()
 
-elif parameters.simulation_type == "disruption":
+elif parameters.simulation_type in ["event", "disruption"]:
     simulation = model.run_disruption()
 
 elif parameters.simulation_type == "criticality":
@@ -90,6 +90,6 @@ if parameters.export_files and parameters.simulation_type != "criticality":
 
 logging.info(f"End of simulation, running time {time.time() - t0}")
 
-# profiler.disable()
-# stats = pstats.Stats(profiler).sort_stats('cumtime')
-# stats.print_stats()
+profiler.disable()
+stats = pstats.Stats(profiler).sort_stats('cumtime')
+stats.print_stats()

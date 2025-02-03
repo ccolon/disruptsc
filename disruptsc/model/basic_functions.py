@@ -3,6 +3,8 @@ import math
 
 import numpy as np
 import pandas as pd
+import geopandas as gpd
+from scipy.spatial import cKDTree
 
 
 def generate_weights(nb_suppliers: int, importance_of_each: list or None):
@@ -104,3 +106,19 @@ def add_or_append_to_dict(dictionary, key, value_to_add):
         dictionary[key] += value_to_add
     else:
         dictionary[key] = value_to_add
+
+
+def find_nearest_node_id(transport_nodes, gdf: gpd.GeoDataFrame, node_type='any'):
+    """
+    Finds the nearest road node for each point in final_gdf using KDTree.
+    """
+    if node_type == "road":
+        transport_nodes = transport_nodes[transport_nodes['type'] == "road"].copy()
+    transport_node_coords = np.array(list(transport_nodes.geometry.apply(lambda geom: (geom.x, geom.y))))
+    gdf_coords = np.array(list(gdf.geometry.apply(lambda geom: (geom.x, geom.y))))
+
+    kdtree = cKDTree(transport_node_coords)
+    distances, indices = kdtree.query(gdf_coords)
+
+    return transport_nodes.iloc[indices.tolist()].index.values
+

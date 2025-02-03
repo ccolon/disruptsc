@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING
 
 import networkx as nx
@@ -395,18 +396,21 @@ class Model(object):
             logging.info('The supplier--buyer graph is being connected to the transport network')
             logging.info('Each B2B and transit edge is being linked to a route of the transport network')
             logging.info('Routes for transit and import flows are being selected by trading countries')
-            for country in self.countries.values():
-                country.choose_initial_routes(self.sc_network, self.transport_network,
-                                              self.parameters.capacity_constraint,
-                                              self.parameters.transport_cost_noise_level,
-                                              self.parameters.monetary_units_in_model)
+            self.countries.choose_initial_routes(self.sc_network, self.transport_network,
+                                                 self.parameters.capacity_constraint,
+                                                 self.parameters.explicit_service_firm,
+                                                 self.parameters.transport_to_households,
+                                                 self.parameters.sectors_no_transport_network,
+                                                 self.parameters.transport_cost_noise_level,
+                                                 self.parameters.monetary_units_in_model)
             logging.info('Routes for exports and B2B domestic flows are being selected by domestic firms')
-            for firm in self.firms.values():
-                if firm.sector_type not in self.parameters.sectors_no_transport_network:
-                    firm.choose_initial_routes(self.sc_network, self.transport_network,
-                                               self.parameters.capacity_constraint,
-                                               self.parameters.transport_cost_noise_level,
-                                               self.parameters.monetary_units_in_model)
+            self.firms.choose_initial_routes(self.sc_network, self.transport_network,
+                                             self.parameters.capacity_constraint,
+                                             self.parameters.explicit_service_firm,
+                                             self.parameters.transport_to_households,
+                                             self.parameters.sectors_no_transport_network,
+                                             self.parameters.transport_cost_noise_level,
+                                             self.parameters.monetary_units_in_model)
             # Save to tmp folder
             data_to_cache = {
                 'transport_network': self.transport_network,
@@ -662,11 +666,13 @@ class Model(object):
         self.firms.send_purchase_orders(self.sc_network)
         self.firms.produce()
         self.countries.deliver(self.sc_network, self.transport_network, self.parameters.sectors_no_transport_network,
-                               self.parameters.rationing_mode, self.parameters.capacity_constraint,
+                               self.parameters.rationing_mode, self.parameters.explicit_service_firm,
+                               self.parameters.transport_to_households, self.parameters.capacity_constraint,
                                self.parameters.monetary_units_in_model, self.parameters.cost_repercussion_mode,
                                self.parameters.price_increase_threshold, self.parameters.transport_cost_noise_level)
         self.firms.deliver(self.sc_network, self.transport_network, self.parameters.sectors_no_transport_network,
-                           self.parameters.rationing_mode, self.parameters.capacity_constraint,
+                           self.parameters.rationing_mode, self.parameters.explicit_service_firm,
+                           self.parameters.transport_to_households, self.parameters.capacity_constraint,
                            self.parameters.monetary_units_in_model, self.parameters.cost_repercussion_mode,
                            self.parameters.price_increase_threshold, self.parameters.transport_cost_noise_level)
         if self.reconstruction_market:

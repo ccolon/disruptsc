@@ -1,3 +1,4 @@
+import math
 from typing import TYPE_CHECKING
 
 import geopandas
@@ -5,6 +6,8 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 import logging
+
+from scipy.spatial import cKDTree
 
 from disruptsc.model.basic_functions import add_or_append_to_dict
 from disruptsc.network.route import Route
@@ -122,11 +125,11 @@ class TransportNetwork(nx.Graph):
         [(1,), (1,5), (5,), (5,8), (8,)]
         """
         if origin_node not in self.nodes:
-            logging.info("Origin node " + str(origin_node) + " not in the available transport network")
+            logging.info(f"Origin node {origin_node} not in the available transport network")
             return None
 
         elif destination_node not in self.nodes:
-            logging.info("Destination node " + str(destination_node) + " not in the available transport network")
+            logging.info(f"Destination node {destination_node} not in the available transport network")
             return None
 
         elif nx.has_path(self, origin_node, destination_node):
@@ -139,8 +142,20 @@ class TransportNetwork(nx.Graph):
             return route
 
         else:
-            logging.info("There is no path between " + str(origin_node) + " and " + str(destination_node))
+            logging.info(f"There is no path between {origin_node} and {destination_node}")
             return None
+
+    def make_transport_cost_heuristic(self, min_cost_per_km):
+        def heuristic(u, v):
+            # Extract positions; adjust if you use a different coordinate system.
+            pos_u = self.nodes[0]['geometry'].x
+            pos_v = self.nodes[0]['geometry'].y
+            # Compute Euclidean distance (straight-line distance)
+            distance = math.hypot(pos_u[0] - pos_v[0], pos_u[1] - pos_v[1])
+            # Return estimated cost
+            return distance * min_cost_per_km
+
+        return heuristic
 
     def add_noise_to_weight(self, weight: str, noise_sd: float):
         noise_levels = np.random.normal(0, noise_sd, len(self.edges)).tolist()
@@ -288,6 +303,61 @@ class TransportNetwork(nx.Graph):
                     del self._node[route_segment[0]]['shipments'][commercial_link.pid]
 
     def compute_flow_per_segment(self, time_step) -> list:
+        """
+        Calculate flows of each category and product for each transport edge.
+
+        We calculate total flows:
+          - for each combination flow_category*product_type
+          - for each flow_category
+          - for each product_type
+          - total of all
+        """
+        flows_per_edge = []
+        flows_total = {}
+
+        for u, v in self.edges():
+            edge_data = self[u][v]
+            shipments = edge_data["shipments"].values()
+            km = edge_data["km"]
+
+            new_data = {
+                "time_step": time_step,
+                "id": edge_data['id'],
+                "flow_total": 0,
+                "flow_total_tons": 0
+            }
+
+            for shipment in shipments:
+                fc = shipment['flow_category']
+                pt = shipment['product_type']
+                qty = shipment['quantity']
+                tons = shipment['tons']
+
+                # Update new_data entries
+                key_combo = f'flow_{fc}_{pt}'
+                new_data[key_combo] = new_data.get(key_combo, 0) + qty
+
+                key_fc = f'flow_{fc}'
+                new_data[key_fc] = new_data.get(key_fc, 0) + qty
+
+                key_pt = f'flow_{pt}'
+                new_data[key_pt] = new_data.get(key_pt, 0) + qty
+
+                new_data['flow_total'] += qty
+                new_data['flow_total_tons'] += tons
+
+                # Update flows_total entries
+                flows_total[fc] = flows_total.get(fc, 0) + qty
+                flows_total[f'{fc}*km'] = flows_total.get(f'{fc}*km', 0) + qty * km
+                flows_total[f'{fc}_tons'] = flows_total.get(f'{fc}_tons', 0) + tons
+                flows_total[f'{fc}_tons*km'] = flows_total.get(f'{fc}_tons*km', 0) + tons * km
+
+            flows_per_edge.append(new_data)
+
+        logging.info(flows_total)
+        return flows_per_edge
+
+    def compute_flow_per_segment_legacy(self, time_step) -> list:
         """
         Calculate flows of each category and product for each transport edges
 

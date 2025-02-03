@@ -32,11 +32,11 @@ variability: #as fraction of travel time
 
 transport_cost_per_tonkm: #USD/(ton*km)
   roads:
-    paved: 0.010 #https://unctadstat.unctad.org/datacentre/dataviewer/US.TransportCosts
-    unpaved: 0.014 #twice more than paved
+    paved: 0.015 #https://unctadstat.unctad.org/datacentre/dataviewer/US.TransportCosts
+    unpaved: 0.030 #twice more than paved
   maritime: 0.007 #https://unctadstat.unctad.org/datacentre/dataviewer/US.TransportCosts
   airways: 10000 #https://unctadstat.unctad.org/datacentre/dataviewer/US.TransportCosts
-  railways: 0.018 #https://unctadstat.unctad.org/datacentre/dataviewer/US.TransportCosts
+  railways: 0.010 #https://unctadstat.unctad.org/datacentre/dataviewer/US.TransportCosts
   waterways: 0.007 #https://unctadstat.unctad.org/datacentre/dataviewer/US.TransportCosts
 
 loading_cost_per_ton: #USD/ton

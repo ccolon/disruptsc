@@ -217,7 +217,8 @@ class Firm(Agent):
         if firm_data_type == "mrio":
             if IMPORT_LABEL in region_sector:  # case of countries
                 supplier_type = "country"
-                selected_supplier_ids = [region_sector.split("_")[0]]  # for countries, the id is extracted from the name
+                selected_supplier_ids = [
+                    region_sector.split("_")[0]]  # for countries, the id is extracted from the name
                 supplier_weights = [1]
 
             else:  # case of firms
@@ -625,7 +626,9 @@ class Firm(Agent):
         pass
 
     def deliver_products(self, graph: "ScNetwork", transport_network: "TransportNetwork",
-                         sectors_no_transport_network: list, rationing_mode: str, monetary_units_in_model: str,
+                         sectors_no_transport_network: list, rationing_mode: str, explicit_service_firm: bool,
+                         transport_to_households: bool,
+                         monetary_units_in_model: str,
                          cost_repercussion_mode: str, price_increase_threshold: float, capacity_constraint: bool,
                          transport_cost_noise_level: float):
 
@@ -691,8 +694,9 @@ class Firm(Agent):
                 Firm.transformUSD_to_tons(quantity_to_deliver[edge[1].pid], monetary_units_in_model, self.usd_per_ton)
 
             # If the client is B2C (applied only we had one single representative agent for all households)
-            cases_no_transport = (edge[1].pid == -1) or (self.sector_type in sectors_no_transport_network) or \
-                                 (edge[1].agent_type == "household")
+            cases_no_transport = (edge[1].pid == -1) or (self.sector_type in sectors_no_transport_network) \
+                                 or ((not transport_to_households) and (edge[1].agent_type == "household"))
+            # If the client is a service firm, we deliver without using transportation infrastructure
             if cases_no_transport:
                 self.deliver_without_infrastructure(graph[self][edge[1]]['object'])
             # otherwise use infrastructure

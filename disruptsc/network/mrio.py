@@ -54,6 +54,9 @@ class Mrio(pd.DataFrame):
         tech_coef_matrix = self[self.region_sectors] / matrix_output
         return [tup for tup in self.region_sectors if tech_coef_matrix.loc[tup, tup] > threshold]
 
+    def get_final_demand(self):
+        return self.loc[:, self.columns.get_level_values(1) == FINAL_DEMAND_LABEL]
+
     def check_square_structure(self):
         region_sectors_in_columns = [tup for tup in self.columns if tup[1] not in [FINAL_DEMAND_LABEL, EXPORT_LABEL]]
         region_sectors_in_columns.sort()

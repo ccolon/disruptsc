@@ -170,18 +170,19 @@ class Country(Agent):
             graph[edge[0]][self]['object'].order = quantity_to_buy
 
     def deliver_products(self, graph: "ScNetwork", transport_network: "TransportNetwork",
-                         sectors_no_transport_network: list[str], rationing_mode: str, monetary_units_in_model: str,
-                         cost_repercussion_mode: str, price_increase_threshold: float, capacity_constraint: bool,
-                         transport_cost_noise_level: float):
+                         sectors_no_transport_network: list[str], rationing_mode: str, explicit_service_firm: bool,
+                         transport_to_households: bool,
+                         monetary_units_in_model: str, cost_repercussion_mode: str, price_increase_threshold: float,
+                         capacity_constraint: bool, transport_cost_noise_level: float):
         """ The quantity to be delivered is the quantity that was ordered (no rationing takes place)
 
         Parameters
         ----------
+        explicit_service_firm
         transport_cost_noise_level
         cost_repercussion_mode
         capacity_constraint
         monetary_units_in_model
-        rationing_mode
         sectors_no_transport_network
         transport_network
         graph
@@ -201,11 +202,10 @@ class Country(Agent):
                 Country.transformUSD_to_tons(graph[self][edge[1]]['object'].order, monetary_units_in_model,
                                              self.usd_per_ton)
 
-            explicit_service_firm = True
             if explicit_service_firm:
                 # If send services, no use of transport network
                 cases_no_transport = (graph[self][edge[1]]['object'].product_type in sectors_no_transport_network) or \
-                                        (edge[1].agent_type == 'household')
+                                        ((not transport_to_households) and (edge[1].agent_type == 'household'))
                 if cases_no_transport:
                     graph[self][edge[1]]['object'].price = graph[self][edge[1]]['object'].eq_price
                     self.qty_sold += graph[self][edge[1]]['object'].delivery
@@ -241,10 +241,8 @@ class Country(Agent):
         """Only apply to B2B flows 
         """
         if len(commercial_link.route) == 0:
-            raise ValueError("Country " + str(self.pid) +
-                             ": commercial link " + str(commercial_link.pid) +
-                             " is not associated to any route, I cannot send any shipment to client " +
-                             str(commercial_link.pid))
+            raise ValueError(f"Country {self.pid}: commercial link {commercial_link.pid} is not associated "
+                             f"to any route, I cannot send any shipment to client {commercial_link.pid}")
 
         if self.check_route_availability(commercial_link, transport_network, 'main') == 'available':
             # If the normal route is available, we can send the shipment as usual and pay the usual price

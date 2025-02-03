@@ -5,11 +5,12 @@ import pandas
 import pandas as pd
 import geopandas as gpd
 import numpy as np
+from scipy.spatial import cKDTree
 
 from disruptsc.agents.household import Household, Households
 from disruptsc.model.builder_functions import get_index_closest_point, get_long_lat, \
     get_closest_road_nodes, get_absolute_cutoff_value
-from disruptsc.model.basic_functions import rescale_monetary_values
+from disruptsc.model.basic_functions import rescale_monetary_values, find_nearest_node_id
 from disruptsc.network.mrio import Mrio
 
 
@@ -52,118 +53,6 @@ def create_households(
     return households
 
 
-def define_households_from_mrio_data(
-        sector_table: pd.DataFrame,
-        filepath_region_table: Path,
-        filtered_sectors: list,
-        local_demand_cutoff: float,
-        transport_nodes: gpd.GeoDataFrame,
-        time_resolution: str,
-        target_units: str,
-        input_units: str
-):
-    # Adrien's function for Global model
-    # household_table = gpd.read_file(filepath_region_table)
-    # household_table = location_table.copy(deep=False)
-    # TODO ajouter la demande finale par secteur country_sector_table
-    final_demand = sector_table["final_demand"]
-    # household_table = household_table.stack() #.transpose()
-
-    # TEST
-
-    household_table = gpd.read_file(filepath_region_table)
-
-    # Add final demand
-    final_demand = sector_table.loc[sector_table['sector'].isin(filtered_sectors), ['sector', 'final_demand']]
-    final_demand_as_row = final_demand.set_index('sector').transpose()
-
-    # Duplicate rows
-    household_table = pd.concat([household_table] * len(final_demand_as_row))
-
-    # Align index and concat
-    household_table.index = final_demand_as_row.index
-    household_table = pd.concat([household_table, final_demand_as_row], axis=1)
-
-    # Reshape the household table
-    household_table = household_table.stack().reset_index()
-    household_table.columns = ['region', 'column', 'value']
-
-    ## Fin TEST
-
-    # C. Create one household per OD point
-    logging.info('Assigning households to od-points')
-    dic_select_region_to_points = household_table.set_index('region')['geometry'].to_dict()
-    # Select road node points
-    road_nodes = transport_nodes[transport_nodes['type'] == "roads"]
-    # Create dic
-    dic_region_to_road_node_id = {
-        region: road_nodes.loc[get_index_closest_point(point, road_nodes), 'id']
-        for region, point in dic_select_region_to_points.items()
-    }
-    # Map household to closest road nodes
-    household_table['od_point'] = household_table['region'].map(dic_region_to_road_node_id)
-
-    # Combine households that are in the same od-point
-    household_table = household_table \
-        .drop(columns=['geometry']) \
-        .groupby(['region', 'od_point'], as_index=False) \
-        .sum()
-    logging.info(str(household_table.shape[0]) + ' od-point selected for demand')
-
-    # D. Filter out small demand
-    if local_demand_cutoff > 0:
-        household_table[filtered_sectors] = household_table[filtered_sectors].mask(
-            household_table[filtered_sectors] < local_demand_cutoff
-        )
-    # info
-    logging.info('Create ' + str(household_table.shape[0]) + " households in " +
-                 str(household_table['od_point'].nunique()) + ' od points')
-    for sector in filtered_sectors:
-        logging.info('Sector ' + sector + ": create " +
-                     str((~household_table[sector].isnull()).sum()) +
-                     " buying households that covers " +
-                     "{:.0f}%".format(
-                         household_table[sector].sum() \
-                         / sector_table.set_index('sector').loc[sector, 'final_demand'] * 100
-                     ) + " of total final demand"
-                     )
-    if (household_table[filtered_sectors].sum(axis=1) == 0).any():
-        logging.warning('Some households have no purchase plan because of all their sectoral demand below cutoff!')
-
-    # E. Add information required by the createHouseholds function
-    # add long lat
-    od_point_table = road_nodes[road_nodes['id'].isin(household_table['od_point'])].copy()
-    od_point_table['long'] = od_point_table.geometry.x
-    od_point_table['lat'] = od_point_table.geometry.y
-    road_node_id_to_longlat = od_point_table.set_index('id')[['long', 'lat']]
-    household_table['long'] = household_table['od_point'].map(road_node_id_to_longlat['long'])
-    household_table['lat'] = household_table['od_point'].map(road_node_id_to_longlat['lat'])
-    # add id
-    household_table['id'] = list(range(household_table.shape[0]))
-
-    # F. Create purchase plan per household
-    # rescale according to time resolution
-    household_table[filtered_sectors] = rescale_monetary_values(
-        household_table[filtered_sectors],
-        time_resolution=time_resolution,
-        target_units=target_units,
-        input_units=input_units
-    )
-    # to dict
-    household_sector_consumption = household_table.set_index('id')[filtered_sectors].to_dict(orient='index')
-    # remove nan values
-    household_sector_consumption = {
-        i: {
-            sector: amount
-            for sector, amount in purchase_plan.items()
-            if ~np.isnan(amount)
-        }
-        for i, purchase_plan in household_sector_consumption.items()
-    }
-
-    return household_table, household_sector_consumption
-
-
 def define_households_from_mrio(
         filepath_mrio: Path,
         filepath_region_table: Path,
@@ -175,29 +64,12 @@ def define_households_from_mrio(
 ):
     # Load mrio
     mrio = Mrio.load_mrio_from_filepath(filepath_mrio, input_units)
-    # mrio = pd.read_csv(filepath_mrio, header=[0, 1], index_col=[0, 1])
-    # # Extract region_households
-    # region_households = mrio.columns.to_list()
-    # region_households = [tup for tup in region_households if tup[1] == 'final_demand']
 
     # Create household table
-    household_table = pd.DataFrame({
-        'tuple': mrio.region_households,
-        'region': [tup[0] for tup in mrio.region_households],
-        'name': [tup[0] + '_households' for tup in mrio.region_households]
-    })
-    # household_table = pd.DataFrame({"name": region_households})
-    # household_table['region'] = household_table['name'].str.extract('([0-9]*)-H')
-    # household_table['region'] = household_table['name'].str.extract('([A-Z]{3})_H')
+    household_table = gpd.read_file(filepath_region_table)
+    household_table = household_table[household_table["region"].isin([tup[0] for tup in mrio.region_households])]
+    household_table['od_point'] = find_nearest_node_id(transport_nodes, household_table)
     logging.info(f"Select {household_table.shape[0]} households in {household_table['region'].nunique()} regions")
-
-    # Identify OD point
-    region_table = gpd.read_file(filepath_region_table)
-    household_table['geometry'] = household_table['region'].map(region_table.set_index('region')['geometry'])
-    household_table = gpd.GeoDataFrame(household_table, crs=region_table.crs)
-    corresponding_od_point_ids = {str(point): get_index_closest_point(point, transport_nodes)
-                                  for point in household_table['geometry'].to_list()}
-    household_table['od_point'] = household_table['geometry'].astype(str).map(corresponding_od_point_ids)
 
     # Add long lat
     long_lat = get_long_lat(household_table['od_point'], transport_nodes)
@@ -208,32 +80,68 @@ def define_households_from_mrio(
     household_table['id'] = range(household_table.shape[0])
 
     # Add population
-    if "population" in region_table.columns:
-        household_table['population'] = household_table['region'].map(region_table.set_index('region')['population'])
-    else:
+    if "population" not in household_table.columns:
         household_table['population'] = 1
 
-    # Identify final demand per region_sector
-    consumption = mrio[mrio.region_households].copy(deep=True)   # TODO to put in the class Mrio
-    consumption.index = ['_'.join(tup) for tup in consumption.index]
-    consumption.columns = [tup[0] + '_households' for tup in mrio.region_households]
-    consumption.columns = consumption.columns.map(household_table.set_index('name')['id'])
-    consumption = rescale_monetary_values(
-        consumption,
+    # Add name
+    household_table['name'] = household_table.groupby('region').cumcount()  # Generate per-region index
+    household_table['name'] = household_table.apply(lambda row: f"{row['region']}_household{row['name']}", axis=1)
+
+    # Get final demand per sector per household
+    final_demand = mrio.get_final_demand()
+    final_demand = rescale_monetary_values(
+        final_demand,
         time_resolution=time_resolution,
         target_units=target_units,
         input_units=input_units
     )
-    household_sector_consumption = consumption.to_dict()
+
+    # Step 1: Calculate total population per region
+    total_population_per_region = household_table.groupby('region')['population'].sum()
+
+    # Step 2: Prepare an empty dictionary to store household demands
+    household_sector_consumption = {}
     cutoff = get_absolute_cutoff_value(final_demand_cutoff, input_units)
-    household_sector_consumption = {
-        household: {
-            key: value
-            for key, value in sublist.items()
-            if value > cutoff
-        }
-        for household, sublist in household_sector_consumption.items()
-    }
+    # Step 3: Iterate over households
+    for _, household in household_table.iterrows():
+
+        # Compute household's population proportion within its region
+        pop_proportion = household['population'] / total_population_per_region[household['region']]
+
+        # Step 4: Get demand values for this region
+        if household['region'] in final_demand.columns.get_level_values(0):  # Ensure region exists in df
+            region_demand = final_demand.xs(household['region'], axis=1, level=0)  # Extract relevant demand for the region
+
+            # Scale demand for this household
+            household_demand = (region_demand * pop_proportion).stack().to_dict()
+
+            # Store in final dictionary
+            household_sector_consumption[household['id']] = {tup[0]+"_"+tup[1]: demand
+                                                             for tup, demand in household_demand.items()
+                                                             if demand > cutoff}
+
+
+    # # Identify final demand per region_sector
+    # consumption = mrio[mrio.region_households].copy(deep=True)   # TODO to put in the class Mrio
+    # consumption.index = ['_'.join(tup) for tup in consumption.index]
+    # consumption.columns = [tup[0] + '_households' for tup in mrio.region_households]
+    # consumption.columns = consumption.columns.map(household_table.set_index('name')['id'])
+    # consumption = rescale_monetary_values(
+    #     consumption,
+    #     time_resolution=time_resolution,
+    #     target_units=target_units,
+    #     input_units=input_units
+    # )
+    # household_sector_consumption = consumption.to_dict()
+    # cutoff = get_absolute_cutoff_value(final_demand_cutoff, input_units)
+    # household_sector_consumption = {
+    #     household: {
+    #         key: value
+    #         for key, value in sublist.items()
+    #         if value > cutoff
+    #     }
+    #     for household, sublist in household_sector_consumption.items()
+    # }
 
     # Info
     logging.info(f"Create {household_table.shape[0]} households in {household_table['od_point'].nunique()} od points")

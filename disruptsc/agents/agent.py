@@ -1,4 +1,5 @@
 import random
+from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING
 import logging
 
@@ -8,7 +9,6 @@ if TYPE_CHECKING:
     from disruptsc.network.sc_network import ScNetwork
     from disruptsc.network.transport_network import TransportNetwork
     from disruptsc.network.commercial_link import CommercialLink
-
 
 EPSILON = 1e-6
 
@@ -90,12 +90,17 @@ class Agent(object):
                 f" It was supposed to be {commercial_link.delivery}.")
 
     def choose_initial_routes(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
-                              capacity_constraint: bool,
-                              transport_cost_noise_level: float, monetary_unit_flow: str):
+                              capacity_constraint: bool, explicit_service_firm: bool, transport_to_households: bool,
+                              sectors_no_transport_network: list, transport_cost_noise_level: float,
+                              monetary_unit_flow: str):
         for edge in sc_network.out_edges(self):
-            if edge[1].od_point == -1:  # we do not create route for service firms if explicit_service_firms = False
-                continue
-            elif edge[1].agent_type == 'household':  # we do not create route for households
+            if self.agent_type == "firm":
+                if self.sector_type in sectors_no_transport_network:
+                    continue
+            if (not explicit_service_firm) and (edge[1].agent_type == 'firm'):
+                if "service" in edge[1].sector_type:
+                    continue
+            elif (not transport_to_households) and (edge[1].agent_type == 'household'):
                 continue
             else:
                 # Get the id of the origin and destination node
@@ -136,7 +141,8 @@ class Agent(object):
             # we have not implemented a "sector" condition
         return cond_from, cond_to
 
-    def update_transport_load(self, edge, monetary_unit_flow, route, sc_network, transport_network, capacity_constraint):
+    def update_transport_load(self, edge, monetary_unit_flow, route, sc_network, transport_network,
+                              capacity_constraint):
         # Update the "current load" on the transport network
         # if current_load exceed burden, then add burden to the weight
         new_load_in_usd = sc_network[self][edge[1]]['object'].order
@@ -270,14 +276,40 @@ class Agents(dict):
         for agent in self.values():
             agent.send_purchase_orders(sc_network)
 
+    def choose_initial_routes(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
+                              capacity_constraint: bool,
+                              explicit_service_firm: bool, transport_to_households: bool,
+                              sectors_no_transport_network: list,
+                              transport_cost_noise_level: float,
+                              monetary_units_in_model: str):
+        if capacity_constraint:  # in this case the choice of route is not independent, cannot be parallelized
+            for agent in self.values():
+                agent.choose_initial_routes(sc_network, transport_network, capacity_constraint, explicit_service_firm,
+                                            transport_to_households, sectors_no_transport_network,
+                                            transport_cost_noise_level, monetary_units_in_model)
+        else:
+            with ThreadPoolExecutor() as executor:
+                futures = [
+                    executor.submit(agent.choose_initial_routes, sc_network, transport_network, capacity_constraint,
+                                    explicit_service_firm, transport_to_households, sectors_no_transport_network,
+                                    transport_cost_noise_level, monetary_units_in_model)
+                    for agent in self.values()
+                ]
+                for future in futures:
+                    future.result()
+
     def deliver(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
-                sectors_no_transport_network: list, rationing_mode: str, capacity_constraint: bool,
+                sectors_no_transport_network: list, rationing_mode: str, explicit_service_firm: bool,
+                transport_to_households: bool, capacity_constraint: bool,
                 monetary_units_in_model: str, cost_repercussion_mode: str, price_increase_threshold: float,
                 transport_cost_noise_level: float):
         for agent in self.values():
             agent.deliver_products(sc_network, transport_network,
                                    sectors_no_transport_network=sectors_no_transport_network,
-                                   rationing_mode=rationing_mode, monetary_units_in_model=monetary_units_in_model,
+                                   rationing_mode=rationing_mode,
+                                   explicit_service_firm=explicit_service_firm,
+                                   transport_to_households=transport_to_households,
+                                   monetary_units_in_model=monetary_units_in_model,
                                    cost_repercussion_mode=cost_repercussion_mode,
                                    price_increase_threshold=price_increase_threshold,
                                    capacity_constraint=capacity_constraint,

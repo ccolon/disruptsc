@@ -31,6 +31,7 @@ class Simulation(object):
     def export_transport_network_data(self, transport_edges: gpd.GeoDataFrame, export_folder: Path):
         logging.info(f'Exporting transport network data to {export_folder}')
         flow_df = pd.DataFrame(self.transport_network_data)
+        flow_df = flow_df[flow_df['flow_total'] > 0]
         for time_step in flow_df['time_step'].unique():
             transport_edges_with_flows = pd.merge(
                 transport_edges, flow_df[flow_df['time_step'] == time_step],
