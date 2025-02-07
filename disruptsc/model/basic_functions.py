@@ -22,6 +22,38 @@ def generate_weights(nb_suppliers: int, importance_of_each: list or None):
         return [x / sum(importance_of_each) for x in importance_of_each]
 
 
+def select_ids_and_weight(potential_supplier_ids: list, prob_to_be_selected: list, nb_suppliers_to_choose: int):
+    """
+    Selects a specified number of suppliers from a potential list based on their probabilities,
+    and generates weights for the selected suppliers.
+
+    Parameters:
+        potential_supplier_ids (list): List of supplier IDs.
+        prob_to_be_selected (list): Probability of each supplier being selected.
+        nb_suppliers_to_choose (int): Number of suppliers to select.
+
+    Returns:
+        tuple: A tuple containing:
+               - List of selected supplier IDs.
+               - List of weights for the selected suppliers.
+    """
+    # Select supplier IDs based on their probabilities without replacement
+    selected_ids = np.random.choice(potential_supplier_ids,
+                                    p=prob_to_be_selected,
+                                    size=nb_suppliers_to_choose,
+                                    replace=False).tolist()
+    # Map each supplier ID to its position in the original list
+    index_map = {supplier_id: position for position, supplier_id in enumerate(potential_supplier_ids)}
+    # Get the positions of the selected supplier IDs
+    selected_positions = [index_map[supplier_id] for supplier_id in selected_ids]
+    # Get the selection probabilities for the selected positions
+    selected_prob = [prob_to_be_selected[position] for position in selected_positions]
+    # Generate weights for the selected suppliers based on the selected probabilities
+    weights = generate_weights(nb_suppliers_to_choose, selected_prob)
+
+    return selected_ids, weights
+
+
 def generate_weights_from_list(list_nb):
     sum_list = sum(list_nb)
     return [nb / sum_list for nb in list_nb]
@@ -121,4 +153,3 @@ def find_nearest_node_id(transport_nodes, gdf: gpd.GeoDataFrame, node_type='any'
     distances, indices = kdtree.query(gdf_coords)
 
     return transport_nodes.iloc[indices.tolist()].index.values
-

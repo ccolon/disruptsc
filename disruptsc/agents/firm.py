@@ -227,7 +227,7 @@ class Firm(Agent):
                 if region_sector == self.region_sector:
                     potential_supplier_pids.remove(self.pid)  # remove oneself
                 if len(potential_supplier_pids) == 0:
-                    raise ValueError(f"Firm {self.pid}: there should be one supplier for {region_sector}")
+                    raise ValueError(f"Firm {self.id_str()}: there should be one supplier for {region_sector}")
                 # Choose based on importance
                 prob_to_be_selected = np.array(rescale_values([firms[firm_pid].importance for firm_pid in
                                                                potential_supplier_pids]))
@@ -953,6 +953,17 @@ class Firms(Agents):
             if agent.sector == sector:
                 filtered_agents[agent.pid] = agent
         return filtered_agents
+
+    def extract_sectors(self):
+        present_sectors = list(self.get_properties('sector', output_type="set"))
+        present_region_sectors = list(self.get_properties('region_sector', output_type="set"))
+        flow_types_to_export = present_sectors + ['domestic_B2C', 'domestic_B2B', 'transit', 'import',
+                                                  'import_B2C', 'export', 'total']
+        logging.info(f'Firm_list created, size is: {len(self)}')
+        logging.info(f'Number of sectors: {len(present_sectors)}')
+        logging.info(f'Sectors present are: {present_sectors}')
+        logging.info(f'Number of region sectors: {len(present_region_sectors)}')
+        return present_sectors, present_region_sectors, flow_types_to_export
 
     def retrieve_orders(self, sc_network: "ScNetwork"):
         for firm in self.values():

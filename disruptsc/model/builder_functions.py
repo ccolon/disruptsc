@@ -175,17 +175,6 @@ def get_index_closest_point(point, df_with_points):
     return df_with_points.index[distance_list.index(min(distance_list))]
 
 
-def extract_final_list_of_sector(firms: "Firms"):
-    n = len(firms)
-    present_sectors = list(set([firm.sector for firm in firms.values()]))
-    present_sectors.sort()
-    flow_types_to_export = present_sectors + ['domestic_B2C', 'domestic_B2B', 'transit', 'import',
-                                              'import_B2C', 'export', 'total']
-    logging.info('Firm_list created, size is: ' + str(n))
-    logging.info('Sectors present are: ' + str(present_sectors))
-    return n, present_sectors, flow_types_to_export
-
-
 def load_ton_usd_equivalence(sector_table: pd.DataFrame, firm_table: pd.DataFrame,
                              firms: "Firms", countries: "Countries"):
     """Load equivalence between usd and ton

@@ -1,10 +1,15 @@
 import logging
+from typing import TYPE_CHECKING
 
 import networkx as nx
 import pandas as pd
 
-from disruptsc.agents.firm import Firm
 from disruptsc.model.basic_functions import add_or_append_to_dict
+
+if TYPE_CHECKING:
+    from disruptsc.agents.firm import Firms
+    from disruptsc.agents.country import Countries
+    from disruptsc.agents.household import Households
 
 
 class ScNetwork(nx.DiGraph):
@@ -45,9 +50,21 @@ class ScNetwork(nx.DiGraph):
         return edge_list
 
     def identify_firms_without_clients(self):
-        return [node for node in self.nodes() if (self.out_degree(node) == 0) and isinstance(node, Firm)]
+        return [node for node in self.nodes() if (self.out_degree(node) == 0) and node.agent_type == "firm"]
 
-    # def identify_disconnected_nodes(self):
+    def identify_disconnected_nodes(self, firms: "Firms", countries: "Countries", households: "Households"):
+        firm_ids = list(firms.keys())
+        country_ids = list(countries.keys())
+        household_ids = list(households.keys())
+        node_id_in_sc_network = [node.pid for node in self]
+        disconnected_nodes = {}
+        if len(set(firm_ids) - set(node_id_in_sc_network)) > 0:
+            disconnected_nodes['firms'] = list(set(firm_ids) - set(node_id_in_sc_network))
+        if len(set(country_ids) - set(node_id_in_sc_network)) > 0:
+            disconnected_nodes['countries'] = list(set(country_ids) - set(node_id_in_sc_network))
+        if len(set(household_ids) - set(node_id_in_sc_network)) > 0:
+            disconnected_nodes['households'] = list(set(household_ids) - set(node_id_in_sc_network))
+        return disconnected_nodes
 
     def remove_useless_commercial_links(self):
         firms_without_clients = self.identify_firms_without_clients()

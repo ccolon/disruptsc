@@ -93,7 +93,7 @@ class Country(Agent):
         self.create_transit_links(graph, country_list)
 
         # Identify firms from each sector
-        dic_sector_to_firm_id = identify_firms_in_each_sector(firms)
+        dic_sector_to_firm_id = firms.group_agent_ids_by_property("region_sector")
         share_exporting_firms = sector_table.set_index('sector')['share_exporting_firms'].to_dict()
         # Identify od_points which exports (optional)
         if "special" in transport_nodes.columns:  # clean data, make it a transport network method
@@ -109,22 +109,22 @@ class Country(Agent):
         else:
             supplier_selection_mode = {}
         # Identify sectors to buy from
-        present_sectors = list(set(list(dic_sector_to_firm_id.keys())))
+        present_region_sectors = list(firms.get_properties('region_sector', output_type="set"))
         sectors_to_buy_from = list(self.qty_purchased.keys())
-        present_sectors_to_buy_from = list(set(present_sectors) & set(sectors_to_buy_from))
+        present_region_sectors_to_buy_from = list(set(present_region_sectors) & set(sectors_to_buy_from))
         # For each one of these sectors, select suppliers
-        for sector in present_sectors_to_buy_from:  # only select suppliers from sectors that are present
+        for region_sectors in present_region_sectors_to_buy_from:  # only select suppliers from sectors that are present
             # Identify potential suppliers
-            potential_supplier_pid = dic_sector_to_firm_id[sector]
+            potential_supplier_pid = dic_sector_to_firm_id[region_sectors]
             # Evaluate how much to select
-            if sector not in share_exporting_firms:  # case of mrio
+            if region_sectors not in share_exporting_firms:  # case of mrio
                 nb_suppliers_to_select = 1
             else:  # otherwise we use the % of the sector table to cal
-                nb_suppliers_to_select = max(1, round(len(potential_supplier_pid) * share_exporting_firms[sector]))
+                nb_suppliers_to_select = max(1, round(len(potential_supplier_pid) * share_exporting_firms[region_sectors]))
             if nb_suppliers_to_select > len(potential_supplier_pid):
                 logging.warning(f"The number of supplier to select {nb_suppliers_to_select} "
                                 f"is larger than the number of potential supplier {len(potential_supplier_pid)} "
-                                f"(share_exporting_firms: {share_exporting_firms[sector]})")
+                                f"(share_exporting_firms: {share_exporting_firms[region_sectors]})")
                 # Select supplier and weights
             selected_supplier_ids, supplier_weights = determine_suppliers_and_weights(
                 potential_supplier_pid,
@@ -138,7 +138,7 @@ class Country(Agent):
                 graph.add_edge(firms[supplier_id], self,
                                object=CommercialLink(
                                    pid=str(supplier_id) + '->' + str(self.pid),
-                                   product=sector,
+                                   product=region_sectors,
                                    product_type=firms[supplier_id].sector_type,
                                    category="export",
                                    supplier_id=supplier_id,
@@ -148,11 +148,11 @@ class Country(Agent):
                 graph[firms[supplier_id]][self]['weight'] = weight
                 # Households save the name of the retailer, its sector, its weight, and adds it to its purchase plan
                 self.qty_purchased_perfirm[supplier_id] = {
-                    'sector': sector,
+                    'sector': region_sectors,
                     'weight': weight,
-                    'amount': self.qty_purchased[sector] * weight
+                    'amount': self.qty_purchased[region_sectors] * weight
                 }
-                self.purchase_plan[supplier_id] = self.qty_purchased[sector] * weight
+                self.purchase_plan[supplier_id] = self.qty_purchased[region_sectors] * weight
                 # The supplier saves the fact that it exports to this country.
                 # The share of sales cannot be calculated now, we put 0 for the moment
                 distance = calculate_distance_between_agents(self, firms[supplier_id])
@@ -165,7 +165,7 @@ class Country(Agent):
             try:
                 quantity_to_buy = self.purchase_plan[edge[0].pid]
             except KeyError:
-                print("Country " + self.pid + ": No purchase plan for supplier", edge[0].pid)
+                print(f"Country {self.pid}: No purchase plan for supplier {edge[0].pid}")
                 quantity_to_buy = 0
             graph[edge[0]][self]['object'].order = quantity_to_buy
 
@@ -368,17 +368,6 @@ class Country(Agent):
 
 class Countries(Agents):
     pass
-
-
-def identify_firms_in_each_sector(firms):
-    firm_id_each_sector = pd.DataFrame({
-        'firm': list(firms.keys()),
-        'sector': [firm.sector for firm in firms.values()]})
-    dic_sector_to_firmid = firm_id_each_sector \
-        .groupby('sector')['firm'] \
-        .apply(lambda x: list(x)) \
-        .to_dict()
-    return dic_sector_to_firmid
 
 
 def determine_suppliers_and_weights(potential_supplier_pids,

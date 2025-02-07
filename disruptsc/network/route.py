@@ -51,3 +51,27 @@ class Route(list):
             for edge in self.transport_edges:
                 total_indicator += transport_network[edge[0]][edge[1]][indicator]
             return total_indicator
+
+    def revert(self):
+        """
+        Reverse the route in place. This method reverses the order
+        of the route’s list representation as well as all other list-based properties.
+        For any edge (a tuple of length 2), the tuple is also reversed.
+        """
+        # Reverse the main list (which is the Route itself) while flipping edge tuples.
+        reversed_nodes_and_edges = []
+        for item in reversed(self):
+            if isinstance(item, tuple) and len(item) == 2:
+                # For an edge tuple, swap the two nodes.
+                reversed_nodes_and_edges.append((item[1], item[0]))
+            else:
+                # For a node (singleton tuple) leave it unchanged.
+                reversed_nodes_and_edges.append(item)
+
+        self[:] = reversed_nodes_and_edges  # Update the list (i.e. self) with the reversed nodes and edges
+        self.transport_nodes_and_edges = reversed_nodes_and_edges  # Update the property that holds the nodes and edges
+        self.transport_nodes = list(reversed(self.transport_nodes))  # Reverse the list of nodes
+        self.transport_edges = [(edge[1], edge[0]) for edge in
+                                reversed(self.transport_edges)]  # Reverse the list of edges, flipping each edge tuple
+        self.transport_edge_ids.reverse()  # Reverse the list of edge IDs
+        # The modes, cost per ton and length do not need to be reversed, as they are not order-dependent.

@@ -1,3 +1,4 @@
+import copy
 import random
 from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING
@@ -107,13 +108,30 @@ class Agent(object):
                 origin_node = self.od_point
                 destination_node = edge[1].od_point
                 # Choose the route and the corresponding mode
-                route = self.choose_route(
-                    transport_network=transport_network,
-                    origin_node=origin_node,
-                    destination_node=destination_node,
-                    capacity_constraint=capacity_constraint,
-                    transport_cost_noise_level=transport_cost_noise_level
-                )
+                library_key = tuple(sorted((origin_node, destination_node)))
+                if library_key in transport_network.shortest_path_library['normal']:
+                    # logging.info(f"{self.id_str()} uses cached route for {origin_node} -> {destination_node}")
+                    canonical_route = transport_network.shortest_path_library['normal'][library_key]
+                    if origin_node == library_key[0]:
+                        route = canonical_route
+                    else:
+                        route = copy.deepcopy(canonical_route)
+                        route.revert()  # Now the cached route remains unchanged.
+                else:
+                    # logging.info(f"{self.id_str()} find route for {origin_node} -> {destination_node}")
+                    route = self.choose_route(
+                        transport_network=transport_network,
+                        origin_node=origin_node,
+                        destination_node=destination_node,
+                        capacity_constraint=capacity_constraint,
+                        transport_cost_noise_level=transport_cost_noise_level
+                    )
+                    if origin_node == library_key[0]:
+                        transport_network.shortest_path_library['normal'][library_key] = route
+                    else:
+                        canonical_route = copy.deepcopy(route)
+                        canonical_route.revert()
+                        transport_network.shortest_path_library['normal'][library_key] = canonical_route
                 # Store it into commercial link object
                 sc_network[self][edge[1]]['object'].store_route_information(
                     route=route,
@@ -269,8 +287,29 @@ class Agents(dict):
             raise ValueError(f"No agents with the property '{property_name}' found.")
         return total / count
 
-    def get_properties(self, property_name):
-        return {pid: getattr(agent, property_name) for pid, agent in self.items()}
+    def get_properties(self, property_name, output_type='dict'):
+        if output_type == 'dict':
+            return {pid: getattr(agent, property_name) for pid, agent in self.items()}
+        elif output_type == 'list':
+            return [getattr(agent, property_name) for agent in self.values()]
+        elif output_type == 'set':
+            return set([getattr(agent, property_name) for agent in self.values()])
+        else:
+            raise ValueError(f"Output type '{output_type}' not recognized.")
+
+    def select_by_property(self, property_name: str, selected_values: list):
+        return {pid: agent for pid, agent in self.items() if getattr(agent, property_name) in selected_values}
+
+    def group_agent_ids_by_property(self, property_name: str):
+        id_to_property_dict = self.get_properties(property_name, output_type='dict')
+        property_to_ids_dict = {}
+        for id, property in id_to_property_dict.items():
+            # Append the id to the list of ids for the current property key
+            if property in property_to_ids_dict:
+                property_to_ids_dict[property].append(id)
+            else:
+                property_to_ids_dict[property] = [id]
+        return property_to_ids_dict
 
     def send_purchase_orders(self, sc_network: "ScNetwork"):
         for agent in self.values():
@@ -281,13 +320,9 @@ class Agents(dict):
                               explicit_service_firm: bool, transport_to_households: bool,
                               sectors_no_transport_network: list,
                               transport_cost_noise_level: float,
-                              monetary_units_in_model: str):
-        if capacity_constraint:  # in this case the choice of route is not independent, cannot be parallelized
-            for agent in self.values():
-                agent.choose_initial_routes(sc_network, transport_network, capacity_constraint, explicit_service_firm,
-                                            transport_to_households, sectors_no_transport_network,
-                                            transport_cost_noise_level, monetary_units_in_model)
-        else:
+                              monetary_units_in_model: str,
+                              parallelized: bool):
+        if parallelized and (not capacity_constraint):  # in this case the choice of route is not independent, cannot be parallelized
             with ThreadPoolExecutor() as executor:
                 futures = [
                     executor.submit(agent.choose_initial_routes, sc_network, transport_network, capacity_constraint,
@@ -297,6 +332,12 @@ class Agents(dict):
                 ]
                 for future in futures:
                     future.result()
+        else:
+            for agent in self.values():
+                agent.choose_initial_routes(sc_network, transport_network, capacity_constraint, explicit_service_firm,
+                                            transport_to_households, sectors_no_transport_network,
+                                            transport_cost_noise_level, monetary_units_in_model)
+
 
     def deliver(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
                 sectors_no_transport_network: list, rationing_mode: str, explicit_service_firm: bool,

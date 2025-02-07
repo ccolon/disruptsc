@@ -17,6 +17,9 @@ if TYPE_CHECKING:
 
 
 class TransportNetwork(nx.Graph):
+    def __init__(self, graph=None, **attr):
+        super().__init__(graph, **attr)
+        self.shortest_path_library = {'normal': {}, 'disrupted': {}}
 
     def info(self):
         transport_modes = self.get_transport_modes()

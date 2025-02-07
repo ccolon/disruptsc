@@ -511,7 +511,7 @@ def load_technical_coefficients(
 
     Parameters
     ----------
-    firms : pandas.DataFrame
+    firms :
         the list of Firms generated from the createFirms function
 
     filepath_tech_coef : string
@@ -534,11 +534,11 @@ def load_technical_coefficients(
 
     # We select only the technical coefficient between sectors that are actually represented in the economy
     # Note that, when filtering out small sector-district combination, some sector may not be present.
-    sector_present = list(set([firm.sector for firm in firms.values()]))
+    region_sector_present = list(firms.get_properties('region_sector', output_type="set"))
     if import_sector_name:
-        tech_coef_matrix = tech_coef_matrix.loc[sector_present + [import_sector_name], sector_present]
+        tech_coef_matrix = tech_coef_matrix.loc[region_sector_present + [import_sector_name], region_sector_present]
     else:
-        tech_coef_matrix = tech_coef_matrix.loc[sector_present, sector_present]
+        tech_coef_matrix = tech_coef_matrix.loc[region_sector_present, region_sector_present]
 
     # Check whether all sectors have input
     cond_sector_no_inputs = tech_coef_matrix.sum() == 0
@@ -562,7 +562,9 @@ def load_mrio_tech_coefs(
 ):
     # Load tech coef
     mrio = Mrio.load_mrio_from_filepath(filepath_mrio, monetary_units_in_data)
-    tech_coef_dict = mrio.get_tech_coef_dict(threshold=io_cutoff)
+    region_sector_present = list(firms.get_properties('region_sector', output_type="set"))
+
+    tech_coef_dict = mrio.get_tech_coef_dict(threshold=io_cutoff, selected_region_sectors=region_sector_present)
 
     # Inject into firms
     for firm in firms.values():
@@ -753,5 +755,5 @@ def load_inventories(firms: Firms, inventory_duration_target: int | str, given_t
     logging.info('Inventory duration targets loaded')
     if extra_inventory_target:
         logging.info(f"Extra inventory duration: {extra_inventory_target} "
-                     f"for inputs {inputs_with_extra_inventories} "
-                     f"for buying sectors{buying_sectors_with_extra_inventories}")
+                     f"for inputs:  {inputs_with_extra_inventories} "
+                     f"for buying sectors: {buying_sectors_with_extra_inventories}")

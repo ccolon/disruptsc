@@ -15,12 +15,20 @@ transport_modes: ["roads", "maritime", "railways"] #, waterways, airways]
 monetary_units_in_model: mUSD
 monetary_units_in_data: mUSD
 time_resolution: week
+io_cutoff: 0.05  # 0.01
 cutoff_sector_demand:
-  'type': absolute
+  'type': 'absolute'
   'value': 100
-  'unit': kUSD
-io_cutoff: 0.01
-nb_suppliers_per_input: 5
+  'unit': 'kUSD'
+cutoff_firm_output:
+  'type': 'absolute'
+  'value': 100
+  "unit": "kUSD"
+cutoff_household_demand:
+  'type': 'absolute'
+  'value': 100
+  "unit": "kUSD"
+nb_suppliers_per_input: 1  # 5
 export_files: True
 export_details:
   "flows": True

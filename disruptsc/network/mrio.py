@@ -54,8 +54,18 @@ class Mrio(pd.DataFrame):
         tech_coef_matrix = self[self.region_sectors] / matrix_output
         return [tup for tup in self.region_sectors if tech_coef_matrix.loc[tup, tup] > threshold]
 
-    def get_final_demand(self):
-        return self.loc[:, self.columns.get_level_values(1) == FINAL_DEMAND_LABEL]
+    def get_final_demand(self, selected_region_sectors=None):
+        if selected_region_sectors:
+            if isinstance(selected_region_sectors[0], str):
+                selected_region_sectors = [tuple(region_sector.split('_', 1))
+                                           for region_sector in selected_region_sectors]
+            elif isinstance(selected_region_sectors[0], tuple):
+                pass
+            else:
+                raise ValueError('selected_region_sectors should be a list of tuples or strings')
+            return self.loc[selected_region_sectors, self.columns.get_level_values(1) == FINAL_DEMAND_LABEL]
+        else:
+            return self.loc[:, self.columns.get_level_values(1) == FINAL_DEMAND_LABEL]
 
     def check_square_structure(self):
         region_sectors_in_columns = [tup for tup in self.columns if tup[1] not in [FINAL_DEMAND_LABEL, EXPORT_LABEL]]
@@ -78,7 +88,7 @@ class Mrio(pd.DataFrame):
                 self.loc[region_sector, ('ROW', EXPORT_LABEL)] += total_input[region_sector] - total_output[
                     region_sector] + EPSILON
 
-    def get_tech_coef_dict(self, threshold=0):
+    def get_tech_coef_dict(self, threshold=0, selected_region_sectors=None):
         """
         returns a dict region_sector = {input_region_sector_1: tech_coef, ...}
         """
@@ -86,11 +96,33 @@ class Mrio(pd.DataFrame):
         matrix_output = pd.concat([tot_outputs] * len(self.index), axis=1).transpose()
         matrix_output.index = self.index
         tech_coef_matrix = self[self.region_sectors] / matrix_output
-        return {
-            '_'.join(region_sector_tuple): {
-                '_'.join(key): val
-                for key, val in sublist.items()
-                if val > threshold
+
+        if selected_region_sectors:
+            if isinstance(selected_region_sectors[0], str):
+                selected_region_sectors = [tuple(region_sector.split('_', 1))
+                                           for region_sector in selected_region_sectors]
+            elif isinstance(selected_region_sectors[0], tuple):
+                pass
+            else:
+                raise ValueError('selected_region_sectors should be a list of tuples or strings')
+            return {
+                '_'.join(buying_region_sector_tuple): {
+                    '_'.join(supplying_region_sector_tuple): val
+                    for supplying_region_sector_tuple, val in sublist.items()
+                    if (val > threshold) and (
+                        (supplying_region_sector_tuple in selected_region_sectors)  # domestic supplier
+                        or (supplying_region_sector_tuple[0] in self.external_selling_countries)  # country supplier
+                    )
+                }
+                for buying_region_sector_tuple, sublist in tech_coef_matrix.to_dict().items()
+                if buying_region_sector_tuple in selected_region_sectors
             }
-            for region_sector_tuple, sublist in tech_coef_matrix.to_dict().items()
-        }
+        else:
+            return {
+                '_'.join(region_sector_tuple): {
+                    '_'.join(key): val
+                    for key, val in sublist.items()
+                    if val > threshold
+                }
+                for region_sector_tuple, sublist in tech_coef_matrix.to_dict().items()
+            }

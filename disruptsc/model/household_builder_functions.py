@@ -1,15 +1,12 @@
 import logging
 from pathlib import Path
 
-import pandas
 import pandas as pd
 import geopandas as gpd
 import numpy as np
-from scipy.spatial import cKDTree
 
 from disruptsc.agents.household import Household, Households
-from disruptsc.model.builder_functions import get_index_closest_point, get_long_lat, \
-    get_closest_road_nodes, get_absolute_cutoff_value
+from disruptsc.model.builder_functions import get_index_closest_point, get_long_lat, get_absolute_cutoff_value
 from disruptsc.model.basic_functions import rescale_monetary_values, find_nearest_node_id
 from disruptsc.network.mrio import Mrio
 
@@ -60,7 +57,8 @@ def define_households_from_mrio(
         time_resolution: str,
         target_units: str,
         input_units: str,
-        final_demand_cutoff: dict
+        final_demand_cutoff: dict,
+        present_region_sectors: list
 ):
     # Load mrio
     mrio = Mrio.load_mrio_from_filepath(filepath_mrio, input_units)
@@ -88,7 +86,7 @@ def define_households_from_mrio(
     household_table['name'] = household_table.apply(lambda row: f"{row['region']}_household{row['name']}", axis=1)
 
     # Get final demand per sector per household
-    final_demand = mrio.get_final_demand()
+    final_demand = mrio.get_final_demand(present_region_sectors)
     final_demand = rescale_monetary_values(
         final_demand,
         time_resolution=time_resolution,
@@ -102,6 +100,8 @@ def define_households_from_mrio(
     # Step 2: Prepare an empty dictionary to store household demands
     household_sector_consumption = {}
     cutoff = get_absolute_cutoff_value(final_demand_cutoff, input_units)
+    periods = {'day': 365, 'week': 52, 'month': 12, 'year': 1}
+    cutoff = cutoff / periods[time_resolution]
     # Step 3: Iterate over households
     for _, household in household_table.iterrows():
 

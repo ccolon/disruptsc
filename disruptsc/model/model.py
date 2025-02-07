@@ -23,10 +23,7 @@ from disruptsc.model.household_builder_functions import define_households_from_m
     create_households
 from disruptsc.model.transport_network_builder_functions import \
     create_transport_network
-from disruptsc.model.builder_functions import \
-    filter_sector, \
-    extract_final_list_of_sector, \
-    load_ton_usd_equivalence
+from disruptsc.model.builder_functions import filter_sector
 from disruptsc.parameters import Parameters
 from disruptsc.disruption.disruption import DisruptionList, TransportDisruption, CapitalDestruction, Recovery
 from disruptsc.simulation.simulation import Simulation
@@ -116,9 +113,10 @@ class Model(object):
             if self.parameters.firm_data_type == "supplier-buyer network":
                 self.transaction_table = load_cached_transaction_table()
         else:
-            logging.info('Filtering the sectors based on their output. ' +
-                         "Cutoff type is " + self.parameters.cutoff_sector_output['type'] +
-                         ", cutoff value is " + str(self.parameters.cutoff_sector_output['value']))
+            logging.info(f"Filtering the sectors based on their output. "
+                         f"Cutoff type is {self.parameters.cutoff_sector_output['type']}, "
+                         f"cutoff value is {self.parameters.cutoff_sector_output['value']}"
+                         )
             self.sector_table = pd.read_csv(self.parameters.filepaths['sector_table'])
             filtered_sectors = filter_sector(self.sector_table,
                                              cutoff_sector_output=self.parameters.cutoff_sector_output,
@@ -130,14 +128,10 @@ class Model(object):
             output_selected = self.sector_table.loc[self.sector_table['sector'].isin(filtered_sectors), 'output'].sum()
             final_demand_selected = self.sector_table.loc[
                 self.sector_table['sector'].isin(filtered_sectors), 'final_demand'].sum()
-            logging.info(
-                str(len(filtered_sectors)) + ' sectors selected over ' + str(
-                    self.sector_table.shape[0]) + ' representing ' +
-                "{:.0f}%".format(output_selected / self.sector_table['output'].sum() * 100) + ' of total output and ' +
-                "{:.0f}%".format(
-                    final_demand_selected / self.sector_table['final_demand'].sum() * 100) + ' of final demand'
-            )
-            logging.info('The filtered sectors are: ' + str(filtered_sectors))
+            logging.info(f"{len(filtered_sectors)} sectors selected over {self.sector_table.shape[0]} "
+                         f"covering {output_selected / self.sector_table['output'].sum() * 100:.0f}% of total output "
+                         f"& {final_demand_selected / self.sector_table['final_demand'].sum() * 100:.0f}% of final demand")
+            logging.info(f'The filtered sectors are: {filtered_sectors}')
 
             logging.info('Generating the firms')
             if self.parameters.firm_data_type == "disaggregating IO":
@@ -167,9 +161,9 @@ class Model(object):
                 raise ValueError(f"{self.parameters.firm_data_type} should be one of 'disaggregating', "
                                  f"'supplier-buyer network', 'mrio'")
             nb_firms = 'all'  # Weird
-            logging.info('Creating firms. nb_firms: ' + str(nb_firms) +
-                         ' inventory_restoration_time: ' + str(self.parameters.inventory_restoration_time) +
-                         ' utilization_rate: ' + str(self.parameters.utilization_rate))
+            logging.info(f"Creating firms. nb_firms: {nb_firms} "
+                         f"inventory_restoration_time: {self.parameters.inventory_restoration_time} "
+                         f"utilization_rate: {self.parameters.utilization_rate}")
             self.firms = create_firms(
                 firm_table=self.firm_table,
                 keep_top_n_firms=nb_firms,
@@ -178,7 +172,7 @@ class Model(object):
                 capital_to_value_added_ratio=self.parameters.capital_to_value_added_ratio
             )
 
-            n, present_sectors, flow_types_to_export = extract_final_list_of_sector(self.firms)
+            present_sectors, present_region_sectors, flow_types_to_export = self.firms.extract_sectors()
 
             # Create households
             logging.info('Defining the number of households to generate and their purchase plan')
@@ -190,7 +184,8 @@ class Model(object):
                     time_resolution=self.parameters.time_resolution,
                     target_units=self.parameters.monetary_units_in_model,
                     input_units=self.parameters.monetary_units_in_data,
-                    final_demand_cutoff=self.parameters.cutoff_household_demand
+                    final_demand_cutoff=self.parameters.cutoff_household_demand,
+                    present_region_sectors=present_region_sectors
                 )
             else:
                 self.household_table, household_sector_consumption = define_households(
@@ -227,10 +222,8 @@ class Model(object):
             if self.parameters.firm_data_type == "disaggregating IO":
                 import_code_in_table = self.sector_table.loc[self.sector_table['type'] == 'imports', 'sector'].iloc[
                     0]  # usually it is IMP
-                load_technical_coefficients(
-                    self.firms, self.parameters.filepaths['tech_coef'], self.parameters.io_cutoff,
-                    import_code_in_table
-                )
+                load_technical_coefficients(self.firms, self.parameters.filepaths['tech_coef'],
+                                            self.parameters.io_cutoff, import_code_in_table)
 
             elif self.parameters.firm_data_type == "supplier-buyer network":
                 self.firms, self.transaction_table = calibrate_input_mix(
@@ -296,6 +289,7 @@ class Model(object):
                 "sector_table": self.sector_table,
                 'firm_table': self.firm_table,
                 'present_sectors': present_sectors,
+                'present_region_sectors': present_region_sectors,
                 'flow_types_to_export': flow_types_to_export,
                 'firms': self.firms,
                 'household_table': self.household_table,
@@ -326,6 +320,7 @@ class Model(object):
                 household.select_suppliers(self.sc_network, self.firms, self.countries,
                                            self.parameters.force_local_retailer,
                                            self.parameters.weight_localization_household,
+                                           self.parameters.nb_suppliers_per_input,
                                            self.parameters.firm_data_type)
 
             logging.info('Exporters are being selected by purchasing countries (export B2B flows)')
@@ -359,22 +354,32 @@ class Model(object):
                 raise ValueError(self.parameters.firm_data_type +
                                  " should be one of 'disaggregating IO', 'supplier-buyer network', 'mrio'")
 
-            firm_ids = list(self.firms.keys())
-            node_id_in_sc_network = [node.pid for node in self.sc_network]
-            if len(set(firm_ids) - set(node_id_in_sc_network)) > 0:
-                unconnected_firms = list(set(firm_ids) - set(node_id_in_sc_network))
-                for firm_pid in unconnected_firms:
-                    print(self.firms[firm_pid].id_str())
-                raise ValueError('Some firms are not in the sc network')
+            unconnected_nodes = self.sc_network.identify_disconnected_nodes(self.firms, self.countries, self.households)
+            if len(unconnected_nodes) > 0:
+                for agent_type, unconnected_node_ids in unconnected_nodes.items():
+                    logging.warning(f"{len(unconnected_node_ids)} {agent_type} are not in the sc network: "
+                                    f"they have no suppliers, no clients. We remove them.")
+                    if agent_type == "firms":
+                        for unconnected_firm_id in unconnected_node_ids:
+                            # self.sc_network.add_node(self.firms[unconnected_firm_id])
+                            del self.firms[unconnected_firm_id]
+                    if agent_type == "countries":
+                        for unconnected_country_id in unconnected_node_ids:
+                            del self.countries[unconnected_country_id]
+                    if agent_type == "households":
+                        for unconnected_household_id in unconnected_node_ids:
+                            del self.households[unconnected_household_id]
 
             for _ in range(10):
                 self.sc_network.remove_useless_commercial_links()
 
-            connected_countries = [node.pid for node in self.sc_network.nodes if node.agent_type == "country"]
-            unconnected_countries = set(self.countries) - set(connected_countries)
-            for unconnected_country in unconnected_countries:
-                logging.info(f"Country {unconnected_country} is not connected, removing it")
-                del self.countries[unconnected_country]
+            logging.info(f'Nb of commercial links: {self.sc_network.number_of_edges()}')
+            # connected_countries = [node.pid for node in self.sc_network.nodes if node.agent_type == "country"]
+            # unconnected_countries = set(self.countries) - set(connected_countries)
+            # for unconnected_country in unconnected_countries:
+            #     logging.info(f"Country {unconnected_country} is not connected, removing it")
+            #     del self.countries[unconnected_country]
+
             logging.info('The nodes and edges of the supplier--buyer have been created')
             # Save to tmp folder
             data_to_cache = {
@@ -402,7 +407,8 @@ class Model(object):
                                                  self.parameters.transport_to_households,
                                                  self.parameters.sectors_no_transport_network,
                                                  self.parameters.transport_cost_noise_level,
-                                                 self.parameters.monetary_units_in_model)
+                                                 self.parameters.monetary_units_in_model,
+                                                 parallelized=True)
             logging.info('Routes for exports and B2B domestic flows are being selected by domestic firms')
             self.firms.choose_initial_routes(self.sc_network, self.transport_network,
                                              self.parameters.capacity_constraint,
@@ -410,7 +416,8 @@ class Model(object):
                                              self.parameters.transport_to_households,
                                              self.parameters.sectors_no_transport_network,
                                              self.parameters.transport_cost_noise_level,
-                                             self.parameters.monetary_units_in_model)
+                                             self.parameters.monetary_units_in_model,
+                                             parallelized=True)
             # Save to tmp folder
             data_to_cache = {
                 'transport_network': self.transport_network,
@@ -516,18 +523,19 @@ class Model(object):
         other_cost_vector = np.multiply(eq_production_vector, (1 - margin)) - input_cost_vector - transport_cost_vector
 
         # Based on these calculus, update agents variables
+        firm_id_to_position_mapping = {firm_id: i for i, firm_id in enumerate(self.firms.get_properties("pid"))}
         # 1. Firm operational variables
         for firm in self.firms.values():  # TODO make it a FirmCollection method
             firm.initialize_operational_variables(
-                eq_production=eq_production_vector[(firm.pid, 0)]
+                eq_production=eq_production_vector[(firm_id_to_position_mapping[firm.pid], 0)]
             )
         # 2. Firm financial variables
         for firm in self.firms.values():
             firm.initialize_financial_variables(
-                eq_production=eq_production_vector[(firm.pid, 0)],
-                eq_input_cost=input_cost_vector[(firm.pid, 0)],
-                eq_transport_cost=transport_cost_vector[(firm.pid, 0)],
-                eq_other_cost=other_cost_vector[(firm.pid, 0)]
+                eq_production=eq_production_vector[(firm_id_to_position_mapping[firm.pid], 0)],
+                eq_input_cost=input_cost_vector[(firm_id_to_position_mapping[firm.pid], 0)],
+                eq_transport_cost=transport_cost_vector[(firm_id_to_position_mapping[firm.pid], 0)],
+                eq_other_cost=other_cost_vector[(firm_id_to_position_mapping[firm.pid], 0)]
             )
         # 3. Commercial links: agents set their order
         for household in self.households.values():
@@ -564,18 +572,20 @@ class Model(object):
         """
         final_demand_vector = np.zeros((len(firms), 1))
 
+        firm_id_to_position_mapping = {firm_id: i for i, firm_id in enumerate(firms.get_properties("pid"))}
+
         # Collect households final demand. They buy only from firms.
         for household in households.values():
             for retailer_id, quantity in household.purchase_plan.items():
                 if isinstance(retailer_id, int):  # we only consider purchase from firms, not from other countries
-                    final_demand_vector[(retailer_id, 0)] += quantity
+                    final_demand_vector[(firm_id_to_position_mapping[retailer_id], 0)] += quantity
 
         # Collect country final demand. They buy from firms and countries.
         # We need to filter the demand directed to firms only.
         for country in countries.values():
             for supplier_id, quantity in country.purchase_plan.items():
                 if isinstance(supplier_id, int):  # we only consider purchase from firms, not from other countries
-                    final_demand_vector[(supplier_id, 0)] += quantity
+                    final_demand_vector[(firm_id_to_position_mapping[retailer_id], 0)] += quantity
 
         return final_demand_vector
 
