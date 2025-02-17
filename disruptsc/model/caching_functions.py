@@ -1,5 +1,6 @@
 import logging
 import pickle
+import threading
 
 from disruptsc.paths import TMP_FOLDER
 
@@ -78,6 +79,8 @@ def cache_model(model, suffix):
 
 def cache_transport_network(data_dic):
     pickle_filename = TMP_FOLDER / 'transport_network_pickle'
+    # data_dic['transport_network'].cost_heuristic = None
+    # data_dic['transport_network'].lock = None
     pickle.dump(data_dic, open(pickle_filename, 'wb'))
     logging.info(f'Transport network saved in tmp folder: {pickle_filename}')
 
@@ -132,8 +135,10 @@ def load_cached_transport_network():
     loaded_transport_network = tmp_data['transport_network']
     loaded_transport_nodes = tmp_data['transport_nodes']
     loaded_transport_edges = tmp_data['transport_edges']
+    # loaded_transport_network.build_cost_heuristic()
+    # loaded_transport_network.lock = threading.Lock()
     logging.info('Transport network generated from temp file.')
-    return loaded_transport_network, loaded_transport_nodes, loaded_transport_edges
+    return loaded_transport_network, loaded_transport_edges, loaded_transport_nodes
 
 
 def load_cached_sc_network():

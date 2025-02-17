@@ -1,6 +1,6 @@
 import copy
 import random
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from typing import TYPE_CHECKING
 import logging
 
@@ -90,6 +90,38 @@ class Agent(object):
                 f"{self.id_str()} - Quantity delivered by {commercial_link.supplier_id} is {quantity_delivered};"
                 f" It was supposed to be {commercial_link.delivery}.")
 
+    def _get_route(self, transport_network, available_transport_network, destination_node,
+                   library_type, capacity_constraint, transport_cost_noise_level):
+
+        origin_node = self.od_point
+        library_key = tuple(sorted((origin_node, destination_node)))
+
+        canonical_route = transport_network.shortest_path_library[library_type].get(library_key)
+
+        if canonical_route:
+            if origin_node == library_key[0]:
+                route = canonical_route
+            else:
+                route = copy.deepcopy(canonical_route)
+                route.revert()
+        else:
+            route = self.choose_route(
+                transport_network=available_transport_network,
+                origin_node=origin_node,
+                destination_node=destination_node,
+                capacity_constraint=capacity_constraint,
+                transport_cost_noise_level=transport_cost_noise_level
+            )
+
+            if origin_node == library_key[0]:
+                transport_network.shortest_path_library[library_type][library_key] = route
+            else:
+                canonical_route = copy.deepcopy(route)
+                canonical_route.revert()
+                transport_network.shortest_path_library[library_type][library_key] = canonical_route
+
+        return route
+
     def choose_initial_routes(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
                               capacity_constraint: bool, explicit_service_firm: bool, transport_to_households: bool,
                               sectors_no_transport_network: list, transport_cost_noise_level: float,
@@ -103,44 +135,29 @@ class Agent(object):
                     continue
             elif (not transport_to_households) and (edge[1].agent_type == 'household'):
                 continue
-            else:
-                # Get the id of the origin and destination node
-                origin_node = self.od_point
-                destination_node = edge[1].od_point
-                # Choose the route and the corresponding mode
-                library_key = tuple(sorted((origin_node, destination_node)))
-                if library_key in transport_network.shortest_path_library['normal']:
-                    # logging.info(f"{self.id_str()} uses cached route for {origin_node} -> {destination_node}")
-                    canonical_route = transport_network.shortest_path_library['normal'][library_key]
-                    if origin_node == library_key[0]:
-                        route = canonical_route
-                    else:
-                        route = copy.deepcopy(canonical_route)
-                        route.revert()  # Now the cached route remains unchanged.
-                else:
-                    # logging.info(f"{self.id_str()} find route for {origin_node} -> {destination_node}")
-                    route = self.choose_route(
-                        transport_network=transport_network,
-                        origin_node=origin_node,
-                        destination_node=destination_node,
-                        capacity_constraint=capacity_constraint,
-                        transport_cost_noise_level=transport_cost_noise_level
-                    )
-                    if origin_node == library_key[0]:
-                        transport_network.shortest_path_library['normal'][library_key] = route
-                    else:
-                        canonical_route = copy.deepcopy(route)
-                        canonical_route.revert()
-                        transport_network.shortest_path_library['normal'][library_key] = canonical_route
-                # Store it into commercial link object
-                sc_network[self][edge[1]]['object'].store_route_information(
-                    route=route,
-                    main_or_alternative="main"
-                )
 
-                if capacity_constraint:
-                    self.update_transport_load(edge, monetary_unit_flow, route, sc_network, transport_network,
-                                               capacity_constraint)
+            destination_node = edge[1].od_point
+            route = self._get_route(transport_network, transport_network, destination_node,
+                                    'normal', capacity_constraint, transport_cost_noise_level)
+
+            sc_network[self][edge[1]]['object'].store_route_information(route=route, main_or_alternative="main")
+
+            if capacity_constraint:
+                self.update_transport_load(edge, monetary_unit_flow, route, sc_network, transport_network,
+                                           capacity_constraint)
+
+    def discover_new_route(self, commercial_link: "CommercialLink", transport_network: "TransportNetwork",
+                           available_transport_network: "TransportNetwork",
+                           account_capacity: bool, transport_cost_noise_level: float):
+
+        destination_node = commercial_link.route[-1][0]
+        route = self._get_route(transport_network, available_transport_network,
+                                destination_node, 'alternative', account_capacity, transport_cost_noise_level)
+
+        if route is not None:
+            commercial_link.store_route_information(route=route, main_or_alternative="alternative")
+
+        return route
 
     def get_transport_cond(self, edge, transport_modes):
         # Define the type of transport mode to use by looking in the transport_mode table
@@ -322,8 +339,9 @@ class Agents(dict):
                               transport_cost_noise_level: float,
                               monetary_units_in_model: str,
                               parallelized: bool):
-        if parallelized and (not capacity_constraint):  # in this case the choice of route is not independent, cannot be parallelized
-            with ThreadPoolExecutor() as executor:
+        if parallelized and (
+                not capacity_constraint):  # in this case the choice of route is not independent, cannot be parallelized
+            with ProcessPoolExecutor() as executor:
                 futures = [
                     executor.submit(agent.choose_initial_routes, sc_network, transport_network, capacity_constraint,
                                     explicit_service_firm, transport_to_households, sectors_no_transport_network,
@@ -338,14 +356,14 @@ class Agents(dict):
                                             transport_to_households, sectors_no_transport_network,
                                             transport_cost_noise_level, monetary_units_in_model)
 
-
     def deliver(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
+                available_transport_network: "TransportNetwork",
                 sectors_no_transport_network: list, rationing_mode: str, explicit_service_firm: bool,
                 transport_to_households: bool, capacity_constraint: bool,
                 monetary_units_in_model: str, cost_repercussion_mode: str, price_increase_threshold: float,
                 transport_cost_noise_level: float):
         for agent in self.values():
-            agent.deliver_products(sc_network, transport_network,
+            agent.deliver_products(sc_network, transport_network, available_transport_network,
                                    sectors_no_transport_network=sectors_no_transport_network,
                                    rationing_mode=rationing_mode,
                                    explicit_service_firm=explicit_service_firm,

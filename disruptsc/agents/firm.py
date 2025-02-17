@@ -626,6 +626,7 @@ class Firm(Agent):
         pass
 
     def deliver_products(self, graph: "ScNetwork", transport_network: "TransportNetwork",
+                         available_transport_network: "TransportNetwork",
                          sectors_no_transport_network: list, rationing_mode: str, explicit_service_firm: bool,
                          transport_to_households: bool,
                          monetary_units_in_model: str,
@@ -701,7 +702,8 @@ class Firm(Agent):
                 self.deliver_without_infrastructure(graph[self][edge[1]]['object'])
             # otherwise use infrastructure
             else:
-                self.send_shipment(graph[self][edge[1]]['object'], transport_network, monetary_units_in_model,
+                self.send_shipment(graph[self][edge[1]]['object'], transport_network, available_transport_network,
+                                   monetary_units_in_model,
                                    cost_repercussion_mode, price_increase_threshold, capacity_constraint,
                                    transport_cost_noise_level)
 
@@ -723,6 +725,7 @@ class Firm(Agent):
                                                self.eq_finance['costs']['transport'])
 
     def send_shipment(self, commercial_link: "CommercialLink", transport_network: "TransportNetwork",
+                      available_transport_network: "TransportNetwork",
                       monetary_units_in_model: str, cost_repercussion_mode: str, price_increase_threshold: float,
                       capacity_constraint: bool, transport_cost_noise_level: float):
 
@@ -764,7 +767,7 @@ class Firm(Agent):
             route = commercial_link.alternative_route
         # Otherwise we need to discover a new one
         else:
-            route = self.discover_new_route(commercial_link, transport_network,
+            route = self.discover_new_route(commercial_link, transport_network, available_transport_network,
                                             capacity_constraint, transport_cost_noise_level)
 
         # If the alternative route is available, or if we discovered one, we proceed
@@ -785,6 +788,8 @@ class Firm(Agent):
                 new_transport_bill = commercial_link.delivery_in_tons * commercial_link.alternative_route_cost_per_ton
                 normal_transport_bill = commercial_link.delivery_in_tons * commercial_link.route_cost_per_ton
                 # print(normal_transport_bill, new_transport_bill)
+                # print(self.id_str(), normal_transport_bill, new_transport_bill)
+                relative_cost_change = max(new_transport_bill - normal_transport_bill, 0) / normal_transport_bill
                 relative_cost_change = max(new_transport_bill - normal_transport_bill, 0) / normal_transport_bill
                 # If switched transport mode, add switching cost
                 # switching_cost = 0.5
@@ -801,6 +806,7 @@ class Firm(Agent):
                     / ((1 - self.target_margin) * self.eq_finance['sales'])
                 # Calculate the relative price change, including any increase due to the prices of inputs
                 total_relative_price_change = self.delta_price_input + relative_price_change_transport
+                print(relative_price_change_transport)
                 commercial_link.price = commercial_link.eq_price * (1 + total_relative_price_change)
 
             elif cost_repercussion_mode == "type2":  # actual repercussion de la bill
@@ -860,12 +866,11 @@ class Firm(Agent):
                 transport_network.transport_shipment(commercial_link, capacity_constraint)
                 self.product_stock -= commercial_link.delivery
                 # Print information
-                logging.info("Firm " + str(self.pid) + ": found an alternative route to " +
-                             str(commercial_link.buyer_id) + ", it is costlier by " +
-                             '{:.2f}'.format(100 * relative_price_change_transport) + "%, price is " +
-                             '{:.4f}'.format(commercial_link.price) + " instead of " +
-                             '{:.4f}'.format(commercial_link.eq_price * (1 + self.delta_price_input))
-                             )
+                logging.info(f"Firm {self.pid}: found an alternative route to {commercial_link.buyer_id}, "
+                             f"it is costlier by {100 * relative_price_change_transport:.2f}%, "
+                             f"price is {commercial_link.price:.4f} "
+                             f"instead of {commercial_link.eq_price * (1 + self.delta_price_input):.4f}"
+)
         # If we do not find a route, then we do not deliver
         else:
             logging.info(f"{self.id_str()}: because of disruption, there is no route between me "
@@ -876,25 +881,6 @@ class Firm(Agent):
             # We do not pay the transporter, so we don't increment the transport cost
             # We set delivery to 0
             commercial_link.delivery = 0
-
-    def discover_new_route(self, commercial_link: "CommercialLink", transport_network: "TransportNetwork",
-                           account_capacity: bool, transport_cost_noise_level: float):
-        origin_node = self.od_point
-        destination_node = commercial_link.route[-1][0]
-        route = self.choose_route(
-            transport_network=transport_network.get_undisrupted_network(),
-            origin_node=origin_node,
-            destination_node=destination_node,
-            capacity_constraint=account_capacity,
-            transport_cost_noise_level=transport_cost_noise_level
-        )
-        # If we find a new route, we save it as the alternative one
-        if route is not None:
-            commercial_link.store_route_information(
-                route=route,
-                main_or_alternative="alternative"
-            )
-        return route
 
     def receive_service_and_pay(self, commercial_link: "CommercialLink"):
         super().receive_service_and_pay(commercial_link)

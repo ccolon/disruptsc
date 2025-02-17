@@ -5,16 +5,11 @@ filepaths:
   # Transport related data
   "transport_parameters": "Transport/transport_parameters.yaml"
   "transport_modes": "Transport/transport_modes.csv"
-  "roads_nodes": "Transport/roads_nodes.geojson"
   "roads_edges": "Transport/roads_edges.geojson"
   "multimodal_edges": "Transport/multimodal_edges.geojson"
-  "maritime_nodes": "Transport/maritime_nodes.geojson"
   "maritime_edges": "Transport/maritime_edges.geojson"
-  "airways_nodes": "Transport/airways_nodes.geojson"
   "airways_edges": "Transport/airways_edges.geojson"
-  "railways_nodes": "Transport/railways_nodes.geojson"
   "railways_edges": "Transport/railways_edges.geojson"
-  "waterways_nodes": "Transport/waterways_nodes.geojson"
   "waterways_edges": "Transport/waterways_edges.geojson"
   # National data
   "sector_table": "National/sector_table.csv"
@@ -135,7 +130,7 @@ firm_data_type: "disaggregating IO"
 
 # Define how cost_per_ton are calculated for the different transport mode
 # - edge-specific: there is a column called transport_cost_per_tonkm in the road edges layer
-# - surface-specific: for roads, depends on whethehr paved or not
+# - surface-specific: for roads, depends on whether paved or not
 # - mode-specific: there is a parameter called transport_cost_per_tonkm in the transport_params.yaml
 transport_cost_data:
   roads: surface-specific
@@ -144,10 +139,10 @@ transport_cost_data:
   airways: mode-specific
   maritime: mode-specific
 
-# Whether or not to model congestion
+# Whether to model congestion
 congestion: True
 
-# Whether or not firms should readjust their price to changes in input prices
+# Whether firms should readjust their price to changes in input prices
 propagate_input_price_change: True
 
 # Which sectors to include. Possible values:

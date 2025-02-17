@@ -56,6 +56,7 @@ class Model(object):
         self.households = None
         self.household_table = None
         self.countries = None
+        self.country_table = None
         self.transaction_table = None
         # Supply-chain network variables
         self.sc_network = None
@@ -72,10 +73,10 @@ class Model(object):
 
     def setup_transport_network(self, cached: bool = False):
         if cached:
-            self.transport_network, self.transport_nodes, self.transport_edges = \
+            self.transport_network, self.transport_edges, self.transport_nodes = \
                 load_cached_transport_network()
         else:
-            self.transport_network, self.transport_nodes, self.transport_edges = \
+            self.transport_network, self.transport_edges, self.transport_nodes = \
                 create_transport_network(
                     transport_modes=self.parameters.transport_modes,
                     filepaths=self.parameters.filepaths,
@@ -85,8 +86,8 @@ class Model(object):
 
             data_to_cache = {
                 "transport_network": self.transport_network,
-                'transport_nodes': self.transport_nodes,
-                'transport_edges': self.transport_edges
+                'transport_edges': self.transport_edges,
+                'transport_nodes': self.transport_nodes
             }
             cache_transport_network(data_to_cache)
 
@@ -262,7 +263,7 @@ class Model(object):
 
             # Create agents: Countries
             if self.parameters.firm_data_type == "mrio":
-                self.countries = create_countries_from_mrio(
+                self.countries, self.country_table = create_countries_from_mrio(
                     filepath_mrio=self.parameters.filepaths['mrio'],
                     transport_nodes=self.transport_nodes,
                     filepath_regions=self.parameters.filepaths['region_table'],
@@ -301,8 +302,8 @@ class Model(object):
             cache_agent_data(data_to_cache)
 
         # Locate firms and households on transport network
-        self.transport_network.locate_firms_on_nodes(self.firms, self.transport_nodes)
-        self.transport_network.locate_households_on_nodes(self.households, self.transport_nodes)
+        self.transport_network.locate_firms_on_nodes(self.firms)
+        self.transport_network.locate_households_on_nodes(self.households)
         self.agents_initialized = True
 
     def setup_sc_network(self, cached: bool = False):
@@ -326,8 +327,7 @@ class Model(object):
             logging.info('Exporters are being selected by purchasing countries (export B2B flows)')
             logging.info('and trading countries are being connected (transit flows)')
             for country in self.countries.values():
-                country.select_suppliers(self.sc_network, self.firms, self.countries,
-                                         self.sector_table, self.transport_nodes)
+                country.select_suppliers(self.sc_network, self.firms, self.countries, self.sector_table)
 
             logging.info(
                 f'Firms are selecting their domestic and international suppliers (import B2B flows) '
@@ -408,7 +408,7 @@ class Model(object):
                                                  self.parameters.sectors_no_transport_network,
                                                  self.parameters.transport_cost_noise_level,
                                                  self.parameters.monetary_units_in_model,
-                                                 parallelized=True)
+                                                 parallelized=False)
             logging.info('Routes for exports and B2B domestic flows are being selected by domestic firms')
             self.firms.choose_initial_routes(self.sc_network, self.transport_network,
                                              self.parameters.capacity_constraint,
@@ -417,7 +417,7 @@ class Model(object):
                                              self.parameters.sectors_no_transport_network,
                                              self.parameters.transport_cost_noise_level,
                                              self.parameters.monetary_units_in_model,
-                                             parallelized=True)
+                                             parallelized=False)
             # Save to tmp folder
             data_to_cache = {
                 'transport_network': self.transport_network,
@@ -604,6 +604,8 @@ class Model(object):
         logging.info("Simulating the initial state")
         self.run_one_time_step(time_step=0, current_simulation=simulation)
 
+
+        # self.transport_network.compute_flow_per_segment(time_step=0)
         # Get disruptions
         self.disruption_list = DisruptionList([
             TransportDisruption({disrupted_edge: 1.0},
@@ -662,8 +664,9 @@ class Model(object):
     def run_one_time_step(self, time_step: int, current_simulation: Simulation):
         self.transport_network.reset_current_loads(self.parameters.route_optimization_weight)
 
+        available_transport_network = self.transport_network
         if self.disruption_list:
-            self.apply_disruption(time_step)
+            available_transport_network = self.apply_disruption(time_step)
 
         self.firms.retrieve_orders(self.sc_network)
         if self.reconstruction_market:
@@ -675,12 +678,14 @@ class Model(object):
         self.countries.send_purchase_orders(self.sc_network)
         self.firms.send_purchase_orders(self.sc_network)
         self.firms.produce()
-        self.countries.deliver(self.sc_network, self.transport_network, self.parameters.sectors_no_transport_network,
+        self.countries.deliver(self.sc_network, self.transport_network, available_transport_network,
+                               self.parameters.sectors_no_transport_network,
                                self.parameters.rationing_mode, self.parameters.explicit_service_firm,
                                self.parameters.transport_to_households, self.parameters.capacity_constraint,
                                self.parameters.monetary_units_in_model, self.parameters.cost_repercussion_mode,
                                self.parameters.price_increase_threshold, self.parameters.transport_cost_noise_level)
-        self.firms.deliver(self.sc_network, self.transport_network, self.parameters.sectors_no_transport_network,
+        self.firms.deliver(self.sc_network, self.transport_network, available_transport_network,
+                           self.parameters.sectors_no_transport_network,
                            self.parameters.rationing_mode, self.parameters.explicit_service_firm,
                            self.parameters.transport_to_households, self.parameters.capacity_constraint,
                            self.parameters.monetary_units_in_model, self.parameters.cost_repercussion_mode,
@@ -700,7 +705,7 @@ class Model(object):
         #     for country in countries:
         #         country.add_congestion_malus2(sc_network, transport_network)
         #
-        if time_step in [0, 1]:
+        if (current_simulation.type in ['initial_state', 'disruption']) and (time_step in [0, 1]):
             current_simulation.transport_network_data += self.transport_network.compute_flow_per_segment(time_step)
         # TODO: store transport data, depending on current_simulation type and time step
         # TODO: store supply chain data, depending on current_simulation type and time step
@@ -748,6 +753,7 @@ class Model(object):
                 disruption.implement(self.transport_network)
             if isinstance(disruption, CapitalDestruction):
                 disruption.implement(self.firms, self)
+        return self.transport_network.get_undisrupted_network()
         # edge_disruptions_starting_now = disruptions_starting_now.filter_type('transport_edge')
         # if len(edge_disruptions_starting_now) > 0:
         #     self.transport_network.disrupt_edges(

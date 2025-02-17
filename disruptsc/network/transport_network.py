@@ -7,8 +7,6 @@ import numpy as np
 import pandas as pd
 import logging
 
-from scipy.spatial import cKDTree
-
 from disruptsc.model.basic_functions import add_or_append_to_dict
 from disruptsc.network.route import Route
 
@@ -16,10 +14,20 @@ if TYPE_CHECKING:
     from disruptsc.network.commercial_link import CommercialLink
 
 
+def degrees_to_km(lon1, lat1, lon2, lat2):
+    lat_km = 111 * abs(lat2 - lat1)
+    lon_km = 111 * abs(lon2 - lon1) * math.cos(math.radians((lat1 + lat2) / 2))
+    return math.sqrt(lat_km ** 2 + lon_km ** 2)
+
+
 class TransportNetwork(nx.Graph):
     def __init__(self, graph=None, **attr):
         super().__init__(graph, **attr)
-        self.shortest_path_library = {'normal': {}, 'disrupted': {}}
+        self.min_cost_per_tonkm = None
+        # self.cost_heuristic = None
+        # manager = Manager()
+        self.shortest_path_library = {'normal': {}, 'alternative': {}}
+        #self.lock = threading.Lock()
 
     def info(self):
         transport_modes = self.get_transport_modes()
@@ -33,6 +41,8 @@ class TransportNetwork(nx.Graph):
         if "name" in all_nodes_data.columns:
             node_attributes += ['name']
         node_data = all_nodes_data.loc[node_id, node_attributes].to_dict()
+        node_data['long'] = all_nodes_data.loc[node_id, "geometry"].x
+        node_data['lat'] = all_nodes_data.loc[node_id, "geometry"].y
         node_data['shipments'] = {}
         node_data['disruption_duration'] = 0
         node_data['firms_there'] = []
@@ -89,7 +99,7 @@ class TransportNetwork(nx.Graph):
             self[edge[0]][edge[1]]['weight'] = self[edge[0]][edge[1]][route_optimization_weight]
             self[edge[0]][edge[1]]['capacity_weight'] = self[edge[0]][edge[1]][route_optimization_weight]
 
-    def locate_firms_on_nodes(self, firms, transport_nodes):
+    def locate_firms_on_nodes(self, firms):
         """The nodes of the transport network stores the list of firms located there
         using the attribute "firms_there".
         There can be several firms in one node.
@@ -99,15 +109,15 @@ class TransportNetwork(nx.Graph):
         This function reinitialize those fields and repopulate them with the adequate information
         """
         # Reinitialize
-        transport_nodes['firms_there'] = ""
+        # transport_nodes['firms_there'] = ""
         for node_id in self.nodes:
             self._node[node_id]['firms_there'] = []
         # Locate firms
         for firm in firms.values():
             self._node[firm.od_point]['firms_there'].append(firm.pid)
-            transport_nodes.loc[transport_nodes['id'] == firm.od_point, "firms_there"] += (',' + str(firm.pid))
+            # transport_nodes.loc[transport_nodes['id'] == firm.od_point, "firms_there"] += (',' + str(firm.pid))
 
-    def locate_households_on_nodes(self, households, transport_nodes):
+    def locate_households_on_nodes(self, households):
         """The nodes of the transport network stores the list of households located there
         using the attribute "household_there".
         There can only be one household in one node.
@@ -116,10 +126,10 @@ class TransportNetwork(nx.Graph):
         This function reinitialize those fields and repopulate them with the adequate information
         """
         # Reinitialize
-        transport_nodes['household_there'] = None
+        # transport_nodes['household_there'] = None
         for pid, household in households.items():
             self._node[household.od_point]['household_there'] = pid
-            transport_nodes.loc[transport_nodes['id'] == household.od_point, "household_there"] = pid
+            # transport_nodes.loc[transport_nodes['id'] == household.od_point, "household_there"] = pid
 
     def provide_shortest_route(self, origin_node: int, destination_node: int,
                                route_weight: str, noise_level: float = 0.0) -> Route or None:
@@ -140,7 +150,9 @@ class TransportNetwork(nx.Graph):
                 self.add_noise_to_weight(route_weight, noise_level)
                 sp = nx.shortest_path(self, origin_node, destination_node, weight=route_weight + '_noise')
             else:
-                sp = nx.shortest_path(self, origin_node, destination_node, weight=route_weight)
+                # sp = nx.shortest_path(self, origin_node, destination_node, weight=route_weight)
+                sp = nx.astar_path(self, origin_node, destination_node, weight=route_weight,
+                                   heuristic=self.cost_heuristic)
             route = Route(sp, self)
             return route
 
@@ -148,17 +160,19 @@ class TransportNetwork(nx.Graph):
             logging.info(f"There is no path between {origin_node} and {destination_node}")
             return None
 
-    def make_transport_cost_heuristic(self, min_cost_per_km):
-        def heuristic(u, v):
-            # Extract positions; adjust if you use a different coordinate system.
-            pos_u = self.nodes[0]['geometry'].x
-            pos_v = self.nodes[0]['geometry'].y
-            # Compute Euclidean distance (straight-line distance)
-            distance = math.hypot(pos_u[0] - pos_v[0], pos_u[1] - pos_v[1])
-            # Return estimated cost
-            return distance * min_cost_per_km
+    # def build_cost_heuristic(self):
+    #     def heuristic(u, v):
+    #         distance = degrees_to_km(self.nodes[u]['long'], self.nodes[u]['lat'],
+    #                                self.nodes[v]['long'], self.nodes[v]['lat'])
+    #         return distance * self.min_cost_per_tonkm
+    #     self.cost_heuristic = heuristic
 
-        return heuristic
+    def cost_heuristic(self, u, v):
+        distance = degrees_to_km(
+            self._node[u]['long'], self._node[u]['lat'],
+            self._node[v]['long'], self._node[v]['lat']
+        )
+        return distance * self.min_cost_per_tonkm
 
     def add_noise_to_weight(self, weight: str, noise_sd: float):
         noise_levels = np.random.normal(0, noise_sd, len(self.edges)).tolist()
@@ -170,7 +184,9 @@ class TransportNetwork(nx.Graph):
         available_subgraph = self.subgraph(available_nodes)
         available_edges = [edge for edge in self.edges if self[edge[0]][edge[1]]['disruption_duration'] == 0]
         available_subgraph = available_subgraph.edge_subgraph(available_edges)
-        return TransportNetwork(available_subgraph)
+        available_transport_network = TransportNetwork(available_subgraph)
+        available_transport_network.min_cost_per_tonkm = self.min_cost_per_tonkm
+        return available_transport_network
 
     def disrupt_roads(self, disruption):
         # Disrupting nodes

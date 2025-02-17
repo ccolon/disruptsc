@@ -6,8 +6,7 @@ import pandas
 import pandas as pd
 
 from disruptsc.agents.country import Country, Countries
-from disruptsc.model.basic_functions import rescale_monetary_values
-from disruptsc.model.builder_functions import get_index_closest_point
+from disruptsc.model.basic_functions import rescale_monetary_values, find_nearest_node_id
 from disruptsc.network.mrio import Mrio
 
 
@@ -156,10 +155,6 @@ def create_countries_from_mrio(filepath_mrio: Path,
     selling_countries = mrio.external_selling_countries
     country_list = list(set(buying_countries) | set(selling_countries))
 
-    # Create country table
-    country_table = pd.DataFrame({"pid": country_list})
-    logging.info(f"Select {country_table.shape[0]} countries")
-
     # Extract import, export, and transit matrices
     # importing_region_sectors = [tup for tup in mrio.columns if tup[1] not in ['Exports', 'final_demand']]
     import_table = rescale_monetary_values(
@@ -196,13 +191,15 @@ def create_countries_from_mrio(filepath_mrio: Path,
                  "{:.01f} ".format(transit_matrix.sum().sum()) + target_units)
 
     total_imports = import_table.sum().sum()
+
+    country_table = geopandas.read_file(filepath_regions).set_index('region').loc[country_list]
+    country_table['od_point'] = find_nearest_node_id(transport_nodes, country_table)
+    country_table['long'] = country_table["geometry"].x
+    country_table['lat'] = country_table["geometry"].y
+    country_table['country_usd_per_ton'] = pd.read_csv(filepath_sectors).set_index("sector").loc['IMP', 'usd_per_ton']
+
     countries = Countries()
     for country in country_list:
-        region_table = geopandas.read_file(filepath_regions).set_index('region')
-        od_point_id = get_index_closest_point(region_table.loc[country, "geometry"], transport_nodes)
-        lon = transport_nodes.loc[od_point_id, "geometry"].x
-        lat = transport_nodes.loc[od_point_id, "geometry"].y
-
         # imports, i.e., sales of countries
         if country in selling_countries and total_imports > 0:
             qty_sold = import_table.loc[country, :]
@@ -233,19 +230,17 @@ def create_countries_from_mrio(filepath_mrio: Path,
         else:
             transit_to = {}
 
-        # get country usd per ton
-        country_usd_per_ton = pd.read_csv(filepath_sectors).set_index("sector").loc['IMP', 'usd_per_ton']
         # Populate countries
         countries[country] = Country(pid=country,
                                      qty_sold=qty_sold,
                                      qty_purchased=qty_purchased,
-                                     od_point=od_point_id,
-                                     long=lon,
-                                     lat=lat,
+                                     od_point=country_table.loc[country, "od_point"],
+                                     long=country_table.loc[country, "long"],
+                                     lat=country_table.loc[country, "lat"],
                                      transit_from=transit_from,
                                      transit_to=transit_to,
-                                     usd_per_ton=country_usd_per_ton,
+                                     usd_per_ton=country_table.loc[country, 'country_usd_per_ton'],
                                      supply_importance=supply_importance)
     logging.info('Countries created: ' + str(countries.get_properties('pid')))
 
-    return countries
+    return countries, country_table
