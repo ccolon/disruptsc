@@ -12,7 +12,6 @@ from disruptsc.model.basic_functions import generate_weights, \
 
 from disruptsc.agents.agent import Agent, Agents
 from disruptsc.network.commercial_link import CommercialLink
-from disruptsc.network.mrio import IMPORT_LABEL
 
 if TYPE_CHECKING:
     from disruptsc.agents.country import Countries
@@ -72,7 +71,7 @@ class Firm(Agent):
         self.production = production
         self.production_target = production
         self.production_capacity = production / utilization_rate
-        self.current_production_capacity = production
+        self.current_production_capacity = self.production_capacity
         self.capital_initial = 0
         self.purchase_plan = {}
         self.purchase_plan_per_input = {}
@@ -150,6 +149,10 @@ class Firm(Agent):
         self.production = self.production_target
         self.eq_production_capacity = self.production_target / self.utilization_rate
         self.production_capacity = self.eq_production_capacity
+        # if self.pid == 0:
+        #     print("init", "self.production_target", self.production_target)
+        #     print("init", "self.utilization_rate", self.utilization_rate)
+        #     print("init", "self.eq_production_capacity", self.eq_production_capacity)
         self.evaluate_input_needs()
         self.eq_needs = self.input_needs
         self.inventory = {
@@ -186,7 +189,7 @@ class Firm(Agent):
     def select_suppliers_from_data(self, graph, firm_list, inputed_supplier_links, output):
 
         for inputed_supplier_link in list(inputed_supplier_links.transpose().to_dict().values()):
-            # Create an edge in the graph
+            # Create an edge_attr in the graph
             supplier_id = inputed_supplier_link['supplier_id']
             product_sector = inputed_supplier_link['product_sector']
             supplier_object = firm_list[supplier_id]
@@ -200,7 +203,7 @@ class Firm(Agent):
                                supplier_id=supplier_id,
                                buyer_id=self.pid)
                            )
-            # Associate a weight to the edge
+            # Associate a weight to the edge_attr
             weight_in_input_mix = inputed_supplier_link['transaction'] / output
             graph[supplier_object][self]['weight'] = weight_in_input_mix
             # The firm saves the name of the supplier, its sector,
@@ -211,14 +214,13 @@ class Firm(Agent):
             self.suppliers[supplier_id] = {'sector': product_sector, 'weight': weight_among_same_product,
                                            "satisfaction": 1}
 
-    def identify_suppliers(self, region_sector: str, firms: "Firms", countries: "Countries",
+    def identify_suppliers_legacy(self, region_sector: str, firms: "Firms", countries: "Countries",
                            nb_suppliers_per_input: float, weight_localization: float,
                            firm_data_type: str, import_code: str):
         if firm_data_type == "mrio":
-            if IMPORT_LABEL in region_sector:  # case of countries
+            if import_code in region_sector:  # case of countries
                 supplier_type = "country"
-                selected_supplier_ids = [
-                    region_sector.split("_")[0]]  # for countries, the id is extracted from the name
+                selected_supplier_ids = [region_sector.split("_")[0]]  # for countries, id is extracted from the name
                 supplier_weights = [1]
 
             else:  # case of firms
@@ -302,7 +304,7 @@ class Firm(Agent):
 
     def select_suppliers(self, graph: "ScNetwork", firms: "Firms", countries: "Countries",
                          nb_suppliers_per_input: float, weight_localization: float,
-                         firm_data_type: str, import_code: str):
+                         sector_types_to_shipment_methods: dict, import_label: str):
         """
         The firm selects its suppliers.
 
@@ -316,6 +318,7 @@ class Firm(Agent):
 
         Parameters
         ----------
+        sector_types_to_shipment_methods
         firm_data_type
         graph : networkx.DiGraph
             Supply chain graph
@@ -343,12 +346,10 @@ class Firm(Agent):
 
             # If it is imports, identify international suppliers and calculate
             # their probability to be chosen, which is based on importance.
-            supplier_type, selected_supplier_ids, supplier_weights = self.identify_suppliers(sector_id,
-                                                                                             firms, countries,
+            supplier_type, selected_supplier_ids, supplier_weights = self.identify_suppliers(sector_id, firms,
                                                                                              nb_suppliers_per_input,
                                                                                              weight_localization,
-                                                                                             firm_data_type,
-                                                                                             import_code)
+                                                                                             import_label)
 
             # For each new supplier, create a new CommercialLink in the supply chain network.
             # print(f"{self.id_str()}: for input {sector_id} I selected {len(selected_supplier_ids)} suppliers")
@@ -364,7 +365,7 @@ class Firm(Agent):
                     supplier_object = firms[supplier_id]
                     link_category = 'domestic_B2B'
                     product_type = firms[supplier_id].sector_type
-                # Create an edge in the graph
+                # Create an edge_attr in the graph
                 graph.add_edge(supplier_object, self,
                                object=CommercialLink(
                                    pid=str(supplier_id) + "->" + str(self.pid),
@@ -374,6 +375,7 @@ class Firm(Agent):
                                    supplier_id=supplier_id,
                                    buyer_id=self.pid)
                                )
+                graph[supplier_object][self]['object'].determine_transportation_mode(sector_types_to_shipment_methods)
                 # Associate a weight, which includes the I/O technical coefficient
                 supplier_weight = supplier_weights.pop()
                 graph[supplier_object][self]['weight'] = sector_weight * supplier_weight
@@ -446,9 +448,9 @@ class Firm(Agent):
                 print(eq_unitary_input_cost)
             # added_input_cost = (est_unitary_input_cost_at_current_price - eq_unitary_input_cost) * self.total_order
             # self.delta_price_input = added_input_cost / self.total_order
-            logging.debug('Firm ' + str(self.pid) + ': Input prices have changed, I set my price to ' +
-                          '{:.4f}'.format(self.eq_price * (1 + self.delta_price_input)) +
-                          " instead of " + str(self.eq_price))
+            logging.debug(f'Firm {self.pid}: Input prices have changed, I set my price to '
+                          f'{self.eq_price * (1 + self.delta_price_input):.4f} instead of {self.eq_price}'
+)
         else:
             self.delta_price_input = 0
 
@@ -591,8 +593,9 @@ class Firm(Agent):
         if len(self.input_mix) == 0:  # If no need for inputs
             self.production = min([self.production_target, self.current_production_capacity])
         else:
-            # max_production = production_function(self.inventory, self.input_mix, mode)  # Max prod given inventory
             max_production = production_function(self.inventory, self.input_mix, mode)  # Max prod given inventory
+            # if self.pid == 0:
+            #     print('max_prod', max_production)
             self.production = min([max_production, self.production_target, self.current_production_capacity])
 
         # Add to stock of finished goods
@@ -621,39 +624,33 @@ class Firm(Agent):
                 return True
         return False
 
-    def ration_quantity_to_deliver(self):
-        # remove rationing as attribute
-        pass
-
-    def deliver_products(self, graph: "ScNetwork", transport_network: "TransportNetwork",
-                         available_transport_network: "TransportNetwork",
-                         sectors_no_transport_network: list, rationing_mode: str, explicit_service_firm: bool,
-                         transport_to_households: bool,
-                         monetary_units_in_model: str,
-                         cost_repercussion_mode: str, price_increase_threshold: float, capacity_constraint: bool,
-                         transport_cost_noise_level: float):
-
+    def evaluate_quantities_to_deliver(self, rationing_mode: str):
         # Do nothing if no orders
         if self.total_order == 0:
-            return 0
+            return {buyer_id: 0.0 for buyer_id in self.order_book.keys()}
 
         # Otherwise compute rationing factor
         self.rationing = self.product_stock / self.total_order
         # Check the case in which the firm has too much product to sale
         # It should not happen, hence a warning
         if self.rationing > 1 + EPSILON:
-            logging.warning(f'Firm {self.pid}: I have produced too much. {self.product_stock} vs. {self.total_order}')
+            logging.debug(f'Firm {self.pid}: I have produced too much. {self.product_stock} vs. {self.total_order}')
             self.rationing = 1
-            quantity_to_deliver = {buyer_id: order for buyer_id, order in self.order_book.items()}
+            quantities_to_deliver = {buyer_id: order for buyer_id, order in self.order_book.items()}
         # If rationing factor is 1, then it delivers what was ordered
         elif abs(self.rationing - 1) < EPSILON:
-            quantity_to_deliver = {buyer_id: order for buyer_id, order in self.order_book.items()}
+            quantities_to_deliver = {buyer_id: order for buyer_id, order in self.order_book.items()}
         # If rationing occurs, then two rationing behavior: equal or household_first
+        elif abs(self.rationing) < EPSILON:
+            logging.debug(f'Firm {self.pid}: I have no stock of output, I cannot deliver to my clients')
+            quantities_to_deliver = {buyer_id: 0.0 for buyer_id in self.order_book.keys()}
         else:
             logging.debug(f'Firm {self.pid}: I have to ration my clients by {(1 - self.rationing) * 100:.2f}%')
             # If equal, simply apply rationing factor
             if rationing_mode == "equal":
-                quantity_to_deliver = {buyer_id: order * self.rationing for buyer_id, order in self.order_book.items()}
+                quantities_to_deliver = {buyer_id: order * self.rationing for buyer_id, order in self.order_book.items()}
+            else:
+                raise ValueError('Wrong rationing_mode chosen')
 
             # elif rationing_mode == "household_first": TODO: redo, does not work anymore
             #     if -1 not in self.order_book.keys():
@@ -675,8 +672,19 @@ class Firm(Agent):
             #             quantity_to_deliver = {buyer_id: 0 for buyer_id, order in self.order_book.items() if
             #                                    buyer_id != -1}
             #             quantity_to_deliver[-1] = self.product_stock
-            else:
-                raise ValueError('Wrong rationing_mode chosen')
+        # remove rationing as attribute
+        return quantities_to_deliver
+
+    def deliver_products(self, graph: "ScNetwork", transport_network: "TransportNetwork",
+                         available_transport_network: "TransportNetwork",
+                         sectors_no_transport_network: list, rationing_mode: str, explicit_service_firm: bool,
+                         transport_to_households: bool,
+                         monetary_units_in_model: str,
+                         cost_repercussion_mode: str, price_increase_threshold: float, capacity_constraint: bool,
+                         transport_cost_noise_level: float):
+
+        quantities_to_deliver = self.evaluate_quantities_to_deliver(rationing_mode)
+
         # We initialize transport costs, it will be updated for each shipment
         self.finance['costs']['transport'] = 0
         self.generalized_transport_cost = 0
@@ -686,13 +694,15 @@ class Firm(Agent):
 
         # For each client, we define the quantity to deliver then send the shipment
         for edge in graph.out_edges(self):
-            if graph[self][edge[1]]['object'].order == 0:
-                logging.debug(f"{self.id_str()} - {graph[self][edge[1]]['object'].buyer_id} "
-                              f"is my client but did not order")
+            quantity_to_deliver = quantities_to_deliver[edge[1].pid]
+            if quantity_to_deliver == 0:
+                if graph[self][edge[1]]['object'].order == 0:
+                    logging.debug(f"{self.id_str()} - {graph[self][edge[1]]['object'].buyer_id} "
+                                  f"is my client but did not order")
                 continue
-            graph[self][edge[1]]['object'].delivery = quantity_to_deliver[edge[1].pid]
+            graph[self][edge[1]]['object'].delivery = quantity_to_deliver
             graph[self][edge[1]]['object'].delivery_in_tons = \
-                Firm.transformUSD_to_tons(quantity_to_deliver[edge[1].pid], monetary_units_in_model, self.usd_per_ton)
+                Firm.transformUSD_to_tons(quantity_to_deliver, monetary_units_in_model, self.usd_per_ton)
 
             # If the client is B2C (applied only we had one single representative agent for all households)
             cases_no_transport = (edge[1].pid == -1) or (self.sector_type in sectors_no_transport_network) \
@@ -708,10 +718,10 @@ class Firm(Agent):
                                    transport_cost_noise_level)
 
         # For reconstruction orders, we register it
-        # if self.sector == "CON":
-        #     print(quantity_to_deliver)
-        if "reconstruction" in quantity_to_deliver.keys():
-            self.reconstruction_produced = quantity_to_deliver['reconstruction']
+        if isinstance(quantities_to_deliver, int):
+            print(quantities_to_deliver)
+            raise ValueError()
+        self.reconstruction_produced = quantities_to_deliver.get('reconstruction')
 
     def deliver_without_infrastructure(self, commercial_link):
         """ The firm deliver its products without using transportation infrastructure
@@ -788,7 +798,8 @@ class Firm(Agent):
                 new_transport_bill = commercial_link.delivery_in_tons * commercial_link.alternative_route_cost_per_ton
                 normal_transport_bill = commercial_link.delivery_in_tons * commercial_link.route_cost_per_ton
                 # print(normal_transport_bill, new_transport_bill)
-                # print(self.id_str(), normal_transport_bill, new_transport_bill)
+                # print(self.id_str(), commercial_link.delivery_in_tons, normal_transport_bill, new_transport_bill)
+                # print(self.id_str(), commercial_link.route_cost_per_ton, commercial_link.alternative_route_cost_per_ton)
                 relative_cost_change = max(new_transport_bill - normal_transport_bill, 0) / normal_transport_bill
                 relative_cost_change = max(new_transport_bill - normal_transport_bill, 0) / normal_transport_bill
                 # If switched transport mode, add switching cost
@@ -806,7 +817,8 @@ class Firm(Agent):
                     / ((1 - self.target_margin) * self.eq_finance['sales'])
                 # Calculate the relative price change, including any increase due to the prices of inputs
                 total_relative_price_change = self.delta_price_input + relative_price_change_transport
-                print(relative_price_change_transport)
+                if np.isnan(relative_price_change_transport):
+                    raise ValueError(str(relative_price_change_transport))
                 commercial_link.price = commercial_link.eq_price * (1 + total_relative_price_change)
 
             elif cost_repercussion_mode == "type2":  # actual repercussion de la bill

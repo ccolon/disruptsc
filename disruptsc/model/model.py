@@ -3,8 +3,11 @@ from typing import TYPE_CHECKING
 
 import networkx as nx
 import numpy as np
-import pandas as pd
 import logging
+
+import pandas as pd
+from tqdm import tqdm
+
 from .caching_functions import \
     load_cached_transport_network, \
     load_cached_agent_data, \
@@ -28,6 +31,7 @@ from disruptsc.parameters import Parameters
 from disruptsc.disruption.disruption import DisruptionList, TransportDisruption, CapitalDestruction, Recovery
 from disruptsc.simulation.simulation import Simulation
 from disruptsc.network.sc_network import ScNetwork
+from disruptsc.network.mrio import Mrio
 
 if TYPE_CHECKING:
     from disruptsc.agents.country import Countries
@@ -38,6 +42,7 @@ if TYPE_CHECKING:
 class Model(object):
     def __init__(self, parameters: Parameters):
         # Parameters and filepath
+        self.mrio = None
         self.parameters = parameters
         # Initialization states
         self.transport_network_initialized = False
@@ -81,6 +86,7 @@ class Model(object):
                     transport_modes=self.parameters.transport_modes,
                     filepaths=self.parameters.filepaths,
                     transport_cost_data=self.parameters.transport_cost_data,
+                    logistics_parameters=self.parameters.logistics,
                     time_resolution=self.parameters.time_resolution
                 )
 
@@ -109,7 +115,7 @@ class Model(object):
 
     def setup_agents(self, cached: bool = False):
         if cached:
-            self.sector_table, self.firms, self.firm_table, self.households, self.household_table, \
+            self.mrio, self.sector_table, self.firms, self.firm_table, self.households, self.household_table, \
                 self.countries = load_cached_agent_data()
             if self.parameters.firm_data_type == "supplier-buyer network":
                 self.transaction_table = load_cached_transaction_table()
@@ -118,27 +124,33 @@ class Model(object):
                          f"Cutoff type is {self.parameters.cutoff_sector_output['type']}, "
                          f"cutoff value is {self.parameters.cutoff_sector_output['value']}"
                          )
+            self.mrio = Mrio.load_mrio_from_filepath(self.parameters.filepaths['mrio'],
+                                                     self.parameters.monetary_units_in_data)
             self.sector_table = pd.read_csv(self.parameters.filepaths['sector_table'])
-            filtered_sectors = filter_sector(self.sector_table,
-                                             cutoff_sector_output=self.parameters.cutoff_sector_output,
-                                             cutoff_sector_demand=self.parameters.cutoff_sector_demand,
-                                             combine_sector_cutoff=self.parameters.combine_sector_cutoff,
-                                             sectors_to_include=self.parameters.sectors_to_include,
-                                             sectors_to_exclude=self.parameters.sectors_to_exclude,
-                                             monetary_units_in_data=self.parameters.monetary_units_in_data)
-            output_selected = self.sector_table.loc[self.sector_table['sector'].isin(filtered_sectors), 'output'].sum()
-            final_demand_selected = self.sector_table.loc[
-                self.sector_table['sector'].isin(filtered_sectors), 'final_demand'].sum()
-            logging.info(f"{len(filtered_sectors)} sectors selected over {self.sector_table.shape[0]} "
-                         f"covering {output_selected / self.sector_table['output'].sum() * 100:.0f}% of total output "
-                         f"& {final_demand_selected / self.sector_table['final_demand'].sum() * 100:.0f}% of final demand")
-            logging.info(f'The filtered sectors are: {filtered_sectors}')
+
+            filtered_industries = filter_sector(self.mrio,
+                                                cutoff_sector_output=self.parameters.cutoff_sector_output,
+                                                cutoff_sector_demand=self.parameters.cutoff_sector_demand,
+                                                combine_sector_cutoff=self.parameters.combine_sector_cutoff,
+                                                sectors_to_include=self.parameters.sectors_to_include,
+                                                sectors_to_exclude=self.parameters.sectors_to_exclude,
+                                                monetary_units_in_data=self.parameters.monetary_units_in_data)
+            output_selected = self.mrio.get_total_output_per_region_sectors(filtered_industries).sum()
+            output_total = self.mrio.get_total_output_per_region_sectors().sum()
+            final_demand_selected = self.mrio.get_final_demand(filtered_industries).sum(axis=1).sum()
+            final_demand_total = self.mrio.get_final_demand().sum(axis=1).sum()
+            # final_demand_selected = self.sector_table.loc[
+            #     self.sector_table['sector'].isin(filtered_industries), 'final_demand'].sum()
+            logging.info(f"{len(filtered_industries)} sectors selected over {len(self.mrio.region_sectors)} "
+                         f"covering {output_selected / output_total:.0%} of total output "
+                         f"& {final_demand_selected / final_demand_total:.0%} of final demand")
+            logging.info(f'The filtered sectors are: {filtered_industries}')
 
             logging.info('Generating the firms')
             if self.parameters.firm_data_type == "disaggregating IO":
                 self.firm_table, firm_table_per_region = define_firms_from_local_economic_data(
                     filepath_region_economic_data=self.parameters.filepaths['region_data'],
-                    sectors_to_include=filtered_sectors,
+                    sectors_to_include=filtered_industries,
                     transport_nodes=self.transport_nodes,
                     filepath_sector_table=self.parameters.filepaths['sector_table'],
                     min_nb_firms_per_sector=self.parameters.min_nb_firms_per_sector)
@@ -146,11 +158,11 @@ class Model(object):
                 self.firm_table = define_firms_from_network_data(
                     filepath_firm_table=self.parameters.filepaths['firm_table'],
                     filepath_location_table=self.parameters.filepaths['location_table'],
-                    sectors_to_include=filtered_sectors,
+                    sectors_to_include=filtered_industries,
                     transport_nodes=self.transport_nodes,
                     filepath_sector_table=self.parameters.filepaths['sector_table'])
             elif self.parameters.firm_data_type == "mrio":
-                self.firm_table = define_firms_from_mrio(filepath_mrio=self.parameters.filepaths['mrio'],
+                self.firm_table = define_firms_from_mrio(self.mrio,
                                                          filepath_sectors=self.parameters.filepaths['sector_table'],
                                                          filepath_regions=self.parameters.filepaths['region_table'],
                                                          path_disag=self.parameters.filepaths['disag'],
@@ -179,7 +191,7 @@ class Model(object):
             logging.info('Defining the number of households to generate and their purchase plan')
             if self.parameters.firm_data_type == "mrio":
                 self.household_table, household_sector_consumption = define_households_from_mrio(
-                    filepath_mrio=self.parameters.filepaths['mrio'],
+                    mrio=self.mrio,
                     filepath_region_table=self.parameters.filepaths['region_table'],
                     transport_nodes=self.transport_nodes,
                     time_resolution=self.parameters.time_resolution,
@@ -237,7 +249,7 @@ class Model(object):
             elif self.parameters.firm_data_type == "mrio":
                 load_mrio_tech_coefs(
                     firms=self.firms,
-                    filepath_mrio=self.parameters.filepaths['mrio'],
+                    mrio=self.mrio,
                     io_cutoff=self.parameters.io_cutoff,
                     monetary_units_in_data=self.parameters.monetary_units_in_data
                 )
@@ -264,7 +276,7 @@ class Model(object):
             # Create agents: Countries
             if self.parameters.firm_data_type == "mrio":
                 self.countries, self.country_table = create_countries_from_mrio(
-                    filepath_mrio=self.parameters.filepaths['mrio'],
+                    mrio=self.mrio,
                     transport_nodes=self.transport_nodes,
                     filepath_regions=self.parameters.filepaths['region_table'],
                     filepath_sectors=self.parameters.filepaths['sector_table'],
@@ -287,6 +299,7 @@ class Model(object):
 
             # Save to tmp folder
             data_to_cache = {
+                "mrio": self.mrio,
                 "sector_table": self.sector_table,
                 'firm_table': self.firm_table,
                 'present_sectors': present_sectors,
@@ -317,17 +330,19 @@ class Model(object):
             self.sc_network = ScNetwork()
 
             logging.info('Households are selecting their retailers (domestic B2C flows and import B2C flows)')
-            for household in self.households.values():
+            for household in tqdm(self.households.values(), total=len(self.households)):
                 household.select_suppliers(self.sc_network, self.firms, self.countries,
-                                           self.parameters.force_local_retailer,
                                            self.parameters.weight_localization_household,
                                            self.parameters.nb_suppliers_per_input,
-                                           self.parameters.firm_data_type)
+                                           self.parameters.logistics['sector_types_to_shipment_method'],
+                                           import_label=self.mrio.import_label)
 
             logging.info('Exporters are being selected by purchasing countries (export B2B flows)')
             logging.info('and trading countries are being connected (transit flows)')
-            for country in self.countries.values():
-                country.select_suppliers(self.sc_network, self.firms, self.countries, self.sector_table)
+
+            for country in tqdm(self.countries.values(), total=len(self.countries)):
+                country.select_suppliers(self.sc_network, self.firms, self.countries, self.sector_table,
+                                         self.parameters.logistics['sector_types_to_shipment_method'])
 
             logging.info(
                 f'Firms are selecting their domestic and international suppliers (import B2B flows) '
@@ -335,12 +350,12 @@ class Model(object):
             )
 
             if self.parameters.firm_data_type in ["disaggregating IO", 'mrio']:
-                for firm in self.firms.values():
+                for firm in tqdm(self.firms.values(), total=len(self.firms)):
                     firm.select_suppliers(self.sc_network, self.firms, self.countries,
                                           self.parameters.nb_suppliers_per_input,
                                           self.parameters.weight_localization_firm,
-                                          self.parameters.firm_data_type,
-                                          import_code="IMP")
+                                          self.parameters.logistics['sector_types_to_shipment_method'],
+                                          import_label=self.mrio.import_label)
 
             elif self.parameters.firm_data_type == "supplier-buyer network":
                 for firm in self.firms.values():
@@ -399,7 +414,7 @@ class Model(object):
 
         else:
             logging.info('The supplier--buyer graph is being connected to the transport network')
-            logging.info('Each B2B and transit edge is being linked to a route of the transport network')
+            logging.info('Each B2B and transit edge_attr is being linked to a route of the transport network')
             logging.info('Routes for transit and import flows are being selected by trading countries')
             self.countries.choose_initial_routes(self.sc_network, self.transport_network,
                                                  self.parameters.capacity_constraint,
@@ -574,24 +589,24 @@ class Model(object):
 
         firm_id_to_position_mapping = {firm_id: i for i, firm_id in enumerate(firms.get_properties("pid"))}
 
-        # Collect households final demand. They buy only from firms.
+        # Collect households final demand
         for household in households.values():
             for retailer_id, quantity in household.purchase_plan.items():
                 if isinstance(retailer_id, int):  # we only consider purchase from firms, not from other countries
                     final_demand_vector[(firm_id_to_position_mapping[retailer_id], 0)] += quantity
 
-        # Collect country final demand. They buy from firms and countries.
-        # We need to filter the demand directed to firms only.
+        # Collect country final demand
         for country in countries.values():
             for supplier_id, quantity in country.purchase_plan.items():
                 if isinstance(supplier_id, int):  # we only consider purchase from firms, not from other countries
-                    final_demand_vector[(firm_id_to_position_mapping[retailer_id], 0)] += quantity
+                    final_demand_vector[(firm_id_to_position_mapping[supplier_id], 0)] += quantity
 
         return final_demand_vector
 
     def run_static(self):
         simulation = Simulation("initial_state")
         logging.info("Simulating the initial state")
+        # print("self.production_capacity", self.firms[0].production_capacity)
         self.run_one_time_step(time_step=0, current_simulation=simulation)
         return simulation
 
@@ -603,7 +618,6 @@ class Model(object):
         simulation = Simulation("criticality")
         logging.info("Simulating the initial state")
         self.run_one_time_step(time_step=0, current_simulation=simulation)
-
 
         # self.transport_network.compute_flow_per_segment(time_step=0)
         # Get disruptions
@@ -662,6 +676,7 @@ class Model(object):
         return simulation
 
     def run_one_time_step(self, time_step: int, current_simulation: Simulation):
+        # print("self.production_capacity", self.firms[0].production_capacity)
         self.transport_network.reset_current_loads(self.parameters.route_optimization_weight)
 
         available_transport_network = self.transport_network
@@ -672,12 +687,22 @@ class Model(object):
         if self.reconstruction_market:
             self.reconstruction_market.evaluate_demand_to_firm(self.firms)
             self.reconstruction_market.send_orders(self.firms)
+        # print("self.production_capacity", self.firms[0].production_capacity)
+        # print(time_step, "product_stock", self.firms[0].product_stock)
+        # print(time_step, "total_order", self.firms[0].total_order)
         self.firms.plan_production(self.sc_network, self.parameters.propagate_input_price_change)
+        # print(time_step, "production_target", self.firms[0].production_target)
         self.firms.plan_purchase(self.parameters.adaptive_inventories, self.parameters.adaptive_supplier_weight)
         self.households.send_purchase_orders(self.sc_network)
         self.countries.send_purchase_orders(self.sc_network)
         self.firms.send_purchase_orders(self.sc_network)
+        # com = self.sc_network[self.firms[0]][self.households['hh_0']]['object']
+        # print(time_step, "com.order", com.order)
+        # print(time_step, "production_target", self.firms[0].production_target)
+        # print(time_step, "current_production_capacity", self.firms[0].current_production_capacity)
         self.firms.produce()
+        # print(time_step, "production", self.firms[0].production)
+        # print(time_step, "product_stock", self.firms[0].product_stock)
         self.countries.deliver(self.sc_network, self.transport_network, available_transport_network,
                                self.parameters.sectors_no_transport_network,
                                self.parameters.rationing_mode, self.parameters.explicit_service_firm,
@@ -690,6 +715,10 @@ class Model(object):
                            self.parameters.transport_to_households, self.parameters.capacity_constraint,
                            self.parameters.monetary_units_in_model, self.parameters.cost_repercussion_mode,
                            self.parameters.price_increase_threshold, self.parameters.transport_cost_noise_level)
+        # print(self.firms[0].rationing)
+        # print(com.delivery)
+        # if time_step == 1:
+        #     exit()
         if self.reconstruction_market:
             self.reconstruction_market.distribute_new_capital(self.firms)
         # if congestion: TODO reevaluate modeling of congestion
@@ -705,7 +734,7 @@ class Model(object):
         #     for country in countries:
         #         country.add_congestion_malus2(sc_network, transport_network)
         #
-        if (current_simulation.type in ['initial_state', 'disruption']) and (time_step in [0, 1]):
+        if (current_simulation.type in ['initial_state', 'disruption', 'event']) and (time_step in [0, 1]):
             current_simulation.transport_network_data += self.transport_network.compute_flow_per_segment(time_step)
         # TODO: store transport data, depending on current_simulation type and time step
         # TODO: store supply chain data, depending on current_simulation type and time step
@@ -827,10 +856,20 @@ class Model(object):
         ]
 
     def export_transport_nodes_edges(self):
-        self.transport_nodes.to_file(
+        self.transport_nodes[['geometry', 'geometry_wkt', 'id', 'long', 'lat']].to_file(
             self.parameters.export_folder / 'transport_nodes.geojson',
             driver="GeoJSON", index=False)
-        self.transport_edges.to_file(
+        cost_columns = pd.concat([
+            pd.DataFrame(nx.get_edge_attributes(self.transport_network, "cost_per_ton_solid_bulk"),
+                         index=["cost_per_ton_solid_bulk"]).transpose(),
+            pd.DataFrame(nx.get_edge_attributes(self.transport_network, "cost_per_ton_liquid_bulk"),
+                         index=["cost_per_ton_liquid_bulk"]).transpose(),
+            pd.DataFrame(nx.get_edge_attributes(self.transport_network, "cost_per_ton_container"),
+                         index=["cost_per_ton_container"]).transpose(),
+            pd.DataFrame(nx.get_edge_attributes(self.transport_network, "id"), index=["id"]).transpose()
+        ], axis=1).set_index("id", drop=True)
+        self.transport_edges = pd.concat([self.transport_edges, cost_columns], axis=1)
+        self.transport_edges.drop(columns=['node_tuple']).to_file(
             self.parameters.export_folder / 'transport_edges.geojson',
             driver="GeoJSON", index=False)
 

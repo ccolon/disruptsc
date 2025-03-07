@@ -14,13 +14,14 @@ if TYPE_CHECKING:
     from disruptsc.agents.country import Countries
 
 
-def filter_sector(sector_table, cutoff_sector_output, cutoff_sector_demand,
+def filter_sector(mrio, cutoff_sector_output, cutoff_sector_demand,
                   combine_sector_cutoff, sectors_to_include, sectors_to_exclude, monetary_units_in_data):
     """Filter the sector table to sector whose output and/or final demand is larger than cutoff values
     In addition to filters, we can force to exclude or include some sectors
 
     Parameters
     ----------
+    mrio
     monetary_units_in_data
     sector_table : pandas.DataFrame
         Sector table
@@ -46,10 +47,10 @@ def filter_sector(sector_table, cutoff_sector_output, cutoff_sector_demand,
     list of filtered sectors
     """
     # Select sectors based on output
-    filtered_sectors_output = apply_sector_filter(sector_table, 'output', cutoff_sector_output,
-                                                  units_in_data=monetary_units_in_data)
-    filtered_sectors_demand = apply_sector_filter(sector_table, 'final_demand', cutoff_sector_demand,
-                                                  units_in_data=monetary_units_in_data)
+    filtered_sectors_output = mrio.filter_industries_by_output(cutoff_sector_output['value'], cutoff_sector_output['type'],
+                                                               cutoff_sector_output['unit'], monetary_units_in_data)
+    filtered_sectors_demand = mrio.filter_industries_by_final_demand(cutoff_sector_demand['value'], cutoff_sector_demand['type'],
+                                                               cutoff_sector_demand['unit'], monetary_units_in_data)
 
     # Merge both list
     if combine_sector_cutoff == 'and':
@@ -68,8 +69,9 @@ def filter_sector(sector_table, cutoff_sector_output, cutoff_sector_demand,
         filtered_sectors = list(set(sectors_to_include) & set(filtered_sectors))
 
     # Force to exclude some sectors
-    if sectors_to_exclude:
+    if isinstance(sectors_to_exclude, list):
         filtered_sectors = [sector for sector in filtered_sectors if sector not in sectors_to_exclude]
+
     if len(filtered_sectors) == 0:
         raise ValueError("We excluded all sectors")
 
@@ -151,7 +153,7 @@ def get_long_lat(nodes_ids: pd.Series, transport_nodes: geopandas.GeoDataFrame) 
     road_node_id_to_long_lat = od_point_table.set_index('id')[['long', 'lat']]
     return {
         'long': nodes_ids.map(road_node_id_to_long_lat['long']),
-        'lat': nodes_ids.map(road_node_id_to_long_lat['long'])
+        'lat': nodes_ids.map(road_node_id_to_long_lat['lat'])
     }
 
 

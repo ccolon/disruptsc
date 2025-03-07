@@ -9,7 +9,6 @@ from disruptsc.model.basic_functions import calculate_distance_between_agents, r
     generate_weights_from_list
 from disruptsc.agents.agent import Agent, Agents
 from disruptsc.network.commercial_link import CommercialLink
-from disruptsc.network.mrio import IMPORT_LABEL
 
 if TYPE_CHECKING:
     from disruptsc.network.transport_network import TransportNetwork
@@ -20,7 +19,7 @@ class Country(Agent):
 
     def __init__(self, pid=None, qty_sold=None, qty_purchased=None, od_point=None, region=None, long=None, lat=None,
                  purchase_plan=None, transit_from=None, transit_to=None, supply_importance=None,
-                 usd_per_ton=None, sector="IMP"):
+                 usd_per_ton=None, import_label="IMP"):
         # Intrinsic parameters
         super().__init__(
             agent_type="country",
@@ -30,8 +29,8 @@ class Country(Agent):
             long=long,
             lat=lat
         )
-        self.sector = IMPORT_LABEL
-        self.region_sector = pid + "_" + IMPORT_LABEL  # actually, we could specify the country...
+        self.sector = import_label
+        self.region_sector = pid + "_" + import_label  # actually, we could specify the country...
 
         # Parameter based on data
         self.usd_per_ton = usd_per_ton
@@ -87,7 +86,8 @@ class Country(Agent):
             self.purchase_plan[selling_country_pid] = quantity
             selling_country_object.clients[self.pid] = {'sector': self.pid, 'share': 0, 'transport_share': 0}
 
-    def select_suppliers(self, graph, firms, country_list, sector_table: pd.DataFrame):
+    def select_suppliers(self, graph, firms, country_list, sector_table: pd.DataFrame,
+                         sector_types_to_shipment_methods: dict):
         # Select other country as supplier: transit flows
         self.create_transit_links(graph, country_list)
 
@@ -134,15 +134,17 @@ class Country(Agent):
             )
             # Materialize the link
             for supplier_id in selected_supplier_ids:
-                # For each supplier, create an edge in the economic network
+                # For each supplier, create an edge_attr in the economic network
+                product_type = firms[supplier_id].sector_type
                 graph.add_edge(firms[supplier_id], self,
                                object=CommercialLink(
                                    pid=str(supplier_id) + '->' + str(self.pid),
                                    product=region_sectors,
-                                   product_type=firms[supplier_id].sector_type,
+                                   product_type=product_type,
                                    category="export",
                                    supplier_id=supplier_id,
                                    buyer_id=self.pid))
+                graph[firms[supplier_id]][self]['object'].determine_transportation_mode(sector_types_to_shipment_methods)
                 # Associate a weight
                 weight = supplier_weights.pop(0)
                 graph[firms[supplier_id]][self]['weight'] = weight
@@ -334,9 +336,8 @@ class Country(Agent):
             # If there is an alternative route which is not too expensive
             else:
                 transport_network.transport_shipment(commercial_link, capacity_constraint)
-                logging.info(f"{self.id_str().capitalize()}: found an alternative route "
-                             f" client {commercial_link.buyer_id}, it is costlier by "
-                             f"{100 * relative_price_change_transport:.0f}%, price is "
+                logging.debug(f"{self.id_str().capitalize()}: found an alternative route to {commercial_link.buyer_id}, "
+                             f"it is costlier by {100 * relative_price_change_transport:.0f}%, price is "
                              f"{commercial_link.price:.4f} instead of {commercial_link.eq_price:.4f}")
 
         # It there is no alternative route

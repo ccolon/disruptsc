@@ -1,33 +1,45 @@
 # Indicate the subfolder of the input folder that contains the input files
 logging_level: "info"
 filepaths:
-  "sector_table": "National/13sector_2016_sector_table.csv"
-  "tech_coef": "National/13sector_2016_tech_coef.csv"
-  "inventory_duration_targets": "National/13sector_inventory_targets.csv"
-  "region_data": "Subnational/13sector_2016_canton_data.geojson"
-  "region_table": "Network/canton_reference.geojson"
-  "mrio": "Network/mrio_2015_div_cutoff_by_4.csv"
-  "imports": "Trade/13sector_2016_import_table.csv"
-  "exports": "Trade/13sector_2016_export_table.csv"
-  "transit": "Trade/2016_transit_matrix.csv"
-  "roads_nodes": "Transport/roads_nodes.geojson"  # roads_nodes_ximena for TR2
+  "sector_table": "Network/59sector_2016_sector_table.csv"
+  "region_table": "Network/regions.geojson"
+#  "tech_coef": "National/13sector_2016_tech_coef.csv"
+#  "inventory_duration_targets": "Network/59sector_inventory_targets.csv"
+#  "region_data": "Subnational/13sector_2016_canton_data.geojson"
+#  "region_table": "Network/canton_reference.geojson"
+  "mrio": "Network/mrio_59sectors.csv"
+#  "imports": "Trade/13sector_2016_import_table.csv"
+#  "exports": "Trade/13sector_2016_export_table.csv"
+#  "transit": "Trade/2016_transit_matrix.csv"
+#  "roads_nodes": "Transport/roads_nodes.geojson"  # roads_nodes_ximena for TR2
   "roads_edges": "Transport/roads_edges.geojson"  # roads_edges_ximena for TR2
+  "airways_edges": "Transport/airways_edges.geojson"  # roads_edges_ximena for TR2
+  "waterways_edges": "Transport/waterways_edges.geojson"  # roads_edges_ximena for TR2
+  "maritime_edges": "Transport/maritime_edges.geojson"  # roads_edges_ximena for TR2
   "multimodal_edges": "Transport/multimodal_edges.geojson"  # multimodal_edges_ximena for TR2
 transport_modes: [roads, maritime, waterways, airways]
 transport_cost_data:
-  roads: surface-specific  # edge-specific for TR2 (Ximena's data), surface-specific for TR1 (OSM data)
+  roads: surface-specific  # edge_attr-specific for TR2 (Ximena's data), surface-specific for TR1 (OSM data)
 monetary_units_in_model: mUSD
-monetary_units_inputed: kUSD
+monetary_units_in_data: kUSD
 time_resolution: day
-inventory_duration_target: inputed
+inventory_duration_target: 2  # inputed
 inventory_duration_target_unit: week
-firm_data_type: "disaggregating IO"  #  'disaggregating IO' for GR-13 and GR-59, 'mrio' for TR-AGG
+firm_data_type: "mrio"  #  'disaggregating IO' for GR-13 and GR-59, 'mrio' for TR-AGG
 sectors_no_transport_network: ['utility', 'transport', 'trade', 'service']  # remove trade for mrio
-io_cutoff: 0.01  # 0.01
+io_cutoff: 0.1  # 0.01
+cutoff_sector_output:
+  'type': absolute
+  'value': 1.0
+  'unit': mUSD
+cutoff_sector_demand:
+  'type': absolute
+  'value': 100
+  'unit': kUSD
 utilization_rate: 0.8
 adaptive_inventories: True
 inventory_restoration_time: 30
-nb_suppliers_per_input: 2
+nb_suppliers_per_input: 1
 adaptive_supplier_weight: True
 price_increase_threshold: 2
 simulation_type: disruption  # initial_state, disruption
@@ -43,7 +55,10 @@ duration_dic:
 events:
   - type: capital_destruction
     start_time: 1
-    description_type: region_sector_file
-    region_sector_filepath: "Disruption/earthquake_capital_destruction.csv"
+#    description_type: region_sector_file
+    description_type: sectors_homogeneous
+    region_sectors: ['ECU_TRA', 'ECU_INM']
+    destroyed_capital: 3000.0
+#    region_sector_filepath: "Disruption/earthquake_capital_destruction.csv"
     unit: mUSD
     reconstruction_market: False

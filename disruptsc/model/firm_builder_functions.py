@@ -55,9 +55,9 @@ def create_firms(
              sector_type=firm_table.loc[i, "sector_type"],
              sector=firm_table.loc[i, "sector"],
              od_point=firm_table.loc[i, "od_point"],
+             usd_per_ton=firm_table.loc[i, "usd_per_ton"],
              importance=firm_table.loc[i, 'importance'],
              name=firm_table.loc[i, 'name'],
-             # geometry=firm_table.loc[i, 'geometry'],
              long=float(firm_table.loc[i, 'long']),
              lat=float(firm_table.loc[i, 'lat']),
              utilization_rate=utilization_rate,
@@ -335,12 +335,9 @@ def create_disag_firm_table(disag_data: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     return gpd.GeoDataFrame(disag_firm_table, crs=disag_data.crs)
 
 
-def define_firms_from_mrio(filepath_mrio: Path, filepath_sectors: Path, filepath_regions: Path, path_disag: Path,
+def define_firms_from_mrio(mrio: Mrio, filepath_sectors: Path, filepath_regions: Path, path_disag: Path,
                            transport_nodes: gpd.GeoDataFrame, io_cutoff: float, cutoff_firm_output: dict,
                            monetary_units_in_data: str) -> pd.DataFrame:
-    # Load mrio
-    mrio = Mrio.load_mrio_from_filepath(filepath_mrio, monetary_units_in_data)
-
     # Extract region_sectors
     firm_table = pd.DataFrame({
         'tuple': mrio.region_sectors,
@@ -391,12 +388,13 @@ def define_firms_from_mrio(filepath_mrio: Path, filepath_sectors: Path, filepath
     # Add importance
     duplicated_firms['importance'] = duplicated_firms['tuple'].map(tot_outputs_per_region_sector)
     check_successful_extraction(duplicated_firms, "importance")
-    logging.info(f'Number of firms added for internal flows: {duplicated_firms.shape}')
+    logging.info(f'Number of firms added for internal flows: {duplicated_firms.shape[0]}')
 
-    # Merge with the firm table, and divide the importance by 2 where we added a firm
-    firm_table = pd.concat([firm_table, duplicated_firms])
-    firm_table.loc[firm_table['tuple'].isin(where_to_add_one_firm), 'importance'] = \
-        firm_table.loc[firm_table['tuple'].isin(where_to_add_one_firm), 'importance'] / 2
+    if duplicated_firms.shape[0] > 0:
+        # Merge with the firm table, and divide the importance by 2 where we added a firm
+        firm_table = pd.concat([firm_table, duplicated_firms])
+        firm_table.loc[firm_table['tuple'].isin(where_to_add_one_firm), 'importance'] = \
+            firm_table.loc[firm_table['tuple'].isin(where_to_add_one_firm), 'importance'] / 2
 
     # Add id
     firm_table['id'] = range(firm_table.shape[0])
@@ -556,14 +554,12 @@ def load_technical_coefficients(
 
 def load_mrio_tech_coefs(
         firms: Firms,
-        filepath_mrio: Path,
+        mrio: Mrio,
         io_cutoff: float,
         monetary_units_in_data: str
 ):
     # Load tech coef
-    mrio = Mrio.load_mrio_from_filepath(filepath_mrio, monetary_units_in_data)
     region_sector_present = list(firms.get_properties('region_sector', output_type="set"))
-
     tech_coef_dict = mrio.get_tech_coef_dict(threshold=io_cutoff, selected_region_sectors=region_sector_present)
 
     # Inject into firms

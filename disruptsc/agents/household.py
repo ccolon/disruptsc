@@ -9,7 +9,6 @@ import logging
 
 from disruptsc.agents.agent import Agent, Agents
 from disruptsc.network.commercial_link import CommercialLink
-from disruptsc.network.mrio import IMPORT_LABEL
 
 if TYPE_CHECKING:
     from disruptsc.network.sc_network import ScNetwork
@@ -94,12 +93,12 @@ class Household(Agent):
         self.tot_spending = self.tot_consumption
         self.extra_spending_per_sector = {sector: 0 for sector in self.purchase_plan.keys()}
 
-    def identify_suppliers(self, region_sector: str, firms: "Firms", countries: "Countries",
+    def identify_suppliers_legacy(self, region_sector: str, firms: "Firms", countries: "Countries",
                            weight_localization: float, force_local: bool, nb_suppliers_per_input: int,
                            firm_data_type: str):
         if firm_data_type == "mrio":
             # if len(sector_id) == 3:  # case of countries
-            if IMPORT_LABEL in region_sector:  # case of countries
+            if "IMP" in region_sector:  # case of countries
                 supplier_type = "country"
                 selected_supplier_ids = [region_sector.split('_')[0]]  # for countries, the id is extracted from the name
                 supplier_weights = [1]
@@ -177,15 +176,14 @@ class Household(Agent):
         return supplier_type, selected_supplier_ids, supplier_weights
 
     def select_suppliers(self, graph: "ScNetwork", firms: "Firms", countries: "Countries",
-                         force_local: bool, weight_localization: float, nb_suppliers_per_input: int,
-                         firm_data_type: str):
+                         weight_localization: float, nb_suppliers_per_input: int,
+                         sector_types_to_shipment_methods: dict, import_label: str):
         # print(f"{self.id_str()}: consumption {self.sector_consumption}")
         for region_sector, amount in self.sector_consumption.items():
-            supplier_type, retailers, retailer_weights = self.identify_suppliers(region_sector, firms, countries,
-                                                                                 weight_localization,
-                                                                                 force_local,
+            supplier_type, retailers, retailer_weights = self.identify_suppliers(region_sector, firms,
                                                                                  nb_suppliers_per_input,
-                                                                                 firm_data_type)
+                                                                                 weight_localization,
+                                                                                 import_label)
 
             # For each of them, create commercial link
             for retailer_id in retailers:
@@ -201,7 +199,7 @@ class Household(Agent):
                     link_category = 'domestic_B2C'
                     product_type = firms[retailer_id].sector_type
 
-                # For each retailer, create an edge in the economic network
+                # For each retailer, create an edge_attr in the economic network
                 graph.add_edge(supplier_object, self,
                                object=CommercialLink(
                                    pid=str(retailer_id) + '->' + str(self.pid),
@@ -211,6 +209,7 @@ class Household(Agent):
                                    supplier_id=retailer_id,
                                    buyer_id=self.pid)
                                )
+                graph[supplier_object][self]['object'].determine_transportation_mode(sector_types_to_shipment_methods)
                 # Associate a weight in the commercial link, the household's purchase plan & retailer list, in the retailer's client list
                 weight = retailer_weights.pop()
                 graph[supplier_object][self]['weight'] = weight
@@ -226,9 +225,10 @@ class Household(Agent):
             try:
                 quantity_to_buy = self.purchase_plan[edge[0].pid]
             except KeyError:
-                print("Households: No purchase plan for supplier", edge[0].pid)
+                logging.warning("Households: No purchase plan for supplier", edge[0].pid)
                 quantity_to_buy = 0
-            graph[edge[0]][self]['object'].order = quantity_to_buy
+            commercial_link = graph[edge[0]][self]['object']
+            commercial_link.order = quantity_to_buy
 
     def select_supplier_from_list(self, firm_list: "Firms",
                                   nb_suppliers_to_choose: int, potential_firm_ids: list,

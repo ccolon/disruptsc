@@ -113,7 +113,7 @@ class TransportDisruption(dict):
 
     def __setitem__(self, key, value):
         if not isinstance(key, int):
-            raise KeyError("Key must be a int: the id of the transport edge to be disrupted")
+            raise KeyError("Key must be a int: the id of the transport edge_attr to be disrupted")
         if not isinstance(value, float):
             raise ValueError("Value must be a float: the fraction of lost capacity")
         super().__setitem__(key, value)
@@ -211,6 +211,28 @@ class CapitalDestruction(dict):
             recovery=None
         )
 
+    @classmethod
+    def from_sectors(cls, destroyed_amount: float, affected_region_sectors: list, firms: "Firms",
+                     input_units: str, model_units: str):
+        units = {"USD": 1, "kUSD": 1e3, "mUSD": 1e6}
+        destroyed_amount = destroyed_amount * units[input_units] / units[model_units]
+
+        total_capital = sum([firm.capital_initial
+                             for firm in firms.values() if firm.region_sector in affected_region_sectors])
+        if destroyed_amount > total_capital:
+            logging.warning("Destroyed capital larger than initial capital")
+            description = {firm_id: firm.capital_initial for firm_id, firm in firms.items()}
+
+        else:
+            description = {}
+            for firm_id, firm in firms.items():
+                weight = firm.capital_initial / total_capital
+                description[firm_id] = weight * destroyed_amount
+        return cls(
+            description=description,
+            recovery=None
+        )
+
     def implement(self, firm_list: "Firms", model: "Model"):
         for firm_id, destroyed_capital in self.items():
             firm_list[firm_id].incur_capital_destruction(destroyed_capital)
@@ -268,6 +290,18 @@ class DisruptionList(UserList):
                     if "reconstruction_market" in event.keys():
                         disruption_object.reconstruction_market = event["reconstruction_market"]
                     event_list += [disruption_object]
+                if event['description_type'] == "sectors_homogeneous":
+                    affected_region_sectors = [tuple(region_sector.split('_'))
+                                               for region_sector in event['region_sectors']]
+                    disruption_object = CapitalDestruction.from_sectors(event['destroyed_capital'],
+                                                                        affected_region_sectors,
+                                                                        firm_list, input_units=event['unit'],
+                                                                        model_units=model_unit)
+                    disruption_object.start_time = event["start_time"]
+                    if "reconstruction_market" in event.keys():
+                        disruption_object.reconstruction_market = event["reconstruction_market"]
+                    event_list += [disruption_object]
+
             if event['type'] == "transport_disruption":
                 if event['description_type'] == "edge_attributes":
                     disruption_object = TransportDisruption.from_edge_attributes(

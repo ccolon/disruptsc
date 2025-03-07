@@ -4,9 +4,14 @@ from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from typing import TYPE_CHECKING
 import logging
 
+import numpy as np
 import pandas
+from tqdm import tqdm
+
+from disruptsc.model.basic_functions import rescale_values, calculate_distance_between_agents
 
 if TYPE_CHECKING:
+    from disruptsc.agents.firm import Firms
     from disruptsc.network.sc_network import ScNetwork
     from disruptsc.network.transport_network import TransportNetwork
     from disruptsc.network.commercial_link import CommercialLink
@@ -14,9 +19,44 @@ if TYPE_CHECKING:
 EPSILON = 1e-6
 
 
+def choose_route(transport_network: "TransportNetwork", origin_node: int, destination_node: int,
+                 shipment_method: str, capacity_constraint: bool, transport_cost_noise_level: float):
+    """
+    The agent choose the delivery route
+
+    The only way re-implemented (vs. Cambodian version) ist that any mode can be chosen
+
+    Keeping here the comments of the Cambodian version
+    If the simple case in which there is only one accepted_logistics_modes
+    (as defined by the main parameter logistic_modes)
+    then it is simply the shortest_route using the appropriate weigh
+
+    If there are several accepted_logistics_modes, then the agent will investigate different route,
+    one per accepted_logistics_mode. They will then pick one, with a certain probability taking into account the
+    weight This more complex mode is used when, according to the capacity and cost data, all the exports or
+    imports are using one route, whereas in the data, we observe still some flows using another mode of
+    transport. So we use this to "force" some flow to take the other routes.
+    """
+    if capacity_constraint:
+        weight_considered = "cost_per_ton_with_capacity"
+    else:
+        weight_considered = "cost_per_ton"
+
+    route = transport_network.provide_shortest_route(origin_node,
+                                                     destination_node,
+                                                     shipment_method,
+                                                     route_weight=weight_considered,
+                                                     noise_level=transport_cost_noise_level)
+    # if route is None:
+    #     raise ValueError(f"Agent {self.pid} - No route found from {origin_node} to {destination_node}")
+    # else:
+    return route
+
+
 class Agent(object):
     def __init__(self, agent_type, pid, od_point=0, region=None, name=None,
                  long=None, lat=None):
+        self.region_sector = None
         self.agent_type = agent_type
         self.pid = pid
         self.od_point = od_point
@@ -91,13 +131,12 @@ class Agent(object):
                 f" It was supposed to be {commercial_link.delivery}.")
 
     def _get_route(self, transport_network, available_transport_network, destination_node,
-                   library_type, capacity_constraint, transport_cost_noise_level):
+                   shipment_method, library_type, capacity_constraint, transport_cost_noise_level):
 
         origin_node = self.od_point
         library_key = tuple(sorted((origin_node, destination_node)))
 
-        canonical_route = transport_network.shortest_path_library[library_type].get(library_key)
-
+        canonical_route = transport_network.shortest_path_library[library_type][shipment_method].get(library_key)
         if canonical_route:
             if origin_node == library_key[0]:
                 route = canonical_route
@@ -105,21 +144,23 @@ class Agent(object):
                 route = copy.deepcopy(canonical_route)
                 route.revert()
         else:
-            route = self.choose_route(
+            route = choose_route(
                 transport_network=available_transport_network,
                 origin_node=origin_node,
                 destination_node=destination_node,
+                shipment_method=shipment_method,
                 capacity_constraint=capacity_constraint,
                 transport_cost_noise_level=transport_cost_noise_level
             )
-
             if origin_node == library_key[0]:
-                transport_network.shortest_path_library[library_type][library_key] = route
+                transport_network.shortest_path_library[library_type][shipment_method][library_key] = route
             else:
                 canonical_route = copy.deepcopy(route)
                 canonical_route.revert()
-                transport_network.shortest_path_library[library_type][library_key] = canonical_route
-
+                transport_network.shortest_path_library[library_type][shipment_method][library_key] = canonical_route
+            # if 'airways' in route.transport_modes:
+            #     print(f"{self.id_str()} choose air to go to {destination_node}")
+            #     print(shipment_method, capacity_constraint, transport_cost_noise_level)
         return route
 
     def choose_initial_routes(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
@@ -137,7 +178,8 @@ class Agent(object):
                 continue
 
             destination_node = edge[1].od_point
-            route = self._get_route(transport_network, transport_network, destination_node,
+            shipment_method = sc_network[self][edge[1]]['object'].shipment_method
+            route = self._get_route(transport_network, transport_network, destination_node, shipment_method,
                                     'normal', capacity_constraint, transport_cost_noise_level)
 
             sc_network[self][edge[1]]['object'].store_route_information(route=route, main_or_alternative="main")
@@ -151,8 +193,8 @@ class Agent(object):
                            account_capacity: bool, transport_cost_noise_level: float):
 
         destination_node = commercial_link.route[-1][0]
-        route = self._get_route(transport_network, available_transport_network,
-                                destination_node, 'alternative', account_capacity, transport_cost_noise_level)
+        route = self._get_route(transport_network, available_transport_network, destination_node,
+                                commercial_link.shipment_method, 'alternative', account_capacity, transport_cost_noise_level)
 
         if route is not None:
             commercial_link.store_route_information(route=route, main_or_alternative="alternative")
@@ -172,7 +214,7 @@ class Agent(object):
         elif edge[1].agent_type == 'country':
             cond_to = (transport_modes['to'] == edge[1].pid)
         else:
-            raise ValueError("'edge[1]' must be a Firm or a Country")
+            raise ValueError("'edge_attr[1]' must be a Firm or a Country")
             # we have not implemented a "sector" condition
         return cond_from, cond_to
 
@@ -183,37 +225,6 @@ class Agent(object):
         new_load_in_usd = sc_network[self][edge[1]]['object'].order
         new_load_in_tons = Agent.transformUSD_to_tons(new_load_in_usd, monetary_unit_flow, self.usd_per_ton)
         transport_network.update_load_on_route(route, new_load_in_tons, capacity_constraint)
-
-    def choose_route(self, transport_network: "TransportNetwork", origin_node: int, destination_node: int,
-                     capacity_constraint: bool, transport_cost_noise_level: float):
-        """
-        The agent choose the delivery route
-
-        The only way re-implemented (vs. Cambodian version) ist that any mode can be chosen
-
-        Keeping here the comments of the Cambodian version
-        If the simple case in which there is only one accepted_logistics_modes
-        (as defined by the main parameter logistic_modes)
-        then it is simply the shortest_route using the appropriate weigh
-
-        If there are several accepted_logistics_modes, then the agent will investigate different route,
-        one per accepted_logistics_mode. They will then pick one, with a certain probability taking into account the
-        weight This more complex mode is used when, according to the capacity and cost data, all the exports or
-        imports are using one route, whereas in the data, we observe still some flows using another mode of
-        transport. So we use this to "force" some flow to take the other routes.
-        """
-        if capacity_constraint:
-            weight_considered = "capacity_weight"
-        else:
-            weight_considered = "weight"
-        route = transport_network.provide_shortest_route(origin_node,
-                                                         destination_node,
-                                                         route_weight=weight_considered,
-                                                         noise_level=transport_cost_noise_level)
-        # if route is None:
-        #     raise ValueError(f"Agent {self.pid} - No route found from {origin_node} to {destination_node}")
-        # else:
-        return route
 
     @staticmethod
     def check_route_availability(commercial_link, transport_network, which_route='main'):
@@ -243,6 +254,29 @@ class Agent(object):
         return res
 
     @staticmethod
+    def _get_probabilities(weights: list) -> np.ndarray:
+        """Normalize and return probability distribution."""
+        prob = np.array(weights)
+        return prob / prob.sum() if prob.sum() > 0 else np.zeros_like(prob)
+
+    @staticmethod
+    def _select_ids_and_weight(potential_suppliers, probabilities, nb_suppliers):
+        """
+        Select a given number of suppliers from potential suppliers based on their probabilities.
+        Returns selected supplier IDs and their corresponding weights.
+        """
+        selected_supplier_ids = np.random.choice(
+            potential_suppliers, size=nb_suppliers, p=probabilities, replace=False
+        ).tolist()
+
+        # Normalize weights for selected suppliers
+        selected_positions = [potential_suppliers.index(s) for s in selected_supplier_ids]
+        selected_weights = [probabilities[pos] for pos in selected_positions]
+        selected_weights = np.array(selected_weights) / sum(selected_weights)  # Normalize
+
+        return selected_supplier_ids, selected_weights.tolist()
+
+    @staticmethod
     def transformUSD_to_tons(monetary_flow, monetary_unit, usd_per_ton):
         if usd_per_ton == 0:
             return 0
@@ -255,6 +289,28 @@ class Agent(object):
             }
             factor = monetary_unit_factor[monetary_unit]
             return monetary_flow / (usd_per_ton / factor)
+
+    def identify_suppliers(self, region_sector: str, firms: "Firms", nb_suppliers_per_input: float,
+                           weight_localization: float, import_label: str):
+        if import_label in region_sector:
+            return "country", [region_sector.split('_')[0]], [1]
+
+        # Firm selection
+        potential_suppliers = [pid for pid, firm in firms.items() if firm.region_sector == region_sector]
+        if region_sector == self.region_sector and self.pid in potential_suppliers:
+            potential_suppliers.remove(self.pid)  # Remove self if needed
+
+        if not potential_suppliers:
+            raise ValueError(f"{self.id_str().capitalize()}: No supplier for {region_sector}")
+
+        importances = [firms[firm_pid].importance for firm_pid in potential_suppliers]
+        distances = rescale_values([calculate_distance_between_agents(self, firms[firm_id])
+                                    for firm_id in potential_suppliers])
+        weighted_importance = [importances[i] / distances[i]**weight_localization for i in range(len(importances))]
+
+        return "firm", *self._select_ids_and_weight(potential_suppliers,
+                                                    self._get_probabilities(weighted_importance),
+                                                    round(nb_suppliers_per_input))
 
     def reset_indicators(self):
         pass
@@ -351,7 +407,7 @@ class Agents(dict):
                 for future in futures:
                     future.result()
         else:
-            for agent in self.values():
+            for agent in tqdm(self.values(), total=len(self)):
                 agent.choose_initial_routes(sc_network, transport_network, capacity_constraint, explicit_service_firm,
                                             transport_to_households, sectors_no_transport_network,
                                             transport_cost_noise_level, monetary_units_in_model)

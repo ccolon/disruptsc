@@ -153,3 +153,13 @@ def find_nearest_node_id(transport_nodes, gdf: gpd.GeoDataFrame, node_type='any'
     distances, indices = kdtree.query(gdf_coords)
 
     return transport_nodes.iloc[indices.tolist()].index.values
+
+
+def mean_squared_distance(d1, d2):
+    # Use the common keys in both dictionaries
+    common_keys = set(d1.keys()) & set(d2.keys())
+    if not common_keys:
+        raise ValueError("No common keys between the dictionaries.")
+
+    squared_diffs = [(d1[k] - d2[k]) ** 2 for k in common_keys]
+    return math.sqrt(sum(squared_diffs) / len(squared_diffs)) / 1000

@@ -12,11 +12,14 @@ from disruptsc import paths
 EPSILON = 1e-6
 import_code = "IMP"
 
+
 @dataclass
 class Parameters:
     scope: str
     export_details: dict
-    specific_edges_to_monitor: dict
+    # specific_edges_to_monitor: dict
+    flow_data: dict
+    parameters_to_calibrate: dict
     logging_level: str
     transport_modes: list
     monetary_units_in_model: str
@@ -77,6 +80,7 @@ class Parameters:
     adaptive_supplier_weight: bool
     transport_cost_data: dict
     capital_to_value_added_ratio: float
+    logistics: dict
     export_folder: Path | str = ""
 
     @classmethod

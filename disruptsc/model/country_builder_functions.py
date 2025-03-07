@@ -140,16 +140,12 @@ def create_countries(filepath_imports: Path, filepath_exports: Path, filepath_tr
     return countries
 
 
-def create_countries_from_mrio(filepath_mrio: Path,
+def create_countries_from_mrio(mrio: Mrio,
                                transport_nodes: geopandas.GeoDataFrame,
                                filepath_regions: Path, filepath_sectors: Path,
                                time_resolution: str,
                                target_units: str, input_units: str) -> Countries:
     logging.info('Creating countries.')
-
-    # Load mrio
-    mrio = Mrio.load_mrio_from_filepath(filepath_mrio, input_units)
-
     # Extract countries from MRIO
     buying_countries = mrio.external_buying_countries
     selling_countries = mrio.external_selling_countries
@@ -158,7 +154,7 @@ def create_countries_from_mrio(filepath_mrio: Path,
     # Extract import, export, and transit matrices
     # importing_region_sectors = [tup for tup in mrio.columns if tup[1] not in ['Exports', 'final_demand']]
     import_table = rescale_monetary_values(
-        mrio.loc[(selling_countries, 'Imports'), mrio.region_sectors],
+        mrio.loc[(selling_countries, mrio.import_label), mrio.region_sectors],
         time_resolution=time_resolution,
         target_units=target_units,
         input_units=input_units
@@ -167,7 +163,7 @@ def create_countries_from_mrio(filepath_mrio: Path,
     import_table.columns = ['_'.join(tup) for tup in import_table.columns]
     # exporting_region_sectors = [tup for tup in mrio.index if tup[1] not in ['Imports', 'final_demand']]
     export_table = rescale_monetary_values(
-        mrio.loc[mrio.region_sectors, (buying_countries, 'Exports')],
+        mrio.loc[mrio.region_sectors, (buying_countries, mrio.export_label)],
         time_resolution=time_resolution,
         target_units=target_units,
         input_units=input_units
@@ -175,7 +171,7 @@ def create_countries_from_mrio(filepath_mrio: Path,
     export_table.columns = [tup[0] for tup in export_table.columns]
     export_table.index = ['_'.join(tup) for tup in export_table.index]
     transit_matrix = rescale_monetary_values(
-        mrio.loc[(selling_countries, 'Imports'), (buying_countries, 'Exports')],
+        mrio.loc[(selling_countries, mrio.import_label), (buying_countries, mrio.export_label)],
         time_resolution=time_resolution,
         target_units=target_units,
         input_units=input_units
@@ -240,7 +236,8 @@ def create_countries_from_mrio(filepath_mrio: Path,
                                      transit_from=transit_from,
                                      transit_to=transit_to,
                                      usd_per_ton=country_table.loc[country, 'country_usd_per_ton'],
-                                     supply_importance=supply_importance)
+                                     supply_importance=supply_importance,
+                                     import_label=mrio.import_label)
     logging.info('Countries created: ' + str(countries.get_properties('pid')))
 
     return countries, country_table

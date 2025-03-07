@@ -100,6 +100,7 @@ def cache_logistic_routes(data_dic):
 def load_cached_agent_data():
     pickle_filename = TMP_FOLDER / 'firms_households_countries_pickle'
     tmp_data = pickle.load(open(pickle_filename, 'rb'))
+    loaded_mrio = tmp_data['mrio']
     loaded_sector_table = tmp_data['sector_table']
     # loaded_present_sectors = tmp_data['present_sectors']
     # loaded_flow_types_to_export = tmp_data['flow_types_to_export']
@@ -112,7 +113,7 @@ def load_cached_agent_data():
     logging.info("Nb firms: " + str(len(loaded_firms)))
     logging.info("Nb households: " + str(len(loaded_households)))
     logging.info("Nb countries: " + str(len(loaded_countries)))
-    return loaded_sector_table, loaded_firms, loaded_firm_table, \
+    return loaded_mrio, loaded_sector_table, loaded_firms, loaded_firm_table, \
         loaded_households, loaded_household_table, loaded_countries
 
 

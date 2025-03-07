@@ -51,7 +51,7 @@ def create_households(
 
 
 def define_households_from_mrio(
-        filepath_mrio: Path,
+        mrio: Mrio,
         filepath_region_table: Path,
         transport_nodes: gpd.GeoDataFrame,
         time_resolution: str,
@@ -60,9 +60,6 @@ def define_households_from_mrio(
         final_demand_cutoff: dict,
         present_region_sectors: list
 ):
-    # Load mrio
-    mrio = Mrio.load_mrio_from_filepath(filepath_mrio, input_units)
-
     # Create household table
     household_table = gpd.read_file(filepath_region_table)
     household_table = household_table[household_table["region"].isin([tup[0] for tup in mrio.region_households])]
@@ -99,9 +96,10 @@ def define_households_from_mrio(
 
     # Step 2: Prepare an empty dictionary to store household demands
     household_sector_consumption = {}
-    cutoff = get_absolute_cutoff_value(final_demand_cutoff, input_units)
-    periods = {'day': 365, 'week': 52, 'month': 12, 'year': 1}
-    cutoff = cutoff / periods[time_resolution]
+    # cutoff = get_absolute_cutoff_value(final_demand_cutoff, input_units)
+    cutoff = rescale_monetary_values(final_demand_cutoff['value'], time_resolution=time_resolution,
+                                                   target_units=target_units,
+                                                   input_units=final_demand_cutoff['unit'])
     # Step 3: Iterate over households
     for _, household in household_table.iterrows():
 
@@ -111,37 +109,12 @@ def define_households_from_mrio(
         # Step 4: Get demand values for this region
         if household['region'] in final_demand.columns.get_level_values(0):  # Ensure region exists in df
             region_demand = final_demand.xs(household['region'], axis=1, level=0)  # Extract relevant demand for the region
-
             # Scale demand for this household
             household_demand = (region_demand * pop_proportion).stack().to_dict()
-
             # Store in final dictionary
             household_sector_consumption[household['id']] = {tup[0]+"_"+tup[1]: demand
                                                              for tup, demand in household_demand.items()
                                                              if demand > cutoff}
-
-
-    # # Identify final demand per region_sector
-    # consumption = mrio[mrio.region_households].copy(deep=True)   # TODO to put in the class Mrio
-    # consumption.index = ['_'.join(tup) for tup in consumption.index]
-    # consumption.columns = [tup[0] + '_households' for tup in mrio.region_households]
-    # consumption.columns = consumption.columns.map(household_table.set_index('name')['id'])
-    # consumption = rescale_monetary_values(
-    #     consumption,
-    #     time_resolution=time_resolution,
-    #     target_units=target_units,
-    #     input_units=input_units
-    # )
-    # household_sector_consumption = consumption.to_dict()
-    # cutoff = get_absolute_cutoff_value(final_demand_cutoff, input_units)
-    # household_sector_consumption = {
-    #     household: {
-    #         key: value
-    #         for key, value in sublist.items()
-    #         if value > cutoff
-    #     }
-    #     for household, sublist in household_sector_consumption.items()
-    # }
 
     # Info
     logging.info(f"Create {household_table.shape[0]} households in {household_table['od_point'].nunique()} od points")

@@ -3,7 +3,6 @@ logging_level: "info"
 
 filepaths:
   # Transport related data
-  "transport_parameters": "Transport/transport_parameters.yaml"
   "transport_modes": "Transport/transport_modes.csv"
   "roads_edges": "Transport/roads_edges.geojson"
   "multimodal_edges": "Transport/multimodal_edges.geojson"
@@ -11,6 +10,7 @@ filepaths:
   "airways_edges": "Transport/airways_edges.geojson"
   "railways_edges": "Transport/railways_edges.geojson"
   "waterways_edges": "Transport/waterways_edges.geojson"
+  "pipelines_edges": "Transport/pipelines_edges.geojson"
   # National data
   "sector_table": "National/sector_table.csv"
   "tech_coef": "National/tech_coef.csv"
@@ -25,7 +25,7 @@ filepaths:
   "firm_table": "Network/firm_table.csv"
   "region_table": "Network/region_table.geojson"
   "transaction_table": "Network/transaction_table.csv"
-  "disag": "Disag"
+  "disag": "Downscale"
   # MRIO
   "mrio": "Network/mrio.csv"
 
@@ -66,7 +66,7 @@ export_details:
 
   # Save aggregated time series
   # It creates an "aggregate_ts.csv" file in the output folder
-  # Each columns is a time series
+  # Each column is a time series
   # Exports:
   # - aggregate production
   # - total profit,
@@ -83,7 +83,7 @@ export_details:
 
 
   # Save the OD point table
-  # It creates a "odpoint_table.xlsx" file in the output folder
+  # It creates an "odpoint_table.xlsx" file in the output folder
   # It gives the properties of each OD point, along with production, sales to households, to other firms, exports
   "odpoint_table": True
 
@@ -102,25 +102,103 @@ export_details:
   "inventories": False
 
   # Save the combination of district and sector that are over the cutoffs value
-  # It creates an "filtered_district_sector.xlsx" file in the output folder
+  # It creates a "filtered_district_sector.xlsx" file in the output folder
   "district_sector_table": False
 
-  # Whether or not to export a csv summarizing some topological caracteristics of the supply chain network
+  # Whether to export a csv summarizing some topological caracteristics of the supply chain network
   "sc_network_summary": True
 
-# Specify edges on the transport network for which we want to observe the flows
-specific_edges_to_monitor:
-  'multimodal': []
-  'special': []
+
+# Logistic parameters
+logistics:
+  shipment_methods_to_transport_modes:  # shipment methods that can be used for each transport mode
+    solid_bulk: ["multimodal", 'roads', 'railways', 'maritime', 'waterways']  # no solid bulk on pipeline nor planes
+    liquid_bulk: ["multimodal", 'pipelines', 'roads', 'railways', 'maritime', 'waterways']  # no liquid bulk on planes
+    container: ["multimodal", 'roads', 'railways', 'maritime', 'waterways', 'airways']  # no container on pipelines
+  sector_types_to_shipment_method:  # shipment method to use for each sector type
+    agriculture: "solid_bulk"
+    mining: "solid_bulk"
+    oil_and_gas: "liquid_bulk"
+    default: "container"
+  speeds:  # km/hour
+    roads:
+      paved: 50
+      unpaved: 15
+    maritime: 35
+    airways: 800
+    railways: 50
+    waterways: 7
+    pipelines: 50
+  basic_cost:  # per ton*km
+    roads: 0.01
+    maritime: 0.001
+    airways: 1
+    railways: 0.005
+    waterways: 0.005
+    pipelines: 0.0001
+    multimodal: 0.01
+  loading_times: #hours
+    roads-maritime: 12
+    roads-railways: 12
+    roads-maritime-dom: 12
+    roads-airways: 12
+    roads-waterways: 12
+    railways-maritime: 12
+    roads-pipelines: 6
+    railways-pipelines: 6
+    maritime-pipelines: 6
+  loading_fees: #USD/ton
+    roads-maritime: 2.2
+    roads-maritime-dom: 2.2
+    roads-airways: 2.2
+    roads-waterways: 2.2
+    roads-railways: 2.2
+    railways-maritime: 2.2
+    roads-pipelines: 1.0
+    railways-pipelines: 1.0
+    maritime-pipelines: 1.0
+  border_crossing_fees: #USD/ton
+    roads: 27 #from JICA (2016) International Logistics Function Strengthening. See excel
+    maritime: 27 #from JICA (2016) International Logistics Function Strengthening. See excel
+    railways: 27 #from JICA (2016) International Logistics Function Strengthening. See excel
+    pipelines: 5
+  border_crossing_times: #hours
+    roads: 1.5 #from JICA (2016) International Logistics Function Strengthening. See excel
+    maritime: 2
+    multimodal: 2
+    railways: 2
+    pipelines: 0
+  cost_of_time: 0.49 #USD/hour
+  variability_coef: 0.44 #USD/hour
+  variability: #as fraction of travel time
+    roads:
+      paved: 0.01
+      unpaved: 0.075
+    maritime: 0.005
+    airways: 0.005
+    waterways: 0.02
+    railways: 0.02
+    multimodal:
+      roads-maritime: 0.1
+      roads-airways: 0.1
+      roads-waterways: 0.1
+      roads-railways: 0.1
+      railways-maritime: 0.1
+
+# Dictionary of edges, identified by their name, for which we have data on their flow, in monetary terms
+flow_data: {}
+
+# Dictionary of parameters to calibrate, with their extrema
+parameters_to_calibrate: {}
 
 # List of transport modes to include
-transport_modes: ['roads', "maritime"]
+transport_modes: ['roads', "maritime", "railways", "pipelines", "waterways"]
 
 # Monetary units to use in model. 'USD', 'kUSD', 'mUSD'
 monetary_units_in_model: "mUSD"
 
 # Monetary units in input files. 'USD', 'kUSD', 'mUSD'
-monetary_units_in_data: "USD"
+monetary_units_in_data: "mUSD"
 
 # Define the type of input data to calibrate the model
 # - 'disaggregating IO' uses national input-table (tech_coef) with business census (district_economic_data)
@@ -129,7 +207,7 @@ monetary_units_in_data: "USD"
 firm_data_type: "disaggregating IO"
 
 # Define how cost_per_ton are calculated for the different transport mode
-# - edge-specific: there is a column called transport_cost_per_tonkm in the road edges layer
+# - edge_attr-specific: there is a column called transport_cost_per_tonkm in the road edges layer
 # - surface-specific: for roads, depends on whether paved or not
 # - mode-specific: there is a parameter called transport_cost_per_tonkm in the transport_params.yaml
 transport_cost_data:
@@ -187,7 +265,7 @@ cutoff_firm_output:
 
 # Filter out region_sector to households links if purchase is below that cutoff value
 cutoff_household_demand:
-  'type': 'absolute'
+  'type': 'absolute'  # only absolute works
   'value': 10
   "unit": "kUSD"
 

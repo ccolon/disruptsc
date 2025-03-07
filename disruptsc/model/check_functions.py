@@ -74,16 +74,16 @@ def compare_production_purchase_plans(firms, countries, households):
 #         if firm.sector not in qty_delivered_by_firm_per_sector.keys():
 #             qty_delivered_by_firm_per_sector[firm.sector] = 0
 #
-#         for edge in G.out_edges(firm):
+#         for edge_attr in G.out_edges(firm):
 #             qty_delivered_by_firm_per_sector[firm.sector] += \
-#                 G[firm][edge[1]]['object'].delivery
+#                 G[firm][edge_attr[1]]['object'].delivery
 #
 #         qty_bought_by_household_per_sector = {}
-#         for edge in G.in_edges(households):
-#             if edge[0].sector not in qty_bought_by_household_per_sector.keys():
-#                 qty_bought_by_household_per_sector[edge[0].sector] = 0
+#         for edge_attr in G.in_edges(households):
+#             if edge_attr[0].sector not in qty_bought_by_household_per_sector.keys():
+#                 qty_bought_by_household_per_sector[edge_attr[0].sector] = 0
 #             qty_bought_by_household_per_sector[firm.sector] += \
-#                 G[edge[0]][households]['object'].delivery
+#                 G[edge_attr[0]][households]['object'].delivery
 #
 #     qty_ordered_by_firm_per_sector = {}
 #     for firm in firm_list:

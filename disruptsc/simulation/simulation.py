@@ -34,7 +34,7 @@ class Simulation(object):
         flow_df = flow_df[flow_df['flow_total'] > 0]
         for time_step in flow_df['time_step'].unique():
             transport_edges_with_flows = pd.merge(
-                transport_edges, flow_df[flow_df['time_step'] == time_step],
+                transport_edges.drop(columns=["node_tuple"]), flow_df[flow_df['time_step'] == time_step],
                 how="left", on="id")
             transport_edges_with_flows.to_file(export_folder / f"transport_edges_with_flows_{time_step}.geojson",
                                                driver="GeoJSON", index=False)
@@ -79,7 +79,21 @@ class Simulation(object):
         #     household_loss = self.calculate_household_loss()
         #     country_loss = self.calculate_country_loss()
 
+    def get_flow_specific_edges(self, edge_names: list, transport_edges: gpd.GeoDataFrame, usd_or_ton: str = 'usd'):
+        flow_df = pd.DataFrame(self.transport_network_data)
+        specific_edges_id_to_name = transport_edges.loc[transport_edges['name'].isin(edge_names), ['name', 'id']]
+        specific_edges_id_to_name = specific_edges_id_to_name.set_index('id')['name'].to_dict()
+        flow_df = flow_df[flow_df['id'].isin(list(specific_edges_id_to_name.keys()))].copy()
+        flow_df['name'] = flow_df['id'].map(specific_edges_id_to_name)
+        col_to_report = 'flow_total' if usd_or_ton == 'usd' else 'flow_total_tons'
+        return flow_df.set_index('name')[col_to_report].to_dict()
 
+    def report_annual_flow_specific_edges(self, edge_names: list, transport_edges: gpd.GeoDataFrame,
+                                          time_resolution: str, usd_or_ton: str = 'usd'):
+        flows = self.get_flow_specific_edges(edge_names, transport_edges, usd_or_ton)
+        periods = {'day': 365, 'week': 52, 'month': 12, 'year': 1}
+        flows = pd.Series(flows) * periods[time_resolution]
+        return flows.to_dict()
 
     @staticmethod
     def summarize_results_one_household(household_result_table_one_household):
@@ -94,11 +108,15 @@ class Simulation(object):
         result.columns = ['time_step', 'sector', 'loss']
         return result
 
-    def calculate_household_loss(self):
+    def calculate_household_loss(self, per_region=False):
         household_result_table = pd.DataFrame(self.household_data)
         loss_per_region_sector_time = household_result_table.groupby('household').apply(
             self.summarize_results_one_household).reset_index().drop(columns=['level_1'])
-        return loss_per_region_sector_time['loss'].sum()
+        loss_per_region_sector_time['region'] = loss_per_region_sector_time['sector'].str.extract(r'([A-Z]*)_')
+        if per_region:
+            return loss_per_region_sector_time.groupby('region')['loss'].sum().to_dict()
+        else:
+            return loss_per_region_sector_time['loss'].sum()
 
     def calculate_country_loss(self):
         country_result_table = pd.DataFrame(self.country_data)

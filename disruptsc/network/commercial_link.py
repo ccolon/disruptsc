@@ -22,8 +22,9 @@ class CommercialLink(object):
         self.supplier_id = supplier_id
         self.buyer_id = buyer_id
         self.eq_price = 1
-        self.possible_transport_modes = "any"
+        self.shipment_method = "solid_bulk"
         self.essential = essential
+
 
         # Variable
         self.current_route = 'main'
@@ -38,6 +39,12 @@ class CommercialLink(object):
         self.alternative_route_cost_per_ton = 0
         self.price = 1
         self.fulfilment_rate = 1  # ratio deliver / order
+
+    def determine_transportation_mode(self, sector_types_to_shipment_method: dict):
+        if self.product_type in sector_types_to_shipment_method.keys():
+            self.shipment_method = sector_types_to_shipment_method[self.product_type]
+        else:
+            self.shipment_method = sector_types_to_shipment_method['default']
 
     def print_info(self):
         # print("\nCommercial Link from "+str(self.supplier_id)+" to "+str(self.buyer_id)+":")
