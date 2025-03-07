@@ -1,0 +1,84 @@
+Number,Code,Code_Num,Description
+1,pdr,0113,Rice
+2,wht,0111,Wheat
+3,gro,0112,Maize (corn)
+3,gro,0114,Sorghum
+3,gro,0115,Barley
+3,gro,0116,Rye
+3,gro,0117,Oats
+3,gro,0118,Millets
+3,gro,0119,Other cereals
+4,v_f,012,Vegetables
+4,v_f,013,Fruit and nuts
+4,v_f,015,Edible roots and tubers with high starch or inulin content
+4,v_f,017,Pulses (dried leguminous vegetables)
+5,osd,014,Oil seeds and oleaginous fruit
+6,c_b,018,Sugar crops
+7,pfb,0192,Fibre crops
+8,ocr,016,"Stimulant, spice and aromatic crops"
+8,ocr,0191,Forage products
+8,ocr,0193,"Plants and parts of plants used primarily in perfumery, in pharmacy, or for insecticidal, fungicidal or similar purposes"
+8,ocr,0194,Beet seeds (excluding sugar beet seeds) and seeds of forage plants
+8,ocr,0195,"Natural rubber in primary forms or in plates, sheets or strip"
+8,ocr,0196,Living plants; cut flowers and flower buds; flower seeds
+8,ocr,0197,Unmanufactured tobacco
+8,ocr,0199,Other raw vegetable materials nec
+9,ctl,0211,"Bovine animals, live"
+9,ctl,0212,Other ruminants
+9,ctl,0213,Horses and other equines
+9,ctl,02411,Bovine semen
+10,oap,0214,Swine / pigs
+10,oap,0215,Poultry
+10,oap,0219,Other live animals
+10,oap,023,"Eggs of hens or other birds in shell, fresh"
+10,oap,02419,"Semen, n.e.c"
+10,oap,0291,Natural honey
+10,oap,0292,"Snails, fresh, chilled, frozen, dried, salted or in brine, except sea snails"
+10,oap,0293,Edible products of animal origin n.e.c.
+10,oap,0295,"Hides, skins and furskins, raw"
+10,oap,0296,"Insect waxes and spermaceti, whether or not refined or coloured"
+11,rmk,022,Raw milk
+12,wol,0294,Raw animal materials used in textiles
+13,frs,03,Forestry and logging products
+19,cmt,21111,"Meat of cattle, fresh or chilled"
+19,cmt,21112,"Meat of buffalo, fresh or chilled"
+19,cmt,21115,"Meat of sheep, fresh or chilled"
+19,cmt,21116,"Meat of goat, fresh or chilled"
+19,cmt,21117,"Meat of camels and camelids, fresh or chilled"
+19,cmt,21118,"Meat of horses and other equines, fresh or chilled"
+19,cmt,21119,"Other meat of mammals, fresh or chilled"
+19,cmt,2113,"Meat of mammals, frozen"
+19,cmt,2115,"Edible offal of mammals, fresh, chilled or frozen"
+20,omt,21113,"Meat of pigs, fresh or chilled"
+20,omt,21114,"Meat of rabbits and hares, fresh or chilled"
+20,omt,2112,"Meat of poultry, fresh or chilled"
+20,omt,2114,"Meat of poultry, frozen"
+20,omt,2116,"Edible offal of poultry, fresh, chilled or frozen"
+20,omt,2117,"Other meat and edible offal, fresh, chilled or frozen"
+20,omt,2118,"Preserves and preparations of meat, meat offal or blood"
+20,omt,2119,"Flours, meals and pellets of meat or meat offal, inedible; greaves"
+21,vol,215,Animal fats
+21,vol,216,Vegetable oils
+21,vol,217,Margarine and similar preparations
+21,vol,218,Cotton linters
+21,vol,219,"Oil-cake and other residues resulting from the extraction of vegetable fats or oils; vegetable waxes, except triglycerides; residues resulting from the treatment of fatty substances or waxes"
+22,mil,22,Dairy products
+23,pcr,2316,"Rice, semi- or wholly milled, or husked"
+24,sgr,235,Sugar and molasses
+25,ofd,212,"Prepared and preserved fish, crustaceans, molluscs and other aquatic invertebrates"
+25,ofd,213,"Prepared and preserved vegetables, pulses and potatoes"
+25,ofd,214,Prepared and preserved fruits and nuts
+25,ofd,2311,Wheat and meslin flour
+25,ofd,2312,Other cereal flours
+25,ofd,2313,"Groats, meal and pellets of wheat and other cereals"
+25,ofd,2314,Other cereal grain products (including corn flakes)
+25,ofd,2317,Other vegetable flours and meals
+25,ofd,2318,Mixes and doughs for the preparation of bakers' wares
+25,ofd,232,Starches and starch products; sugars and sugar syrups n.e.c.
+25,ofd,233,Preparations used in animal feeding; lucerne (alfalfa) meal and pellets
+25,ofd,234,Bakery products
+25,ofd,236,"Cocoa, chocolate and sugar confectionery"
+25,ofd,237,"Macaroni, noodles, couscous and similar farinaceous products"
+25,ofd,239,Food products n.e.c.
+26,b_t,24,Beverages
+26,b_t,25,Tobacco products
