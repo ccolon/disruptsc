@@ -20,6 +20,7 @@ profiler.enable()
 
 parser = argparse.ArgumentParser(description="Mix positional and keyword arguments")
 parser.add_argument("scope", type=str, help="Scope")
+parser.add_argument("--cache", type=str, help="Caching behavior", required=False)
 parser.add_argument("--duration", type=int, help="Disruption duration", required=False)
 args = parser.parse_args()
 
@@ -30,11 +31,12 @@ t0 = time.time()
 #check_script_call(sys.argv)
 
 # Retrieve scope
-scope = sys.argv[1]
+# scope = sys.argv[1]
+scope = args.scope
 logging.info(f'Simulation starting for {scope}')
 
 # Generate cache parameters
-cache_parameters = generate_cache_parameters_from_command_line_argument(sys.argv[:1])
+cache_parameters = generate_cache_parameters_from_command_line_argument(args.cache)
 
 # Import parameters
 parameters = Parameters.load_parameters(paths.PARAMETER_FOLDER, scope)

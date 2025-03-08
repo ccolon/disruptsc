@@ -5,7 +5,7 @@ import threading
 from disruptsc.paths import TMP_FOLDER
 
 
-def generate_cache_parameters_from_command_line_argument(arguments: list[str]):
+def generate_cache_parameters_from_command_line_argument(argument: str):
     # Generate cache parameters
     cache_parameters: dict[str, bool] = {
         "transport_network": False,
@@ -13,7 +13,7 @@ def generate_cache_parameters_from_command_line_argument(arguments: list[str]):
         "sc_network": False,
         "logistic_routes": False
     }
-    if len(arguments) > 2:
+    if isinstance(argument, str):
         accepted_script_arguments: list[str] = [
             'same_transport_network_new_agents',
             'same_agents_new_sc_network',
@@ -23,7 +23,6 @@ def generate_cache_parameters_from_command_line_argument(arguments: list[str]):
             'same_sc_network_new_transport_network',
             'new_agents_same_all'
         ]
-        argument = arguments[2]
         if argument not in accepted_script_arguments:
             raise ValueError(f"Argument {argument} is not valid.\
                 Possible values are: " + ','.join(accepted_script_arguments))
