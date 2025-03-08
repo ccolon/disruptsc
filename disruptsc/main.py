@@ -5,6 +5,7 @@ import logging
 import pstats
 import sys
 import time
+import argparse
 from datetime import datetime
 
 import paths
@@ -17,21 +18,29 @@ from model.model import Model
 profiler = cProfile.Profile()
 profiler.enable()
 
+parser = argparse.ArgumentParser(description="Mix positional and keyword arguments")
+parser.add_argument("scope", type=str, help="Scope")
+parser.add_argument("--duration", type=int, help="Disruption duration", required=False)
+args = parser.parse_args()
+
 # Start run
 t0 = time.time()
 
 # Check that the script is called correctly
-check_script_call(sys.argv)
+#check_script_call(sys.argv)
 
 # Retrieve scope
 scope = sys.argv[1]
 logging.info(f'Simulation starting for {scope}')
 
 # Generate cache parameters
-cache_parameters = generate_cache_parameters_from_command_line_argument(sys.argv)
+cache_parameters = generate_cache_parameters_from_command_line_argument(sys.argv[:1])
 
 # Import parameters
 parameters = Parameters.load_parameters(paths.PARAMETER_FOLDER, scope)
+
+if args.duration:
+    parameters.criticality['duration'] = args.duration
 
 # Create the output folder and adjust logging behavior
 if parameters.export_files and parameters.simulation_type != "criticality":
@@ -75,7 +84,7 @@ elif parameters.simulation_type == "criticality":
     with open(output_file, mode="w", newline="") as file:
         writer = csv.writer(file)
         region_household_loss_labels = ['household_loss_' + region for region in model.mrio.regions]
-        writer.writerow(["edge_attr", "household_loss", "country_loss"] + region_household_loss_labels)  # Writing the header
+        writer.writerow(["edge_attr", "duration", "household_loss", "country_loss"] + region_household_loss_labels)  # Writing the header
     model.save_pickle(suffix)
     edges_to_test = parameters.criticality['edges']
     disruption_duration = parameters.criticality['duration']
@@ -93,7 +102,7 @@ elif parameters.simulation_type == "criticality":
         with open(output_file, mode="a", newline="") as file:
             writer = csv.writer(file)
             household_loss_per_region_values = [household_loss_per_region[region] for region in model.mrio.regions]
-            writer.writerow([edge, household_loss, country_loss] + household_loss_per_region_values)
+            writer.writerow([edge, parameters.criticality['duration'], household_loss, country_loss] + household_loss_per_region_values)
 
 else:
     raise ValueError('Unimplemented simulation type chosen')
