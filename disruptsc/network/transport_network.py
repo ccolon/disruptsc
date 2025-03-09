@@ -197,7 +197,7 @@ class TransportNetwork(nx.Graph):
     def disrupt_one_edge(self, edge, capacity_reduction: float, duration: int):
         logging.info(f"Road edge_attr {self[edge[0]][edge[1]]['id']} gets disrupted for {duration} time steps, "
                      f"capacity reduction is {capacity_reduction}")
-        self[edge[0]][edge[1]]['disruption_duration'] = capacity_reduction
+        self[edge[0]][edge[1]]['disruption_duration'] = duration
 
     def update_road_disruption_state(self):
         """

@@ -150,7 +150,7 @@ class TransportDisruption(dict):
         for edge in transport_network.edges:
             edge_id = transport_network[edge[0]][edge[1]]['id']
             if edge_id in self.keys():
-                transport_network.disrupt_one_edge(edge, self.recovery.duration, self[edge_id])
+                transport_network.disrupt_one_edge(edge, self[edge_id], self.recovery.duration)
 
 
 class CapitalDestruction(dict):
