@@ -266,7 +266,8 @@ class Agent(object):
         Returns selected supplier IDs and their corresponding weights.
         """
         selected_supplier_ids = np.random.choice(
-            potential_suppliers, size=nb_suppliers, p=probabilities, replace=False
+            potential_suppliers, size=min(nb_suppliers, len(potential_suppliers)),
+            p=probabilities, replace=False
         ).tolist()
 
         # Normalize weights for selected suppliers
