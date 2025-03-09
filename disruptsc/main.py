@@ -87,21 +87,23 @@ elif parameters.simulation_type == "criticality":
     with open(output_file, mode="w", newline="") as file:
         writer = csv.writer(file)
         region_household_loss_labels = ['household_loss_' + region for region in model.mrio.regions]
-        writer.writerow(["edge_attr", "duration", "household_loss", "country_loss"] + region_household_loss_labels)  # Writing the header
+        writer.writerow(["edge_attr", parameters.criticality['attribute'], "duration", "household_loss", "country_loss"] + region_household_loss_labels)  # Writing the header
     model.save_pickle(suffix)
 
     if parameters.criticality['attribute'] == "id":
         edges_to_test = parameters.criticality['edges']
+        edges_to_test = {i: i for i in edges_to_test}
     else:
         # flat_list = list(chain.from_iterable(parameters.criticality['edges']
         #                                      if isinstance(parameters.criticality['edges'], list)
         #                                      else [parameters.criticality['edges']]))
         condition = model.transport_edges[parameters.criticality['attribute']].isin(parameters.criticality['edges'])
-        edges_to_test = model.transport_edges.sort_values('id').loc[condition, 'id'].to_list()
+        edges_to_test = model.transport_edges.sort_values('id')[condition]
+        edges_to_test = edges_to_test.set_index('id')[parameters.criticality['attribute']].to_dict()
     disruption_duration = parameters.criticality['duration']
 
     logging.info(f"Criticality simulation of {len(edges_to_test)} edges")
-    for edge in edges_to_test:
+    for edge, attribute in edges_to_test:
         model = load_cached_model(suffix)
         simulation = model.run_criticality_disruption(edge, disruption_duration)
         household_loss_per_region = simulation.calculate_household_loss(per_region=True)
@@ -114,7 +116,7 @@ elif parameters.simulation_type == "criticality":
         with open(output_file, mode="a", newline="") as file:
             writer = csv.writer(file)
             household_loss_per_region_values = [household_loss_per_region[region] for region in model.mrio.regions]
-            writer.writerow([edge, parameters.criticality['duration'], household_loss, country_loss] + household_loss_per_region_values)
+            writer.writerow([edge, attribute, parameters.criticality['duration'], household_loss, country_loss] + household_loss_per_region_values)
 
 else:
     raise ValueError('Unimplemented simulation type chosen')
