@@ -865,7 +865,7 @@ class Firm(Agent):
 
             # If the increase in transport is larger than 2, then we do not deliver the goods
             if relative_price_change_transport > price_increase_threshold:
-                logging.info(f"{self.id_str()}: found an alternative route to {commercial_link.buyer_id} "
+                logging.debug(f"{self.id_str()}: found an alternative route to {commercial_link.buyer_id} "
                              f"but it is costlier by {100 * relative_price_change_transport:.2f}%, "
                              f"price would be {commercial_link.price:.4f} "
                              f"instead of {commercial_link.eq_price * (1 + self.delta_price_input):.4f}"
@@ -878,14 +878,14 @@ class Firm(Agent):
                 transport_network.transport_shipment(commercial_link, capacity_constraint)
                 self.product_stock -= commercial_link.delivery
                 # Print information
-                logging.info(f"Firm {self.pid}: found an alternative route to {commercial_link.buyer_id}, "
+                logging.debug(f"Firm {self.pid}: found an alternative route to {commercial_link.buyer_id}, "
                              f"it is costlier by {100 * relative_price_change_transport:.2f}%, "
                              f"price is {commercial_link.price:.4f} "
                              f"instead of {commercial_link.eq_price * (1 + self.delta_price_input):.4f}"
 )
         # If we do not find a route, then we do not deliver
         else:
-            logging.info(f"{self.id_str()}: because of disruption, there is no route between me "
+            logging.debug(f"{self.id_str()}: because of disruption, there is no route between me "
                          f"and agent {commercial_link.buyer_id}")
             # We do not write how the input price would have changed
             commercial_link.price = commercial_link.eq_price
