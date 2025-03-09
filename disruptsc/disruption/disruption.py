@@ -1,3 +1,4 @@
+from itertools import chain
 from typing import TYPE_CHECKING
 
 import logging
@@ -304,10 +305,13 @@ class DisruptionList(UserList):
 
             if event['type'] == "transport_disruption":
                 if event['description_type'] == "edge_attributes":
+                    flat_list = list(chain.from_iterable(event['values']
+                                            if isinstance(event['values'], list)
+                                            else [event['values']]))
                     disruption_object = TransportDisruption.from_edge_attributes(
                         edges=edges,
                         attribute=event['attribute'],
-                        values=event['values']
+                        values=flat_list
                     )
                     disruption_object.start_time = event["start_time"]
                     disruption_object.recovery = Recovery(duration=event['duration'], shape="threshold")

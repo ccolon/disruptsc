@@ -7,6 +7,7 @@ import sys
 import time
 import argparse
 from datetime import datetime
+from itertools import chain
 
 import paths
 from disruptsc.model.basic_functions import mean_squared_distance
@@ -88,9 +89,18 @@ elif parameters.simulation_type == "criticality":
         region_household_loss_labels = ['household_loss_' + region for region in model.mrio.regions]
         writer.writerow(["edge_attr", "duration", "household_loss", "country_loss"] + region_household_loss_labels)  # Writing the header
     model.save_pickle(suffix)
-    edges_to_test = parameters.criticality['edges']
+
+    if parameters.criticality['attribute'] == "id":
+        edges_to_test = parameters.criticality['edges']
+    else:
+        # flat_list = list(chain.from_iterable(parameters.criticality['edges']
+        #                                      if isinstance(parameters.criticality['edges'], list)
+        #                                      else [parameters.criticality['edges']]))
+        condition = model.transport_edges[parameters.criticality['attribute']].isin(parameters.criticality['edges'])
+        edges_to_test = model.transport_edges.sort_values('id').loc[condition, 'id'].to_list()
     disruption_duration = parameters.criticality['duration']
 
+    logging.info(f"Criticality simulation of {len(edges_to_test)} edges")
     for edge in edges_to_test:
         model = load_cached_model(suffix)
         simulation = model.run_criticality_disruption(edge, disruption_duration)
