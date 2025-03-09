@@ -627,9 +627,11 @@ class Model(object):
         if len(self.disruption_list) == 0:
             raise ValueError("No disruption could be read")
         logging.info(f"{len(self.disruption_list)} disruption(s) will occur")
+        self.disruption_list.log_info()
 
         # Adjust t_final
-        t_final = self.parameters.duration_dic[self.disruption_list.end_time]
+        t_final = self.parameters.criticality['duration'] * 2
+        # t_final = self.parameters.duration_dic[self.disruption_list.end_time]
         logging.info('Simulation will last at max ' + str(t_final) + ' time steps.')
 
         logging.info("Starting time loop")

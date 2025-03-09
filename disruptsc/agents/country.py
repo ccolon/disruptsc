@@ -325,7 +325,7 @@ class Country(Agent):
 
             # If there is an alternative route, but it is too expensive
             if relative_price_change_transport > price_increase_threshold:
-                logging.info(f"{self.id_str()}: found an alternative route to {commercial_link.buyer_id}, "
+                logging.debug(f"{self.id_str()}: found an alternative route to {commercial_link.buyer_id}, "
                              f"but it is costlier by {100 * relative_price_change_transport:.2f}%, "
                              f"price would be {commercial_link.price:.4f} instead of {commercial_link.eq_price:.4f} "
                              f"so I decide not to send it now.")
@@ -342,7 +342,7 @@ class Country(Agent):
 
         # It there is no alternative route
         else:
-            logging.info(f"{self.id_str().capitalize()}: because of disruption, there is " +
+            logging.debug(f"{self.id_str().capitalize()}: because of disruption, there is " +
                          f"no route between me and client {commercial_link.buyer_id}")
             # We do not write how the input price would have changed
             commercial_link.price = commercial_link.eq_price
