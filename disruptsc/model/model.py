@@ -630,7 +630,7 @@ class Model(object):
         self.disruption_list.log_info()
 
         # Adjust t_final
-        t_final = self.parameters.criticality['duration'] * 2
+        t_final = self.parameters.criticality['duration'] + 3
         # t_final = self.parameters.duration_dic[self.disruption_list.end_time]
         logging.info('Simulation will last at max ' + str(t_final) + ' time steps.')
 
