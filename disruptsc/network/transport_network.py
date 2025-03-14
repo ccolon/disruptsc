@@ -1,3 +1,4 @@
+import copy
 import math
 from typing import TYPE_CHECKING
 
@@ -9,6 +10,7 @@ import logging
 
 from disruptsc.model.basic_functions import add_or_append_to_dict
 from disruptsc.network.route import Route
+from disruptsc.parameters import TRANSPORT_MALUS
 
 if TYPE_CHECKING:
     from disruptsc.network.commercial_link import CommercialLink
@@ -85,18 +87,20 @@ class TransportNetwork(nx.Graph):
         self.add_edge(end_ids[0], end_ids[1], **edge_data)
         # print("edge_attr id:", edge_id, "| end1:", end_ids[0], "| end2:", end_ids[1], "| nb edges:", len(self.edges))
         # print(self.edges)
-        self[end_ids[0]][end_ids[1]]['node_tuple'] = (end_ids[0], end_ids[1])
-        self[end_ids[0]][end_ids[1]]['shipments'] = {}
-        self[end_ids[0]][end_ids[1]]['disruption_duration'] = 0
-        self[end_ids[0]][end_ids[1]]['current_load'] = 0
-        self[end_ids[0]][end_ids[1]]['overused'] = False
-        self[end_ids[0]][end_ids[1]]['current_capacity'] = self[end_ids[0]][end_ids[1]]['capacity']
+        edge = self[end_ids[0]][end_ids[1]]
+        edge['node_tuple'] = (end_ids[0], end_ids[1])
+        edge['shipments'] = {}
+        edge['disruption_duration'] = 0
+        edge['current_load'] = 0
+        edge['overused'] = False
+        edge['current_capacity'] = edge['capacity']
 
     def define_weights(self, route_optimization_weight):
         logging.debug('Transport network: defining weights that will be used for shortest-path algorithm')
         for edge in self.edges:
-            self[edge[0]][edge[1]]['weight'] = self[edge[0]][edge[1]][route_optimization_weight]
-            self[edge[0]][edge[1]]['capacity_weight'] = self[edge[0]][edge[1]][route_optimization_weight]
+            edge_obj = self[edge[0]][edge[1]]
+            edge_obj['weight'] = edge_obj[route_optimization_weight]
+            edge_obj['capacity_weight'] = edge_obj[route_optimization_weight]
 
     def locate_firms_on_nodes(self, firms):
         """The nodes of the transport network stores the list of firms located there
@@ -150,7 +154,8 @@ class TransportNetwork(nx.Graph):
                 weight = weight + '_noise'
                 self.add_noise_to_weight(weight, noise_level)
             try:
-                sp = nx.astar_path(self, origin_node, destination_node, weight=weight, heuristic=self.cost_heuristic)
+                sp = nx.astar_path(self, origin_node, destination_node, weight=weight,
+                                   heuristic=self.cost_heuristic, cutoff=TRANSPORT_MALUS)
                 route = Route(sp, self, shipment_method)
                 return route
             except nx.NetworkXNoPath:
@@ -218,31 +223,24 @@ class TransportNetwork(nx.Graph):
         elif commercial_link.current_route == 'alternative':
             route_to_take = commercial_link.alternative_route
         else:
-            route_to_take = []
+            raise ValueError(f"No current route: {commercial_link.current_route}")
 
-        # Propagate the shipments
-        for route_segment in route_to_take:
-            if len(route_segment) == 2:  # pass shipments to edges
-                self[route_segment[0]][route_segment[1]]['shipments'][commercial_link.pid] = {
-                    "from": commercial_link.supplier_id,
-                    "to": commercial_link.buyer_id,
-                    "quantity": commercial_link.delivery,
-                    "tons": commercial_link.delivery_in_tons,
-                    "product_type": commercial_link.product_type,
-                    "flow_category": commercial_link.category,
-                    "price": commercial_link.price
-                }
-            elif len(route_segment) == 1:  # pass shipments to nodes
-                self._node[route_segment[0]]['shipments'][commercial_link.pid] = {
-                    "from": commercial_link.supplier_id,
-                    "to": commercial_link.buyer_id,
-                    "quantity": commercial_link.delivery,
-                    "tons": commercial_link.delivery_in_tons,
-                    "product_type": commercial_link.product_type,
-                    "flow_category": commercial_link.category,
-                    "price": commercial_link.price
-                }
-
+        shipment = {
+                "supplier_id": commercial_link.supplier_id,
+                "buyer_id": commercial_link.buyer_id,
+                "origin_node": commercial_link.origin_node,
+                "destination_node": commercial_link.destination_node,
+                "quantity": commercial_link.delivery,
+                "tons": commercial_link.delivery_in_tons,
+                "product_type": commercial_link.product_type,
+                "flow_category": commercial_link.category,
+                "price": commercial_link.price
+            }
+        # Propagate the shipments on the edges
+        for transport_edge in route_to_take.transport_edges:
+            self[transport_edge[0]][transport_edge[1]]['shipments'][commercial_link.pid] = shipment
+        # Add the shipment to the destination node
+        self._node[commercial_link.destination_node]['shipments'][commercial_link.pid] = shipment
         # Propagate the load
         self.update_load_on_route(route_to_take, commercial_link.delivery_in_tons, capacity_constraint)
 
@@ -286,30 +284,19 @@ class TransportNetwork(nx.Graph):
 
         self.define_weights(route_optimization_weight)
 
-    def give_route_mode(self, route):
-        """
-        Which mode is used on the route?
-        Return the list of transport mode used along the route
-        """
-        modes = []
-        all_edges = [item for item in route if len(item) == 2]
-        for edge in all_edges:
-            modes += [self[edge[0]][edge[1]]['type']]
-        return list(dict.fromkeys(modes))
+    def remove_all_shipments(self):
+        for u, v in self.edges:
+            self[u][v]['shipments'] = {}
 
     def remove_shipment(self, commercial_link):
         """Look for the shipment corresponding to the commercial link
         in any edges and nodes of the main and alternative route,
         and remove it
         """
-        route_to_take = commercial_link.route + commercial_link.alternative_route
-        for route_segment in route_to_take:
-            if len(route_segment) == 2:  # segment is an edge_attr
-                if commercial_link.pid in self[route_segment[0]][route_segment[1]]['shipments'].keys():
-                    del self[route_segment[0]][route_segment[1]]['shipments'][commercial_link.pid]
-            elif len(route_segment) == 1:  # segment is a node
-                if commercial_link.pid in self._node[route_segment[0]]['shipments'].keys():
-                    del self._node[route_segment[0]]['shipments'][commercial_link.pid]
+        route_to_take = commercial_link.get_current_route()
+        for transport_edge in route_to_take.transport_edges:
+            del self[transport_edge[0]][transport_edge[1]]['shipments'][commercial_link.pid]
+        del self._node[commercial_link.destination_node]['shipments'][commercial_link.pid]
 
     def compute_flow_per_segment(self, time_step) -> list:
         """
@@ -322,12 +309,12 @@ class TransportNetwork(nx.Graph):
           - total of all
         """
         flows_per_edge = []
-        flows_total = {}
+        # flows_total = {}
 
         for u, v in self.edges():
             edge_data = self[u][v]
             shipments = edge_data["shipments"].values()
-            km = edge_data["km"]
+            # km = edge_data["km"]
 
             new_data = {
                 "time_step": time_step,
@@ -345,46 +332,76 @@ class TransportNetwork(nx.Graph):
                 # Update new_data entries
                 key_combo = f'flow_{fc}_{pt}'
                 new_data[key_combo] = new_data.get(key_combo, 0) + qty
-
                 key_fc = f'flow_{fc}'
                 new_data[key_fc] = new_data.get(key_fc, 0) + qty
-
                 key_pt = f'flow_{pt}'
                 new_data[key_pt] = new_data.get(key_pt, 0) + qty
-
                 new_data['flow_total'] += qty
                 new_data['flow_total_tons'] += tons
 
                 # Update flows_total entries
-                flows_total[fc] = flows_total.get(fc, 0) + qty
-                flows_total[f'{fc}*km'] = flows_total.get(f'{fc}*km', 0) + qty * km
-                flows_total[f'{fc}_tons'] = flows_total.get(f'{fc}_tons', 0) + tons
-                flows_total[f'{fc}_tons*km'] = flows_total.get(f'{fc}_tons*km', 0) + tons * km
+                # flows_total[fc] = flows_total.get(fc, 0) + qty
+                # flows_total[f'{fc}*km'] = flows_total.get(f'{fc}*km', 0) + qty * km
+                # flows_total[f'{fc}_tons'] = flows_total.get(f'{fc}_tons', 0) + tons
+                # flows_total[f'{fc}_tons*km'] = flows_total.get(f'{fc}_tons*km', 0) + tons * km
 
             flows_per_edge.append(new_data)
-
-        logging.info(flows_total)
+        # logging.info(flows_total)
         return flows_per_edge
 
     def reinitialize_flows_and_disruptions(self):
         for node in self.nodes:
-            self.nodes[node]['disruption_duration'] = 0
-            self.nodes[node]['shipments'] = {}
-        for edge in self.edges:
-            self[edge[0]][edge[1]]['disruption_duration'] = 0
-            self[edge[0]][edge[1]]['shipments'] = {}
+            node_data = self.nodes[node]
+            node_data['disruption_duration'] = 0
+            node_data['shipments'] = {}
+        for u, v in self.edges():
+            edge_data = self[u][v]
+            edge_data['disruption_duration'] = 0
+            edge_data['shipments'] = {}
             # self[edge_attr[0]][edge_attr[1]]['congestion'] = 0
-            self[edge[0]][edge[1]]['current_load'] = 0
-            self[edge[0]][edge[1]]['overused'] = False
+            edge_data['current_load'] = 0
+            edge_data['overused'] = False
 
     def ingest_logistic_data(self, logistic_parameters: dict):
         # Apply the function based on the edge_attr type
         self.shipment_methods = list(logistic_parameters['shipment_methods_to_transport_modes'].keys())
-        self.shortest_path_library = {'normal': {method: {} for method in self.shipment_methods},
-                                      'alternative': {method: {} for method in self.shipment_methods}}
+        nb_cost_profiles = logistic_parameters['nb_cost_profiles']
+        self.shortest_path_library = {
+            i: {
+                'normal': {method: {} for method in self.shipment_methods},
+                'alternative': {method: {} for method in self.shipment_methods}
+            } for i in range(nb_cost_profiles)
+        }
         for _, attr in self.edges.items():
             _calculate_cost_per_ton(attr, logistic_parameters)
 
+    def retrieve_cached_route(self, from_node: int, to_node: int, cost_profile: int,
+                              normal_or_disrupted: str, shipment_method: str):
+        library_key = tuple(sorted((from_node, to_node)))
+        canonical_route = self.shortest_path_library[cost_profile][normal_or_disrupted][shipment_method].get(library_key)
+        if canonical_route:
+            if from_node == library_key[0]:
+                return canonical_route
+            else:
+                route = copy.deepcopy(canonical_route)
+                route.revert()
+                return route
+
+    def cache_route(self, route: "Route", from_node: int, to_node: int, cost_profile: int,
+                    normal_or_disrupted: str, shipment_method: str):
+        library_key = tuple(sorted((from_node, to_node)))
+        if from_node == library_key[0]:
+            self.shortest_path_library[cost_profile][normal_or_disrupted][shipment_method][library_key] = route
+        else:
+            canonical_route = copy.deepcopy(route)
+            canonical_route.revert()
+            self.shortest_path_library[cost_profile][normal_or_disrupted][shipment_method][library_key] = canonical_route
+
+    def check_no_uncollected_shipment(self):
+        for u, v in self.edges:
+            edge_data = self[u][v]
+            if len(edge_data['shipments']) > 0:
+                raise ValueError(f"There are uncollected shipments: {list(edge_data['shipments'].keys())}")
 
 def _get_speed(edge_attr: dict, speed_dict: dict) -> float:
     if edge_attr['type'] == "roads":
@@ -424,7 +441,8 @@ def _get_border_crossing_time_and_fee(edge_attr: dict, border_crossing_times: di
 
 def _calculate_cost_per_ton(edge_attr, logistic_parameters: dict):
     # calculate cost per ton
-    basic_cost = edge_attr['km'] * logistic_parameters['basic_cost'][edge_attr['type']]
+    basic_costs = {i: edge_attr['km'] * basic_cost_random[edge_attr['type']]
+                   for i, basic_cost_random in logistic_parameters['basic_cost_profiles'].items()}
     transport_time = edge_attr['km'] / _get_speed(edge_attr, logistic_parameters['speeds'])
     loading_time, loading_fee = _get_loading_time_and_fee(
         edge_attr, logistic_parameters['loading_times'], logistic_parameters['loading_fees'])
@@ -432,12 +450,14 @@ def _calculate_cost_per_ton(edge_attr, logistic_parameters: dict):
         edge_attr, logistic_parameters['border_crossing_times'], logistic_parameters['border_crossing_fees'])
     total_time = transport_time + loading_time + border_crossing_time
     total_fee = loading_fee + border_crossing_fee
-    cost_per_ton = basic_cost + total_fee + total_time * logistic_parameters['cost_of_time']
+    costs_per_ton = {i: basic_cost + total_fee + total_time * logistic_parameters['cost_of_time']
+                     for i, basic_cost in basic_costs.items()}
 
     # add malus for non-supported shipment types
-    shipment_type_malus = 1e9
+    shipment_type_malus = TRANSPORT_MALUS
     for shipment_method, transport_mode in logistic_parameters['shipment_methods_to_transport_modes'].items():
-        if edge_attr['type'] in transport_mode:
-            edge_attr['cost_per_ton_' + shipment_method] = cost_per_ton
-        else:
-            edge_attr['cost_per_ton_' + shipment_method] = shipment_type_malus
+        for i, cost_per_ton in costs_per_ton.items():
+            if edge_attr['type'] in transport_mode:
+                edge_attr['cost_per_ton_' + str(i) + "_" + shipment_method] = cost_per_ton
+            else:
+                edge_attr['cost_per_ton_' + str(i) + "_" + shipment_method] = shipment_type_malus

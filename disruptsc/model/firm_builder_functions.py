@@ -428,7 +428,9 @@ def define_firms_from_mrio(mrio: Mrio, filepath_sectors: Path, filepath_regions:
     # corresponding_od_point_ids = {point.wkt: get_index_closest_point(point, transport_nodes)
     #                               for point in unique_points_with_firms}
     # firm_table['od_point'] = firm_table['geometry'].map(lambda point: corresponding_od_point_ids[point.wkt])
-    firm_table['od_point'] = find_nearest_node_id(transport_nodes, firm_table)
+    admissible_node_mode = ['roads', 'railways', 'maritime']
+    potential_nodes = transport_nodes[transport_nodes['type'].isin(admissible_node_mode)]
+    firm_table['od_point'] = find_nearest_node_id(potential_nodes, firm_table)
     check_successful_extraction(firm_table, "od_point")
 
     # Add long lat

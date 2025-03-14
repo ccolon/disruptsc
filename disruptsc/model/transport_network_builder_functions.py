@@ -61,8 +61,7 @@ def offset_ids(edges, offset_edge_id):
     return edges
 
 
-def create_transport_network(transport_modes: list, filepaths: dict, transport_cost_data: dict,
-                             logistics_parameters: dict, time_resolution: str):
+def create_transport_network(transport_modes: list, filepaths: dict, logistics_parameters: dict, time_resolution: str):
     """Create the transport network object
 
     It uses one shapefile for the nodes and another for the edges.
@@ -73,7 +72,6 @@ def create_transport_network(transport_modes: list, filepaths: dict, transport_c
     ----------
     logistics_parameters
     time_resolution
-    transport_cost_data
     transport_modes : list
         List of transport modes to include, ['roads', 'railways', 'waterways', 'airways']
 
@@ -130,11 +128,9 @@ def create_transport_network(transport_modes: list, filepaths: dict, transport_c
     nodes, edges = create_nodes_and_update_edges(edges)
 
     # check all attributed are there
-    logging.info(f'Initializing attributes endpoints')
+    logging.info(f'Initializing attributes')
     required_attributes = ['id', "type", 'surface', "geometry", "class", "km", 'special', "name",
-                           "capacity", "disruption",
-                           "cost_per_ton", "travel_time", "time_cost", 'cost_travel_time', 'cost_variability',
-                           'agg_cost', "multimodes"]
+                           "capacity", "disruption", "multimodes"]
     missing_attribute = list(set(required_attributes) - set(edges.columns))
     edges[missing_attribute] = None
     edges['node_tuple'] = list(zip(edges['end1'], edges['end2']))
@@ -158,19 +154,25 @@ def create_transport_network(transport_modes: list, filepaths: dict, transport_c
     min_time_cost = 1.0 / logistics_parameters['speeds']['maritime'] * logistics_parameters['cost_of_time']
     transport_network.min_cost_per_tonkm = min_basic_cost + min_time_cost
 
-    transport_network.ingest_logistic_data(logistics_parameters)
-
     return transport_network, edges, nodes
 
 
 def create_nodes_and_update_edges(edges: geopandas.GeoDataFrame):
     # create nodes from endpoints
     endpoints = geopandas.GeoDataFrame({"end1": edges.geometry.apply(lambda line: Point(line.coords[0])),
+                                        "type": edges['type'],
                                         "end2": edges.geometry.apply(lambda line: Point(line.coords[-1]))})
-    all_endpoints = geopandas.GeoDataFrame(pd.concat([endpoints['end1'], endpoints['end2']]), columns=["geometry"],
-                                           crs=edges.crs)
+    all_endpoints = pd.concat([
+        endpoints[['end1', 'type']].copy().rename(columns={'end1': 'geometry'}),
+        endpoints[['end2', 'type']].copy().rename(columns={'end2': 'geometry'})
+    ])
+    all_endpoints = geopandas.GeoDataFrame(all_endpoints)
+    all_endpoints = all_endpoints.set_geometry('geometry', crs=edges.crs)
     all_endpoints['geometry_wkt'] = all_endpoints['geometry'].apply(lambda geom: wkt.dumps(geom, rounding_precision=5))
-    nodes = all_endpoints.drop_duplicates('geometry_wkt').copy()
+    all_endpoints.loc[all_endpoints['type'] == "multimodal", 'type'] = "ZZZmultimodal"  # put multimodal at the end
+    all_endpoints = all_endpoints.sort_values("type")
+    nodes = all_endpoints.drop_duplicates('geometry_wkt', keep="first").copy()  # so that multimodal nodes are removed
+    assert 'multimodal' not in nodes['type']
     nodes['id'] = range(nodes.shape[0])
     nodes.index = nodes['id']
     nodes['long'] = nodes['geometry'].x

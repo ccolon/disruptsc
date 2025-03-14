@@ -62,10 +62,11 @@ class Firm(Agent):
         self.clients = clients or {}
 
         # Parameters sets at initialization
-        self.eq_finance = {"sales": 0, 'costs': {"input": 0, "transport": 0, "other": 0}}
-        self.eq_profit = 0
-        self.eq_price = 1
-        self.eq_total_order = 0
+        self.eq_production = 0.0
+        self.eq_finance = {"sales": 0.0, 'costs': {"input": 0.0, "transport": 0.0, "other": 0.0}}
+        self.eq_profit = 0.0
+        self.eq_price = 1.0
+        self.eq_total_order = 0.0
 
         # Variables, all initialized
         self.production = production
@@ -86,10 +87,10 @@ class Firm(Agent):
         self.profit = 0
         self.finance = {"sales": 0, 'costs': {"input": 0, "transport": 0, "other": 0}}
         self.delta_price_input = 0
-        self.generalized_transport_cost = 0
-        self.usd_transported = 0
-        self.tons_transported = 0
-        self.tonkm_transported = 0
+        # self.generalized_transport_cost = 0
+        # self.usd_transported = 0
+        # self.tons_transported = 0
+        # self.tonkm_transported = 0
 
         # Disruption
         self.capital_destroyed = 0
@@ -118,10 +119,10 @@ class Firm(Agent):
         self.profit = 0
         self.finance = {"sales": 0, 'costs': {"input": 0, "transport": 0, "other": 0}}
         self.delta_price_input = 0
-        self.generalized_transport_cost = 0
-        self.usd_transported = 0
-        self.tons_transported = 0
-        self.tonkm_transported = 0
+        # self.generalized_transport_cost = 0
+        # self.usd_transported = 0
+        # self.tons_transported = 0
+        # self.tonkm_transported = 0
         self.capital_destroyed = 0
 
     def reset_indicators(self):
@@ -147,16 +148,13 @@ class Firm(Agent):
     def initialize_operational_variables(self, eq_production):
         self.production_target = eq_production
         self.production = self.production_target
+        self.eq_production = self.production_target
         self.eq_production_capacity = self.production_target / self.utilization_rate
         self.production_capacity = self.eq_production_capacity
-        # if self.pid == 0:
-        #     print("init", "self.production_target", self.production_target)
-        #     print("init", "self.utilization_rate", self.utilization_rate)
-        #     print("init", "self.eq_production_capacity", self.eq_production_capacity)
         self.evaluate_input_needs()
         self.eq_needs = self.input_needs
         self.inventory = {
-            input_id: need * (1 + self.inventory_duration_target[input_id])
+            input_id: need * self.inventory_duration_target[input_id]
             for input_id, need in self.input_needs.items()
         }
         self.decide_purchase_plan(adaptive_inventories=False, adapt_weight_based_on_satisfaction=False)
@@ -200,6 +198,8 @@ class Firm(Agent):
                                product_type=supplier_object.sector_type,
                                essential=inputed_supplier_link['is_essential'],
                                category='domestic_B2B',
+                               origin_node=supplier_object.od_point,
+                               destination_node=self.od_point,
                                supplier_id=supplier_id,
                                buyer_id=self.pid)
                            )
@@ -215,8 +215,8 @@ class Firm(Agent):
                                            "satisfaction": 1}
 
     def identify_suppliers_legacy(self, region_sector: str, firms: "Firms", countries: "Countries",
-                           nb_suppliers_per_input: float, weight_localization: float,
-                           firm_data_type: str, import_code: str):
+                                  nb_suppliers_per_input: float, weight_localization: float,
+                                  firm_data_type: str, import_code: str):
         if firm_data_type == "mrio":
             if import_code in region_sector:  # case of countries
                 supplier_type = "country"
@@ -372,10 +372,13 @@ class Firm(Agent):
                                    product=sector_id,
                                    product_type=product_type,
                                    category=link_category,
+                                   origin_node=supplier_object.od_point,
+                                   destination_node=self.od_point,
                                    supplier_id=supplier_id,
                                    buyer_id=self.pid)
                                )
-                graph[supplier_object][self]['object'].determine_transportation_mode(sector_types_to_shipment_methods)
+                commercial_link = graph[supplier_object][self]['object']
+                commercial_link.determine_transportation_mode(sector_types_to_shipment_methods)
                 # Associate a weight, which includes the I/O technical coefficient
                 supplier_weight = supplier_weights.pop()
                 graph[supplier_object][self]['weight'] = sector_weight * supplier_weight
@@ -450,7 +453,7 @@ class Firm(Agent):
             # self.delta_price_input = added_input_cost / self.total_order
             logging.debug(f'Firm {self.pid}: Input prices have changed, I set my price to '
                           f'{self.eq_price * (1 + self.delta_price_input):.4f} instead of {self.eq_price}'
-)
+                          )
         else:
             self.delta_price_input = 0
 
@@ -482,8 +485,8 @@ class Firm(Agent):
 
         # Evaluate the current safety days
         self.current_inventory_duration = {
-            input_id: (evaluate_inventory_duration(ref_input_needs[input_id],
-                                                   stock) if input_id in ref_input_needs.keys() else 0)
+            input_id: (evaluate_inventory_duration(ref_input_needs[input_id], stock)
+                       if input_id in ref_input_needs.keys() else 0)
             for input_id, stock in self.inventory.items()
         }
 
@@ -491,14 +494,18 @@ class Firm(Agent):
         for input_id, inventory_duration in self.current_inventory_duration.items():
             if inventory_duration is not None:
                 if inventory_duration < 1 - EPSILON:
-                    # if -1 in self.clients.keys():
-                    #     sales_to_hh = self.clients[-1]['share'] * self.production_target
-                    # else:
-                    #     sales_to_hh = 0
                     logging.debug(f"{self.id_str()} - Less than 1 day of inventory for input type {input_id}: "
                                   f"{inventory_duration} vs. {self.inventory_duration_target[input_id]}")
 
         # Evaluate purchase plan for each sector
+        # for input_id, need in ref_input_needs.items():
+        # if (abs(need - self.eq_needs[input_id]) > 1e-3) \
+        # or (abs(self.production_target - self.eq_production) > 1e-1):
+        #     print(self.id_str(), input_id)
+        #     print("inventory", self.inventory[input_id], 2 * self.eq_needs[input_id])
+        #     print("need", need > self.eq_needs[input_id], need, self.eq_needs[input_id])
+        #     print("order", self.total_order, self.eq_total_order)
+        #     print("production_target", self.production_target > self.eq_production, self.production_target, self.eq_production)
         self.purchase_plan_per_input = {
             input_id: purchase_planning_function(need, self.inventory[input_id],
                                                  self.inventory_duration_target[input_id],
@@ -648,7 +655,8 @@ class Firm(Agent):
             logging.debug(f'Firm {self.pid}: I have to ration my clients by {(1 - self.rationing) * 100:.2f}%')
             # If equal, simply apply rationing factor
             if rationing_mode == "equal":
-                quantities_to_deliver = {buyer_id: order * self.rationing for buyer_id, order in self.order_book.items()}
+                quantities_to_deliver = {buyer_id: order * self.rationing for buyer_id, order in
+                                         self.order_book.items()}
             else:
                 raise ValueError('Wrong rationing_mode chosen')
 
@@ -675,7 +683,7 @@ class Firm(Agent):
         # remove rationing as attribute
         return quantities_to_deliver
 
-    def deliver_products(self, graph: "ScNetwork", transport_network: "TransportNetwork",
+    def deliver_products(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
                          available_transport_network: "TransportNetwork",
                          sectors_no_transport_network: list, rationing_mode: str, explicit_service_firm: bool,
                          transport_to_households: bool,
@@ -693,29 +701,26 @@ class Firm(Agent):
         self.tonkm_transported = 0
 
         # For each client, we define the quantity to deliver then send the shipment
-        for edge in graph.out_edges(self):
-            quantity_to_deliver = quantities_to_deliver[edge[1].pid]
+        for _, buyer in sc_network.out_edges(self):
+            commercial_link = sc_network[self][buyer]['object']
+            quantity_to_deliver = quantities_to_deliver[buyer.pid]
             if quantity_to_deliver == 0:
-                if graph[self][edge[1]]['object'].order == 0:
-                    logging.debug(f"{self.id_str()} - {graph[self][edge[1]]['object'].buyer_id} "
-                                  f"is my client but did not order")
+                if commercial_link.order == 0:
+                    logging.debug(f"{self.id_str()} - this client did not order: {buyer.id_str()}")
                 continue
-            graph[self][edge[1]]['object'].delivery = quantity_to_deliver
-            graph[self][edge[1]]['object'].delivery_in_tons = \
-                Firm.transformUSD_to_tons(quantity_to_deliver, monetary_units_in_model, self.usd_per_ton)
+            commercial_link.delivery = quantity_to_deliver
+            commercial_link.delivery_in_tons = Firm.transformUSD_to_tons(quantity_to_deliver, monetary_units_in_model,
+                                                                         self.usd_per_ton)
 
             # If the client is B2C (applied only we had one single representative agent for all households)
-            cases_no_transport = (edge[1].pid == -1) or (self.sector_type in sectors_no_transport_network) \
-                                 or ((not transport_to_households) and (edge[1].agent_type == "household"))
+            cases_no_transport = (buyer.pid == -1) or (self.sector_type in sectors_no_transport_network) \
+                                 or ((not transport_to_households) and (buyer.agent_type == "household"))
             # If the client is a service firm, we deliver without using transportation infrastructure
             if cases_no_transport:
-                self.deliver_without_infrastructure(graph[self][edge[1]]['object'])
-            # otherwise use infrastructure
+                self.deliver_without_infrastructure(commercial_link)
             else:
-                self.send_shipment(graph[self][edge[1]]['object'], transport_network, available_transport_network,
-                                   monetary_units_in_model,
-                                   cost_repercussion_mode, price_increase_threshold, capacity_constraint,
-                                   transport_cost_noise_level)
+                self.send_shipment(commercial_link, transport_network, available_transport_network,
+                                   price_increase_threshold, capacity_constraint, transport_cost_noise_level)
 
         # For reconstruction orders, we register it
         if isinstance(quantities_to_deliver, int):
@@ -734,165 +739,17 @@ class Firm(Agent):
         self.finance['costs']['transport'] += (self.clients[commercial_link.buyer_id]['share'] *
                                                self.eq_finance['costs']['transport'])
 
-    def send_shipment(self, commercial_link: "CommercialLink", transport_network: "TransportNetwork",
-                      available_transport_network: "TransportNetwork",
-                      monetary_units_in_model: str, cost_repercussion_mode: str, price_increase_threshold: float,
-                      capacity_constraint: bool, transport_cost_noise_level: float):
 
-        monetary_unit_factor = {
-            "mUSD": 1e6,
-            "kUSD": 1e3,
-            "USD": 1
-        }
-        factor = monetary_unit_factor[monetary_units_in_model]
-        # print("send_shipment", 0 in transport_network.nodes)
-        """Only apply to B2B flows 
-        """
-        if len(commercial_link.route) == 0:
-            raise ValueError(f"{self.id_str()} - commercial link {commercial_link.pid} "
-                             f"(qty {commercial_link.order:.02} is not associated to any route, "
-                             f"I cannot send any shipment to the client")
+    def record_transport_cost(self, client_id, relative_transport_cost_change):
+        self.finance['costs']['transport'] += \
+            self.eq_finance['costs']['transport'] \
+            * self.clients[client_id]['transport_share'] \
+            * (1 + relative_transport_cost_change)
 
-        if self.check_route_availability(commercial_link, transport_network, 'main') == 'available':
-            # If the normal route is available, we can send the shipment as usual
-            # and pay the usual price
-            commercial_link.price = commercial_link.eq_price * (1 + self.delta_price_input)
-            commercial_link.current_route = 'main'
-            transport_network.transport_shipment(commercial_link, capacity_constraint)
-            self.product_stock -= commercial_link.delivery
-            self.generalized_transport_cost += (commercial_link.route_time_cost
-                                                + commercial_link.delivery_in_tons * commercial_link.route_cost_per_ton)
-            self.usd_transported += commercial_link.delivery
-            self.tons_transported += commercial_link.delivery_in_tons
-            self.tonkm_transported += commercial_link.delivery_in_tons * commercial_link.route_length
-            self.finance['costs']['transport'] += \
-                self.clients[commercial_link.buyer_id]['share'] \
-                * self.eq_finance['costs']['transport']
-            return 0
-
-        # If there is an alternative route already discovered,
-        # and if this alternative route is available, then we use it
-        if (len(commercial_link.alternative_route) > 0) \
-                & (self.check_route_availability(commercial_link, transport_network, 'alternative') == 'available'):
-            route = commercial_link.alternative_route
-        # Otherwise we need to discover a new one
-        else:
-            route = self.discover_new_route(commercial_link, transport_network, available_transport_network,
-                                            capacity_constraint, transport_cost_noise_level)
-
-        # If the alternative route is available, or if we discovered one, we proceed
-        if route is not None:
-            commercial_link.current_route = 'alternative'
-            # Calculate contribution to generalized transport cost, to usd/tons/(ton*kms) transported
-            self.generalized_transport_cost += (commercial_link.alternative_route_time_cost
-                                                + Firm.transformUSD_to_tons(commercial_link.delivery,
-                                                                            monetary_units_in_model, self.usd_per_ton)
-                                                * commercial_link.alternative_route_cost_per_ton)
-            self.usd_transported += commercial_link.delivery
-            self.tons_transported += commercial_link.delivery_in_tons
-            self.tonkm_transported += commercial_link.delivery_in_tons * commercial_link.alternative_route_length
-
-            # We translate this real cost into transport cost
-            if cost_repercussion_mode == "type1":  # relative cost change with actual bill
-                # Calculate relative increase in routing cost
-                new_transport_bill = commercial_link.delivery_in_tons * commercial_link.alternative_route_cost_per_ton
-                normal_transport_bill = commercial_link.delivery_in_tons * commercial_link.route_cost_per_ton
-                # print(normal_transport_bill, new_transport_bill)
-                # print(self.id_str(), commercial_link.delivery_in_tons, normal_transport_bill, new_transport_bill)
-                # print(self.id_str(), commercial_link.route_cost_per_ton, commercial_link.alternative_route_cost_per_ton)
-                relative_cost_change = max(new_transport_bill - normal_transport_bill, 0) / normal_transport_bill
-                relative_cost_change = max(new_transport_bill - normal_transport_bill, 0) / normal_transport_bill
-                # If switched transport mode, add switching cost
-                # switching_cost = 0.5
-                # if commercial_link.alternative_route_mode != commercial_link.route_mode:
-                #     relative_cost_change = relative_cost_change + switching_cost
-                # Translate that into an increase in transport costs in the balance sheet
-                self.finance['costs']['transport'] += \
-                    self.eq_finance['costs']['transport'] \
-                    * self.clients[commercial_link.buyer_id]['transport_share'] \
-                    * (1 + relative_cost_change)
-                relative_price_change_transport = \
-                    self.eq_finance['costs']['transport'] \
-                    * relative_cost_change \
+    def calculate_relative_price_change_transport(self, relative_transport_cost_change):
+        return self.eq_finance['costs']['transport'] \
+                    * relative_transport_cost_change \
                     / ((1 - self.target_margin) * self.eq_finance['sales'])
-                # Calculate the relative price change, including any increase due to the prices of inputs
-                total_relative_price_change = self.delta_price_input + relative_price_change_transport
-                if np.isnan(relative_price_change_transport):
-                    raise ValueError(str(relative_price_change_transport))
-                commercial_link.price = commercial_link.eq_price * (1 + total_relative_price_change)
-
-            elif cost_repercussion_mode == "type2":  # actual repercussion de la bill
-                added_cost_usd_per_ton = max(commercial_link.alternative_route_cost_per_ton -
-                                             commercial_link.route_cost_per_ton,
-                                             0)
-                added_cost_usd_per_musd = added_cost_usd_per_ton / (self.usd_per_ton / factor)
-                added_cost_usd_per_musd = added_cost_usd_per_musd / factor
-                added_transport_bill = added_cost_usd_per_musd * commercial_link.delivery
-                self.finance['costs']['transport'] += \
-                    self.eq_finance['costs']['transport'] + added_transport_bill
-                commercial_link.price = (commercial_link.eq_price
-                                         + self.delta_price_input
-                                         + added_cost_usd_per_musd)
-                relative_price_change_transport = \
-                    commercial_link.price / (commercial_link.eq_price + self.delta_price_input) - 1
-                if (commercial_link.price is None) or (commercial_link.price is np.nan):
-                    raise ValueError("Price should be a float, it is " + str(commercial_link.price))
-
-                cost_increase = (commercial_link.alternative_route_cost_per_ton
-                                 - commercial_link.route_cost_per_ton) / commercial_link.route_cost_per_ton
-
-                logging.debug(f"Firm {self.pid}"
-                              f": qty {commercial_link.delivery_in_tons} tons"
-                              f" increase in route cost per ton {cost_increase}"
-                              f" increased bill mUSD {added_cost_usd_per_musd * commercial_link.delivery}"
-                              )
-
-            elif cost_repercussion_mode == "type3":
-                relative_cost_change = (commercial_link.alternative_route_time_cost
-                                        - commercial_link.route_time_cost) / commercial_link.route_time_cost
-                self.finance['costs']['transport'] += (self.eq_finance['costs']['transport']
-                                                       * self.clients[commercial_link.buyer_id]['share']
-                                                       * (1 + relative_cost_change))
-                relative_price_change_transport = (
-                        self.eq_finance['costs']['transport']
-                        * relative_cost_change
-                        / ((1 - self.target_margin) * self.eq_finance['sales']))
-
-                total_relative_price_change = self.delta_price_input + relative_price_change_transport
-                commercial_link.price = commercial_link.eq_price * (1 + total_relative_price_change)
-            else:
-                raise NotImplementedError(f"Type {cost_repercussion_mode} not implemented")
-
-            # If the increase in transport is larger than 2, then we do not deliver the goods
-            if relative_price_change_transport > price_increase_threshold:
-                logging.debug(f"{self.id_str()}: found an alternative route to {commercial_link.buyer_id} "
-                             f"but it is costlier by {100 * relative_price_change_transport:.2f}%, "
-                             f"price would be {commercial_link.price:.4f} "
-                             f"instead of {commercial_link.eq_price * (1 + self.delta_price_input):.4f}"
-                             f"so I decide not to send it now.")
-                commercial_link.price = commercial_link.eq_price
-                commercial_link.current_route = 'none'
-                # commercial_link.delivery = 0
-            # Otherwise, we deliver
-            else:
-                transport_network.transport_shipment(commercial_link, capacity_constraint)
-                self.product_stock -= commercial_link.delivery
-                # Print information
-                logging.debug(f"Firm {self.pid}: found an alternative route to {commercial_link.buyer_id}, "
-                             f"it is costlier by {100 * relative_price_change_transport:.2f}%, "
-                             f"price is {commercial_link.price:.4f} "
-                             f"instead of {commercial_link.eq_price * (1 + self.delta_price_input):.4f}"
-)
-        # If we do not find a route, then we do not deliver
-        else:
-            logging.debug(f"{self.id_str()}: because of disruption, there is no route between me "
-                         f"and agent {commercial_link.buyer_id}")
-            # We do not write how the input price would have changed
-            commercial_link.price = commercial_link.eq_price
-            commercial_link.current_route = 'none'
-            # We do not pay the transporter, so we don't increment the transport cost
-            # We set delivery to 0
-            commercial_link.delivery = 0
 
     def receive_service_and_pay(self, commercial_link: "CommercialLink"):
         super().receive_service_and_pay(commercial_link)

@@ -8,8 +8,10 @@ import yaml
 from dataclasses import dataclass
 
 from disruptsc import paths
+from disruptsc.model.basic_functions import rescale_monetary_values, draw_lognormal_samples
 
 EPSILON = 1e-6
+TRANSPORT_MALUS = rescale_monetary_values(1e9, "year", "USD", "USD")
 import_code = "IMP"
 
 
@@ -157,23 +159,47 @@ class Parameters:
         self.export_folder = paths.OUTPUT_FOLDER / self.scope / datetime.now().strftime('%Y%m%d_%H%M%S')
         os.mkdir(self.export_folder)
 
-    def adjust_logging_behavior(self, export_log_file: bool):
-        if self.logging_level == "info":
-            logging_level = logging.INFO
-        else:
-            logging_level = logging.DEBUG
+    def initialize_exports(self):
+        if self.export_files and self.simulation_type != "criticality":
+            self.create_export_folder()
+            self.export()
+            print(f'Output folder is {self.export_folder}')
 
-        if export_log_file and self.export_files:
-            importlib.reload(logging)
-            logging.basicConfig(
-                filename=self.export_folder / 'exp.log',
-                level=logging_level,
-                format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-            )
-            logging.getLogger().addHandler(logging.StreamHandler())
-        else:
-            importlib.reload(logging)
-            logging.basicConfig(
-                level=logging_level,
-                format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-            )
+    def adjust_logging_behavior(self):
+        # Create logger
+        logger = logging.getLogger()
+        if logger.hasHandlers():
+            logger.handlers.clear()
+        logger.setLevel(logging.DEBUG)  # Set to lowest level to capture all logs
+
+        # Create a formatter
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+        # File handler (DEBUG and above)
+        if self.export_files and self.simulation_type != "criticality":
+            file_handler = logging.FileHandler(self.export_folder / 'exp.log')
+            file_handler.setLevel(logging.DEBUG)
+            file_handler.setFormatter(formatter)
+            logger.addHandler(file_handler)
+
+        # Stream handler (INFO and above)
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.INFO)
+        console_handler.setFormatter(formatter)
+        logger.addHandler(console_handler)
+
+    def add_variability_to_basic_cost(self):
+        if not self.logistics['basic_cost_random']:
+            self.logistics['nb_cost_profiles'] = 1
+            self.logistics['basic_cost_variability'] = {mode: 0.0
+                                                        for mode in self.logistics['basic_cost_variability'].keys()}
+        self.logistics['basic_cost_profiles'] = {}
+        drawn_costs = {mode: draw_lognormal_samples(mean_cost,
+                                                    self.logistics['basic_cost_variability'][mode],
+                                                    self.logistics['nb_cost_profiles'])
+                       for mode, mean_cost in self.logistics['basic_cost'].items()}
+        for i in range(self.logistics['nb_cost_profiles']):
+            self.logistics['basic_cost_profiles'][i] = {
+                mode: drawn_cost[i]
+                for mode, drawn_cost in drawn_costs.items()
+            }

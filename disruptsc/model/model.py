@@ -63,12 +63,14 @@ class Model(object):
         self.countries = None
         self.country_table = None
         self.transaction_table = None
+        self.commercial_link_table = None
         # Supply-chain network variables
         self.sc_network = None
         # Disruption variable
         self.disruption_list = None
         self.reconstruction_market = None
 
+    @property
     def is_initialized(self):
         if all([self.transport_network_initialized, self.agents_initialized,
                 self.sc_network_initialized, self.logistic_routes_initialized]):
@@ -85,7 +87,6 @@ class Model(object):
                 create_transport_network(
                     transport_modes=self.parameters.transport_modes,
                     filepaths=self.parameters.filepaths,
-                    transport_cost_data=self.parameters.transport_cost_data,
                     logistics_parameters=self.parameters.logistics,
                     time_resolution=self.parameters.time_resolution
                 )
@@ -97,9 +98,11 @@ class Model(object):
             }
             cache_transport_network(data_to_cache)
 
-        self.transport_network.define_weights(
-            route_optimization_weight=self.parameters.route_optimization_weight
-        )
+        # self.transport_network.define_weights(
+        #     route_optimization_weight=self.parameters.route_optimization_weight
+        # )
+        self.parameters.add_variability_to_basic_cost()
+        self.transport_network.ingest_logistic_data(self.parameters.logistics)
         self.transport_network.log_km_per_transport_modes()  # Print data on km per mode
         self.transport_network_initialized = True
 
@@ -122,8 +125,7 @@ class Model(object):
         else:
             logging.info(f"Filtering the sectors based on their output. "
                          f"Cutoff type is {self.parameters.cutoff_sector_output['type']}, "
-                         f"cutoff value is {self.parameters.cutoff_sector_output['value']}"
-                         )
+                         f"cutoff value is {self.parameters.cutoff_sector_output['value']}")
             self.mrio = Mrio.load_mrio_from_filepath(self.parameters.filepaths['mrio'],
                                                      self.parameters.monetary_units_in_data)
             self.sector_table = pd.read_csv(self.parameters.filepaths['sector_table'])
@@ -389,6 +391,7 @@ class Model(object):
                 self.sc_network.remove_useless_commercial_links()
 
             logging.info(f'Nb of commercial links: {self.sc_network.number_of_edges()}')
+
             # connected_countries = [node.pid for node in self.sc_network.nodes if node.agent_type == "country"]
             # unconnected_countries = set(self.countries) - set(connected_countries)
             # for unconnected_country in unconnected_countries:
@@ -407,12 +410,28 @@ class Model(object):
 
             self.sc_network_initialized = True
 
+    def create_commercial_link_table(self):
+        commercial_links = list(nx.get_edge_attributes(self.sc_network, "object").values())
+        self.commercial_link_table = pd.DataFrame({
+            link.pid: {'supplier_id': link.supplier_id, 'buyer_id': link.buyer_id,
+                       'product': link.product, 'product_type': link.product_type, 'category': link.category,
+                       'shipment_method': link.shipment_method, 'use_transport_network': link.use_transport_network,
+                       'from': link.route.transport_nodes[0] if link.use_transport_network else None,
+                       'to': link.route.transport_nodes[-1] if link.use_transport_network else None,
+                       'main_transport_modes': link.route.transport_modes if link.use_transport_network else None}
+            for link in commercial_links
+        }).transpose()
+        self.commercial_link_table.index.name = "pid"
+
     def setup_logistic_routes(self, cached: bool = False):
         if cached:
-            self.sc_network, self.transport_network, self.firms, self.households, \
+            self.sc_network, self.transport_network, self.commercial_link_table, self.firms, self.households, \
                 self.countries = load_cached_logistic_routes()
 
         else:
+            self.countries.assign_cost_profile(self.parameters.logistics['nb_cost_profiles'])
+            self.firms.assign_cost_profile(self.parameters.logistics['nb_cost_profiles'])
+
             logging.info('The supplier--buyer graph is being connected to the transport network')
             logging.info('Each B2B and transit edge_attr is being linked to a route of the transport network')
             logging.info('Routes for transit and import flows are being selected by trading countries')
@@ -433,10 +452,12 @@ class Model(object):
                                              self.parameters.transport_cost_noise_level,
                                              self.parameters.monetary_units_in_model,
                                              parallelized=False)
+            self.create_commercial_link_table()
             # Save to tmp folder
             data_to_cache = {
                 'transport_network': self.transport_network,
                 "supply_chain_network": self.sc_network,
+                'commercial_link_table': self.commercial_link_table,
                 'firms': self.firms,
                 'households': self.households,
                 'countries': self.countries
@@ -450,18 +471,14 @@ class Model(object):
         self.transport_network.reinitialize_flows_and_disruptions()
 
         logging.info("Resetting agents and commercial links variables")
+        for commercial_link in nx.get_edge_attributes(self.sc_network, "object").values():
+            commercial_link.reset_variables()
         for household in self.households.values():
             household.reset_variables()
-            for edge in self.sc_network.in_edges(household):
-                self.sc_network[edge[0]][household]['object'].reset_variables()
         for firm in self.firms.values():
             firm.reset_variables()
-            for edge in self.sc_network.in_edges(firm):
-                self.sc_network[edge[0]][firm]['object'].reset_variables()
         for country in self.countries.values():
             country.reset_variables()
-            for edge in self.sc_network.in_edges(country):
-                self.sc_network[edge[0]][country]['object'].reset_variables()
 
     def set_initial_conditions(self):
         logging.info("Setting initial conditions to input-output equilibrium")
@@ -478,7 +495,7 @@ class Model(object):
             A: the input-output matrix
         These vectors and matrices are in the firm-and-country space.
         """
-
+        self.reset_variables()
         # Get the weighted connectivity matrix.
         # Weight is the sectoral technical coefficient, if there is only one supplier for the input
         # It there are several, the technical coefficient is multiplied by the share of input of
@@ -610,6 +627,15 @@ class Model(object):
         self.run_one_time_step(time_step=0, current_simulation=simulation)
         return simulation
 
+    def run_stationary_test(self):
+        simulation = Simulation("stationary_test")
+        nb_time_steps = 5
+        logging.info(f"Simulating {nb_time_steps} time steps without disruption")
+        # print("self.production_capacity", self.firms[0].production_capacity)
+        for i in range(nb_time_steps):
+            self.run_one_time_step(time_step=i, current_simulation=simulation)
+        return simulation
+
     def save_pickle(self, suffix):
         cache_model(self, suffix)
 
@@ -636,7 +662,6 @@ class Model(object):
 
         logging.info("Starting time loop")
         for t in range(1, t_final + 1):
-            logging.info(f'Time t={t}')
             self.run_one_time_step(time_step=t, current_simulation=simulation)
 
             if (t > self.disruption_list.end_time + 1) and self.parameters.epsilon_stop_condition:
@@ -667,7 +692,6 @@ class Model(object):
 
         logging.info("Starting time loop")
         for t in range(1, t_final + 1):
-            logging.info(f'Time t={t}')
             self.run_one_time_step(time_step=t, current_simulation=simulation)
 
             if (t > max([disruption.start_time for disruption in
@@ -677,9 +701,18 @@ class Model(object):
                     break
         return simulation
 
+    def debug_print(self):
+        disrupted_edges = [11992, 11993, 12029, 12033]
+        for u, v in self.transport_network.edges:
+            edge_data = self.transport_network[u][v]
+            if edge_data['id'] in disrupted_edges:
+                print(edge_data['id'],
+                      sum([shipment['quantity'] for shipment in edge_data['shipments'].values()]))
+
     def run_one_time_step(self, time_step: int, current_simulation: Simulation):
+        logging.info(f"Running time step {time_step}")
         # print("self.production_capacity", self.firms[0].production_capacity)
-        self.transport_network.reset_current_loads(self.parameters.route_optimization_weight)
+        # self.transport_network.reset_current_loads(self.parameters.route_optimization_weight)
 
         available_transport_network = self.transport_network
         if self.disruption_list:
@@ -704,7 +737,7 @@ class Model(object):
         # print(time_step, "current_production_capacity", self.firms[0].current_production_capacity)
         self.firms.produce()
         # print(time_step, "production", self.firms[0].production)
-        # print(time_step, "product_stock", self.firms[0].product_stock)
+        # print(time_step, "product_stock", self.firms[0].product_stock
         self.countries.deliver(self.sc_network, self.transport_network, available_transport_network,
                                self.parameters.sectors_no_transport_network,
                                self.parameters.rationing_mode, self.parameters.explicit_service_firm,
@@ -736,27 +769,9 @@ class Model(object):
         #     for country in countries:
         #         country.add_congestion_malus2(sc_network, transport_network)
         #
-        if (current_simulation.type in ['initial_state', 'disruption', 'event']) and (time_step in [0, 1]):
+        if (current_simulation.type not in ['criticality']) and (time_step in [0, 1]):
             current_simulation.transport_network_data += self.transport_network.compute_flow_per_segment(time_step)
-        # TODO: store transport data, depending on current_simulation type and time step
-        # TODO: store supply chain data, depending on current_simulation type and time step
-        # if (time_step in [0, 1, 2]) and (
-        # export_flows):  # should be done at this stage, while the goods are on their way
-        #     collect_shipments = False
-        #     transport_network.compute_flow_per_segment(flow_types_to_export)
-        #     observer.collect_transport_flows(transport_network,
-        #                                      time_step=time_step, flow_types=flow_types_to_export,
-        #                                      collect_shipments=collect_shipments)
-        #     exportTransportFlows(observer, export_folder)
-        #     exportTransportFlowsLayer(observer, export_folder, time_step=time_step,
-        #                               transport_edges=transport_edges)
-        #     if sum([len(sublist) for sublist in observer.specific_edges_to_monitor.values()]) > 0:
-        #         observer.collect_specific_flows(transport_network)
-        #         exportSpecificFlows(observer, export_folder)
-        #     if collect_shipments:
-        #         exportShipmentsLayer(observer, export_folder, time_step=time_step,
-        #                              transport_edges=transport_edges)
-        #
+
         # if (time_step == 0) and (
         # export_sc_flow_analysis):  # should be done at this stage, while the goods are on their way
         #     analyzeSupplyChainFlows(sc_network, firms, export_folder)
@@ -768,12 +783,14 @@ class Model(object):
                                         self.parameters.sectors_no_transport_network)
         self.firms.receive_products(self.sc_network, self.transport_network,
                                     self.parameters.sectors_no_transport_network)
+        self.transport_network.check_no_uncollected_shipment()
         self.firms.evaluate_profit(self.sc_network)
 
         self.transport_network.update_road_disruption_state()
         self.firms.update_disrupted_production_capacity()
-        #
+
         self.store_agent_data(time_step, current_simulation)
+        self.store_sc_network_data(time_step, current_simulation)
 
         compare_production_purchase_plans(self.firms, self.countries, self.households)
 
@@ -847,6 +864,7 @@ class Model(object):
             {
                 'time_step': time_step,
                 'household': household.pid,
+                'tot_consumption': household.tot_consumption,
                 'spending_per_retailer': household.spending_per_retailer,
                 'consumption_per_retailer': household.consumption_per_retailer,
                 'extra_spending_per_sector': household.extra_spending_per_sector,
@@ -855,6 +873,21 @@ class Model(object):
                 'consumption_loss': household.consumption_loss
             }
             for household in self.households.values()
+        ]
+
+    def store_sc_network_data(self, time_step: int, simulation: Simulation):
+        simulation.sc_network_data += [
+            {
+                'time_step': time_step,
+                'pid': link.pid,
+                'status': link.status,
+                'price': link.price,
+                'order': link.order,
+                'delivery': link.delivery,
+                "fulfilment_rate": link.fulfilment_rate
+            }
+            for link in list(nx.get_edge_attributes(self.sc_network, "object").values())
+            if link.status != "ok"
         ]
 
     def export_transport_nodes_edges(self):

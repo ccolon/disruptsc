@@ -206,6 +206,8 @@ class Household(Agent):
                                    product=region_sector,
                                    product_type=product_type,
                                    category=link_category,
+                                   origin_node=supplier_object.od_point,
+                                   destination_node=self.od_point,
                                    supplier_id=retailer_id,
                                    buyer_id=self.pid)
                                )
@@ -288,10 +290,10 @@ class Household(Agent):
 
     def receive_products_and_pay(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
                                  sectors_no_transport_network: list, transport_to_households: bool = False):
-        if ~transport_to_households:
+        if not transport_to_households:
             self.reset_indicators()
-            for edge in sc_network.in_edges(self):
-                self.receive_service_and_pay(sc_network[edge[0]][self]['object'])
+            for supplier, _ in sc_network.in_edges(self):
+                self.receive_service_and_pay(sc_network[supplier][self]['object'])
 
         else:
             super().receive_products_and_pay(sc_network, transport_network, sectors_no_transport_network)

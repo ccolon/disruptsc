@@ -18,7 +18,7 @@ class Mrio(pd.DataFrame):
                  "external_selling_countries", "region_households"]
 
     def __init__(self, *args, monetary_units, **kwargs):
-        super(Mrio, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.import_label = self.detect_level1_label('import', axis=0)
         self.export_label = self.detect_level1_label('export', axis=1)
         self.final_demand_label = self.detect_level1_label('final.?demand', axis=1)
@@ -36,7 +36,7 @@ class Mrio(pd.DataFrame):
         self.adjust_output()
 
     def detect_level1_label(self, pattern: str, axis: int):
-        sectors = pd.Series([])
+        sectors = pd.Series([], dtype=str)
         if axis == 0:
             sectors = self.index.get_level_values(1)
         elif axis == 1:

@@ -3,17 +3,14 @@ import cProfile
 import csv
 import logging
 import pstats
-import sys
 import time
 import argparse
 from datetime import datetime
-from itertools import chain
 
 import paths
 from disruptsc.model.basic_functions import mean_squared_distance
 from disruptsc.model.caching_functions import generate_cache_parameters_from_command_line_argument, load_cached_model
 from disruptsc.parameters import Parameters
-from disruptsc.simulation.handling_functions import check_script_call
 from model.model import Model
 
 profiler = cProfile.Profile()
@@ -27,9 +24,6 @@ args = parser.parse_args()
 
 # Start run
 t0 = time.time()
-
-# Check that the script is called correctly
-#check_script_call(sys.argv)
 
 # Retrieve scope
 # scope = sys.argv[1]
@@ -46,12 +40,8 @@ if args.duration:
     parameters.criticality['duration'] = args.duration
 
 # Create the output folder and adjust logging behavior
-if parameters.export_files and parameters.simulation_type != "criticality":
-    parameters.create_export_folder()
-    parameters.export()
-    logging.info(f'Output folder is {parameters.export_folder}')
-
-parameters.adjust_logging_behavior(parameters.simulation_type != "criticality")
+parameters.initialize_exports()
+parameters.adjust_logging_behavior()
 
 # Initialize model
 model = Model(parameters)
@@ -70,6 +60,9 @@ model.setup_logistic_routes(cached=cache_parameters['logistic_routes'])
 # Run model
 if parameters.simulation_type == "initial_state":
     simulation = model.run_static()
+
+elif parameters.simulation_type == "stationary_test":
+    simulation = model.run_stationary_test()
 
 elif parameters.simulation_type in ["event", "disruption"]:
     simulation = model.run_disruption()

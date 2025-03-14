@@ -19,40 +19,6 @@ if TYPE_CHECKING:
 EPSILON = 1e-6
 
 
-def choose_route(transport_network: "TransportNetwork", origin_node: int, destination_node: int,
-                 shipment_method: str, capacity_constraint: bool, transport_cost_noise_level: float):
-    """
-    The agent choose the delivery route
-
-    The only way re-implemented (vs. Cambodian version) ist that any mode can be chosen
-
-    Keeping here the comments of the Cambodian version
-    If the simple case in which there is only one accepted_logistics_modes
-    (as defined by the main parameter logistic_modes)
-    then it is simply the shortest_route using the appropriate weigh
-
-    If there are several accepted_logistics_modes, then the agent will investigate different route,
-    one per accepted_logistics_mode. They will then pick one, with a certain probability taking into account the
-    weight This more complex mode is used when, according to the capacity and cost data, all the exports or
-    imports are using one route, whereas in the data, we observe still some flows using another mode of
-    transport. So we use this to "force" some flow to take the other routes.
-    """
-    if capacity_constraint:
-        weight_considered = "cost_per_ton_with_capacity"
-    else:
-        weight_considered = "cost_per_ton"
-
-    route = transport_network.provide_shortest_route(origin_node,
-                                                     destination_node,
-                                                     shipment_method,
-                                                     route_weight=weight_considered,
-                                                     noise_level=transport_cost_noise_level)
-    # if route is None:
-    #     raise ValueError(f"Agent {self.pid} - No route found from {origin_node} to {destination_node}")
-    # else:
-    return route
-
-
 class Agent(object):
     def __init__(self, agent_type, pid, od_point=0, region=None, name=None,
                  long=None, lat=None):
@@ -65,9 +31,30 @@ class Agent(object):
         self.lat = lat
         self.usd_per_ton = None
         self.region = region
+        self.cost_profile = 0
 
     def id_str(self):
         return f"{self.agent_type} {self.pid} located {self.od_point} in {self.region}".capitalize()
+
+    def choose_route(self, transport_network: "TransportNetwork", origin_node: int, destination_node: int,
+                     shipment_method: str, capacity_constraint: bool, transport_cost_noise_level: float):
+        """
+        The agent choose the delivery route
+        """
+        if capacity_constraint:
+            weight_considered = "cost_per_ton_" + str(self.cost_profile) + "_with_capacity"
+        else:
+            weight_considered = "cost_per_ton_" + str(self.cost_profile)
+
+        route = transport_network.provide_shortest_route(origin_node,
+                                                         destination_node,
+                                                         shipment_method,
+                                                         route_weight=weight_considered,
+                                                         noise_level=transport_cost_noise_level)
+        # if route is None:
+        #     raise ValueError(f"Agent {self.pid} - No route found from {origin_node} to {destination_node}")
+        # else:
+        return route
 
     def receive_shipment_and_pay(self, commercial_link: "CommercialLink", transport_network: "TransportNetwork"):
         """Firm look for shipments in the transport nodes it is located
@@ -108,11 +95,13 @@ class Agent(object):
 
         # for each incoming link, receive product and pay
         # the way differs between service and shipment
-        for edge in sc_network.in_edges(self):
-            if sc_network[edge[0]][self]['object'].product_type in sectors_no_transport_network:
-                self.receive_service_and_pay(sc_network[edge[0]][self]['object'])
+        for supplier, _ in sc_network.in_edges(self):
+            commercial_link = sc_network[supplier][self]['object']
+            if commercial_link.product_type in sectors_no_transport_network:
+                self.receive_service_and_pay(commercial_link)
             else:
-                self.receive_shipment_and_pay(sc_network[edge[0]][self]['object'], transport_network)
+                self.receive_shipment_and_pay(commercial_link, transport_network)
+            commercial_link.update_status()
 
     def receive_service_and_pay(self, commercial_link):
         # Always available, same price
@@ -131,37 +120,24 @@ class Agent(object):
                 f" It was supposed to be {commercial_link.delivery}.")
 
     def _get_route(self, transport_network, available_transport_network, destination_node,
-                   shipment_method, library_type, capacity_constraint, transport_cost_noise_level):
+                   shipment_method, normal_or_disrupted, capacity_constraint, transport_cost_noise_level):
 
-        origin_node = self.od_point
-        library_key = tuple(sorted((origin_node, destination_node)))
-
-        canonical_route = transport_network.shortest_path_library[library_type][shipment_method].get(library_key)
-        if canonical_route:
-            if origin_node == library_key[0]:
-                route = canonical_route
-            else:
-                route = copy.deepcopy(canonical_route)
-                route.revert()
+        route = transport_network.retrieve_cached_route(self.od_point, destination_node, self.cost_profile,
+                                                        normal_or_disrupted, shipment_method)
+        if route:
+            return route
         else:
-            route = choose_route(
+            route = self.choose_route(
                 transport_network=available_transport_network,
-                origin_node=origin_node,
+                origin_node=self.od_point,
                 destination_node=destination_node,
                 shipment_method=shipment_method,
                 capacity_constraint=capacity_constraint,
                 transport_cost_noise_level=transport_cost_noise_level
             )
-            if origin_node == library_key[0]:
-                transport_network.shortest_path_library[library_type][shipment_method][library_key] = route
-            else:
-                canonical_route = copy.deepcopy(route)
-                canonical_route.revert()
-                transport_network.shortest_path_library[library_type][shipment_method][library_key] = canonical_route
-            # if 'airways' in route.transport_modes:
-            #     print(f"{self.id_str()} choose air to go to {destination_node}")
-            #     print(shipment_method, capacity_constraint, transport_cost_noise_level)
-        return route
+            transport_network.cache_route(route, self.od_point, destination_node, self.cost_profile,
+                                          normal_or_disrupted, shipment_method)
+            return route
 
     def choose_initial_routes(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
                               capacity_constraint: bool, explicit_service_firm: bool, transport_to_households: bool,
@@ -177,12 +153,14 @@ class Agent(object):
             elif (not transport_to_households) and (edge[1].agent_type == 'household'):
                 continue
 
+            commercial_link = sc_network[self][edge[1]]['object']
             destination_node = edge[1].od_point
-            shipment_method = sc_network[self][edge[1]]['object'].shipment_method
-            route = self._get_route(transport_network, transport_network, destination_node, shipment_method,
+            route = self._get_route(transport_network, transport_network, destination_node,
+                                    commercial_link.shipment_method,
                                     'normal', capacity_constraint, transport_cost_noise_level)
-
-            sc_network[self][edge[1]]['object'].store_route_information(route=route, main_or_alternative="main")
+            cost_per_ton_label = "cost_per_ton_" + str(self.cost_profile) + "_" + commercial_link.shipment_method
+            cost_per_ton = route.sum_indicator(transport_network, cost_per_ton_label)
+            commercial_link.store_route_information(route, "main", cost_per_ton)
 
             if capacity_constraint:
                 self.update_transport_load(edge, monetary_unit_flow, route, sc_network, transport_network,
@@ -194,12 +172,16 @@ class Agent(object):
 
         destination_node = commercial_link.route[-1][0]
         route = self._get_route(transport_network, available_transport_network, destination_node,
-                                commercial_link.shipment_method, 'alternative', account_capacity, transport_cost_noise_level)
+                                commercial_link.shipment_method, 'alternative', account_capacity,
+                                transport_cost_noise_level)
 
         if route is not None:
-            commercial_link.store_route_information(route=route, main_or_alternative="alternative")
+            cost_per_ton_label = "cost_per_ton_" + str(self.cost_profile) + "_" + commercial_link.shipment_method
+            cost_per_ton = route.sum_indicator(transport_network, cost_per_ton_label)
+            commercial_link.store_route_information(route, "alternative", cost_per_ton)
+            return True
 
-        return route
+        return False
 
     def get_transport_cond(self, edge, transport_modes):
         # Define the type of transport mode to use by looking in the transport_mode table
@@ -225,33 +207,6 @@ class Agent(object):
         new_load_in_usd = sc_network[self][edge[1]]['object'].order
         new_load_in_tons = Agent.transformUSD_to_tons(new_load_in_usd, monetary_unit_flow, self.usd_per_ton)
         transport_network.update_load_on_route(route, new_load_in_tons, capacity_constraint)
-
-    @staticmethod
-    def check_route_availability(commercial_link, transport_network, which_route='main'):
-        """
-        Look at the main or alternative route
-        at check all edges and nodes in the route
-        if one is marked as disrupted, then the whole route is marked as disrupted
-        """
-
-        if which_route == 'main':
-            route_to_check = commercial_link.route
-        elif which_route == 'alternative':
-            route_to_check = commercial_link.alternative_route
-        else:
-            raise KeyError('Wrong value for parameter which_route, admissible values are main and alternative')
-
-        res = 'available'
-        for route_segment in route_to_check:
-            if len(route_segment) == 2:
-                if transport_network[route_segment[0]][route_segment[1]]['disruption_duration'] > 0:
-                    res = 'disrupted'
-                    break
-            if len(route_segment) == 1:
-                if transport_network._node[route_segment[0]]['disruption_duration'] > 0:
-                    res = 'disrupted'
-                    break
-        return res
 
     @staticmethod
     def _get_probabilities(weights: list) -> np.ndarray:
@@ -307,14 +262,133 @@ class Agent(object):
         importances = [firms[firm_pid].importance for firm_pid in potential_suppliers]
         distances = rescale_values([calculate_distance_between_agents(self, firms[firm_id])
                                     for firm_id in potential_suppliers])
-        weighted_importance = [importances[i] / distances[i]**weight_localization for i in range(len(importances))]
+        weighted_importance = [importances[i] / distances[i] ** weight_localization for i in range(len(importances))]
 
         return "firm", *self._select_ids_and_weight(potential_suppliers,
                                                     self._get_probabilities(weighted_importance),
                                                     round(nb_suppliers_per_input))
 
+    def send_shipment(self, commercial_link: "CommercialLink", transport_network: "TransportNetwork",
+                      available_transport_network: "TransportNetwork", price_increase_threshold: float,
+                      capacity_constraint: bool, transport_cost_noise_level: float):
+
+        if len(commercial_link.route) == 0:
+            raise ValueError(f"{self.id_str()} - commercial link {commercial_link.pid} "
+                             f"(qty {commercial_link.order:.02} is not associated to any route, "
+                             f"I cannot send any shipment to the client")
+
+        if commercial_link.route.is_usable(transport_network):
+            commercial_link.current_route = 'main'
+            commercial_link.price = commercial_link.eq_price
+            if self.agent_type == "firm":
+                commercial_link.price = commercial_link.price * (1 + self.delta_price_input)
+            transport_network.transport_shipment(commercial_link, capacity_constraint)
+            if self.agent_type == "firm":
+                self.product_stock -= commercial_link.delivery
+                self.record_transport_cost(commercial_link.buyer_id, 0)
+            if self.agent_type == "country":
+                self.qty_sold += commercial_link.delivery
+            return 0
+
+        # If there is an alternative route already discovered, and if it is available,
+        # then we use it, otherwise we try to find a new one
+        usable_alternative = False
+        if commercial_link.alternative_found:
+            if commercial_link.alternative_route.is_usable(transport_network):
+                usable_alternative = True
+
+        if not usable_alternative:
+            usable_alternative = self.discover_new_route(commercial_link, transport_network,
+                                                         available_transport_network,
+                                                         capacity_constraint, transport_cost_noise_level)
+
+        if usable_alternative:
+            relative_transport_cost_change = commercial_link.calculate_relative_increase_in_transport_cost()
+            relative_price_change_transport = self.calculate_relative_price_change_transport(
+                relative_transport_cost_change)
+            if relative_price_change_transport > price_increase_threshold:
+                logging.debug(f"{self.id_str()}: found an alternative route to {commercial_link.buyer_id} "
+                              f"but it is costlier by {100 * relative_price_change_transport:.2f}%, "
+                              f"price would be {commercial_link.price:.4f} "
+                              f"instead of {commercial_link.eq_price * (1 + self.delta_price_input):.4f}"
+                              f"so I decide not to send it now.")
+                usable_alternative = False
+
+        if not usable_alternative:
+            logging.debug(f"{self.id_str()}: because of disruption, there is no usable route between me "
+                          f"and agent {commercial_link.buyer_id}")
+            commercial_link.price = commercial_link.eq_price
+            commercial_link.current_route = 'none'
+            commercial_link.delivery = 0
+
+        else:
+            commercial_link.current_route = 'alternative'
+            # We translate this real cost into transport cost
+            if self.agent_type == "firm":
+                self.record_transport_cost(commercial_link.buyer_id, relative_transport_cost_change)
+            # Calculate the relative price change, including any increase due to the prices of inputs
+            total_relative_price_change = relative_price_change_transport
+            if self.agent_type == "firm":
+                total_relative_price_change = self.delta_price_input + relative_price_change_transport
+            if np.isnan(relative_price_change_transport):
+                raise ValueError(str(relative_price_change_transport))
+            commercial_link.price = commercial_link.eq_price * (1 + total_relative_price_change)
+            transport_network.transport_shipment(commercial_link, capacity_constraint)
+            if self.agent_type == "firm":
+                self.product_stock -= commercial_link.delivery
+            # Print information
+            logging.debug(f"{self.id_str().capitalize()}: found an alternative route to {commercial_link.buyer_id}, "
+                          f"it is costlier by {100 * relative_price_change_transport:.0f}%, price is "
+                          f"{commercial_link.price:.4f} instead of {commercial_link.eq_price:.4f}")
+
+            # elif cost_repercussion_mode == "type2":  # actual repercussion de la bill
+            #     added_cost_usd_per_ton = max(commercial_link.alternative_route_cost_per_ton -
+            #                                  commercial_link.route_cost_per_ton,
+            #                                  0)
+            #     added_cost_usd_per_musd = added_cost_usd_per_ton / (self.usd_per_ton / factor)
+            #     added_cost_usd_per_musd = added_cost_usd_per_musd / factor
+            #     added_transport_bill = added_cost_usd_per_musd * commercial_link.delivery
+            #     self.finance['costs']['transport'] += \
+            #         self.eq_finance['costs']['transport'] + added_transport_bill
+            #     commercial_link.price = (commercial_link.eq_price
+            #                              + self.delta_price_input
+            #                              + added_cost_usd_per_musd)
+            #     relative_price_change_transport = \
+            #         commercial_link.price / (commercial_link.eq_price + self.delta_price_input) - 1
+            #     if (commercial_link.price is None) or (commercial_link.price is np.nan):
+            #         raise ValueError("Price should be a float, it is " + str(commercial_link.price))
+            #
+            #     cost_increase = (commercial_link.alternative_route_cost_per_ton
+            #                      - commercial_link.route_cost_per_ton) / commercial_link.route_cost_per_ton
+            #
+            #     logging.debug(f"Firm {self.pid}"
+            #                   f": qty {commercial_link.delivery_in_tons} tons"
+            #                   f" increase in route cost per ton {cost_increase}"
+            #                   f" increased bill mUSD {added_cost_usd_per_musd * commercial_link.delivery}"
+            #                   )
+            #
+            # elif cost_repercussion_mode == "type3":
+            #     relative_cost_change = (commercial_link.alternative_route_time_cost
+            #                             - commercial_link.route_time_cost) / commercial_link.route_time_cost
+            #     self.finance['costs']['transport'] += (self.eq_finance['costs']['transport']
+            #                                            * self.clients[commercial_link.buyer_id]['share']
+            #                                            * (1 + relative_cost_change))
+            #     relative_price_change_transport = (
+            #             self.eq_finance['costs']['transport']
+            #             * relative_cost_change
+            #             / ((1 - self.target_margin) * self.eq_finance['sales']))
+            #
+            #     total_relative_price_change = self.delta_price_input + relative_price_change_transport
+            #     commercial_link.price = commercial_link.eq_price * (1 + total_relative_price_change)
+            # else:
+            #     raise NotImplementedError(f"Type {cost_repercussion_mode} not implemented")
+
     def reset_indicators(self):
         pass
+
+    def assign_cost_profile(self, nb_cost_profiles: int):
+        if nb_cost_profiles > 0:
+            self.cost_profile = random.randint(0, nb_cost_profiles - 1)
 
 
 class Agents(dict):
@@ -326,7 +400,7 @@ class Agents(dict):
 
     def __setitem__(self, key, value):
         if not isinstance(value, Agent):
-            raise KeyError("Value must be an Agent")
+            raise KeyError(f"Value must be an Agent, but got {type(value)} from {value.__class__.__module__}")
         if not hasattr(value, 'pid'):
             raise ValueError("Value must have a 'pid' attribute")
         super().__setitem__(key, value)
@@ -419,7 +493,7 @@ class Agents(dict):
                 transport_to_households: bool, capacity_constraint: bool,
                 monetary_units_in_model: str, cost_repercussion_mode: str, price_increase_threshold: float,
                 transport_cost_noise_level: float):
-        for agent in self.values():
+        for agent in tqdm(self.values(), total=len(self), desc=f"Delivering"):
             agent.deliver_products(sc_network, transport_network, available_transport_network,
                                    sectors_no_transport_network=sectors_no_transport_network,
                                    rationing_mode=rationing_mode,
@@ -436,6 +510,10 @@ class Agents(dict):
         for agent in self.values():
             agent.receive_products_and_pay(sc_network, transport_network, sectors_no_transport_network,
                                            transport_to_households)
+
+    def assign_cost_profile(self, nb_cost_profiles: int):
+        for agent in self.values():
+            agent.assign_cost_profile(nb_cost_profiles)
 
 
 def determine_nb_suppliers(nb_suppliers_per_input: float, max_nb_of_suppliers=None):

@@ -13,7 +13,7 @@ transport_modes: ["roads", "maritime", "railways", "pipelines"] #, waterways, ai
 monetary_units_in_model: mUSD
 monetary_units_in_data: mUSD
 time_resolution: week
-io_cutoff: 0.2  # 0.01
+io_cutoff: 0.1  # 0.01
 cutoff_sector_demand:
   'type': 'absolute'
   'value': 1000
@@ -52,7 +52,8 @@ logistics:
     waterways: 0.005
     pipelines: 0.001
     multimodal: 0.01
-simulation_type: criticality
+  nb_cost_profiles: 1
+  basic_cost_random: True
 duration_dic:
   0: 1
   1: 3
@@ -81,6 +82,7 @@ flow_data:
   tbilisi: 393000
   poti: 9612000
   batumi: 4207000
+simulation_type: disruption
 criticality:
   attribute: name
   edges: [aktau, baku, turkmenbashi, railways-GEO, railways-AZE, railways-KAZ]
@@ -95,7 +97,7 @@ events:
 #    description_type: edge_attributes
     attribute: name
 #    attribute: disruption
-    values: [railways-GEO, railways-KAZ]
+    values: [aktau]
 #    values: ["flood_1in1000_UZB"]
     start_time: 1
     duration: 1

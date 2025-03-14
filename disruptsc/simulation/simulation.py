@@ -10,8 +10,9 @@ from disruptsc.network.sc_network import ScNetwork
 
 class Simulation(object):
     def __init__(self, simulation_type: str):
-        if simulation_type not in ["initial_state", "event", "criticality"]:
-            raise ValueError("Simulation type should be 'initial_state', 'event', 'criticality'")
+        admissible_types = ["initial_state", "event", "disruption", "stationary_test", "criticality"]
+        if simulation_type not in admissible_types:
+            raise ValueError(f"Simulation type should be {admissible_types}")
         self.type = simulation_type
         self.firm_data = []
         self.country_data = []

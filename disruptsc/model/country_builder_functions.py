@@ -189,7 +189,9 @@ def create_countries_from_mrio(mrio: Mrio,
     total_imports = import_table.sum().sum()
 
     country_table = geopandas.read_file(filepath_regions).set_index('region').loc[country_list]
-    country_table['od_point'] = find_nearest_node_id(transport_nodes, country_table)
+    admissible_node_mode = ['roads', 'railways', 'maritime']
+    potential_nodes = transport_nodes[transport_nodes['type'].isin(admissible_node_mode)]
+    country_table['od_point'] = find_nearest_node_id(potential_nodes, country_table)
     country_table['long'] = country_table["geometry"].x
     country_table['lat'] = country_table["geometry"].y
     country_table['country_usd_per_ton'] = pd.read_csv(filepath_sectors).set_index("sector").loc['IMP', 'usd_per_ton']

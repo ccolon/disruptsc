@@ -7,9 +7,12 @@ from disruptsc.parameters import EPSILON
 class CommercialLink(object):
 
     def __init__(self, pid=None, supplier_id=None, buyer_id=None, product=None,
+                 origin_node=None, destination_node = None,
                  product_type=None, category=None, order=0, delivery=0, payment=0, essential=True,
                  route=None):
         # Parameter
+        self.alternative_found = False
+        self.status = "ok"
         self.pid = pid
         self.product = product  # sector of producing firm
         self.product_type = product_type  # service, manufacturing, etc. (=sector_type)
@@ -17,14 +20,15 @@ class CommercialLink(object):
         self.route = route or []  # node_id path of the transport network, as
         # [(node1, ), (node1, node2), (node2, ), (node2, node3), (node3, )]
         self.route_length = 1
-        self.route_time_cost = 0
         self.route_cost_per_ton = 0
         self.supplier_id = supplier_id
         self.buyer_id = buyer_id
+        self.origin_node = origin_node
+        self.destination_node = destination_node
         self.eq_price = 1
         self.shipment_method = "solid_bulk"
         self.essential = essential
-
+        self.use_transport_network = False
 
         # Variable
         self.current_route = 'main'
@@ -35,10 +39,25 @@ class CommercialLink(object):
         self.payment = payment  # flows upstream
         self.alternative_route = []
         self.alternative_route_length = 1
-        self.alternative_route_time_cost = 0
         self.alternative_route_cost_per_ton = 0
         self.price = 1
         self.fulfilment_rate = 1  # ratio deliver / order
+
+    def get_current_route(self):
+        if self.current_route == "main":
+            return self.route
+        elif self.current_route == "alternative":
+            return self.alternative_route
+        else:
+            ValueError("current_route should be 'main' or 'alternative'")
+
+    def update_status(self):
+        if self.fulfilment_rate > 1 - EPSILON:
+            self.status = "ok"
+        elif self.fulfilment_rate > EPSILON:
+            self.status = "partial delivery"
+        else:
+            self.status = "no delivery"
 
     def determine_transportation_mode(self, sector_types_to_shipment_method: dict):
         if self.product_type in sector_types_to_shipment_method.keys():
@@ -66,7 +85,6 @@ class CommercialLink(object):
         self.payment = 0  # flows upstream
         self.fulfilment_rate = 1
         self.alternative_route = []
-        self.alternative_route_time_cost = 0
         self.alternative_route_cost_per_ton = 0
         self.price = 1
 
@@ -78,19 +96,27 @@ class CommercialLink(object):
         else:
             self.fulfilment_rate = self.delivery / self.order
 
-    def store_route_information(self, route: Route, main_or_alternative: str):
+    def calculate_relative_increase_in_transport_cost(self):
+        if self.delivery_in_tons == 0:
+            raise ValueError('Delivery in tons is null')
+        normal_transport_bill = self.delivery_in_tons * self.route_cost_per_ton
+        new_transport_bill = self.delivery_in_tons * self.alternative_route_cost_per_ton
+        return max(new_transport_bill - normal_transport_bill, 0) / normal_transport_bill
+
+    def store_route_information(self, route: Route, main_or_alternative: str, cost_per_ton: float):
+
+        self.use_transport_network = True
 
         if main_or_alternative == "main":
             self.route = route
             self.route_length = route.length
-            # self.route_time_cost = route_time_cost
-            self.route_cost_per_ton = route.cost_per_ton
+            self.route_cost_per_ton = cost_per_ton
 
         elif main_or_alternative == "alternative":
+            self.alternative_found = True
             self.alternative_route = route
             self.alternative_route_length = route.length
-            # self.alternative_route_time_cost = route_time_cost
-            self.alternative_route_cost_per_ton = route.cost_per_ton
+            self.alternative_route_cost_per_ton = cost_per_ton
 
         else:
             raise ValueError("'main_or_alternative' is not in ['main', 'alternative']")

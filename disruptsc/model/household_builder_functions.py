@@ -63,7 +63,9 @@ def define_households_from_mrio(
     # Create household table
     household_table = gpd.read_file(filepath_region_table)
     household_table = household_table[household_table["region"].isin([tup[0] for tup in mrio.region_households])]
-    household_table['od_point'] = find_nearest_node_id(transport_nodes, household_table)
+    admissible_node_mode = ['roads']
+    potential_nodes = transport_nodes[transport_nodes['type'].isin(admissible_node_mode)]
+    household_table['od_point'] = find_nearest_node_id(potential_nodes, household_table)
     logging.info(f"Select {household_table.shape[0]} households in {household_table['region'].nunique()} regions")
 
     # Add long lat
@@ -98,8 +100,8 @@ def define_households_from_mrio(
     household_sector_consumption = {}
     # cutoff = get_absolute_cutoff_value(final_demand_cutoff, input_units)
     cutoff = rescale_monetary_values(final_demand_cutoff['value'], time_resolution=time_resolution,
-                                                   target_units=target_units,
-                                                   input_units=final_demand_cutoff['unit'])
+                                     target_units=target_units,
+                                     input_units=final_demand_cutoff['unit'])
     # Step 3: Iterate over households
     for _, household in household_table.iterrows():
 
@@ -108,11 +110,12 @@ def define_households_from_mrio(
 
         # Step 4: Get demand values for this region
         if household['region'] in final_demand.columns.get_level_values(0):  # Ensure region exists in df
-            region_demand = final_demand.xs(household['region'], axis=1, level=0)  # Extract relevant demand for the region
+            region_demand = final_demand.xs(household['region'], axis=1,
+                                            level=0)  # Extract relevant demand for the region
             # Scale demand for this household
             household_demand = (region_demand * pop_proportion).stack().to_dict()
             # Store in final dictionary
-            household_sector_consumption[household['id']] = {tup[0]+"_"+tup[1]: demand
+            household_sector_consumption[household['id']] = {tup[0] + "_" + tup[1]: demand
                                                              for tup, demand in household_demand.items()
                                                              if demand > cutoff}
 

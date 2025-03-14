@@ -157,8 +157,10 @@ def load_cached_logistic_routes():
     tmp_data = pickle.load(open(pickle_filename, 'rb'))
     loaded_sc_network = tmp_data['supply_chain_network']
     loaded_transport_network = tmp_data['transport_network']
+    loaded_commercial_link_table = tmp_data['commercial_link_table']
     loaded_firms = tmp_data['firms']
     loaded_households = tmp_data['households']
     loaded_countries = tmp_data['countries']
     logging.info('Logistic routes generated from temp file.')
-    return loaded_sc_network, loaded_transport_network, loaded_firms, loaded_households, loaded_countries
+    return loaded_sc_network, loaded_transport_network, loaded_commercial_link_table, \
+        loaded_firms, loaded_households, loaded_countries

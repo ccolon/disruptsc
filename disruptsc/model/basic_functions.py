@@ -140,12 +140,10 @@ def add_or_append_to_dict(dictionary, key, value_to_add):
         dictionary[key] = value_to_add
 
 
-def find_nearest_node_id(transport_nodes, gdf: gpd.GeoDataFrame, node_type='any'):
+def find_nearest_node_id(transport_nodes, gdf: gpd.GeoDataFrame):
     """
-    Finds the nearest road node for each point in final_gdf using KDTree.
+    Finds the nearest node for each point in final_gdf using KDTree.
     """
-    if node_type == "road":
-        transport_nodes = transport_nodes[transport_nodes['type'] == "road"].copy()
     transport_node_coords = np.array(list(transport_nodes.geometry.apply(lambda geom: (geom.x, geom.y))))
     gdf_coords = np.array(list(gdf.geometry.apply(lambda geom: (geom.x, geom.y))))
 
@@ -163,3 +161,29 @@ def mean_squared_distance(d1, d2):
 
     squared_diffs = [(d1[k] - d2[k]) ** 2 for k in common_keys]
     return math.sqrt(sum(squared_diffs) / len(squared_diffs)) / 1000
+
+
+def draw_lognormal_samples(mean, coefficient_of_variation, N):
+    """
+    Generates N random samples from a lognormal distribution with given mean and coefficient of variation.
+
+    Parameters:
+    - mean (float): Mean of the distribution.
+    - coefficient_of_variation (float): Coefficient of variation (CV = std_dev / mean).
+    - N (int): Number of samples to draw.
+
+    Returns:
+    - samples (numpy array): Randomly drawn numbers following the specified lognormal distribution.
+    """
+
+    # Compute standard deviation
+    std_dev = coefficient_of_variation * mean
+
+    # Convert mean and std_dev to lognormal parameters
+    mu = np.log(mean**2 / np.sqrt(std_dev**2 + mean**2))
+    sigma = np.sqrt(np.log(1 + (std_dev**2 / mean**2)))
+
+    # Draw samples from the lognormal distribution
+    samples = np.random.lognormal(mean=mu, sigma=sigma, size=N)
+
+    return samples.tolist()

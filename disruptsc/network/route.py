@@ -20,11 +20,14 @@ class Route(list):
         self.transport_modes = list(set([transport_network[source][target]['type']
                                          for source, target in self.transport_edges]))
         # self.transport_modes = list(transport_edges.loc[self.transport_edge_ids, 'type'].unique())
-        self.cost_per_ton = sum([transport_network[source][target]['cost_per_ton_' + shipment_method]
-                                 for source, target in self.transport_edges])
         # self.cost_per_ton = transport_edges.loc[self.transport_edge_ids, 'cost_per_ton'].sum()
-        self.length = sum([transport_network[source][target]['km']
-                           for source, target in self.transport_edges])
+        self.length = self.sum_indicator(transport_network, 'km')
+
+    def is_usable(self, transport_network: "TransportNetwork"):
+        for u, v in self.transport_edges:
+            if transport_network[u][v]['disruption_duration'] > 0:
+                return False
+        return True
 
     def check_edge_in_route(self, route, searched_edge):
         for edge in self.transport_edges:

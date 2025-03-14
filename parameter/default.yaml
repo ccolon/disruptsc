@@ -137,7 +137,17 @@ logistics:
     waterways: 0.005
     pipelines: 0.0001
     multimodal: 0.01
-  loading_times: #hours
+  nb_cost_profiles: 1
+  basic_cost_random: False  # deactivate all randomness
+  basic_cost_variability: # coefficient of variation
+    roads: 0.1
+    maritime: 0.05
+    airways: 0.01
+    railways: 0.2
+    waterways: 0.2
+    pipelines: 0.01
+    multimodal: 0.01
+  loading_times:  # hours
     roads-maritime: 12
     roads-railways: 12
     roads-maritime-dom: 12
