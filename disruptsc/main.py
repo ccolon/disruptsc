@@ -67,6 +67,38 @@ elif parameters.simulation_type == "stationary_test":
 elif parameters.simulation_type in ["event", "disruption"]:
     simulation = model.run_disruption()
 
+elif parameters.simulation_type in ["event_mc", "disruption_mc"]:
+    suffix = round(datetime.now().timestamp() * 1000)
+    output_file = paths.OUTPUT_FOLDER / parameters.scope / f"disruption_{suffix}.csv"
+    with open(output_file, mode="w", newline="") as file:
+        writer = csv.writer(file)
+        region_household_loss_labels = ['household_loss_' + region for region in model.mrio.regions]
+        writer.writerow(["mc_repetition", "duration", "household_loss",
+                         "country_loss"] + region_household_loss_labels)  # Writing the header
+
+    logging.info(f"{parameters.mc_repetitions} Monte Carlo simulations")
+    for i in range(parameters.mc_repetitions):
+        logging.info(f"")
+        logging.info(f"=============== Starting repetition #{i} ===============")
+        model.setup_transport_network(cached=False)
+        model.setup_agents(cached=False)
+        model.setup_sc_network(cached=False)
+        model.set_initial_conditions()
+        model.setup_logistic_routes(cached=False)
+        simulation = model.run_disruption(t_final=10)
+        household_loss_per_region = simulation.calculate_household_loss(per_region=True)
+        household_loss = sum(household_loss_per_region.values())
+        country_loss = simulation.calculate_country_loss()
+        logging.info(f"Simulation terminated. "
+                     f"Household loss: {int(household_loss)} {parameters.monetary_units_in_model}. "
+                     f"Country loss: {int(country_loss)} {parameters.monetary_units_in_model}.")
+        # Append the results to the CSV
+        with open(output_file, mode="a", newline="") as file:
+            writer = csv.writer(file)
+            household_loss_per_region_values = [household_loss_per_region[region] for region in model.mrio.regions]
+            writer.writerow([i, household_loss, country_loss] + household_loss_per_region_values)
+
+
 elif parameters.simulation_type in ['flow_calibration']:
     simulation = model.run_static()
     calibration_flows = simulation.report_annual_flow_specific_edges(parameters.flow_data, model.transport_edges,

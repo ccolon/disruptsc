@@ -112,8 +112,8 @@ export_details:
 # Logistic parameters
 logistics:
   shipment_methods_to_transport_modes:  # shipment methods that can be used for each transport mode
-    solid_bulk: ["multimodal", 'roads', 'railways', 'maritime', 'waterways']  # no solid bulk on pipeline nor planes
-    liquid_bulk: ["multimodal", 'pipelines', 'roads', 'railways', 'maritime', 'waterways']  # no liquid bulk on planes
+    solid_bulk: ["multimodal", 'roads', 'railways', 'maritime', 'waterways', 'airways']  # no solid bulk on pipeline
+    liquid_bulk: ["multimodal", 'pipelines', 'roads', 'railways', 'maritime', 'waterways', 'airways']
     container: ["multimodal", 'roads', 'railways', 'maritime', 'waterways', 'airways']  # no container on pipelines
   sector_types_to_shipment_method:  # shipment method to use for each sector type
     agriculture: "solid_bulk"
@@ -415,6 +415,9 @@ force_local_retailer: True
 
 # The type of simulation to run
 simulation_type: initial_state
+
+# Nb of Monte Carlo simulations to run
+mc_repetitions: 5
 
 # Determines the disruptive events to model TODO elaborate
 events: null

@@ -93,99 +93,17 @@ class Household(Agent):
         self.tot_spending = self.tot_consumption
         self.extra_spending_per_sector = {sector: 0 for sector in self.purchase_plan.keys()}
 
-    def identify_suppliers_legacy(self, region_sector: str, firms: "Firms", countries: "Countries",
-                           weight_localization: float, force_local: bool, nb_suppliers_per_input: int,
-                           firm_data_type: str):
-        if firm_data_type == "mrio":
-            # if len(sector_id) == 3:  # case of countries
-            if "IMP" in region_sector:  # case of countries
-                supplier_type = "country"
-                selected_supplier_ids = [region_sector.split('_')[0]]  # for countries, the id is extracted from the name
-                supplier_weights = [1]
-
-            else:
-                supplier_type = "firm"
-                potential_supplier_pids = [pid for pid, firm in firms.items() if firm.region_sector == region_sector]
-                if len(potential_supplier_pids) == 0:
-                    raise ValueError(f"{self.id_str().capitalize()}: there should be one supplier for {region_sector}")
-                # Choose based on importance
-                # Select all weighted by importance
-                # selected_supplier_ids = potential_supplier_pids
-                # supplier_weights = rescale_values([firms[firm_pid].importance for firm_pid in selected_supplier_ids])
-                prob_to_be_selected = np.array(rescale_values([firms[firm_pid].importance for firm_pid in
-                                                               potential_supplier_pids]))
-                prob_to_be_selected /= prob_to_be_selected.sum()
-                nb_suppliers_to_choose = min(nb_suppliers_per_input, len(potential_supplier_pids))
-                selected_supplier_ids, supplier_weights = select_ids_and_weight(potential_supplier_pids,
-                                                                                prob_to_be_selected,
-                                                                                nb_suppliers_to_choose)
-
-        else:
-            if region_sector == "IMP":
-                supplier_type = "country"
-                # Identify countries as suppliers if the corresponding sector does export
-                importance_threshold = 1e-6
-                potential_suppliers = [
-                    pid
-                    for pid, country in countries.items()
-                    if country.supply_importance > importance_threshold
-                ]
-                importance_of_each = [
-                    country.supply_importance
-                    for country in countries.values()
-                    if country.supply_importance > importance_threshold
-                ]
-                prob_to_be_selected = np.array(importance_of_each)
-                prob_to_be_selected /= prob_to_be_selected.sum()
-
-            # For the other types of inputs, identify the domestic suppliers, and
-            # calculate their probability to be chosen, based on distance and importance
-            else:
-                supplier_type = "firm"
-                potential_suppliers = [pid for pid, firm in firms.items() if firm.region_sector == region_sector]
-                if len(potential_suppliers) == 0:
-                    raise ValueError(f"{self.id_str().capitalize()}: no supplier for input {region_sector}")
-                if force_local:
-                    potential_local_suppliers = [firm_id for firm_id in potential_suppliers
-                                                 if firms[firm_id].od_point == self.od_point]
-                    if len(potential_local_suppliers) > 0:
-                        potential_suppliers = potential_local_suppliers
-                    else:
-                        pass
-                        # logging.debug(f"{self.id_str().capitalize()}: no local supplier for input {sector_id}")
-                distance_to_each = rescale_values([
-                    calculate_distance_between_agents(self, firms[firm_id])
-                    for firm_id in potential_suppliers
-                ])
-
-                importance_of_each = rescale_values([firms[firm_id].importance for firm_id in potential_suppliers])
-
-                prob_to_be_selected = np.array(importance_of_each) / (np.array(distance_to_each) ** weight_localization)
-                prob_to_be_selected /= prob_to_be_selected.sum()
-
-            # Determine the number of supplier(s) to select. 1 or 2.
-            # nb_suppliers_to_choose = determine_nb_suppliers(nb_suppliers_per_input)
-            nb_suppliers_to_choose = 1  # for households, always 1
-
-            # Select the supplier(s). It there is 2 suppliers, then we generate
-            # random weight. It determines how much is bought from each supplier.
-            selected_supplier_ids, supplier_weights = select_ids_and_weight(potential_suppliers,
-                                                                            prob_to_be_selected,
-                                                                            nb_suppliers_to_choose)
-
-        return supplier_type, selected_supplier_ids, supplier_weights
-
-    def select_suppliers(self, graph: "ScNetwork", firms: "Firms", countries: "Countries",
+    def select_suppliers(self, sc_network: "ScNetwork", firms: "Firms", countries: "Countries",
                          weight_localization: float, nb_suppliers_per_input: int,
                          sector_types_to_shipment_methods: dict, import_label: str):
-        # print(f"{self.id_str()}: consumption {self.sector_consumption}")
         for region_sector, amount in self.sector_consumption.items():
             supplier_type, retailers, retailer_weights = self.identify_suppliers(region_sector, firms,
                                                                                  nb_suppliers_per_input,
                                                                                  weight_localization,
                                                                                  import_label)
-
             # For each of them, create commercial link
+            retailer_weight_iter = iter(retailer_weights)
+
             for retailer_id in retailers:
                 # Retrieve the appropriate supplier object from the id
                 # If it is a country we get it from the country list
@@ -197,27 +115,30 @@ class Household(Agent):
                 else:
                     supplier_object = firms[retailer_id]
                     link_category = 'domestic_B2C'
-                    product_type = firms[retailer_id].sector_type
+                    product_type = supplier_object.sector_type
 
                 # For each retailer, create an edge_attr in the economic network
-                graph.add_edge(supplier_object, self,
-                               object=CommercialLink(
-                                   pid=str(retailer_id) + '->' + str(self.pid),
-                                   product=region_sector,
-                                   product_type=product_type,
-                                   category=link_category,
-                                   origin_node=supplier_object.od_point,
-                                   destination_node=self.od_point,
-                                   supplier_id=retailer_id,
-                                   buyer_id=self.pid)
-                               )
-                graph[supplier_object][self]['object'].determine_transportation_mode(sector_types_to_shipment_methods)
+                commercial_link = CommercialLink(
+                                        pid=str(retailer_id) + '->' + str(self.pid),
+                                        product=region_sector,
+                                        product_type=product_type,
+                                        category=link_category,
+                                        origin_node=supplier_object.od_point,
+                                        destination_node=self.od_point,
+                                        supplier_id=retailer_id,
+                                        buyer_id=self.pid)
+                sc_network.add_edge(supplier_object, self, object=commercial_link)
+
                 # Associate a weight in the commercial link, the household's purchase plan & retailer list, in the retailer's client list
-                weight = retailer_weights.pop()
-                graph[supplier_object][self]['weight'] = weight
-                self.purchase_plan[retailer_id] = weight * self.sector_consumption[region_sector]
+                edge_data = sc_network[supplier_object][self]
+                edge_data['object'].determine_transportation_mode(sector_types_to_shipment_methods)
+                weight = next(retailer_weight_iter)
+                edge_data['weight'] = weight
+
+                self.purchase_plan[retailer_id] = weight * amount
                 self.retailers[retailer_id] = {'sector': region_sector, 'weight': weight}
                 distance = calculate_distance_between_agents(self, supplier_object)
+
                 supplier_object.clients[self.pid] = {
                     'sector': "households", 'share': 0, 'transport_share': 0, "distance": distance
                 }  # The share of sales cannot be calculated now.
@@ -231,62 +152,6 @@ class Household(Agent):
                 quantity_to_buy = 0
             commercial_link = graph[edge[0]][self]['object']
             commercial_link.order = quantity_to_buy
-
-    def select_supplier_from_list(self, firm_list: "Firms",
-                                  nb_suppliers_to_choose: int, potential_firm_ids: list,
-                                  distance: bool, importance: bool, weight_localization: float,
-                                  force_same_odpoint=False):
-        # reduce firm to choose to local ones
-        if force_same_odpoint:
-            same_odpoint_firms = [
-                firm_id
-                for firm_id in potential_firm_ids
-                if firm_list[firm_id].odpoint == self.od_point
-            ]
-            if len(same_odpoint_firms) > 0:
-                potential_firm_ids = same_odpoint_firms
-            #     logging.info('retailer available locally at od_point '+str(agent.od_point)+
-            #         " for "+firms[potential_firm_ids[0]].sector)
-            # else:
-            #     logging.warning('force_same_odpoint but no retailer available at od_point '+str(agent.od_point)+
-            #         " for "+firms[potential_firm_ids[0]].sector)
-
-        # distance weight
-        if distance:
-            distance_to_each = rescale_values([
-                calculate_distance_between_agents(self, firm_list[firm_id])
-                for firm_id in potential_firm_ids
-            ])
-            distance_weight = 1 / (np.array(distance_to_each) ** weight_localization)
-        else:
-            distance_weight = np.ones(len(potential_firm_ids))
-
-        # importance weight
-        if importance:
-            importance_of_each = rescale_values([firm_list[firm_id].importance for firm_id in potential_firm_ids])
-            importance_weight = np.array(importance_of_each)
-        else:
-            importance_weight = np.ones(len(potential_firm_ids))
-
-        # create weight vector based on choice
-        prob_to_be_selected = distance_weight * importance_weight
-        prob_to_be_selected /= prob_to_be_selected.sum()
-
-        # perform the random choice
-        selected_supplier_ids = np.random.choice(
-            potential_firm_ids,
-            p=prob_to_be_selected,
-            size=nb_suppliers_to_choose,
-            replace=False
-        ).tolist()
-        # Choose weight if there are multiple suppliers
-        index_map = {supplier_id: position for position, supplier_id in enumerate(potential_firm_ids)}
-        selected_positions = [index_map[supplier_id] for supplier_id in selected_supplier_ids]
-        selected_prob = [prob_to_be_selected[position] for position in selected_positions]
-        supplier_weights = generate_weights(nb_suppliers_to_choose, importance_of_each=selected_prob)
-
-        # return
-        return selected_supplier_ids, supplier_weights
 
     def receive_products_and_pay(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
                                  sectors_no_transport_network: list, transport_to_households: bool = False):

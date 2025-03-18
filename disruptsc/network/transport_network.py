@@ -154,8 +154,9 @@ class TransportNetwork(nx.Graph):
                 weight = weight + '_noise'
                 self.add_noise_to_weight(weight, noise_level)
             try:
-                sp = nx.astar_path(self, origin_node, destination_node, weight=weight,
-                                   heuristic=self.cost_heuristic, cutoff=TRANSPORT_MALUS)
+                sp = nx.shortest_path(self, origin_node, destination_node, weight=weight)
+                # sp = nx.astar_path(self, origin_node, destination_node, weight=weight,
+                #                    heuristic=self.cost_heuristic, cutoff=TRANSPORT_MALUS)
                 route = Route(sp, self, shipment_method)
                 return route
             except nx.NetworkXNoPath:

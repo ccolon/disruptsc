@@ -9,6 +9,7 @@ import pandas as pd
 from shapely import wkt
 from shapely.geometry import Point
 
+from disruptsc.model.basic_functions import find_min_in_nested_dict
 from disruptsc.network.transport_network import TransportNetwork
 
 if TYPE_CHECKING:
@@ -150,9 +151,9 @@ def create_transport_network(transport_modes: list, filepaths: dict, logistics_p
     nodes['households_there'] = None
     selected_node_attributes = ['long', 'lat', 'disruption_duration', 'shipments', 'firms_there', 'households_there']
     nx.set_node_attributes(transport_network, nodes[selected_node_attributes].to_dict("index"))
-    min_basic_cost = logistics_parameters['basic_cost']['maritime']
-    min_time_cost = 1.0 / logistics_parameters['speeds']['maritime'] * logistics_parameters['cost_of_time']
-    transport_network.min_cost_per_tonkm = min_basic_cost + min_time_cost
+    min_basic_cost = find_min_in_nested_dict(logistics_parameters['basic_cost'])
+    min_time_cost = 1.0 / find_min_in_nested_dict(logistics_parameters['speeds']) * logistics_parameters['cost_of_time']
+    transport_network.min_cost_per_tonkm = min_basic_cost + 0*min_time_cost
 
     return transport_network, edges, nodes
 

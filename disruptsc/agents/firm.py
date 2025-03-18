@@ -8,7 +8,7 @@ import numpy as np
 from shapely.geometry import Point
 
 from disruptsc.model.basic_functions import generate_weights, \
-    compute_distance_from_arcmin, rescale_values
+    compute_distance_from_arcmin, rescale_values, rescale_monetary_values
 
 from disruptsc.agents.agent import Agent, Agents
 from disruptsc.network.commercial_link import CommercialLink
@@ -145,7 +145,7 @@ class Firm(Agent):
         logging.info(f'The production capacity of firm {self.pid} is reduced by {reduction} '
                      f'for {disruption_duration} time steps')
 
-    def initialize_operational_variables(self, eq_production):
+    def initialize_operational_variables(self, eq_production: float, time_resolution: str):
         self.production_target = eq_production
         self.production = self.production_target
         self.eq_production = self.production_target
@@ -158,7 +158,9 @@ class Firm(Agent):
             for input_id, need in self.input_needs.items()
         }
         self.decide_purchase_plan(adaptive_inventories=False, adapt_weight_based_on_satisfaction=False)
-        self.capital_initial = self.capital_to_value_added_ratio * eq_production
+        yearly_eq_production = rescale_monetary_values(eq_production, input_time_resolution=time_resolution,
+                                                       target_time_resolution="year")
+        self.capital_initial = self.capital_to_value_added_ratio * yearly_eq_production
 
     def initialize_financial_variables(self, eq_production, eq_input_cost,
                                        eq_transport_cost, eq_other_cost):
@@ -571,7 +573,7 @@ class Firm(Agent):
 
     def evaluate_capacity(self):
         if self.capital_destroyed > EPSILON:
-            self.production_capacity_reduction = min(self.capital_destroyed / self.capital_initial, 1)
+            self.production_capacity_reduction = self.capital_destroyed / self.capital_initial
             logging.debug(f"{self.id_str()} - due to capital destruction, "
                           f"my production capacity is reduced by {self.production_capacity_reduction}")
         else:
@@ -758,7 +760,6 @@ class Firm(Agent):
 
     def update_indicator(self, quantity_delivered: float, price: float, commercial_link: "CommercialLink"):
         super().update_indicator(quantity_delivered, price, commercial_link)
-        commercial_link.calculate_fulfilment_rate()
         self.suppliers[commercial_link.supplier_id]['satisfaction'] = commercial_link.fulfilment_rate
 
     def evaluate_profit(self, graph):

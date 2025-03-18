@@ -88,7 +88,8 @@ def define_households_from_mrio(
     final_demand = mrio.get_final_demand(present_region_sectors)
     final_demand = rescale_monetary_values(
         final_demand,
-        time_resolution=time_resolution,
+        input_time_resolution="year",
+        target_time_resolution=time_resolution,
         target_units=target_units,
         input_units=input_units
     )
@@ -99,7 +100,9 @@ def define_households_from_mrio(
     # Step 2: Prepare an empty dictionary to store household demands
     household_sector_consumption = {}
     # cutoff = get_absolute_cutoff_value(final_demand_cutoff, input_units)
-    cutoff = rescale_monetary_values(final_demand_cutoff['value'], time_resolution=time_resolution,
+    cutoff = rescale_monetary_values(final_demand_cutoff['value'],
+                                     input_time_resolution="year",
+                                     target_time_resolution=time_resolution,
                                      target_units=target_units,
                                      input_units=final_demand_cutoff['unit'])
     # Step 3: Iterate over households
@@ -248,7 +251,8 @@ def define_households(
     # rescale according to time resolution
     household_table[sectors_to_buy_from] = rescale_monetary_values(
         household_table[sectors_to_buy_from],
-        time_resolution=time_resolution,
+        input_time_resolution="year",
+        target_time_resolution=time_resolution,
         target_units=target_units,
         input_units=input_units
     )
@@ -323,7 +327,8 @@ def add_households_for_firms(
     # rescale according to time resolution
     added_household_table[filtered_sectors] = rescale_monetary_values(
         added_household_table[filtered_sectors],
-        time_resolution=time_resolution,
+        input_time_resolution="year",
+        target_time_resolution=time_resolution,
         target_units=target_units,
         input_units=input_units
     )
@@ -338,7 +343,8 @@ def add_households_for_firms(
                  str(household_table['od_point'].nunique()) + ' od points')
     for sector in filtered_sectors:
         tot_demand = rescale_monetary_values(sector_table.set_index('sector').loc[sector, 'final_demand'],
-                                             time_resolution=time_resolution, target_units=target_units,
+                                             input_time_resolution="year",
+                                             target_time_resolution=time_resolution, target_units=target_units,
                                              input_units=input_units)
         logging.info('Sector ' + sector + ": create " +
                      str((~household_table[sector].isnull()).sum()) +

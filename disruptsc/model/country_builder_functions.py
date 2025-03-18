@@ -48,20 +48,23 @@ def create_countries(filepath_imports: Path, filepath_exports: Path, filepath_tr
 
     import_table = rescale_monetary_values(
         pd.read_csv(filepath_imports, index_col=0),
-        time_resolution=time_resolution,
+        input_time_resolution="year",
+        target_time_resolution=time_resolution,
         target_units=target_units,
         input_units=input_units
     )
     export_table = rescale_monetary_values(
         pd.read_csv(filepath_exports, index_col=0),
-        time_resolution=time_resolution,
+        input_time_resolution="year",
+        target_time_resolution=time_resolution,
         target_units=target_units,
         input_units=input_units
     )
     if filepath_transit:
         transit_matrix = rescale_monetary_values(
             pd.read_csv(filepath_transit, index_col=0),
-            time_resolution=time_resolution,
+            input_time_resolution="year",
+            target_time_resolution=time_resolution,
             target_units=target_units,
             input_units=input_units
         )
@@ -155,7 +158,8 @@ def create_countries_from_mrio(mrio: Mrio,
     # importing_region_sectors = [tup for tup in mrio.columns if tup[1] not in ['Exports', 'final_demand']]
     import_table = rescale_monetary_values(
         mrio.loc[(selling_countries, mrio.import_label), mrio.region_sectors],
-        time_resolution=time_resolution,
+        input_time_resolution="year",
+        target_time_resolution=time_resolution,
         target_units=target_units,
         input_units=input_units
     )
@@ -164,7 +168,8 @@ def create_countries_from_mrio(mrio: Mrio,
     # exporting_region_sectors = [tup for tup in mrio.index if tup[1] not in ['Imports', 'final_demand']]
     export_table = rescale_monetary_values(
         mrio.loc[mrio.region_sectors, (buying_countries, mrio.export_label)],
-        time_resolution=time_resolution,
+        input_time_resolution="year",
+        target_time_resolution=time_resolution,
         target_units=target_units,
         input_units=input_units
     )
@@ -172,7 +177,8 @@ def create_countries_from_mrio(mrio: Mrio,
     export_table.index = ['_'.join(tup) for tup in export_table.index]
     transit_matrix = rescale_monetary_values(
         mrio.loc[(selling_countries, mrio.import_label), (buying_countries, mrio.export_label)],
-        time_resolution=time_resolution,
+        input_time_resolution="year",
+        target_time_resolution=time_resolution,
         target_units=target_units,
         input_units=input_units
     )

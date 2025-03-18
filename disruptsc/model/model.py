@@ -559,7 +559,8 @@ class Model(object):
         # 1. Firm operational variables
         for firm in self.firms.values():  # TODO make it a FirmCollection method
             firm.initialize_operational_variables(
-                eq_production=eq_production_vector[(firm_id_to_position_mapping[firm.pid], 0)]
+                eq_production=eq_production_vector[(firm_id_to_position_mapping[firm.pid], 0)],
+                time_resolution=self.parameters.time_resolution
             )
         # 2. Firm financial variables
         for firm in self.firms.values():
@@ -670,7 +671,7 @@ class Model(object):
                     break
         return simulation
 
-    def run_disruption(self):
+    def run_disruption(self, t_final: int | None = None):
         # Initialize the model
         simulation = Simulation("event")
         logging.info("Simulating the initial state")
@@ -687,7 +688,8 @@ class Model(object):
         self.disruption_list.log_info()
 
         # Adjust t_final
-        t_final = self.parameters.duration_dic[self.disruption_list.end_time]
+        if not isinstance(t_final, int):
+            t_final = self.parameters.duration_dic[self.disruption_list.end_time]
         logging.info('Simulation will last at max ' + str(t_final) + ' time steps.')
 
         logging.info("Starting time loop")

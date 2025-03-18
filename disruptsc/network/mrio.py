@@ -22,7 +22,7 @@ class Mrio(pd.DataFrame):
         self.import_label = self.detect_level1_label('import', axis=0)
         self.export_label = self.detect_level1_label('export', axis=1)
         self.final_demand_label = self.detect_level1_label('final.?demand', axis=1)
-        self.value_added_label = self.detect_level1_label('value.?added', axis=0)
+        self.value_added_label = self.detect_level1_label('value.?added|va', axis=0)
         self.check_square_structure()
         self.region_sectors = [tup for tup in self.columns
                                if tup[1] not in [self.final_demand_label, self.export_label]]
@@ -99,8 +99,8 @@ class Mrio(pd.DataFrame):
                                   if tup[1] not in [self.import_label, self.value_added_label]]
         region_sectors_in_rows.sort()
         if region_sectors_in_columns != region_sectors_in_rows:
-            logging.info(set(region_sectors_in_columns) - set(region_sectors_in_rows))
-            logging.info(set(region_sectors_in_rows) - set(region_sectors_in_columns))
+            logging.info(f"Column label not in row: {set(region_sectors_in_columns) - set(region_sectors_in_rows)}")
+            logging.info(f"Row label not in column: {set(region_sectors_in_rows) - set(region_sectors_in_columns)}")
             raise ValueError('Inconsistencies between scope sectors in rows and columns')
 
     def adjust_output(self):
@@ -164,7 +164,9 @@ class Mrio(pd.DataFrame):
             rel_series = series / series.sum()
             return rel_series.index[rel_series > cut_off_value].to_list()
         elif cut_off_type == "absolute":
-            unit_adjusted_cutoff = rescale_monetary_values(cut_off_value, time_resolution="year",
+            unit_adjusted_cutoff = rescale_monetary_values(cut_off_value,
+                                                           input_time_resolution="year",
+                                                           target_time_resolution="year",
                                                            target_units=units_in_data,
                                                            input_units=cut_off_monetary_units)
             return series.index[series > unit_adjusted_cutoff].to_list()

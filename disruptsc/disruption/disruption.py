@@ -218,17 +218,14 @@ class CapitalDestruction(dict):
         units = {"USD": 1, "kUSD": 1e3, "mUSD": 1e6}
         destroyed_amount = destroyed_amount * units[input_units] / units[model_units]
 
-        total_capital = sum([firm.capital_initial
-                             for firm in firms.values() if firm.region_sector in affected_region_sectors])
+        affected_firms = firms.select_by_property('region_sector', affected_region_sectors)
+        total_capital = sum([firm.capital_initial for firm in affected_firms.values()])
         if destroyed_amount > total_capital:
-            logging.warning("Destroyed capital larger than initial capital")
-            description = {firm_id: firm.capital_initial for firm_id, firm in firms.items()}
-
+            logging.warning(f"Destroyed capital {destroyed_amount:.0f} larger than initial capital {total_capital:.0f}")
+            description = {firm_id: firm.capital_initial for firm_id, firm in affected_firms.items()}
         else:
-            description = {}
-            for firm_id, firm in firms.items():
-                weight = firm.capital_initial / total_capital
-                description[firm_id] = weight * destroyed_amount
+            description = {firm_id: firm.capital_initial / total_capital * destroyed_amount
+                           for firm_id, firm in affected_firms.items()}
         return cls(
             description=description,
             recovery=None
@@ -292,10 +289,9 @@ class DisruptionList(UserList):
                         disruption_object.reconstruction_market = event["reconstruction_market"]
                     event_list += [disruption_object]
                 if event['description_type'] == "sectors_homogeneous":
-                    affected_region_sectors = [tuple(region_sector.split('_'))
-                                               for region_sector in event['region_sectors']]
+                    print('here', event['region_sectors'])
                     disruption_object = CapitalDestruction.from_sectors(event['destroyed_capital'],
-                                                                        affected_region_sectors,
+                                                                        event['region_sectors'],
                                                                         firm_list, input_units=event['unit'],
                                                                         model_units=model_unit)
                     disruption_object.start_time = event["start_time"]

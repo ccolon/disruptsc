@@ -11,7 +11,7 @@ from disruptsc import paths
 from disruptsc.model.basic_functions import rescale_monetary_values, draw_lognormal_samples
 
 EPSILON = 1e-6
-TRANSPORT_MALUS = rescale_monetary_values(1e9, "year", "USD", "USD")
+TRANSPORT_MALUS = rescale_monetary_values(1e9, "USD", "week", "USD", "week")
 import_code = "IMP"
 
 
@@ -83,6 +83,7 @@ class Parameters:
     transport_cost_data: dict
     capital_to_value_added_ratio: float
     logistics: dict
+    mc_repetitions: int
     export_folder: Path | str = ""
 
     @classmethod

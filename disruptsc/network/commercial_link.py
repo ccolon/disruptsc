@@ -11,8 +11,6 @@ class CommercialLink(object):
                  product_type=None, category=None, order=0, delivery=0, payment=0, essential=True,
                  route=None):
         # Parameter
-        self.alternative_found = False
-        self.status = "ok"
         self.pid = pid
         self.product = product  # sector of producing firm
         self.product_type = product_type  # service, manufacturing, etc. (=sector_type)
@@ -31,6 +29,8 @@ class CommercialLink(object):
         self.use_transport_network = False
 
         # Variable
+        self.alternative_found = False
+        self.status = "ok"
         self.current_route = 'main'
         self.order = order  # flows upstream
         self.delivery = delivery  # flows downstream. What is supposed to be delivered (if no transport pb)
@@ -52,12 +52,19 @@ class CommercialLink(object):
             ValueError("current_route should be 'main' or 'alternative'")
 
     def update_status(self):
-        if self.fulfilment_rate > 1 - EPSILON:
+        delivery = "ok"
+        price = "ok"
+        if abs(self.price - self.eq_price) > EPSILON:
+            price = "more expensive"
+        if (self.fulfilment_rate > EPSILON) and (self.fulfilment_rate < 1 - EPSILON):
+            delivery = "partial"
+        elif self.fulfilment_rate < EPSILON:
+            delivery = "no delivery"
+
+        if (delivery == "ok") and (price == "ok"):
             self.status = "ok"
-        elif self.fulfilment_rate > EPSILON:
-            self.status = "partial delivery"
         else:
-            self.status = "no delivery"
+            self.status = f"delivery: {delivery}, price: {price}"
 
     def determine_transportation_mode(self, sector_types_to_shipment_method: dict):
         if self.product_type in sector_types_to_shipment_method.keys():
@@ -87,6 +94,8 @@ class CommercialLink(object):
         self.alternative_route = []
         self.alternative_route_cost_per_ton = 0
         self.price = 1
+        self.alternative_found = False
+        self.status = "ok"
 
     def calculate_fulfilment_rate(self):
         if self.order < EPSILON:

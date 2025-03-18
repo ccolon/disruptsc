@@ -7,6 +7,46 @@ import geopandas as gpd
 from scipy.spatial import cKDTree
 
 
+def rescale_monetary_values(
+        values: pd.Series | pd.DataFrame | float,
+        input_units: str = "USD",
+        input_time_resolution: str = "year",
+        target_units: str = "USD",
+        target_time_resolution: str = "year"
+) -> pd.Series | pd.DataFrame | float:
+    """Rescale monetary values using the appropriate timescale and monetary units
+
+    Parameters
+    ----------
+    target_time_resolution
+    values : pandas.Series, pandas.DataFrame, float
+        Values to transform
+
+    input_time_resolution : 'day', 'week', 'month', 'year'
+        The number in the input table are yearly figure
+
+    target_units : 'USD', 'kUSD', 'mUSD'
+        Monetary units to which values are converted
+
+    input_units : 'USD', 'kUSD', 'mUSD'
+        Monetary units of the inputted values
+
+    Returns
+    -------
+    same type as values
+    """
+    # Rescale according to the time period chosen
+    periods = {'day': 365, 'week': 52, 'month': 12, 'year': 1}
+
+    values = values * periods[input_time_resolution] / periods[target_time_resolution]
+
+    # Change units
+    units = {"USD": 1, "kUSD": 1e3, "mUSD": 1e6}
+    values = values * units[input_units] / units[target_units]
+
+    return values
+
+
 def generate_weights(nb_suppliers: int, importance_of_each: list or None):
     # if there is only one supplier, return 1
     if nb_suppliers == 1:
@@ -96,43 +136,6 @@ def add_or_increment_dict_key(dic: dict, key, value: float | int):
         dic[key] += value
 
 
-def rescale_monetary_values(
-        values: pd.Series | pd.DataFrame | float,
-        time_resolution: str = "week",
-        target_units: str = "mUSD",
-        input_units: str = "USD"
-) -> pd.Series | pd.DataFrame | float:
-    """Rescale monetary values using the appropriate timescale and monetary units
-
-    Parameters
-    ----------
-    values : pandas.Series, pandas.DataFrame, float
-        Values to transform
-
-    time_resolution : 'day', 'week', 'month', 'year'
-        The number in the input table are yearly figure
-
-    target_units : 'USD', 'kUSD', 'mUSD'
-        Monetary units to which values are converted
-
-    input_units : 'USD', 'kUSD', 'mUSD'
-        Monetary units of the inputted values
-
-    Returns
-    -------
-    same type as values
-    """
-    # Rescale according to the time period chosen
-    periods = {'day': 365, 'week': 52, 'month': 12, 'year': 1}
-    values = values / periods[time_resolution]
-
-    # Change units
-    units = {"USD": 1, "kUSD": 1e3, "mUSD": 1e6}
-    values = values * units[input_units] / units[target_units]
-
-    return values
-
-
 def add_or_append_to_dict(dictionary, key, value_to_add):
     if key in dictionary.keys():
         dictionary[key] += value_to_add
@@ -187,3 +190,17 @@ def draw_lognormal_samples(mean, coefficient_of_variation, N):
     samples = np.random.lognormal(mean=mu, sigma=sigma, size=N)
 
     return samples.tolist()
+
+
+def find_min_in_nested_dict(d):
+    """Recursively finds the minimum float value in a nested dictionary."""
+    min_value = float("inf")  # Start with a very large value
+
+    for key, value in d.items():
+        if isinstance(value, dict):  # If value is a nested dictionary, recurse
+            min_value = min(min_value, find_min_in_nested_dict(value))
+        else:  # Leaf value (assumed to be float)
+            min_value = min(min_value, value)
+
+    return min_value
+

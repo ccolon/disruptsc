@@ -46,15 +46,10 @@ class Agent(object):
         else:
             weight_considered = "cost_per_ton_" + str(self.cost_profile)
 
-        route = transport_network.provide_shortest_route(origin_node,
-                                                         destination_node,
-                                                         shipment_method,
-                                                         route_weight=weight_considered,
-                                                         noise_level=transport_cost_noise_level)
-        # if route is None:
-        #     raise ValueError(f"Agent {self.pid} - No route found from {origin_node} to {destination_node}")
-        # else:
-        return route
+        return transport_network.provide_shortest_route(origin_node, destination_node, shipment_method,
+                                                        route_weight=weight_considered,
+                                                        noise_level=transport_cost_noise_level)
+
 
     def receive_shipment_and_pay(self, commercial_link: "CommercialLink", transport_network: "TransportNetwork"):
         """Firm look for shipments in the transport nodes it is located
@@ -81,7 +76,7 @@ class Agent(object):
         # If none is available and if there was order, log it
         else:
             if (commercial_link.delivery > 0) and (commercial_link.order > 0):
-                logging.info(f"{self.id_str()} - no shipment available for commercial link {commercial_link.pid} "
+                logging.debug(f"{self.id_str()} - no shipment available for commercial link {commercial_link.pid} "
                              f"({commercial_link.delivery}) of {commercial_link.product})")
             quantity_delivered = 0
             price = 1
@@ -101,7 +96,7 @@ class Agent(object):
                 self.receive_service_and_pay(commercial_link)
             else:
                 self.receive_shipment_and_pay(commercial_link, transport_network)
-            commercial_link.update_status()
+            # commercial_link.update_status()
 
     def receive_service_and_pay(self, commercial_link):
         # Always available, same price
@@ -118,10 +113,12 @@ class Agent(object):
             logging.debug(
                 f"{self.id_str()} - Quantity delivered by {commercial_link.supplier_id} is {quantity_delivered};"
                 f" It was supposed to be {commercial_link.delivery}.")
+        commercial_link.calculate_fulfilment_rate()
+        commercial_link.update_status()
 
     def _get_route(self, transport_network, available_transport_network, destination_node,
                    shipment_method, normal_or_disrupted, capacity_constraint, transport_cost_noise_level):
-
+        # print('_get_route', self.id_str(), destination_node)
         route = transport_network.retrieve_cached_route(self.od_point, destination_node, self.cost_profile,
                                                         normal_or_disrupted, shipment_method)
         if route:
@@ -135,26 +132,27 @@ class Agent(object):
                 capacity_constraint=capacity_constraint,
                 transport_cost_noise_level=transport_cost_noise_level
             )
-            transport_network.cache_route(route, self.od_point, destination_node, self.cost_profile,
-                                          normal_or_disrupted, shipment_method)
+            if route:
+                transport_network.cache_route(route, self.od_point, destination_node, self.cost_profile,
+                                              normal_or_disrupted, shipment_method)
             return route
 
     def choose_initial_routes(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
                               capacity_constraint: bool, explicit_service_firm: bool, transport_to_households: bool,
                               sectors_no_transport_network: list, transport_cost_noise_level: float,
                               monetary_unit_flow: str):
-        for edge in sc_network.out_edges(self):
+        for _, client in sc_network.out_edges(self):
             if self.agent_type == "firm":
                 if self.sector_type in sectors_no_transport_network:
                     continue
-            if (not explicit_service_firm) and (edge[1].agent_type == 'firm'):
-                if "service" in edge[1].sector_type:
+            if (not explicit_service_firm) and (client.agent_type == 'firm'):
+                if "service" in client.sector_type:
                     continue
-            elif (not transport_to_households) and (edge[1].agent_type == 'household'):
+            elif (not transport_to_households) and (client.agent_type == 'household'):
                 continue
 
-            commercial_link = sc_network[self][edge[1]]['object']
-            destination_node = edge[1].od_point
+            commercial_link = sc_network[self][client]['object']
+            destination_node = client.od_point
             route = self._get_route(transport_network, transport_network, destination_node,
                                     commercial_link.shipment_method,
                                     'normal', capacity_constraint, transport_cost_noise_level)
@@ -163,7 +161,7 @@ class Agent(object):
             commercial_link.store_route_information(route, "main", cost_per_ton)
 
             if capacity_constraint:
-                self.update_transport_load(edge, monetary_unit_flow, route, sc_network, transport_network,
+                self.update_transport_load(client, monetary_unit_flow, route, sc_network, transport_network,
                                            capacity_constraint)
 
     def discover_new_route(self, commercial_link: "CommercialLink", transport_network: "TransportNetwork",
@@ -200,11 +198,11 @@ class Agent(object):
             # we have not implemented a "sector" condition
         return cond_from, cond_to
 
-    def update_transport_load(self, edge, monetary_unit_flow, route, sc_network, transport_network,
+    def update_transport_load(self, client, monetary_unit_flow, route, sc_network, transport_network,
                               capacity_constraint):
         # Update the "current load" on the transport network
         # if current_load exceed burden, then add burden to the weight
-        new_load_in_usd = sc_network[self][edge[1]]['object'].order
+        new_load_in_usd = sc_network[self][client]['object'].order
         new_load_in_tons = Agent.transformUSD_to_tons(new_load_in_usd, monetary_unit_flow, self.usd_per_ton)
         transport_network.update_load_on_route(route, new_load_in_tons, capacity_constraint)
 
@@ -309,9 +307,7 @@ class Agent(object):
             if relative_price_change_transport > price_increase_threshold:
                 logging.debug(f"{self.id_str()}: found an alternative route to {commercial_link.buyer_id} "
                               f"but it is costlier by {100 * relative_price_change_transport:.2f}%, "
-                              f"price would be {commercial_link.price:.4f} "
-                              f"instead of {commercial_link.eq_price * (1 + self.delta_price_input):.4f}"
-                              f"so I decide not to send it now.")
+                              f"which exceeds the threshold, so I decide not to send it now.")
                 usable_alternative = False
 
         if not usable_alternative:
