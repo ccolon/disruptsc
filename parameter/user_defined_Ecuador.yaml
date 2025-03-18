@@ -36,13 +36,14 @@ cutoff_sector_demand:
   'type': absolute
   'value': 100
   'unit': kUSD
-utilization_rate: 0.8
+utilization_rate: 1
 adaptive_inventories: True
 inventory_restoration_time: 30
 nb_suppliers_per_input: 1
 adaptive_supplier_weight: True
 price_increase_threshold: 2
-simulation_type: disruption  # initial_state, disruption
+simulation_type: disruption_mc  # initial_state, disruption
+mc_repetitions: 5
 export_files: True
 capital_to_value_added_ratio: 3
 capacity_constraint: False
