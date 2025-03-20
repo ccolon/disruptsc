@@ -73,8 +73,9 @@ elif parameters.simulation_type in ["event_mc", "disruption_mc"]:
     with open(output_file, mode="w", newline="") as file:
         writer = csv.writer(file)
         region_household_loss_labels = ['household_loss_' + region for region in model.mrio.regions]
+        country_loss_labels = ['country_loss_' + country for country in model.mrio.external_buying_countries]
         writer.writerow(["mc_repetition", "duration", "household_loss",
-                         "country_loss"] + region_household_loss_labels)  # Writing the header
+                         "country_loss"] + region_household_loss_labels + country_loss_labels)  # Writing the header
 
     logging.info(f"{parameters.mc_repetitions} Monte Carlo simulations")
     for i in range(parameters.mc_repetitions):
@@ -88,7 +89,8 @@ elif parameters.simulation_type in ["event_mc", "disruption_mc"]:
         simulation = model.run_disruption(t_final=10)
         household_loss_per_region = simulation.calculate_household_loss(per_region=True)
         household_loss = sum(household_loss_per_region.values())
-        country_loss = simulation.calculate_country_loss()
+        country_loss_per_country = simulation.calculate_country_loss(per_countyr=True)
+        country_loss = sum(country_loss_per_country.values())
         logging.info(f"Simulation terminated. "
                      f"Household loss: {int(household_loss)} {parameters.monetary_units_in_model}. "
                      f"Country loss: {int(country_loss)} {parameters.monetary_units_in_model}.")
@@ -96,7 +98,10 @@ elif parameters.simulation_type in ["event_mc", "disruption_mc"]:
         with open(output_file, mode="a", newline="") as file:
             writer = csv.writer(file)
             household_loss_per_region_values = [household_loss_per_region[region] for region in model.mrio.regions]
-            writer.writerow([i, household_loss, country_loss] + household_loss_per_region_values)
+            country_loss_per_region_values = [country_loss_per_country[country]
+                                              for country in model.mrio.external_buying_countries]
+            writer.writerow([i, household_loss, country_loss]
+                            + household_loss_per_region_values + country_loss_per_region_values)
 
 
 elif parameters.simulation_type in ['flow_calibration']:

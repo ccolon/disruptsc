@@ -109,19 +109,24 @@ class Simulation(object):
         result.columns = ['time_step', 'sector', 'loss']
         return result
 
-    def calculate_household_loss(self, per_region=False):
+    def calculate_household_loss(self, household_table: pd.DataFrame, per_region=False):
         household_result_table = pd.DataFrame(self.household_data)
         loss_per_region_sector_time = household_result_table.groupby('household').apply(
-            self.summarize_results_one_household).reset_index().drop(columns=['level_1'])
-        loss_per_region_sector_time['region'] = loss_per_region_sector_time['sector'].str.extract(r'([A-Z]*)_')
+            self.summarize_results_one_household, include_groups=False).reset_index().drop(columns=['level_1'])
+        loss_per_region_sector_time['origin_region'] = loss_per_region_sector_time['sector'].str.extract(r'([A-Z]*)_')
+        loss_per_region_sector_time['household_region'] = loss_per_region_sector_time['household'].map(
+            household_table.set_index('household')['region'])
         if per_region:
-            return loss_per_region_sector_time.groupby('region')['loss'].sum().to_dict()
+            return loss_per_region_sector_time.groupby('household_region')['loss'].sum().to_dict()
         else:
             return loss_per_region_sector_time['loss'].sum()
 
-    def calculate_country_loss(self):
+    def calculate_country_loss(self, per_country=False):
         country_result_table = pd.DataFrame(self.country_data)
         country_result_table['loss'] = country_result_table['extra_spending'] \
                                        + country_result_table['consumption_loss']
         country_result_table = country_result_table[['time_step', 'country', 'loss']]
-        return country_result_table['loss'].sum()
+        if per_country:
+            return country_result_table.groupby('country')['loss'].sum().to_dict()
+        else:
+            return country_result_table['loss'].sum()
