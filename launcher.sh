@@ -9,6 +9,6 @@ for x in {1..10}; do
     python disruptsc/main.py ECA --duration 1
     for d in 2 3 4; do
         # Run Python script with arguments
-        python disruptsc/main.py ECA same_logistic_routes --duration $d
+        python disruptsc/main.py ECA --cache same_logistic_routes --duration $d
     done
 done
