@@ -97,8 +97,8 @@ elif parameters.simulation_type in ["event_mc", "disruption_mc"]:
         # Append the results to the CSV
         with open(output_file, mode="a", newline="") as file:
             writer = csv.writer(file)
-            household_loss_per_region_values = [household_loss_per_region[region] for region in model.mrio.regions]
-            country_loss_per_region_values = [country_loss_per_country[country]
+            household_loss_per_region_values = [household_loss_per_region.get(region, 0.0) for region in model.mrio.regions]
+            country_loss_per_region_values = [country_loss_per_country.get(country, 0.0)
                                               for country in model.mrio.external_buying_countries]
             writer.writerow([i, household_loss, country_loss]
                             + household_loss_per_region_values + country_loss_per_region_values)
@@ -140,7 +140,7 @@ elif parameters.simulation_type == "criticality":
         simulation = model.run_criticality_disruption(edge, disruption_duration)
         household_loss_per_region = simulation.calculate_household_loss(model.household_table, per_region=True)
         household_loss = sum(household_loss_per_region.values())
-        country_loss_per_country = simulation.calculate_country_loss(per_countyr=True)
+        country_loss_per_country = simulation.calculate_country_loss(per_country=True)
         country_loss = sum(country_loss_per_country.values())
         logging.info(f"Simulation terminated. "
                      f"Household loss: {int(household_loss)} {parameters.monetary_units_in_model}. "
@@ -148,8 +148,11 @@ elif parameters.simulation_type == "criticality":
         # Append the results to the CSV
         with open(output_file, mode="a", newline="") as file:
             writer = csv.writer(file)
-            household_loss_per_region_values = [household_loss_per_region[region] for region in model.mrio.regions]
-            writer.writerow([edge, attribute, parameters.criticality['duration'], household_loss, country_loss] + household_loss_per_region_values)
+            household_loss_per_region_values = [household_loss_per_region.get(region, 0.0) for region in model.mrio.regions]
+            country_loss_per_region_values = [country_loss_per_country.get(country, 0.0)
+                                              for country in model.mrio.external_buying_countries]
+            writer.writerow([edge, attribute, parameters.criticality['duration'], household_loss, country_loss] +
+                            household_loss_per_region_values + country_loss_per_region_values)
 
 else:
     raise ValueError('Unimplemented simulation type chosen')
