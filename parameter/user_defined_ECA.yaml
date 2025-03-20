@@ -90,9 +90,9 @@ events:
   - type: transport_disruption
     description_type: edge_attributes
 #    description_type: edge_attributes
-    attribute: name
+    attribute: id
 #    attribute: disruption
-    values: [aktau]
+    values: [456]
 #    values: ["flood_1in1000_UZB"]
     start_time: 1
     duration: 1

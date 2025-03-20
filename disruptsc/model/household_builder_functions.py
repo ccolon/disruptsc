@@ -75,6 +75,7 @@ def define_households_from_mrio(
 
     # Add id
     household_table['id'] = range(household_table.shape[0])
+    household_table['household'] = "hh_" + household_table['id'].astype(str)
 
     # Add population
     if "population" not in household_table.columns:
