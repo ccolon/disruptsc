@@ -87,7 +87,7 @@ elif parameters.simulation_type in ["event_mc", "disruption_mc"]:
         model.set_initial_conditions()
         model.setup_logistic_routes(cached=False)
         simulation = model.run_disruption(t_final=10)
-        household_loss_per_region = simulation.calculate_household_loss(per_region=True)
+        household_loss_per_region = simulation.calculate_household_loss(model.household_table, per_region=True)
         household_loss = sum(household_loss_per_region.values())
         country_loss_per_country = simulation.calculate_country_loss(per_countyr=True)
         country_loss = sum(country_loss_per_country.values())
@@ -117,7 +117,9 @@ elif parameters.simulation_type == "criticality":
     with open(output_file, mode="w", newline="") as file:
         writer = csv.writer(file)
         region_household_loss_labels = ['household_loss_' + region for region in model.mrio.regions]
-        writer.writerow(["edge_attr", parameters.criticality['attribute'], "duration", "household_loss", "country_loss"] + region_household_loss_labels)  # Writing the header
+        country_loss_labels = ['country_loss_' + country for country in model.mrio.external_buying_countries]
+        writer.writerow(["edge_attr", parameters.criticality['attribute'], "duration", "household_loss", "country_loss"]
+                        + region_household_loss_labels + country_loss_labels)  # Writing the header
     model.save_pickle(suffix)
 
     if parameters.criticality['attribute'] == "id":
@@ -136,9 +138,10 @@ elif parameters.simulation_type == "criticality":
     for edge, attribute in edges_to_test.items():
         model = load_cached_model(suffix)
         simulation = model.run_criticality_disruption(edge, disruption_duration)
-        household_loss_per_region = simulation.calculate_household_loss(per_region=True)
+        household_loss_per_region = simulation.calculate_household_loss(model.household_table, per_region=True)
         household_loss = sum(household_loss_per_region.values())
-        country_loss = simulation.calculate_country_loss()
+        country_loss_per_country = simulation.calculate_country_loss(per_countyr=True)
+        country_loss = sum(country_loss_per_country.values())
         logging.info(f"Simulation terminated. "
                      f"Household loss: {int(household_loss)} {parameters.monetary_units_in_model}. "
                      f"Country loss: {int(country_loss)} {parameters.monetary_units_in_model}.")
