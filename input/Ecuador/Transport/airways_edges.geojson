@@ -1,0 +1,17 @@
+{
+"type": "FeatureCollection",
+"name": "airways_edges",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "special": null, "capacity": null, "id": 0, "end1": 1, "end2": 2, "km": 282.0093440491454 }, "geometry": { "type": "LineString", "coordinates": [ [ -78.356212738836987, -0.127184124654724 ], [ -79.887127865440874, -2.158955994634486 ] ] } },
+{ "type": "Feature", "properties": { "special": null, "capacity": null, "id": 1, "end1": 1, "end2": 3, "km": 0.49747962120040801 }, "geometry": { "type": "LineString", "coordinates": [ [ -78.356212738836987, -0.127184124654724 ], [ -78.359759609048098, -0.124452094980103 ] ] } },
+{ "type": "Feature", "properties": { "special": null, "capacity": null, "id": 2, "end1": 2, "end2": 4, "km": 0.24214841963496817 }, "geometry": { "type": "LineString", "coordinates": [ [ -79.887127865440874, -2.158955994634486 ], [ -79.885935503858988, -2.160788679480663 ] ] } },
+{ "type": "Feature", "properties": { "special": null, "capacity": null, "id": 3, "end1": 0, "end2": 5, "km": 1.1943673754144362 }, "geometry": { "type": "LineString", "coordinates": [ [ -90.265042389645828, -0.455064320303812 ], [ -90.269157058459072, -0.445237885253553 ] ] } },
+{ "type": "Feature", "properties": { "special": null, "capacity": null, "id": 4, "end1": 0, "end2": 1, "km": 1109.3945235234899 }, "geometry": { "type": "LineString", "coordinates": [ [ -90.265042389645828, -0.455064320303812 ], [ -80.339690960782804, -0.181794295976902 ] ] } },
+{ "type": "Feature", "properties": { "special": "border", "capacity": null, "id": 5, "end1": 0, "end2": 1, "km": 0.055640644979735823 }, "geometry": { "type": "LineString", "coordinates": [ [ -80.339690960782804, -0.181794295976902 ], [ -80.339191150185172, -0.181780534927215 ] ] } },
+{ "type": "Feature", "properties": { "special": null, "capacity": null, "id": 6, "end1": 0, "end2": 1, "km": 220.84109815086984 }, "geometry": { "type": "LineString", "coordinates": [ [ -80.339191150185172, -0.181780534927215 ], [ -78.356212738836987, -0.127184124654724 ] ] } },
+{ "type": "Feature", "properties": { "special": null, "capacity": null, "id": 7, "end1": 2, "end2": 0, "km": 102.48397024414493 }, "geometry": { "type": "LineString", "coordinates": [ [ -79.887127865440874, -2.158955994634486 ], [ -80.796628935791759, -2.009630106668142 ] ] } },
+{ "type": "Feature", "properties": { "special": "border", "capacity": null, "id": 8, "end1": 2, "end2": 0, "km": 0.055595002732471102 }, "geometry": { "type": "LineString", "coordinates": [ [ -80.796628935791759, -2.009630106668142 ], [ -80.797122329919858, -2.009549099049023 ] ] } },
+{ "type": "Feature", "properties": { "special": null, "capacity": null, "id": 9, "end1": 2, "end2": 0, "km": 1071.8024515856127 }, "geometry": { "type": "LineString", "coordinates": [ [ -80.797122329919858, -2.009549099049023 ], [ -90.265042389645828, -0.455064320303812 ] ] } }
+]
+}

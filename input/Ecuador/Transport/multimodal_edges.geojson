@@ -1,0 +1,18 @@
+{
+"type": "FeatureCollection",
+"name": "multimodal_edges",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "multimodes": "roads-maritime", "km": 0.1, "id": 0, "capacity": null }, "geometry": { "type": "LineString", "coordinates": [ [ -79.904905432839854, -2.282679593710411 ], [ -79.906431573999953, -2.276154864999975 ] ] } },
+{ "type": "Feature", "properties": { "multimodes": "roads-maritime", "km": 0.1, "id": 1, "capacity": null }, "geometry": { "type": "LineString", "coordinates": [ [ -89.611014186465624, -0.900139760998888 ], [ -89.610889876999963, -0.903119809999956 ] ] } },
+{ "type": "Feature", "properties": { "multimodes": "roads-maritime", "km": 0.1, "id": 2, "capacity": null }, "geometry": { "type": "LineString", "coordinates": [ [ -90.312550374252581, -0.747852565059022 ], [ -90.315054083999939, -0.74424784499996 ] ] } },
+{ "type": "Feature", "properties": { "multimodes": "roads-maritime", "km": 0.1, "id": 3, "capacity": null }, "geometry": { "type": "LineString", "coordinates": [ [ -90.28039587523719, -0.487582215427942 ], [ -90.279570557999989, -0.487336769999949 ] ] } },
+{ "type": "Feature", "properties": { "multimodes": "roads-maritime", "km": 0.1, "id": 4, "capacity": null }, "geometry": { "type": "LineString", "coordinates": [ [ -90.277391800738869, -0.48345161299273 ], [ -90.277320342999985, -0.483257895999937 ] ] } },
+{ "type": "Feature", "properties": { "multimodes": "roads-maritime", "km": 0.1, "id": 5, "capacity": null }, "geometry": { "type": "LineString", "coordinates": [ [ -90.967111558392133, -0.958476949644002 ], [ -90.96687351199995, -0.957022763999927 ] ] } },
+{ "type": "Feature", "properties": { "multimodes": "roads-airways", "km": 0.1, "id": 6, "capacity": null }, "geometry": { "type": "LineString", "coordinates": [ [ -78.359759609048112, -0.124452094980103 ], [ -78.394275115284273, -0.090183306034884 ] ] } },
+{ "type": "Feature", "properties": { "multimodes": "roads-airways", "km": 0.1, "id": 7, "capacity": null }, "geometry": { "type": "LineString", "coordinates": [ [ -79.885935503858988, -2.160788679480663 ], [ -79.892108575999941, -2.181439399999928 ] ] } },
+{ "type": "Feature", "properties": { "multimodes": "roads-airways", "km": 0.1, "id": 8, "capacity": null }, "geometry": { "type": "LineString", "coordinates": [ [ -90.269157058459072, -0.445237885253553 ], [ -90.268155137630401, -0.442919563929132 ] ] } },
+{ "type": "Feature", "properties": { "multimodes": "roads-waterways", "km": 0.1, "id": 9, "capacity": null }, "geometry": { "type": "LineString", "coordinates": [ [ -76.617846518770065, -0.441417650339726 ], [ -76.618800593999921, -0.441383343999975 ] ] } },
+{ "type": "Feature", "properties": { "multimodes": "roads-waterways", "km": 0.1, "id": 10, "capacity": null }, "geometry": { "type": "LineString", "coordinates": [ [ -76.611592082805885, -0.447749063977323 ], [ -76.611381695999967, -0.450937017999939 ] ] } }
+]
+}
