@@ -20,6 +20,7 @@ parser = argparse.ArgumentParser(description="Mix positional and keyword argumen
 parser.add_argument("scope", type=str, help="Scope")
 parser.add_argument("--cache", type=str, help="Caching behavior")
 parser.add_argument("--duration", type=int, help="Disruption duration")
+parser.add_argument("--io_cutoff", type=float, help="IO cutoff")
 # parser.add_argument("--with-transport", help="Deactivate transport completely", action='store_true')
 args = parser.parse_args()
 
@@ -36,6 +37,7 @@ cache_parameters = generate_cache_parameters_from_command_line_argument(args.cac
 
 # Import parameters
 parameters = Parameters.load_parameters(paths.PARAMETER_FOLDER, scope)
+parameters.io_cutoff = args.io_cutoff
 
 if args.duration:
     parameters.criticality['duration'] = args.duration
