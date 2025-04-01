@@ -26,7 +26,7 @@ class Firm(Agent):
     def __init__(self, pid, od_point, sector, region_sector, region, sector_type=None, name="noname", input_mix=None,
                  target_margin=0.2, utilization_rate=0.8,
                  importance=1, long=None, lat=None, geometry=None,
-                 suppliers=None, clients=None, production=0, inventory_duration_target=1, inventory_restoration_time=1,
+                 suppliers=None, clients=None, production=0, min_inventory_duration_target=1, inventory_restoration_time=1,
                  usd_per_ton=2864, capital_to_value_added_ratio=4):
         super().__init__(
             agent_type="firm",
@@ -47,10 +47,7 @@ class Firm(Agent):
         self.input_mix = input_mix or {}
 
         # Free parameters
-        if input_mix is None:
-            self.inventory_duration_target = inventory_duration_target
-        else:
-            self.inventory_duration_target = {key: inventory_duration_target for key in input_mix.keys()}
+        self.inventory_duration_target = min_inventory_duration_target
         self.inventory_restoration_time = inventory_restoration_time
         self.eq_production_capacity = production / utilization_rate
         self.utilization_rate = utilization_rate
@@ -73,19 +70,19 @@ class Firm(Agent):
         self.production_target = production
         self.production_capacity = production / utilization_rate
         self.current_production_capacity = self.production_capacity
-        self.capital_initial = 0
+        self.capital_initial = 0.0
         self.purchase_plan = {}
         self.purchase_plan_per_input = {}
         self.order_book = {}
-        self.total_order = 0
+        self.total_order = 0.0
         self.input_needs = {}
-        self.rationing = 1
+        self.rationing = 1.0
         self.eq_needs = {}
         self.current_inventory_duration = {}
         self.inventory = {}
-        self.product_stock = 0
-        self.profit = 0
-        self.finance = {"sales": 0, 'costs': {"input": 0, "transport": 0, "other": 0}}
+        self.product_stock = 0.0
+        self.profit = 0.0
+        self.finance = {"sales": 0.0, 'costs': {"input": 0.0, "transport": 0.0, "other": 0.0}}
         self.delta_price_input = 0
         # self.generalized_transport_cost = 0
         # self.usd_transported = 0
@@ -93,37 +90,37 @@ class Firm(Agent):
         # self.tonkm_transported = 0
 
         # Disruption
-        self.capital_destroyed = 0
-        self.remaining_disrupted_time = 0
-        self.production_capacity_reduction = 0
-        self.capital_demanded = 0
-        self.reconstruction_demand = 0
-        self.reconstruction_produced = 0
+        self.capital_destroyed = 0.0
+        self.remaining_disrupted_time = 0.0
+        self.production_capacity_reduction = 0.0
+        self.capital_demanded = 0.0
+        self.reconstruction_demand = 0.0
+        self.reconstruction_produced = 0.0
 
     def reset_variables(self):
-        self.eq_finance = {"sales": 0, 'costs': {"input": 0, "transport": 0, "other": 0}}
-        self.eq_profit = 0
-        self.eq_price = 1
-        self.production = 0
-        self.production_target = 0
+        self.eq_finance = {"sales": 0.0, 'costs': {"input": 0.0, "transport": 0.0, "other": 0.0}}
+        self.eq_profit = 0.0
+        self.eq_price = 1.0
+        self.production = 0.0
+        self.production_target = 0.0
         self.production_capacity = self.eq_production_capacity
         self.purchase_plan = {}
         self.order_book = {}
-        self.total_order = 0
+        self.total_order = 0.0
         self.input_needs = {}
-        self.rationing = 1
+        self.rationing = 1.0
         self.eq_needs = {}
         self.current_inventory_duration = {}
         self.inventory = {}
-        self.product_stock = 0
-        self.profit = 0
-        self.finance = {"sales": 0, 'costs': {"input": 0, "transport": 0, "other": 0}}
-        self.delta_price_input = 0
+        self.product_stock = 0.0
+        self.profit = 0.0
+        self.finance = {"sales": 0.0, 'costs': {"input": 0.0, "transport": 0.0, "other": 0.0}}
+        self.delta_price_input = 0.0
         # self.generalized_transport_cost = 0
         # self.usd_transported = 0
         # self.tons_transported = 0
         # self.tonkm_transported = 0
-        self.capital_destroyed = 0
+        self.capital_destroyed = 0.0
 
     def reset_indicators(self):
         pass
@@ -536,10 +533,8 @@ class Firm(Agent):
                         self.purchase_plan[supplier_id] = need * supplier_info['weight'] * relative_satisfaction
 
         else:
-            self.purchase_plan = {
-                supplier_id: self.purchase_plan_per_input[info['sector']] * info['weight']
-                for supplier_id, info in self.suppliers.items()
-            }
+            self.purchase_plan = {supplier_id: self.purchase_plan_per_input[info['sector']] * info['weight']
+                for supplier_id, info in self.suppliers.items()}
 
     def send_purchase_orders(self, sc_network: "ScNetwork"):
         for edge in sc_network.in_edges(self):
@@ -613,8 +608,8 @@ class Firm(Agent):
         # Remove input used from inventories
         if mode == "Leontief":
             input_used = {input_id: self.production * mix for input_id, mix in self.input_mix.items()}
-            self.inventory = {input_id: quantity - input_used[input_id] for input_id, quantity in
-                              self.inventory.items()}
+            self.inventory = {input_id: quantity - input_used[input_id]
+                              for input_id, quantity in self.inventory.items()}
         else:
             raise ValueError("Wrong mode chosen")
 
@@ -687,7 +682,7 @@ class Firm(Agent):
 
     def deliver_products(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
                          available_transport_network: "TransportNetwork",
-                         sectors_no_transport_network: list, rationing_mode: str, explicit_service_firm: bool,
+                         sectors_no_transport_network: list, rationing_mode: str, with_transport: bool,
                          transport_to_households: bool,
                          monetary_units_in_model: str,
                          cost_repercussion_mode: str, price_increase_threshold: float, capacity_constraint: bool,
@@ -718,7 +713,7 @@ class Firm(Agent):
             cases_no_transport = (buyer.pid == -1) or (self.sector_type in sectors_no_transport_network) \
                                  or ((not transport_to_households) and (buyer.agent_type == "household"))
             # If the client is a service firm, we deliver without using transportation infrastructure
-            if cases_no_transport:
+            if cases_no_transport or not with_transport:
                 self.deliver_without_infrastructure(commercial_link)
             else:
                 self.send_shipment(commercial_link, transport_network, available_transport_network,
@@ -891,4 +886,4 @@ def evaluate_inventory_duration(estimated_need, inventory):
     if estimated_need == 0:
         return None
     else:
-        return inventory / estimated_need - 1
+        return inventory / estimated_need

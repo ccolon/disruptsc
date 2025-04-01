@@ -619,11 +619,22 @@ def calibrate_input_mix(
     return firms, transaction_table
 
 
-def load_inventories(firms: Firms, inventory_duration_target: int | str, given_time_unit: str, model_time_unit: str,
-                     filepath_inventory_duration_targets: Path, extra_inventory_target: int | None = None,
-                     inputs_with_extra_inventories: None | list = None,
-                     buying_sectors_with_extra_inventories: None | list = None,
-                     min_inventory: int = 1):
+def load_inventory_targets(firms: Firms, inventory_duration_targets: dict, time_resolution: str):
+    time_unit_in_days = {
+        "day": 1,
+        "week": 7,
+        "month": 30,
+        "year": 365
+    }
+    time_adjustment = time_unit_in_days[inventory_duration_targets['unit']] / time_unit_in_days[time_resolution]
+
+    if inventory_duration_targets['description'] == "per_input_type":
+        for firm in firms.values():
+            firm.inventory_duration_target = {input_sector: time_adjustment
+                                              for input_sector in firm.input_mix.keys()}
+
+
+def load_inventories(firms: Firms, inventory_duration_targets: dict, model_time_unit: str, sector_table: pd.DataFrame):
     """Load inventory duration target
 
     If inventory_duration_target is an integer, it is uniformly applied to all firms.
@@ -639,27 +650,9 @@ def load_inventories(firms: Firms, inventory_duration_target: int | str, given_t
     Parameters
     ----------
     model_time_unit
-    given_time_unit
-    filepath_inventory_duration_targets
     firms : pandas.DataFrame
         the list of Firms generated from the createFirms function
-
-    inventory_duration_target : "inputed" or integer
-        Inventory duration target uniformly applied to all firms and all inputs.
-        If 'inputed', uses the specific values from the file specified by
-        filepath_inventory_duration_targets
-
-    extra_inventory_target : None or integer
-        If specified, extra inventory duration target.
-
-    inputs_with_extra_inventories : None or list of sector
-        For which inputs do we add inventories.
-
-    buying_sectors_with_extra_inventories : None or list of sector
-        For which sector we add inventories.
-
-    min_inventory : int
-        Set a minimum inventory level
+    inventory_duration_targets
     """
     time_unit_in_days = {
         "day": 1,
@@ -667,91 +660,90 @@ def load_inventories(firms: Firms, inventory_duration_target: int | str, given_t
         "month": 30,
         "year": 365
     }
-    time_adjustment = time_unit_in_days[given_time_unit] / time_unit_in_days[model_time_unit]
+    time_adjustment = time_unit_in_days[inventory_duration_targets['unit']] / time_unit_in_days[model_time_unit]
 
-    if isinstance(inventory_duration_target, int):
+    if inventory_duration_targets['definition'] == "per_input_type":
+        input_sector_to_type = sector_table.set_index('sector')['type']
+        values = inventory_duration_targets['values']
+        default = values['default']
         for firm in firms.values():
-            firm.inventory_duration_target = {input_sector: time_adjustment * inventory_duration_target
-                                              for input_sector in firm.input_mix.keys()}
+            firm.inventory_duration_target = \
+                {input_sector: time_adjustment * values.get(input_sector_to_type.get(input_sector), default)
+                 for input_sector in firm.input_mix.keys()}
 
-    elif inventory_duration_target == 'inputed':
-        dic_sector_inventory = pd.read_csv(filepath_inventory_duration_targets) \
+    elif inventory_duration_targets['definition'] == 'inputed':
+        dic_sector_inventory = pd.read_csv(inventory_duration_targets['filepath']) \
             .set_index(['buying_sector', 'input_sector'])['inventory_duration_target'].to_dict()
         for firm in firms.values():
             firm.inventory_duration_target = {
-                input_sector: time_adjustment * dic_sector_inventory[(firm.sector, input_sector)]
+                input_sector: time_adjustment * max(inventory_duration_targets['minimum'],
+                                                    dic_sector_inventory[(firm.sector, input_sector)])
                 for input_sector in firm.input_mix.keys()
             }
 
     else:
-        raise ValueError("Unknown value entered for 'inventory_duration_target'")
+        raise ValueError("Unknown value entered for 'inventory_duration_targets.definition'")
+    #
+    # # if random_mean_sd:
+    # #     if random_draw:
+    # #         for firm in firms:
+    # #             firm.inventory_duration_target = {}
+    # #             for input_sector in firm.input_mix.keys():
+    # #                 mean = dic_sector_inventory[(firm.sector, input_sector)]['mean']
+    # #                 sd = dic_sector_inventory[(firm.sector, input_sector)]['sd']
+    # #                 mu = math.log(mean/math.sqrt(1+sd**2/mean**2))
+    # #                 sigma = math.sqrt(math.log(1+sd**2/mean**2))
+    # #                 safety_day = np.random.log(mu, sigma)
+    # #                 firm.inventory_duration_target[input_sector] = safety_day
+    #
+    # # Add extra inventories if needed. Not the best programming maybe...
+    # if isinstance(extra_inventory_target, int):
+    #     if isinstance(inputs_with_extra_inventories, list) and (buying_sectors_with_extra_inventories == 'all'):
+    #         for firm in firms.values():
+    #             firm.inventory_duration_target = {
+    #                 input_sector: firm.inventory_duration_target[
+    #                                   input_sector] + extra_inventory_target * time_adjustment
+    #                 if (input_sector in inputs_with_extra_inventories) else firm.inventory_duration_target[input_sector]
+    #                 for input_sector in firm.input_mix.keys()
+    #             }
+    #
+    #     elif (inputs_with_extra_inventories == 'all') and isinstance(buying_sectors_with_extra_inventories, list):
+    #         for firm in firms.values():
+    #             firm.inventory_duration_target = {
+    #                 input_sector: firm.inventory_duration_target[
+    #                                   input_sector] + extra_inventory_target * time_adjustment
+    #                 if (firm.sector in buying_sectors_with_extra_inventories) else firm.inventory_duration_target[
+    #                     input_sector]
+    #                 for input_sector in firm.input_mix.keys()
+    #             }
+    #
+    #     elif isinstance(inputs_with_extra_inventories, list) and isinstance(buying_sectors_with_extra_inventories,
+    #                                                                         list):
+    #         for firm in firms.values():
+    #             firm.inventory_duration_target = {
+    #                 input_sector: firm.inventory_duration_target[
+    #                                   input_sector] + extra_inventory_target * time_adjustment
+    #                 if ((input_sector in inputs_with_extra_inventories) and (
+    #                         firm.sector in buying_sectors_with_extra_inventories)) else
+    #                 firm.inventory_duration_target[input_sector]
+    #                 for input_sector in firm.input_mix.keys()
+    #             }
+    #
+    #     elif (inputs_with_extra_inventories == 'all') and (buying_sectors_with_extra_inventories == 'all'):
+    #         for firm in firms.values():
+    #             firm.inventory_duration_target = {
+    #                 input_sector: firm.inventory_duration_target[
+    #                                   input_sector] + extra_inventory_target * time_adjustment
+    #                 for input_sector in firm.input_mix.keys()
+    #             }
+    #
+    #     else:
+    #         raise ValueError("Unknown value given for 'inputs_with_extra_inventories' or "
+    #                          "'buying_sectors_with_extra_inventories'. Should be a list of string or 'all'")
 
-    # if random_mean_sd:
-    #     if random_draw:
-    #         for firm in firms:
-    #             firm.inventory_duration_target = {}
-    #             for input_sector in firm.input_mix.keys():
-    #                 mean = dic_sector_inventory[(firm.sector, input_sector)]['mean']
-    #                 sd = dic_sector_inventory[(firm.sector, input_sector)]['sd']
-    #                 mu = math.log(mean/math.sqrt(1+sd**2/mean**2))
-    #                 sigma = math.sqrt(math.log(1+sd**2/mean**2))
-    #                 safety_day = np.random.log(mu, sigma)
-    #                 firm.inventory_duration_target[input_sector] = safety_day
 
-    # Add extra inventories if needed. Not the best programming maybe...
-    if isinstance(extra_inventory_target, int):
-        if isinstance(inputs_with_extra_inventories, list) and (buying_sectors_with_extra_inventories == 'all'):
-            for firm in firms.values():
-                firm.inventory_duration_target = {
-                    input_sector: firm.inventory_duration_target[
-                                      input_sector] + extra_inventory_target * time_adjustment
-                    if (input_sector in inputs_with_extra_inventories) else firm.inventory_duration_target[input_sector]
-                    for input_sector in firm.input_mix.keys()
-                }
-
-        elif (inputs_with_extra_inventories == 'all') and isinstance(buying_sectors_with_extra_inventories, list):
-            for firm in firms.values():
-                firm.inventory_duration_target = {
-                    input_sector: firm.inventory_duration_target[
-                                      input_sector] + extra_inventory_target * time_adjustment
-                    if (firm.sector in buying_sectors_with_extra_inventories) else firm.inventory_duration_target[
-                        input_sector]
-                    for input_sector in firm.input_mix.keys()
-                }
-
-        elif isinstance(inputs_with_extra_inventories, list) and isinstance(buying_sectors_with_extra_inventories,
-                                                                            list):
-            for firm in firms.values():
-                firm.inventory_duration_target = {
-                    input_sector: firm.inventory_duration_target[
-                                      input_sector] + extra_inventory_target * time_adjustment
-                    if ((input_sector in inputs_with_extra_inventories) and (
-                            firm.sector in buying_sectors_with_extra_inventories)) else
-                    firm.inventory_duration_target[input_sector]
-                    for input_sector in firm.input_mix.keys()
-                }
-
-        elif (inputs_with_extra_inventories == 'all') and (buying_sectors_with_extra_inventories == 'all'):
-            for firm in firms.values():
-                firm.inventory_duration_target = {
-                    input_sector: firm.inventory_duration_target[
-                                      input_sector] + extra_inventory_target * time_adjustment
-                    for input_sector in firm.input_mix.keys()
-                }
-
-        else:
-            raise ValueError("Unknown value given for 'inputs_with_extra_inventories' or "
-                             "'buying_sectors_with_extra_inventories'. Should be a list of string or 'all'")
-
-    if min_inventory > 0:
-        for firm in firms.values():
-            firm.inventory_duration_target = {
-                input_sector: max(min_inventory * time_adjustment, inventory)
-                for input_sector, inventory in firm.inventory_duration_target.items()
-            }
-
-    logging.info('Inventory duration targets loaded')
-    if extra_inventory_target:
-        logging.info(f"Extra inventory duration: {extra_inventory_target} "
-                     f"for inputs:  {inputs_with_extra_inventories} "
-                     f"for buying sectors: {buying_sectors_with_extra_inventories}")
+    # logging.info('Inventory duration targets loaded')
+    # if extra_inventory_target:
+    #     logging.info(f"Extra inventory duration: {extra_inventory_target} "
+    #                  f"for inputs:  {inputs_with_extra_inventories} "
+    #                  f"for buying sectors: {buying_sectors_with_extra_inventories}")

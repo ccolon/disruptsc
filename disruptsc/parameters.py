@@ -23,6 +23,7 @@ class Parameters:
     flow_data: dict
     parameters_to_calibrate: dict
     logging_level: str
+    with_transport: bool
     transport_modes: list
     monetary_units_in_model: str
     monetary_units_in_data: str
@@ -47,10 +48,7 @@ class Parameters:
     district_sector_cutoff: str
     nb_top_district_per_sector: None | int
     explicit_service_firm: bool
-    inventory_duration_target: str | int
-    extra_inventory_target: None | int
-    inputs_with_extra_inventories: str | list
-    buying_sectors_with_extra_inventories: str | list
+    inventory_duration_targets: dict
     inventory_restoration_time: float
     utilization_rate: float
     io_cutoff: float
@@ -62,7 +60,6 @@ class Parameters:
     events: list
     criticality: None | dict
     time_resolution: str
-    inventory_duration_target_unit: str
     nodeedge_tested_topn: None | int
     nodeedge_tested_skipn: None | int
     model_IO: bool

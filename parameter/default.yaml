@@ -30,6 +30,8 @@ filepaths:
   "mrio": "Network/mrio.csv"
 
 
+with_transport: True
+
 # Whether to export files
 export_files: False
 
@@ -244,7 +246,7 @@ sectors_to_include: "all"
 sectors_to_exclude: None
 
 # The products from those sectors do not need transport network to be transported
-sectors_no_transport_network: ['utility', 'transport', 'trade', 'services', 'service']
+sectors_no_transport_network: ['utility', 'transport', 'trade', 'services', 'service', 'construction']
 
 # Whether the B2C flows are transported on the transport network
 transport_to_households: True
@@ -336,32 +338,19 @@ explicit_service_firm: True
 # Duration target for the firm inventory
 # When firm holds the inventories meeting this target, then the firms can keep meeting their pre-disruption
 # production targets without ordering more inputs for the specified number of time steps.
-# Two types of value are possible:
-# - an integer value: all firms have the same inventory duration target for all inputs
-# - 'inputed': values are provided in an external file, which a specific duration target to each input-sector, buying-firm-sector combination
-inventory_duration_target: 2
-
-# Units of the duration target, either given as int in inventory_duration_target, or in the input file
-inventory_duration_target_unit: week
-
-# Extend the inventory duration targets of all firms, uniformly
-# Possible values:
-# - integer, which represents the number of time steps to add
-# - None, no extra inventory
-# The type of inputs for which the inventory is to be extended is determined by the inputs_with_extra_inventories parameter
-extra_inventory_target: None
-
-# List of inputs, identified by their producing sector, for which an extra inventory duration target is given
-# Possible values:
-# - 'all': all types of inputs
-# - list of sector id, e.g., ['AGR','FOR','TRD','IMP']
-inputs_with_extra_inventories: "all"
-
-# List of sectors for which an extra inventory duration target is given
-# Possible values:
-# - 'all': all sectors
-# - list of sector id, e.g., ['AGR','FOR','TRD','IMP']
-buying_sectors_with_extra_inventories: "all"
+# if definition = per_input_type, then give values of sector type
+# if definition = inputed, then give a filepath
+inventory_duration_targets:
+  definition: per_input_type  # inputed
+  values:
+    default: 30
+    utility: 3
+    agriculture: 15
+    manufacturing: 30
+    service: 90
+    trade: 30
+    transport: 3
+  unit: day
 
 # Determines the speed at which firms try to reach their inventory duration target
 # See Henriet, Hallegatte, and Tabourier 2011 for the formulas

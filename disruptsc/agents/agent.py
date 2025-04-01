@@ -50,7 +50,6 @@ class Agent(object):
                                                         route_weight=weight_considered,
                                                         noise_level=transport_cost_noise_level)
 
-
     def receive_shipment_and_pay(self, commercial_link: "CommercialLink", transport_network: "TransportNetwork"):
         """Firm look for shipments in the transport nodes it is located
         It takes those which correspond to the commercial link
@@ -92,10 +91,10 @@ class Agent(object):
         # the way differs between service and shipment
         for supplier, _ in sc_network.in_edges(self):
             commercial_link = sc_network[supplier][self]['object']
-            if commercial_link.product_type in sectors_no_transport_network:
-                self.receive_service_and_pay(commercial_link)
-            else:
+            if commercial_link.use_transport_network:
                 self.receive_shipment_and_pay(commercial_link, transport_network)
+            else:
+                self.receive_service_and_pay(commercial_link)
             # commercial_link.update_status()
 
     def receive_service_and_pay(self, commercial_link):
@@ -485,7 +484,7 @@ class Agents(dict):
 
     def deliver(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
                 available_transport_network: "TransportNetwork",
-                sectors_no_transport_network: list, rationing_mode: str, explicit_service_firm: bool,
+                sectors_no_transport_network: list, rationing_mode: str, with_transport: bool,
                 transport_to_households: bool, capacity_constraint: bool,
                 monetary_units_in_model: str, cost_repercussion_mode: str, price_increase_threshold: float,
                 transport_cost_noise_level: float):
@@ -493,7 +492,7 @@ class Agents(dict):
             agent.deliver_products(sc_network, transport_network, available_transport_network,
                                    sectors_no_transport_network=sectors_no_transport_network,
                                    rationing_mode=rationing_mode,
-                                   explicit_service_firm=explicit_service_firm,
+                                   with_transport=with_transport,
                                    transport_to_households=transport_to_households,
                                    monetary_units_in_model=monetary_units_in_model,
                                    cost_repercussion_mode=cost_repercussion_mode,

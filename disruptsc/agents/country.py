@@ -177,7 +177,7 @@ class Country(Agent):
 
     def deliver_products(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
                          available_transport_network: "TransportNetwork",
-                         sectors_no_transport_network: list[str], rationing_mode: str, explicit_service_firm: bool,
+                         sectors_no_transport_network: list[str], rationing_mode: str, with_transport: bool,
                          transport_to_households: bool,
                          monetary_units_in_model: str, cost_repercussion_mode: str, price_increase_threshold: float,
                          capacity_constraint: bool, transport_cost_noise_level: float):
@@ -210,25 +210,25 @@ class Country(Agent):
                 Country.transformUSD_to_tons(commercial_link.order, monetary_units_in_model,
                                              self.usd_per_ton)
 
-            if explicit_service_firm:
-                # If send services, no use of transport network
-                cases_no_transport = (commercial_link.product_type in sectors_no_transport_network) or \
-                                     ((not transport_to_households) and (buyer.agent_type == 'household'))
-                if cases_no_transport:
-                    commercial_link.price = commercial_link.eq_price
-                    self.qty_sold += commercial_link.delivery
-                # Otherwise, send shipment through transportation network
-                else:
-                    self.send_shipment(commercial_link, transport_network, available_transport_network,
-                                       price_increase_threshold, capacity_constraint, transport_cost_noise_level)
+            # if explicit_service_firm:
+            # If send services, no use of transport network
+            cases_no_transport = (commercial_link.product_type in sectors_no_transport_network) or \
+                                 ((not transport_to_households) and (buyer.agent_type == 'household'))
+            if cases_no_transport or not with_transport:
+                commercial_link.price = commercial_link.eq_price
+                self.qty_sold += commercial_link.delivery
+            # Otherwise, send shipment through transportation network
             else:
-                if buyer.agent_type == 'firm':
-                    if buyer.sector_type == "service":
-                        commercial_link.price = commercial_link.eq_price
-                        self.qty_sold += commercial_link.delivery
-                else:
-                    self.send_shipment(commercial_link, transport_network, available_transport_network,
-                                       price_increase_threshold, capacity_constraint, transport_cost_noise_level)
+                self.send_shipment(commercial_link, transport_network, available_transport_network,
+                                   price_increase_threshold, capacity_constraint, transport_cost_noise_level)
+            # else:
+            #     if buyer.agent_type == 'firm':
+            #         if buyer.sector_type == "service":
+            #             commercial_link.price = commercial_link.eq_price
+            #             self.qty_sold += commercial_link.delivery
+            #     else:
+            #         self.send_shipment(commercial_link, transport_network, available_transport_network,
+            #                            price_increase_threshold, capacity_constraint, transport_cost_noise_level)
 
     def calculate_relative_price_change_transport(self, relative_transport_cost_change):
         return 0.2 * relative_transport_cost_change

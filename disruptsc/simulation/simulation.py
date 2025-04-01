@@ -109,7 +109,7 @@ class Simulation(object):
         result.columns = ['time_step', 'sector', 'loss']
         return result
 
-    def calculate_household_loss(self, household_table: pd.DataFrame, per_region=False):
+    def calculate_household_loss(self, household_table: pd.DataFrame, per_region=False, periods=None):
         household_result_table = pd.DataFrame(self.household_data)
         loss_per_region_sector_time = household_result_table.groupby('household').apply(
             self.summarize_results_one_household, include_groups=False).reset_index().drop(columns=['level_1'])
@@ -118,6 +118,14 @@ class Simulation(object):
             household_table.set_index('household')['region'])
         if per_region:
             return loss_per_region_sector_time.groupby('household_region')['loss'].sum().to_dict()
+        elif isinstance(periods, list):
+            household_result_table['total_loss'] = household_result_table['extra_spending'] + household_result_table['consumption_loss']
+            ts = household_result_table.groupby('time_step')['total_loss'].sum()
+            baseline = household_result_table.loc[household_result_table['time_step'] == 0, 'tot_consumption'].sum()
+            return {
+                period: ts[:period].sum() / (baseline * period)
+                for period in periods
+            }
         else:
             return loss_per_region_sector_time['loss'].sum()
 

@@ -265,14 +265,9 @@ class Model(object):
             # Loading the inventories
             load_inventories(
                 firms=self.firms,
-                inventory_duration_target=self.parameters.inventory_duration_target,
-                given_time_unit=self.parameters.inventory_duration_target_unit,
+                inventory_duration_targets=self.parameters.inventory_duration_targets,
                 model_time_unit=self.parameters.time_resolution,
-                filepath_inventory_duration_targets=self.parameters.filepaths['inventory_duration_targets'],
-                extra_inventory_target=self.parameters.extra_inventory_target,
-                inputs_with_extra_inventories=self.parameters.inputs_with_extra_inventories,
-                buying_sectors_with_extra_inventories=self.parameters.buying_sectors_with_extra_inventories,
-                min_inventory=1
+                sector_table=self.sector_table
             )
 
             # Create agents: Countries
@@ -742,13 +737,13 @@ class Model(object):
         # print(time_step, "product_stock", self.firms[0].product_stock
         self.countries.deliver(self.sc_network, self.transport_network, available_transport_network,
                                self.parameters.sectors_no_transport_network,
-                               self.parameters.rationing_mode, self.parameters.explicit_service_firm,
+                               self.parameters.rationing_mode, self.parameters.with_transport,
                                self.parameters.transport_to_households, self.parameters.capacity_constraint,
                                self.parameters.monetary_units_in_model, self.parameters.cost_repercussion_mode,
                                self.parameters.price_increase_threshold, self.parameters.transport_cost_noise_level)
         self.firms.deliver(self.sc_network, self.transport_network, available_transport_network,
                            self.parameters.sectors_no_transport_network,
-                           self.parameters.rationing_mode, self.parameters.explicit_service_firm,
+                           self.parameters.rationing_mode, self.parameters.with_transport,
                            self.parameters.transport_to_households, self.parameters.capacity_constraint,
                            self.parameters.monetary_units_in_model, self.parameters.cost_repercussion_mode,
                            self.parameters.price_increase_threshold, self.parameters.transport_cost_noise_level)

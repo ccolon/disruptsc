@@ -231,9 +231,9 @@ class CapitalDestruction(dict):
             recovery=None
         )
 
-    def implement(self, firm_list: "Firms", model: "Model"):
+    def implement(self, firms: "Firms", model: "Model"):
         for firm_id, destroyed_capital in self.items():
-            firm_list[firm_id].incur_capital_destruction(destroyed_capital)
+            firms[firm_id].incur_capital_destruction(destroyed_capital)
         if self.reconstruction_market:
             model.reconstruction_market = ReconstructionMarket(reconstruction_target_time=30,
                                                                capital_input_mix={"CON": 0.7, "MAN": 0.2, "IMP": 0.1})
@@ -289,7 +289,6 @@ class DisruptionList(UserList):
                         disruption_object.reconstruction_market = event["reconstruction_market"]
                     event_list += [disruption_object]
                 if event['description_type'] == "sectors_homogeneous":
-                    print('here', event['region_sectors'])
                     disruption_object = CapitalDestruction.from_sectors(event['destroyed_capital'],
                                                                         event['region_sectors'],
                                                                         firm_list, input_units=event['unit'],
