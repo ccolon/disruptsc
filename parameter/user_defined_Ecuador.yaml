@@ -39,7 +39,7 @@ inventory_duration_targets:
   unit: day
 firm_data_type: "mrio"  #  'disaggregating IO' for GR-13 and GR-59, 'mrio' for TR-AGG
 #sectors_no_transport_network: ['utility', 'transport', 'trade', 'service']  # remove trade for mrio
-io_cutoff: 0.02  # 0.01
+io_cutoff: 0.01  # 0.01
 cutoff_sector_output:
   'type': absolute
   'value': 1.0
