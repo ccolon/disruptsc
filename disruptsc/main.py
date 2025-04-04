@@ -7,6 +7,8 @@ import time
 import argparse
 from datetime import datetime
 
+import pandas as pd
+
 import paths
 from disruptsc.model.basic_functions import mean_squared_distance
 from disruptsc.model.caching_functions import generate_cache_parameters_from_command_line_argument, load_cached_model
@@ -166,7 +168,19 @@ elif parameters.simulation_type == "criticality":
                         + region_household_loss_labels + country_loss_labels)  # Writing the header
     model.save_pickle(suffix)
 
-    if parameters.criticality['attribute'] == "id":
+    if parameters.criticality['attribute'] == "top_flow":
+        simulation = model.run_static()
+        flow_df = pd.DataFrame(simulation.transport_network_data)
+        transport_edges_with_flows = pd.merge(model.transport_edges, flow_df[flow_df['time_step'] == 0],
+                                              how="left", on="id")
+        transport_edges_with_flows = transport_edges_with_flows[transport_edges_with_flows['flow_total'] > 0]
+        transport_edges_with_flows = transport_edges_with_flows.sort_values(by='flow_total', ascending=False)
+        total = transport_edges_with_flows['flow_total'].sum()
+        transport_edges_with_flows['cumulative_share'] = transport_edges_with_flows['flow_total'].cumsum() / total
+        top_df = transport_edges_with_flows[transport_edges_with_flows['cumulative_share'] <= 0.5]
+        edges_to_test = top_df.set_index('id')['flow_total'].to_dict()
+
+    elif parameters.criticality['attribute'] == "id":
         edges_to_test = parameters.criticality['edges']
         edges_to_test = {i: i for i in edges_to_test}
     else:
