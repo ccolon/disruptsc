@@ -493,7 +493,7 @@ class Firm(Agent):
         for input_id, inventory_duration in self.current_inventory_duration.items():
             if inventory_duration is not None:
                 if inventory_duration < 1 - EPSILON:
-                    logging.debug(f"{self.id_str()} - Less than 1 day of inventory for input type {input_id}: "
+                    logging.debug(f"{self.id_str()} - Less than 1 time step of inventory for input type {input_id}: "
                                   f"{inventory_duration} vs. {self.inventory_duration_target[input_id]}")
 
         # Evaluate purchase plan for each sector

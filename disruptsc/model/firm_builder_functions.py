@@ -440,11 +440,11 @@ def define_firms_from_mrio(mrio: Mrio, filepath_sectors: Path, filepath_regions:
 
     # Add sector type
     sector_table = pd.read_csv(filepath_sectors)  # should use sector only...
-    firm_table['sector_type'] = firm_table['region_sector'].map(sector_table.set_index('sector')['type'])
+    firm_table['sector_type'] = firm_table['region_sector'].map(sector_table.set_index('region_sector')['type'])
     check_successful_extraction(firm_table, "sector_type")
 
     # Add usd per ton
-    firm_table['usd_per_ton'] = firm_table['region_sector'].map(sector_table.set_index('sector')['usd_per_ton'])
+    firm_table['usd_per_ton'] = firm_table['region_sector'].map(sector_table.set_index('region_sector')['usd_per_ton'])
 
     logging.info(f"Create {firm_table.shape[0]} firms in {firm_table['region'].nunique()} regions")
 
@@ -619,21 +619,6 @@ def calibrate_input_mix(
     return firms, transaction_table
 
 
-def load_inventory_targets(firms: Firms, inventory_duration_targets: dict, time_resolution: str):
-    time_unit_in_days = {
-        "day": 1,
-        "week": 7,
-        "month": 30,
-        "year": 365
-    }
-    time_adjustment = time_unit_in_days[inventory_duration_targets['unit']] / time_unit_in_days[time_resolution]
-
-    if inventory_duration_targets['description'] == "per_input_type":
-        for firm in firms.values():
-            firm.inventory_duration_target = {input_sector: time_adjustment
-                                              for input_sector in firm.input_mix.keys()}
-
-
 def load_inventories(firms: Firms, inventory_duration_targets: dict, model_time_unit: str, sector_table: pd.DataFrame):
     """Load inventory duration target
 
@@ -668,7 +653,7 @@ def load_inventories(firms: Firms, inventory_duration_targets: dict, model_time_
         default = values['default']
         for firm in firms.values():
             firm.inventory_duration_target = \
-                {input_sector: time_adjustment * values.get(input_sector_to_type.get(input_sector), default)
+                {input_sector: max(1.0, time_adjustment * values.get(input_sector_to_type.get(input_sector), default))
                  for input_sector in firm.input_mix.keys()}
 
     elif inventory_duration_targets['definition'] == 'inputed':

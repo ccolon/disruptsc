@@ -136,7 +136,7 @@ elif parameters.simulation_type in ["ad_hoc"]:
         model.parameters.events[0]['region_sectors'] = disrupted_sectors
         simulation = model.run_disruption(t_final=periods[-1])
         household_loss_per_periods = simulation.calculate_household_loss(model.household_table, periods=periods)
-        household_loss = sum(household_loss_per_periods.values())
+        household_loss = household_loss_per_periods[periods[-1]]
         country_loss = simulation.calculate_country_loss()
 
         logging.info(f"Simulation terminated. "
@@ -147,8 +147,6 @@ elif parameters.simulation_type in ["ad_hoc"]:
             writer = csv.writer(file)
             writer.writerow(["_".join(disrupted_sectors), household_loss, country_loss]
                             + list(household_loss_per_periods.values()) + [country_loss])
-
-
 
 elif parameters.simulation_type in ['flow_calibration']:
     simulation = model.run_static()

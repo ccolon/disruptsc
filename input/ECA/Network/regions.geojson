@@ -54,7 +54,7 @@
 { "type": "Feature", "properties": { "population": 556442.81, "region": "TJK" }, "geometry": { "type": "Point", "coordinates": [ 69.749999999999886, 40.25 ] } },
 { "type": "Feature", "properties": { "population": 478899.53, "region": "TJK" }, "geometry": { "type": "Point", "coordinates": [ 69.749999999999886, 37.75 ] } },
 { "type": "Feature", "properties": { "population": 381550.09, "region": "TJK" }, "geometry": { "type": "Point", "coordinates": [ 70.249999999999886, 40.25 ] } },
-{ "type": "Feature", "properties": { "population": 1567354.0, "region": "TKM" }, "geometry": { "type": "Point", "coordinates": [ 58.249999999999886, 37.75 ] } },
+{ "type": "Feature", "properties": { "population": 1567354.0, "region": "TKM" }, "geometry": { "type": "Point", "coordinates": [ 58.37125321519116, 37.952688176518365 ] } },
 { "type": "Feature", "properties": { "population": 362730.34, "region": "TKM" }, "geometry": { "type": "Point", "coordinates": [ 60.749999999999886, 41.25 ] } },
 { "type": "Feature", "properties": { "population": 229540.56, "region": "TKM" }, "geometry": { "type": "Point", "coordinates": [ 60.249999999999886, 41.25 ] } },
 { "type": "Feature", "properties": { "population": 165439.64, "region": "TKM" }, "geometry": { "type": "Point", "coordinates": [ 64.749999999999886, 38.75 ] } },
@@ -75,6 +75,6 @@
 { "type": "Feature", "properties": { "population": 525525.94, "region": "UZB" }, "geometry": { "type": "Point", "coordinates": [ 69.249999999999886, 40.25 ] } },
 { "type": "Feature", "properties": { "population": 490366.81, "region": "UZB" }, "geometry": { "type": "Point", "coordinates": [ 66.749999999999886, 40.25 ] } },
 { "type": "Feature", "properties": { "population": 467714.72, "region": "UZB" }, "geometry": { "type": "Point", "coordinates": [ 70.249999999999886, 41.25 ] } },
-{ "type": "Feature", "properties": { "population": null, "region": "RUS" }, "geometry": { "type": "Point", "coordinates": [ 46.013903983324255, 56.562671357573706 ] } }
+{ "type": "Feature", "properties": { "population": null, "region": "RUS" }, "geometry": { "type": "Point", "coordinates": [ 37.608784658849821, 55.75977749020489 ] } }
 ]
 }

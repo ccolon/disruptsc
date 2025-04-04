@@ -176,10 +176,10 @@ class TransportNetwork(nx.Graph):
             self[edge[0]][edge[1]][weight + '_noise'] = self[edge[0]][edge[1]][weight] * (1 + noise_levels.pop())
 
     def get_undisrupted_network(self):
-        available_nodes = [node for node in self.nodes if self._node[node]['disruption_duration'] == 0]
-        available_subgraph = self.subgraph(available_nodes)
+        # available_nodes = [node for node in self.nodes if self._node[node]['disruption_duration'] == 0]
+        # available_subgraph = self.subgraph(available_nodes)
         available_edges = [edge for edge in self.edges if self[edge[0]][edge[1]]['disruption_duration'] == 0]
-        available_subgraph = available_subgraph.edge_subgraph(available_edges)
+        available_subgraph = self.edge_subgraph(available_edges)
         available_transport_network = TransportNetwork(available_subgraph)
         available_transport_network.min_cost_per_tonkm = self.min_cost_per_tonkm
         return available_transport_network

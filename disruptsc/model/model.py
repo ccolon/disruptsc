@@ -122,6 +122,7 @@ class Model(object):
                 self.countries = load_cached_agent_data()
             if self.parameters.firm_data_type == "supplier-buyer network":
                 self.transaction_table = load_cached_transaction_table()
+            self.mrio = Mrio(self.mrio, monetary_units=self.parameters.monetary_units_in_data)
         else:
             logging.info(f"Filtering the sectors based on their output. "
                          f"Cutoff type is {self.parameters.cutoff_sector_output['type']}, "

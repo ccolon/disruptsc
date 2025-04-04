@@ -2,7 +2,7 @@
 filepaths:
   "sector_table": "Network/sector_table.csv"
   "inventory_duration_targets": "Network/inventory_targets.csv"
-  "mrio": "Network/mrio_russia_2.csv"
+  "mrio": "Network/mrio_2023_russia.csv"
   "region_table": "Network/regions.geojson"
 transport_modes: ["roads", "maritime", "railways", "pipelines"] #, waterways, airways]
 monetary_units_in_model: mUSD
@@ -43,9 +43,9 @@ logistics:
     roads: 0.1
     maritime: 0.001
     airways: 1
-    railways: 0.02
+    railways: 0.01
     waterways: 0.005
-    pipelines: 0.001
+    pipelines: 0.0005
     multimodal: 0.01
   nb_cost_profiles: 1
   basic_cost_random: True

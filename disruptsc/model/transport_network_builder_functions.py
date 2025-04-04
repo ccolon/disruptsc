@@ -171,9 +171,9 @@ def create_nodes_and_update_edges(edges: geopandas.GeoDataFrame):
     all_endpoints = all_endpoints.set_geometry('geometry', crs=edges.crs)
     all_endpoints['geometry_wkt'] = all_endpoints['geometry'].apply(lambda geom: wkt.dumps(geom, rounding_precision=5))
     all_endpoints.loc[all_endpoints['type'] == "multimodal", 'type'] = "ZZZmultimodal"  # put multimodal at the end
-    all_endpoints = all_endpoints.sort_values("type")
+    all_endpoints = all_endpoints.sort_values("type", ascending=False)
     nodes = all_endpoints.drop_duplicates('geometry_wkt', keep="first").copy()  # so that multimodal nodes are removed
-    assert 'multimodal' not in nodes['type']
+    assert 'ZZZmultimodal' not in nodes['type'].to_list()
     nodes['id'] = range(nodes.shape[0])
     nodes.index = nodes['id']
     nodes['long'] = nodes['geometry'].x

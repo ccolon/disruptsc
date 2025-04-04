@@ -170,9 +170,9 @@ logistics:
     railways-pipelines: 1.0
     maritime-pipelines: 1.0
   border_crossing_fees: #USD/ton
-    roads: 27 #from JICA (2016) International Logistics Function Strengthening. See excel
-    maritime: 27 #from JICA (2016) International Logistics Function Strengthening. See excel
-    railways: 27 #from JICA (2016) International Logistics Function Strengthening. See excel
+    roads: 27
+    maritime: 27
+    railways: 10
     pipelines: 5
   border_crossing_times: #hours
     roads: 1.5 #from JICA (2016) International Logistics Function Strengthening. See excel

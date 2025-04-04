@@ -86,7 +86,8 @@ def define_households_from_mrio(
     household_table['name'] = household_table.apply(lambda row: f"{row['region']}_household{row['name']}", axis=1)
 
     # Get final demand per sector per household
-    final_demand = mrio.get_final_demand(present_region_sectors)
+    present_import_countries = [(country + '_' + mrio.import_label) for country in mrio.external_selling_countries]
+    final_demand = mrio.get_final_demand(present_region_sectors + present_import_countries)
     final_demand = rescale_monetary_values(
         final_demand,
         input_time_resolution="year",

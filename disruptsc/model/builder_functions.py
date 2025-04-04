@@ -89,7 +89,7 @@ def get_absolute_cutoff_value(cutoff_dict: dict, units_in_data: str):
 
 def apply_sector_filter(sector_table, filter_column, cut_off_dic, units_in_data):
     """Filter the sector_table using the filter_column
-    The way to cut_off is defined in cut_off_dic
+    The way to cut off is defined in cut_off_dic
 
     sector_table : pandas.DataFrame
         Sector table

@@ -182,7 +182,10 @@ class Parameters:
 
         # Stream handler (INFO and above)
         console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.INFO)
+        if self.logging_level == "debug":
+            console_handler.setLevel(logging.DEBUG)
+        else:
+            console_handler.setLevel(logging.INFO)
         console_handler.setFormatter(formatter)
         logger.addHandler(console_handler)
 
