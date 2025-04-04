@@ -38,12 +38,12 @@ logistics:
     airways: 800
     railways: 35
     waterways: 15
-    pipelines: 15
+    pipelines: 20
   basic_cost: # per ton*km
     roads: 0.1
-    maritime: 0.001
+    maritime: 0.005
     airways: 1
-    railways: 0.01
+    railways: 0.05
     waterways: 0.005
     pipelines: 0.0005
     multimodal: 0.01

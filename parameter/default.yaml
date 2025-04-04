@@ -155,7 +155,7 @@ logistics:
     roads-maritime-dom: 12
     roads-airways: 12
     roads-waterways: 12
-    railways-maritime: 12
+    railways-maritime: 24
     roads-pipelines: 6
     railways-pipelines: 6
     maritime-pipelines: 6
@@ -170,9 +170,9 @@ logistics:
     railways-pipelines: 1.0
     maritime-pipelines: 1.0
   border_crossing_fees: #USD/ton
-    roads: 27
-    maritime: 27
-    railways: 10
+    roads: 30
+    maritime: 30
+    railways: 30
     pipelines: 5
   border_crossing_times: #hours
     roads: 1.5 #from JICA (2016) International Logistics Function Strengthening. See excel
