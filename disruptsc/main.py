@@ -171,13 +171,14 @@ elif parameters.simulation_type == "criticality":
     if parameters.criticality['attribute'] == "top_flow":
         simulation = model.run_static()
         flow_df = pd.DataFrame(simulation.transport_network_data)
-        transport_edges_with_flows = pd.merge(model.transport_edges, flow_df[flow_df['time_step'] == 0],
+        flows = pd.merge(model.transport_edges, flow_df[flow_df['time_step'] == 0],
                                               how="left", on="id")
-        transport_edges_with_flows = transport_edges_with_flows[transport_edges_with_flows['flow_total'] > 0]
-        transport_edges_with_flows = transport_edges_with_flows.sort_values(by='flow_total', ascending=False)
-        total = transport_edges_with_flows['flow_total'].sum()
-        transport_edges_with_flows['cumulative_share'] = transport_edges_with_flows['flow_total'].cumsum() / total
-        top_df = transport_edges_with_flows[transport_edges_with_flows['cumulative_share'] <= 0.5]
+        flows = flows[flows['flow_total'] > 0]
+        flows = flows[flows['type'].isin(['roads', 'railways'])]
+        flows = flows.sort_values(by='flow_total', ascending=False)
+        total = flows['flow_total'].sum()
+        flows['cumulative_share'] = flows['flow_total'].cumsum() / total
+        top_df = flows[flows['cumulative_share'] <= 0.9]
         edges_to_test = top_df.set_index('id')['flow_total'].to_dict()
 
     elif parameters.criticality['attribute'] == "id":
