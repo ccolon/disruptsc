@@ -165,7 +165,7 @@ elif parameters.simulation_type == "criticality":
         region_household_loss_labels = ['household_loss_' + region for region in model.mrio.regions]
         country_loss_labels = ['country_loss_' + country for country in model.mrio.external_buying_countries]
         writer.writerow(["edge_attr", parameters.criticality['attribute'], "duration", "household_loss", "country_loss"]
-                        + region_household_loss_labels + country_loss_labels)  # Writing the header
+                        + region_household_loss_labels + country_loss_labels + ['geometry'])  # Writing the header
     model.save_pickle(suffix)
 
     if parameters.criticality['attribute'] == "top_flow":
@@ -193,7 +193,8 @@ elif parameters.simulation_type == "criticality":
         edges_to_test = edges_to_test.set_index('id')[parameters.criticality['attribute']].to_dict()
     disruption_duration = parameters.criticality['duration']
 
-    logging.info(f"Criticality simulation of {len(edges_to_test)} edges")
+    logging.info(f"")
+    logging.info(f"========== Criticality simulation of {len(edges_to_test)} edges ==========")
     for edge, attribute in edges_to_test.items():
         model = load_cached_model(suffix)
         simulation = model.run_criticality_disruption(edge, disruption_duration)
@@ -210,8 +211,9 @@ elif parameters.simulation_type == "criticality":
             household_loss_per_region_values = [household_loss_per_region.get(region, 0.0) for region in model.mrio.regions]
             country_loss_per_region_values = [country_loss_per_country.get(country, 0.0)
                                               for country in model.mrio.external_buying_countries]
+            geometry = model.transport_edges.loc[edge, 'geometry']
             writer.writerow([edge, attribute, parameters.criticality['duration'], household_loss, country_loss] +
-                            household_loss_per_region_values + country_loss_per_region_values)
+                            household_loss_per_region_values + country_loss_per_region_values + [geometry])
 
 else:
     raise ValueError('Unimplemented simulation type chosen')
