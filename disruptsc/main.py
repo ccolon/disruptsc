@@ -198,7 +198,7 @@ elif parameters.simulation_type == "criticality":
     logging.info(f"========== Criticality simulation of {len(edges_to_test)} edges ==========")
     for edge, attribute in edges_to_test.items():
         logging.info(f"")
-        logging.info(f"=== edge {edge} ====")
+        logging.info(f"=== Edge {edge} ====")
         model = load_cached_model(suffix)
         simulation = model.run_criticality_disruption(edge, disruption_duration)
         household_loss_per_region = simulation.calculate_household_loss(model.household_table, per_region=True)
