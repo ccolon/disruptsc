@@ -112,7 +112,7 @@ class Simulation(object):
     def calculate_household_loss(self, household_table: pd.DataFrame, per_region=False, periods=None):
         household_result_table = pd.DataFrame(self.household_data)
         loss_per_region_sector_time = household_result_table.groupby('household').apply(
-            self.summarize_results_one_household, include_groups=False).reset_index().drop(columns=['level_1'])
+            self.summarize_results_one_household).reset_index().drop(columns=['level_1'])
         loss_per_region_sector_time['origin_region'] = loss_per_region_sector_time['sector'].str.extract(r'([A-Z]*)_')
         loss_per_region_sector_time['household_region'] = loss_per_region_sector_time['household'].map(
             household_table.set_index('household')['region'])
