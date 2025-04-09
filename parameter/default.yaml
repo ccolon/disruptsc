@@ -32,6 +32,9 @@ filepaths:
 
 with_transport: True
 
+# duration of simulation
+t_final: 10  # in time_resolution unit
+
 # Whether to export files
 export_files: False
 

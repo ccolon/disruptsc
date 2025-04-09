@@ -20,6 +20,7 @@ class Parameters:
     scope: str
     export_details: dict
     # specific_edges_to_monitor: dict
+    t_final: int
     flow_data: dict
     parameters_to_calibrate: dict
     logging_level: str

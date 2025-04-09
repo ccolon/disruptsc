@@ -72,7 +72,7 @@ elif parameters.simulation_type == "stationary_test":
     simulation = model.run_stationary_test()
 
 elif parameters.simulation_type in ["event", "disruption"]:
-    simulation = model.run_disruption()
+    simulation = model.run_disruption(t_final=parameters.t_final)
 
 elif parameters.simulation_type in ["event_mc", "disruption_mc"]:
     suffix = round(datetime.now().timestamp() * 1000)

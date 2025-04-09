@@ -7,8 +7,8 @@ filepaths:
 transport_modes: ["roads", "maritime", "railways", "pipelines"] #, waterways, airways]
 monetary_units_in_model: mUSD
 monetary_units_in_data: mUSD
-time_resolution: week
-io_cutoff: 0.1  # 0.01
+time_resolution: day
+io_cutoff: 0.01
 cutoff_sector_demand:
   'type': 'absolute'
   'value': 1000
@@ -77,7 +77,8 @@ flow_data:
   tbilisi: 393000
   poti: 9612000
   batumi: 4207000
-simulation_type: criticality
+simulation_type: disruption
+t_final: 30
 criticality:
   attribute: top_flow
   edges: [aktau, baku, turkmenbashi, railways-GEO, railways-AZE, railways-KAZ]
@@ -90,12 +91,12 @@ events:
   - type: transport_disruption
     description_type: edge_attributes
 #    description_type: edge_attributes
-    attribute: id
+    attribute: name
 #    attribute: disruption
-    values: [456]
+    values: [aktau]
 #    values: ["flood_1in1000_UZB"]
     start_time: 1
-    duration: 1
+    duration: 7
 #disruption_description:
 #  type: compound
 #  events:
