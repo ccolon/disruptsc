@@ -51,18 +51,16 @@ parameters.adjust_logging_behavior()
 
 # Initialize model
 model = Model(parameters)
-model.setup_transport_network(cached=cache_parameters['transport_network'])
+model.setup_transport_network(cache_parameters['transport_network'], parameters.with_transport)
 if parameters.export_files and parameters.simulation_type != "criticality":
     model.export_transport_nodes_edges()
-model.setup_agents(cached=cache_parameters['agents'])
+model.setup_agents(cache_parameters['agents'])
 if parameters.export_files and parameters.simulation_type != "criticality":
     model.export_agent_tables()
-model.setup_sc_network(cached=cache_parameters['sc_network'])
+model.setup_sc_network(cache_parameters['sc_network'])
 model.set_initial_conditions()
-if parameters.with_transport:
-    model.setup_logistic_routes(cached=cache_parameters['logistic_routes'])
-else:
-    model.create_commercial_link_table()
+model.setup_logistic_routes(cache_parameters['logistic_routes'], parameters.with_transport)
+
 
 # Run model
 if parameters.simulation_type == "initial_state":

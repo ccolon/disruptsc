@@ -736,7 +736,6 @@ class Firm(Agent):
         self.finance['costs']['transport'] += (self.clients[commercial_link.buyer_id]['share'] *
                                                self.eq_finance['costs']['transport'])
 
-
     def record_transport_cost(self, client_id, relative_transport_cost_change):
         self.finance['costs']['transport'] += \
             self.eq_finance['costs']['transport'] \

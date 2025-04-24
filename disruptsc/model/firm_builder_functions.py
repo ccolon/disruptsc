@@ -644,6 +644,7 @@ def load_inventories(firms: Firms, inventory_duration_targets: dict, model_time_
 
     Parameters
     ----------
+    sector_table
     model_time_unit
     firms : pandas.DataFrame
         the list of Firms generated from the createFirms function
