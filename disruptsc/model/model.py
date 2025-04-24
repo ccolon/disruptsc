@@ -173,7 +173,8 @@ class Model(object):
                                                          transport_nodes=self.transport_nodes,
                                                          io_cutoff=self.parameters.io_cutoff,
                                                          cutoff_firm_output=self.parameters.cutoff_firm_output,
-                                                         monetary_units_in_data=self.parameters.monetary_units_in_data)
+                                                         monetary_units_in_data=self.parameters.monetary_units_in_data,
+                                                         admin=self.parameters.admin)
             else:
                 raise ValueError(f"{self.parameters.firm_data_type} should be one of 'disaggregating', "
                                  f"'supplier-buyer network', 'mrio'")
@@ -186,7 +187,8 @@ class Model(object):
                 keep_top_n_firms=nb_firms,
                 inventory_restoration_time=self.parameters.inventory_restoration_time,
                 utilization_rate=self.parameters.utilization_rate,
-                capital_to_value_added_ratio=self.parameters.capital_to_value_added_ratio
+                capital_to_value_added_ratio=self.parameters.capital_to_value_added_ratio,
+                admin=self.parameters.admin
             )
 
             present_sectors, present_region_sectors, flow_types_to_export = self.firms.extract_sectors()
@@ -202,8 +204,10 @@ class Model(object):
                     target_units=self.parameters.monetary_units_in_model,
                     input_units=self.parameters.monetary_units_in_data,
                     final_demand_cutoff=self.parameters.cutoff_household_demand,
-                    present_region_sectors=present_region_sectors
+                    present_region_sectors=present_region_sectors,
+                    admin=self.parameters.admin
                 )
+                print()
             else:
                 self.household_table, household_sector_consumption = define_households(
                     sector_table=self.sector_table,
@@ -232,7 +236,8 @@ class Model(object):
                     )
             self.households = create_households(
                 household_table=self.household_table,
-                household_sector_consumption=household_sector_consumption
+                household_sector_consumption=household_sector_consumption,
+                admin=self.parameters.admin
             )
 
             # Loading the technical coefficients

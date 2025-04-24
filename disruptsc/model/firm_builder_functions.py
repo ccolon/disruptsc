@@ -18,7 +18,8 @@ def create_firms(
         keep_top_n_firms: object = None,
         inventory_restoration_time: float = 4,
         utilization_rate: float = 0.8,
-        capital_to_value_added_ratio: float = 4
+        capital_to_value_added_ratio: float = 4,
+        admin: list | None = None
 ) -> Firms:
     """Create the firms
 
@@ -70,6 +71,12 @@ def create_firms(
     # It allows to visually disentangle firms located at the same od-point when plotting the map.
     for firm in firms.values():
         firm.add_noise_to_geometry()
+
+    if isinstance(admin, list):
+        for pid, firm in firms.items():
+            for admin_level in admin:
+                value = firm_table.loc[pid, admin_level]
+                setattr(firm, admin_level, value)
 
     return firms
 
@@ -337,7 +344,7 @@ def create_disag_firm_table(disag_data: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
 def define_firms_from_mrio(mrio: Mrio, filepath_sectors: Path, filepath_regions: Path, path_disag: Path,
                            transport_nodes: gpd.GeoDataFrame, io_cutoff: float, cutoff_firm_output: dict,
-                           monetary_units_in_data: str) -> pd.DataFrame:
+                           monetary_units_in_data: str, admin: list | None = None) -> pd.DataFrame:
     # Extract region_sectors
     firm_table = pd.DataFrame({
         'tuple': mrio.region_sectors,
@@ -432,6 +439,9 @@ def define_firms_from_mrio(mrio: Mrio, filepath_sectors: Path, filepath_regions:
     potential_nodes = transport_nodes[transport_nodes['type'].isin(admissible_node_mode)]
     firm_table['od_point'] = find_nearest_node_id(potential_nodes, firm_table)
     check_successful_extraction(firm_table, "od_point")
+    if isinstance(admin, list):
+        for admin_level in admin:
+            firm_table[admin_level] = firm_table["od_point"].map(potential_nodes[admin_level])
 
     # Add long lat
     long_lat = get_long_lat(firm_table['od_point'], transport_nodes)

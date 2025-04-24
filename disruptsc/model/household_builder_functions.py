@@ -13,7 +13,8 @@ from disruptsc.network.mrio import Mrio
 
 def create_households(
         household_table: pd.DataFrame,
-        household_sector_consumption: dict
+        household_sector_consumption: dict,
+        admin: list | None = None
 ):
     """Create the households
 
@@ -47,6 +48,13 @@ def create_households(
     ])
     logging.info('Households generated')
 
+    if isinstance(admin, list):
+        household_table.index = 'hh_' + household_table.index.astype(str)
+        for pid, household in households.items():
+            for admin_level in admin:
+                value = household_table.loc[pid, admin_level]
+                setattr(household, admin_level, value)
+
     return households
 
 
@@ -58,7 +66,8 @@ def define_households_from_mrio(
         target_units: str,
         input_units: str,
         final_demand_cutoff: dict,
-        present_region_sectors: list
+        present_region_sectors: list,
+        admin: list | None = None,
 ):
     # Create household table
     household_table = gpd.read_file(filepath_region_table)
@@ -66,6 +75,9 @@ def define_households_from_mrio(
     admissible_node_mode = ['roads']
     potential_nodes = transport_nodes[transport_nodes['type'].isin(admissible_node_mode)]
     household_table['od_point'] = find_nearest_node_id(potential_nodes, household_table)
+    if isinstance(admin, list):
+        for admin_level in admin:
+            household_table[admin_level] = household_table["od_point"].map(potential_nodes[admin_level])
     logging.info(f"Select {household_table.shape[0]} households in {household_table['region'].nunique()} regions")
 
     # Add long lat
