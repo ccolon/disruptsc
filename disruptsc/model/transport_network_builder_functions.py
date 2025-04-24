@@ -162,6 +162,7 @@ def create_transport_network(transport_modes: list, filepaths: dict, logistics_p
         for admin_level in admin:
             nodes[admin_level] = nodes['node_id'].map(points_with_province.set_index('node_id')[admin_level])
         nodes.index.name = "id"
+        selected_node_attributes += admin
 
     nx.set_node_attributes(transport_network, nodes[selected_node_attributes].to_dict("index"))
     min_basic_cost = find_min_in_nested_dict(logistics_parameters['basic_cost'])
