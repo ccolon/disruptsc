@@ -659,7 +659,7 @@ def load_inventories(firms: Firms, inventory_duration_targets: dict, model_time_
     time_adjustment = time_unit_in_days[inventory_duration_targets['unit']] / time_unit_in_days[model_time_unit]
 
     if inventory_duration_targets['definition'] == "per_input_type":
-        input_sector_to_type = sector_table.set_index('sector')['type']
+        input_sector_to_type = sector_table.set_index('region_sector')['type']
         values = inventory_duration_targets['values']
         default = values['default']
         for firm in firms.values():
