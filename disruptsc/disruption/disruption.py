@@ -207,18 +207,19 @@ class CapitalDestruction(dict):
         total_destroyed_capital_in_model = sum(result.values())
         logging.info(f"Destroyed capital in data: {total_destroyed_capital_in_data}, "
                      f"Destroyed capital in model: {total_destroyed_capital_in_model}")
+
         return cls(
             description=result,
             recovery=None
         )
 
     @classmethod
-    def from_sectors(cls, destroyed_amount: float, affected_region_sectors: list, firms: "Firms",
-                     input_units: str, model_units: str):
+    def from_firms_attributes(cls, destroyed_amount: float, filters: dict, firms: "Firms",
+                              input_units: str, model_units: str):
         units = {"USD": 1, "kUSD": 1e3, "mUSD": 1e6}
         destroyed_amount = destroyed_amount * units[input_units] / units[model_units]
 
-        affected_firms = firms.select_by_property('region_sector', affected_region_sectors)
+        affected_firms = firms.select_by_properties(filters)
         total_capital = sum([firm.capital_initial for firm in affected_firms.values()])
         if destroyed_amount > total_capital:
             logging.warning(f"Destroyed capital {destroyed_amount:.0f} larger than initial capital {total_capital:.0f}")
@@ -277,6 +278,7 @@ class DisruptionList(UserList):
     ):
         event_list = []
         for event in events:
+            # TODO: create a load_one_event fct, and factor
             if event['type'] == "capital_destruction":
                 if event['description_type'] == "region_sector_file":
                     disruption_object = CapitalDestruction.from_region_sector_file(event['region_sector_filepath'],
@@ -288,11 +290,12 @@ class DisruptionList(UserList):
                     if "reconstruction_market" in event.keys():
                         disruption_object.reconstruction_market = event["reconstruction_market"]
                     event_list += [disruption_object]
-                if event['description_type'] == "sectors_homogeneous":
-                    disruption_object = CapitalDestruction.from_sectors(event['destroyed_capital'],
-                                                                        event['region_sectors'],
-                                                                        firm_list, input_units=event['unit'],
-                                                                        model_units=model_unit)
+
+                if event['description_type'] == "filter":
+                    filters = {"region_sector": event['region_sectors']}
+                    disruption_object = CapitalDestruction.from_firms_attributes(event['destroyed_capital'],
+                                                                                 event['filter'], firm_list,
+                                                                                 event['unit'], model_unit)
                     disruption_object.start_time = event["start_time"]
                     if "reconstruction_market" in event.keys():
                         disruption_object.reconstruction_market = event["reconstruction_market"]

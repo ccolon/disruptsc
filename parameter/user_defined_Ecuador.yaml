@@ -1,22 +1,24 @@
 # Indicate the subfolder of the input folder that contains the input files
-logging_level: "info"
+logging_level: info
 filepaths:
-  "sector_table": "Network/59sector_2016_sector_table.csv"
-  "region_table": "Network/regions.geojson"
+  sector_table: Network/59sector_2016_sector_table.csv
+  region_table: Network/regions.geojson
 #  "tech_coef": "National/13sector_2016_tech_coef.csv"
 #  "inventory_duration_targets": "Network/59sector_inventory_targets.csv"
 #  "region_data": "Subnational/13sector_2016_canton_data.geojson"
 #  "region_table": "Network/canton_reference.geojson"
-  "mrio": "Network/mrio_59sectors.csv"
+  mrio: Network/mrio_59sectors.csv
+  admin: Downscale/gadm41_ECU_1.json
 #  "imports": "Trade/13sector_2016_import_table.csv"
 #  "exports": "Trade/13sector_2016_export_table.csv"
 #  "transit": "Trade/2016_transit_matrix.csv"
 #  "roads_nodes": "Transport/roads_nodes.geojson"  # roads_nodes_ximena for TR2
-  "roads_edges": "Transport/roads_edges.geojson"  # roads_edges_ximena for TR2
-  "airways_edges": "Transport/airways_edges.geojson"  # roads_edges_ximena for TR2
-  "waterways_edges": "Transport/waterways_edges.geojson"  # roads_edges_ximena for TR2
-  "maritime_edges": "Transport/maritime_edges.geojson"  # roads_edges_ximena for TR2
-  "multimodal_edges": "Transport/multimodal_edges.geojson"  # multimodal_edges_ximena for TR2
+  roads_edges: Transport/roads_edges.geojson  # roads_edges_ximena for TR2
+  airways_edges: Transport/airways_edges.geojson  # roads_edges_ximena for TR2
+  waterways_edges: Transport/waterways_edges.geojson  # roads_edges_ximena for TR2
+  maritime_edges: Transport/maritime_edges.geojson  # roads_edges_ximena for TR2
+  multimodal_edges: Transport/multimodal_edges.geojson  # multimodal_edges_ximena for TR2
+admin: [province]
 transport_modes: [roads, maritime, waterways, airways]
 transport_cost_data:
   roads: surface-specific  # edge_attr-specific for TR2 (Ximena's data), surface-specific for TR1 (OSM data)
@@ -69,8 +71,10 @@ events:
   - type: capital_destruction
     start_time: 1
 #    description_type: region_sector_file
-    description_type: sectors_homogeneous
-    region_sectors: ['ECU_TRA', 'ECU_INM']
+    description_type: filter  # sectors_homogeneous
+    filter:
+      region_sector: ['ECU_TRA', 'ECU_INM']
+      province: ['Pichincha', 'Guayas']
     destroyed_capital: 2510.0
 #    region_sector_filepath: "Disruption/earthquake_capital_destruction.csv"
     unit: mUSD
