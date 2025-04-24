@@ -433,6 +433,7 @@ class Model(object):
         if not with_transport:
             self.create_commercial_link_table()
             self.logistic_routes_initialized = True
+            return
 
         if cached:
             self.sc_network, self.transport_network, self.commercial_link_table, self.firms, self.households, \
