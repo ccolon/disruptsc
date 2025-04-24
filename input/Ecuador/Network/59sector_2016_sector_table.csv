@@ -1,4 +1,4 @@
-sector,trigram_desc,trigram_desc_en,description,type,output,final_demand,share_exporting_firms,usd_per_ton,supply_data,cutoff
+region_sector,trigram_desc,trigram_desc_en,description,type,output,final_demand,share_exporting_firms,usd_per_ton,sector,cutoff
 ECU_ADM,act. profesionales/tecnicas/admin,"professional, technical and admin. activities","Actividades profesionales, técnicas y administrativas",service,3443209,630490,0.000781964,,ADM,172160.45
 ECU_ADP,admin. pública,"public admin, defense, social security","Administración pública, defensa; planes de seguridad social obligatoria",service,914238,8329369,0.00016111,,ADP,45711.9
 ECU_AGU,agua,water ,"Captación, depuración y distribución de agua; y saneamiento",utility,2359305,215956,0.00031586,680.7432305,AGU,117965.25
