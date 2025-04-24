@@ -17,6 +17,7 @@ filepaths:
   "inventory_duration_targets": "National/inventory_targets.csv"
   # Region data
   "region_data": "Subnational/region_data.geojson"
+  "admin": "Subnational/admin.geojson"
   # Trade
   "imports": "Trade/import_table.csv"
   "exports": "Trade/export_table.csv"
@@ -29,6 +30,8 @@ filepaths:
   # MRIO
   "mrio": "Network/mrio.csv"
 
+
+admin: None
 
 with_transport: True
 

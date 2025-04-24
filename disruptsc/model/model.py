@@ -88,7 +88,8 @@ class Model(object):
                     transport_modes=self.parameters.transport_modes,
                     filepaths=self.parameters.filepaths,
                     logistics_parameters=self.parameters.logistics,
-                    time_resolution=self.parameters.time_resolution
+                    time_resolution=self.parameters.time_resolution,
+                    admin=self.parameters.admin
                 )
 
             data_to_cache = {
