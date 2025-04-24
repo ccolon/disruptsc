@@ -440,8 +440,15 @@ class Agents(dict):
         else:
             raise ValueError(f"Output type '{output_type}' not recognized.")
 
-    def select_by_property(self, property_name: str, selected_values: list):
-        return {pid: agent for pid, agent in self.items() if getattr(agent, property_name) in selected_values}
+    def select_by_properties(self, filters: dict):
+        """
+        Select agents where the property values match any of the given values in each filter.
+        Example: filters = {'region_sector': [...], 'province': [...]}
+        """
+        selected = self.values()
+        for prop, values in filters.items():
+            selected = [agent for agent in selected if getattr(agent, prop, None) in values]
+        return self.__class__(selected)
 
     def group_agent_ids_by_property(self, property_name: str):
         id_to_property_dict = self.get_properties(property_name, output_type='dict')
