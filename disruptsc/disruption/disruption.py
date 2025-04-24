@@ -6,7 +6,6 @@ from collections import UserList
 from pathlib import Path
 
 import geopandas
-import pandas
 import pandas as pd
 
 from disruptsc.parameters import EPSILON, import_code
@@ -136,7 +135,7 @@ class TransportDisruption(dict):
         # for which we check if the attribute contains one of the value
         if attribute == "disruption":
             condition = [edges[attribute].str.contains(value) for value in values]
-            condition = pandas.concat(condition, axis=1)
+            condition = pd.concat(condition, axis=1)
             condition = condition.any(axis=1)
         else:
             condition = edges[attribute].isin(values)
@@ -273,7 +272,7 @@ class DisruptionList(UserList):
             events: list,
             model_unit: str,
             edges: geopandas.GeoDataFrame,
-            firm_table: pandas.DataFrame,
+            firm_table: pd.DataFrame,
             firm_list: "Firms"
     ):
         event_list = []
@@ -292,7 +291,6 @@ class DisruptionList(UserList):
                     event_list += [disruption_object]
 
                 if event['description_type'] == "filter":
-                    filters = {"region_sector": event['region_sectors']}
                     disruption_object = CapitalDestruction.from_firms_attributes(event['destroyed_capital'],
                                                                                  event['filter'], firm_list,
                                                                                  event['unit'], model_unit)
