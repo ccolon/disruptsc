@@ -52,7 +52,7 @@ parameters.adjust_logging_behavior()
 # Initialize model
 model = Model(parameters)
 model.setup_transport_network(cache_parameters['transport_network'], parameters.with_transport)
-if parameters.export_files and parameters.simulation_type != "criticality":
+if parameters.export_files and parameters.simulation_type != "criticality" and parameters.with_transport:
     model.export_transport_nodes_edges()
 model.setup_agents(cache_parameters['agents'])
 if parameters.export_files and parameters.simulation_type != "criticality":

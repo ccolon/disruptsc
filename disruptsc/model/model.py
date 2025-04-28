@@ -79,10 +79,6 @@ class Model(object):
             return False
 
     def setup_transport_network(self, cached: bool = False, with_transport: bool = True):
-        if not with_transport:
-            self.transport_network_initialized = True
-            return
-
         if cached:
             self.transport_network, self.transport_edges, self.transport_nodes = \
                 load_cached_transport_network()

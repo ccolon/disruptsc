@@ -8,7 +8,7 @@ import numpy as np
 from shapely.geometry import Point
 
 from disruptsc.model.basic_functions import generate_weights, \
-    compute_distance_from_arcmin, rescale_values, rescale_monetary_values
+    compute_distance_from_arcmin, rescale_values, rescale_monetary_values, generate_weights_from_list
 
 from disruptsc.agents.agent import Agent, Agents
 from disruptsc.network.commercial_link import CommercialLink
@@ -26,7 +26,8 @@ class Firm(Agent):
     def __init__(self, pid, od_point, sector, region_sector, region, sector_type=None, name="noname", input_mix=None,
                  target_margin=0.2, utilization_rate=0.8,
                  importance=1, long=None, lat=None, geometry=None,
-                 suppliers=None, clients=None, production=0, min_inventory_duration_target=1, inventory_restoration_time=1,
+                 suppliers=None, clients=None, production=0, min_inventory_duration_target=1,
+                 inventory_restoration_time=1,
                  usd_per_ton=2864, capital_to_value_added_ratio=4):
         super().__init__(
             agent_type="firm",
@@ -516,25 +517,38 @@ class Firm(Agent):
 
         # Deduce the purchase plan for each supplier
         if adapt_weight_based_on_satisfaction:
-            self.purchase_plan = {}
+            # self.purchase_plan = {}
             for sector, need in self.purchase_plan_per_input.items():
                 suppliers_from_this_sector = [pid for pid, supplier_info in self.suppliers.items()
                                               if supplier_info['sector'] == sector]
-                total_satisfaction_suppliers = sum([supplier_info['satisfaction']
-                                                    for pid, supplier_info in self.suppliers.items()
-                                                    if pid in suppliers_from_this_sector])
-                # print(self.id_str(), sector, need, "total_satisfaction_suppliers", total_satisfaction_suppliers)
-                for supplier_id in suppliers_from_this_sector:
-                    supplier_info = self.suppliers[supplier_id]
-                    if total_satisfaction_suppliers < EPSILON:
-                        self.purchase_plan[supplier_id] = need * supplier_info['weight']
-                    else:
-                        relative_satisfaction = supplier_info['satisfaction'] / total_satisfaction_suppliers
-                        self.purchase_plan[supplier_id] = need * supplier_info['weight'] * relative_satisfaction
+                # total_satisfaction_suppliers = sum([supplier_info['satisfaction']
+                #                                     for pid, supplier_info in self.suppliers.items()
+                #                                     if pid in suppliers_from_this_sector])
+                modified_weights = generate_weights_from_list([supplier_info['satisfaction'] * supplier_info['weight']
+                                                               for pid, supplier_info in self.suppliers.items()
+                                                               if pid in suppliers_from_this_sector])
+                modified_weights = {suppliers_from_this_sector[i]: modified_weight
+                                    for i, modified_weight in enumerate(modified_weights)}
+                for pid, supplier_info in self.suppliers.items():
+                    if pid in suppliers_from_this_sector:
+                        supplier_info['modified_weight'] = modified_weights[pid]
+
+            self.purchase_plan = {supplier_id: self.purchase_plan_per_input[info['sector']] * supplier_info['modified_weight']
+                                  for supplier_id, info in self.suppliers.items()}
+
+                # # print(self.id_str(), sector, need, "total_satisfaction_suppliers", total_satisfaction_suppliers)
+                # for supplier_id in suppliers_from_this_sector:
+                #     supplier_info = self.suppliers[supplier_id]
+                #     if total_satisfaction_suppliers < EPSILON:
+                #         self.purchase_plan[supplier_id] = need * supplier_info['weight']
+                #     else:
+                #         relative_satisfaction = supplier_info['satisfaction'] / total_satisfaction_suppliers
+                #         print(self.id_str(), sector, relative_satisfaction)
+                #         self.purchase_plan[supplier_id] = need * supplier_info['weight'] * relative_satisfaction
 
         else:
             self.purchase_plan = {supplier_id: self.purchase_plan_per_input[info['sector']] * info['weight']
-                for supplier_id, info in self.suppliers.items()}
+                                  for supplier_id, info in self.suppliers.items()}
 
     def send_purchase_orders(self, sc_network: "ScNetwork"):
         for edge in sc_network.in_edges(self):
@@ -744,8 +758,8 @@ class Firm(Agent):
 
     def calculate_relative_price_change_transport(self, relative_transport_cost_change):
         return self.eq_finance['costs']['transport'] \
-                    * relative_transport_cost_change \
-                    / ((1 - self.target_margin) * self.eq_finance['sales'])
+            * relative_transport_cost_change \
+            / ((1 - self.target_margin) * self.eq_finance['sales'])
 
     def receive_service_and_pay(self, commercial_link: "CommercialLink"):
         super().receive_service_and_pay(commercial_link)
