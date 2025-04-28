@@ -521,20 +521,22 @@ class Firm(Agent):
             for sector, need in self.purchase_plan_per_input.items():
                 suppliers_from_this_sector = [pid for pid, supplier_info in self.suppliers.items()
                                               if supplier_info['sector'] == sector]
+                change_in_satisfaction = False
+                for pid, supplier_info in self.suppliers.items():
+                    if supplier_info['sector'] == sector:
+                        if supplier_info['satisfaction'] < 1 - EPSILON:
+                            change_in_satisfaction = True
+                            break
+
+                if change_in_satisfaction:
                 # total_satisfaction_suppliers = sum([supplier_info['satisfaction']
                 #                                     for pid, supplier_info in self.suppliers.items()
                 #                                     if pid in suppliers_from_this_sector])
-                modified_weights = generate_weights_from_list([supplier_info['satisfaction'] * supplier_info['weight']
-                                                               for pid, supplier_info in self.suppliers.items()
-                                                               if pid in suppliers_from_this_sector])
-                modified_weights = {suppliers_from_this_sector[i]: modified_weight
-                                    for i, modified_weight in enumerate(modified_weights)}
-                for pid, supplier_info in self.suppliers.items():
-                    if pid in suppliers_from_this_sector:
-                        supplier_info['modified_weight'] = modified_weights[pid]
-
-            self.purchase_plan = {supplier_id: self.purchase_plan_per_input[info['sector']] * supplier_info['modified_weight']
-                                  for supplier_id, info in self.suppliers.items()}
+                    modified_weights = generate_weights_from_list([supplier_info['satisfaction'] * supplier_info['weight']
+                                                                   for pid, supplier_info in self.suppliers.items()
+                                                                   if pid in suppliers_from_this_sector])
+                    for i, modified_weight in enumerate(modified_weights):
+                        self.suppliers[suppliers_from_this_sector[i]]['weight'] = modified_weight
 
                 # # print(self.id_str(), sector, need, "total_satisfaction_suppliers", total_satisfaction_suppliers)
                 # for supplier_id in suppliers_from_this_sector:
@@ -546,9 +548,9 @@ class Firm(Agent):
                 #         print(self.id_str(), sector, relative_satisfaction)
                 #         self.purchase_plan[supplier_id] = need * supplier_info['weight'] * relative_satisfaction
 
-        else:
-            self.purchase_plan = {supplier_id: self.purchase_plan_per_input[info['sector']] * info['weight']
-                                  for supplier_id, info in self.suppliers.items()}
+        # else:
+        self.purchase_plan = {supplier_id: self.purchase_plan_per_input[info['sector']] * info['weight']
+                              for supplier_id, info in self.suppliers.items()}
 
     def send_purchase_orders(self, sc_network: "ScNetwork"):
         for edge in sc_network.in_edges(self):

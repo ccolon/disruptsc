@@ -74,7 +74,7 @@ events:
     description_type: filter  # sectors_homogeneous
     filter:
       region_sector: ['ECU_TRA', 'ECU_INM']
-      province: ['Pichincha', 'Guayas']
+      province: ['Esmeraldas', 'SantoDomingodelosTsachilas', "Manabi"]
     destroyed_capital: 2510.0
 #    region_sector_filepath: "Disruption/earthquake_capital_destruction.csv"
     unit: mUSD
