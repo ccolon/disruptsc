@@ -202,9 +202,14 @@ logistics:
       roads-waterways: 0.1
       roads-railways: 0.1
       railways-maritime: 0.1
+  name-specific:
+    azerty: 0
 
 # Dictionary of edges, identified by their name, for which we have data on their flow, in monetary terms
 flow_data: {}
+
+# Whether to cache route in a dictionary
+use_route_cache: True
 
 # Dictionary of parameters to calibrate, with their extrema
 parameters_to_calibrate: {}

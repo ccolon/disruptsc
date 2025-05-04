@@ -29,30 +29,34 @@ class Route(list):
                 return False
         return True
 
-    def check_edge_in_route(self, route, searched_edge):
-        for edge in self.transport_edges:
-            if (searched_edge[0] == edge[0]) and (searched_edge[1] == edge[1]):
+    def is_edge_in_route(self, searched_edge: tuple | str, transport_network: "TransportNetwork"):
+        if isinstance(searched_edge, tuple):
+            for u, v in self.transport_edges:
+                if (searched_edge[0] == u) and (searched_edge[1] == v):
+                    return True
+        elif isinstance(searched_edge, str):
+            edge_names = [transport_network[u][v]['name'] for u, v in self.transport_edges]
+            if searched_edge in edge_names:
                 return True
         return False
 
     def sum_indicator(self, transport_network: "TransportNetwork", indicator: str, per_type: bool = False):
         if per_type:
             details = []
-            for edge in self.transport_edges:
-                new_edge = {'id': transport_network[edge[0]][edge[1]]['id'],
-                            'type': transport_network[edge[0]][edge[1]]['type'],
-                            'multimodes': transport_network[edge[0]][edge[1]]['multimodes'],
-                            'special': transport_network[edge[0]][edge[1]]['special'],
-                            indicator: transport_network[edge[0]][edge[1]][indicator]}
+            for u, v in self.transport_edges:
+                new_edge = {'id': transport_network[u][v]['id'],
+                            'type': transport_network[u][v]['type'],
+                            'multimodes': transport_network[u][v]['multimodes'],
+                            'special': transport_network[u][v]['special'],
+                            indicator: transport_network[u][v][indicator]}
                 details += [new_edge]
             details = pd.DataFrame(details).fillna('N/A')
-            # print(details)
             return details.groupby(['type', 'multimodes', 'special'])[indicator].sum()
 
         else:
             total_indicator = 0
-            for edge in self.transport_edges:
-                total_indicator += transport_network[edge[0]][edge[1]][indicator]
+            for u, v in self.transport_edges:
+                total_indicator += transport_network[u][v][indicator]
             return total_indicator
 
     def revert(self):

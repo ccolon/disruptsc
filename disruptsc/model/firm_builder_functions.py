@@ -392,6 +392,7 @@ def define_firms_from_mrio(mrio: Mrio, filepath_sectors: Path, filepath_regions:
         'region_sector': ['_'.join(tup) for tup in where_to_add_one_firm],
         'geometry': firm_table.set_index('tuple').loc[where_to_add_one_firm, 'geometry']
     })
+
     # Add importance
     duplicated_firms['importance'] = duplicated_firms['tuple'].map(tot_outputs_per_region_sector)
     check_successful_extraction(duplicated_firms, "importance")
@@ -409,6 +410,15 @@ def define_firms_from_mrio(mrio: Mrio, filepath_sectors: Path, filepath_regions:
 
     # Filter out too small firms (note that, if one firm got duplicated and then got filtered out
     # both duplicates will be filtered out, so no consequence for internal flows)
+    # Identify the top 2 firms per region sector
+    top2_idx = (
+        firm_table.groupby("region_sector")["importance"]
+        .nlargest(2)
+        .reset_index(level=0, drop=True)
+        .index
+    )
+    top2_bool_index = firm_table.index.isin(top2_idx)
+    # Calculate the estimated output per firm
     output_per_region_sector = mrio.get_total_output_per_region_sectors().to_dict()
     estimated_region_sector_output = firm_table['tuple'].map(output_per_region_sector)
     estimated_output = firm_table.groupby('region_sector', as_index=False, group_keys=False)['importance']\
@@ -418,7 +428,8 @@ def define_firms_from_mrio(mrio: Mrio, filepath_sectors: Path, filepath_regions:
     logging.info(f'Filtering out firms with an estimated output '
                  f'of less than {cutoff} {monetary_units_in_data}')
     cond_low_output = estimated_output <= cutoff
-    firm_table = firm_table[~cond_low_output]
+    # Cut out those that are not in the top 2 and have estimated output below threshold
+    firm_table = firm_table[(~cond_low_output) | top2_bool_index]
     logging.info(f'Number of firms removed by the firm cutoff condition: {cond_low_output.sum()}')
 
     # Reset ids
@@ -604,7 +615,6 @@ def calibrate_input_mix(
     # Get input mix from this data
     def get_input_mix(transaction_from_unique_buyer, firm_tab):
         output = firm_tab.set_index('id').loc[transaction_from_unique_buyer.name, 'output']
-        print(output)
         cond_essential = transaction_from_unique_buyer['is_essential']
         # for essential inputs, get total input per product type
         input_essential = transaction_from_unique_buyer[cond_essential].groupby('product_sector')[

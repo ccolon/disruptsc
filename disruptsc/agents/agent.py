@@ -42,7 +42,7 @@ class Agent(object):
         The agent choose the delivery route
         """
         if capacity_constraint:
-            weight_considered = "cost_per_ton_" + str(self.cost_profile) + "_with_capacity"
+            weight_considered = "cost_per_ton_with_capacity_" + str(self.cost_profile)
         else:
             weight_considered = "cost_per_ton_" + str(self.cost_profile)
 
@@ -116,30 +116,32 @@ class Agent(object):
         commercial_link.update_status()
 
     def _get_route(self, transport_network, available_transport_network, destination_node,
-                   shipment_method, normal_or_disrupted, capacity_constraint, transport_cost_noise_level):
+                   shipment_method, normal_or_disrupted, capacity_constraint, transport_cost_noise_level,
+                   use_route_cache: bool = False):
         # print('_get_route', self.id_str(), destination_node)
-        route = transport_network.retrieve_cached_route(self.od_point, destination_node, self.cost_profile,
-                                                        normal_or_disrupted, shipment_method)
-        if route:
-            return route
-        else:
-            route = self.choose_route(
-                transport_network=available_transport_network,
-                origin_node=self.od_point,
-                destination_node=destination_node,
-                shipment_method=shipment_method,
-                capacity_constraint=capacity_constraint,
-                transport_cost_noise_level=transport_cost_noise_level
-            )
+        if use_route_cache:
+            route = transport_network.retrieve_cached_route(self.od_point, destination_node, self.cost_profile,
+                                                            normal_or_disrupted, shipment_method)
             if route:
-                transport_network.cache_route(route, self.od_point, destination_node, self.cost_profile,
-                                              normal_or_disrupted, shipment_method)
-            return route
+                return route
+
+        route = self.choose_route(
+            transport_network=available_transport_network,
+            origin_node=self.od_point,
+            destination_node=destination_node,
+            shipment_method=shipment_method,
+            capacity_constraint=capacity_constraint,
+            transport_cost_noise_level=transport_cost_noise_level
+        )
+        if route and use_route_cache:
+            transport_network.cache_route(route, self.od_point, destination_node, self.cost_profile,
+                                          normal_or_disrupted, shipment_method)
+        return route
 
     def choose_initial_routes(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
                               capacity_constraint: bool, explicit_service_firm: bool, transport_to_households: bool,
                               sectors_no_transport_network: list, transport_cost_noise_level: float,
-                              monetary_unit_flow: str):
+                              monetary_unit_flow: str, use_route_cache: bool):
         for _, client in sc_network.out_edges(self):
             if self.agent_type == "firm":
                 if self.sector_type in sectors_no_transport_network:
@@ -154,23 +156,25 @@ class Agent(object):
             destination_node = client.od_point
             route = self._get_route(transport_network, transport_network, destination_node,
                                     commercial_link.shipment_method,
-                                    'normal', capacity_constraint, transport_cost_noise_level)
+                                    'normal', capacity_constraint, transport_cost_noise_level,
+                                    use_route_cache)
             cost_per_ton_label = "cost_per_ton_" + str(self.cost_profile) + "_" + commercial_link.shipment_method
             cost_per_ton = route.sum_indicator(transport_network, cost_per_ton_label)
             commercial_link.store_route_information(route, "main", cost_per_ton)
 
             if capacity_constraint:
+                logging.info(f"{self.id_str()}, {client.pid}, {route.is_edge_in_route('turkmenbashi', transport_network)}")
                 self.update_transport_load(client, monetary_unit_flow, route, sc_network, transport_network,
                                            capacity_constraint)
 
     def discover_new_route(self, commercial_link: "CommercialLink", transport_network: "TransportNetwork",
                            available_transport_network: "TransportNetwork",
-                           account_capacity: bool, transport_cost_noise_level: float):
+                           account_capacity: bool, transport_cost_noise_level: float, use_route_cache: bool):
 
         destination_node = commercial_link.route[-1][0]
         route = self._get_route(transport_network, available_transport_network, destination_node,
                                 commercial_link.shipment_method, 'alternative', account_capacity,
-                                transport_cost_noise_level)
+                                transport_cost_noise_level, use_route_cache)
 
         if route is not None:
             cost_per_ton_label = "cost_per_ton_" + str(self.cost_profile) + "_" + commercial_link.shipment_method
@@ -267,7 +271,7 @@ class Agent(object):
 
     def send_shipment(self, commercial_link: "CommercialLink", transport_network: "TransportNetwork",
                       available_transport_network: "TransportNetwork", price_increase_threshold: float,
-                      capacity_constraint: bool, transport_cost_noise_level: float):
+                      capacity_constraint: bool, transport_cost_noise_level: float, use_route_cache: bool):
 
         if len(commercial_link.route) == 0:
             raise ValueError(f"{self.id_str()} - commercial link {commercial_link.pid} "
@@ -297,7 +301,8 @@ class Agent(object):
         if not usable_alternative:
             usable_alternative = self.discover_new_route(commercial_link, transport_network,
                                                          available_transport_network,
-                                                         capacity_constraint, transport_cost_noise_level)
+                                                         capacity_constraint, transport_cost_noise_level,
+                                                         use_route_cache)
 
         if usable_alternative:
             relative_transport_cost_change = commercial_link.calculate_relative_increase_in_transport_cost()
@@ -471,14 +476,15 @@ class Agents(dict):
                               sectors_no_transport_network: list,
                               transport_cost_noise_level: float,
                               monetary_units_in_model: str,
-                              parallelized: bool):
+                              parallelized: bool,
+                              use_route_cache: bool):
         if parallelized and (
                 not capacity_constraint):  # in this case the choice of route is not independent, cannot be parallelized
             with ProcessPoolExecutor() as executor:
                 futures = [
                     executor.submit(agent.choose_initial_routes, sc_network, transport_network, capacity_constraint,
                                     explicit_service_firm, transport_to_households, sectors_no_transport_network,
-                                    transport_cost_noise_level, monetary_units_in_model)
+                                    transport_cost_noise_level, monetary_units_in_model, use_route_cache)
                     for agent in self.values()
                 ]
                 for future in futures:
@@ -487,14 +493,14 @@ class Agents(dict):
             for agent in tqdm(self.values(), total=len(self)):
                 agent.choose_initial_routes(sc_network, transport_network, capacity_constraint, explicit_service_firm,
                                             transport_to_households, sectors_no_transport_network,
-                                            transport_cost_noise_level, monetary_units_in_model)
+                                            transport_cost_noise_level, monetary_units_in_model, use_route_cache)
 
     def deliver(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
                 available_transport_network: "TransportNetwork",
                 sectors_no_transport_network: list, rationing_mode: str, with_transport: bool,
                 transport_to_households: bool, capacity_constraint: bool,
                 monetary_units_in_model: str, cost_repercussion_mode: str, price_increase_threshold: float,
-                transport_cost_noise_level: float):
+                transport_cost_noise_level: float, use_route_cache: bool):
         for agent in tqdm(self.values(), total=len(self), desc=f"Delivering"):
             agent.deliver_products(sc_network, transport_network, available_transport_network,
                                    sectors_no_transport_network=sectors_no_transport_network,
@@ -505,7 +511,8 @@ class Agents(dict):
                                    cost_repercussion_mode=cost_repercussion_mode,
                                    price_increase_threshold=price_increase_threshold,
                                    capacity_constraint=capacity_constraint,
-                                   transport_cost_noise_level=transport_cost_noise_level)
+                                   transport_cost_noise_level=transport_cost_noise_level,
+                                   use_route_cache=use_route_cache)
 
     def receive_products(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
                          sectors_no_transport_network: list, transport_to_households: bool = False):

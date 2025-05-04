@@ -702,7 +702,7 @@ class Firm(Agent):
                          transport_to_households: bool,
                          monetary_units_in_model: str,
                          cost_repercussion_mode: str, price_increase_threshold: float, capacity_constraint: bool,
-                         transport_cost_noise_level: float):
+                         transport_cost_noise_level: float, use_route_cache: bool):
 
         quantities_to_deliver = self.evaluate_quantities_to_deliver(rationing_mode)
 
@@ -733,7 +733,8 @@ class Firm(Agent):
                 self.deliver_without_infrastructure(commercial_link)
             else:
                 self.send_shipment(commercial_link, transport_network, available_transport_network,
-                                   price_increase_threshold, capacity_constraint, transport_cost_noise_level)
+                                   price_increase_threshold, capacity_constraint, transport_cost_noise_level,
+                                   use_route_cache)
 
         # For reconstruction orders, we register it
         if isinstance(quantities_to_deliver, int):

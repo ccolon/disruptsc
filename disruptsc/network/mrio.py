@@ -112,12 +112,12 @@ class Mrio(pd.DataFrame):
                             f"than outputs: {unbalanced_region_sectors}. Correcting it.")
             # TODO very ad-hoc and dirty to accommodate with bad input file
             for region_sector in unbalanced_region_sectors:
-                print(self.get_total_output_per_region_sectors()[region_sector])
+                # print(self.get_total_output_per_region_sectors()[region_sector])
                 where_to_add = pd.MultiIndex.from_product([self.external_buying_countries,
                                                            [self.export_label]], names=['region', 'sector'])
                 how_much_to_add = (total_input[region_sector] - total_output[region_sector] + EPSILON) / len(where_to_add)
                 self.loc[region_sector, where_to_add] += how_much_to_add
-                print(self.get_total_output_per_region_sectors()[region_sector])
+                # print(self.get_total_output_per_region_sectors()[region_sector])
 
     def get_tech_coef_dict(self, threshold=0, selected_region_sectors=None):
         """

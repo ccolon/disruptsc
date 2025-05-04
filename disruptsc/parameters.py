@@ -26,6 +26,7 @@ class Parameters:
     parameters_to_calibrate: dict
     logging_level: str
     with_transport: bool
+    use_route_cache: bool
     transport_modes: list
     monetary_units_in_model: str
     monetary_units_in_data: str

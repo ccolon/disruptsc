@@ -449,7 +449,8 @@ class Model(object):
                                                  self.parameters.sectors_no_transport_network,
                                                  self.parameters.transport_cost_noise_level,
                                                  self.parameters.monetary_units_in_model,
-                                                 parallelized=False)
+                                                 parallelized=False,
+                                                 use_route_cache=self.parameters.use_route_cache)
             logging.info('Routes for exports and B2B domestic flows are being selected by domestic firms')
             self.firms.choose_initial_routes(self.sc_network, self.transport_network,
                                              self.parameters.capacity_constraint,
@@ -458,7 +459,8 @@ class Model(object):
                                              self.parameters.sectors_no_transport_network,
                                              self.parameters.transport_cost_noise_level,
                                              self.parameters.monetary_units_in_model,
-                                             parallelized=False)
+                                             parallelized=False,
+                                             use_route_cache=self.parameters.use_route_cache)
             self.create_commercial_link_table()
             # Save to tmp folder
             data_to_cache = {
@@ -752,13 +754,15 @@ class Model(object):
                                self.parameters.rationing_mode, self.parameters.with_transport,
                                self.parameters.transport_to_households, self.parameters.capacity_constraint,
                                self.parameters.monetary_units_in_model, self.parameters.cost_repercussion_mode,
-                               self.parameters.price_increase_threshold, self.parameters.transport_cost_noise_level)
+                               self.parameters.price_increase_threshold, self.parameters.transport_cost_noise_level,
+                               self.parameters.use_route_cache)
         self.firms.deliver(self.sc_network, self.transport_network, available_transport_network,
                            self.parameters.sectors_no_transport_network,
                            self.parameters.rationing_mode, self.parameters.with_transport,
                            self.parameters.transport_to_households, self.parameters.capacity_constraint,
                            self.parameters.monetary_units_in_model, self.parameters.cost_repercussion_mode,
-                           self.parameters.price_increase_threshold, self.parameters.transport_cost_noise_level)
+                           self.parameters.price_increase_threshold, self.parameters.transport_cost_noise_level,
+                           self.parameters.use_route_cache)
         # print(self.firms[0].rationing)
         # print(com.delivery)
         # if time_step == 1:
@@ -793,6 +797,7 @@ class Model(object):
         self.firms.receive_products(self.sc_network, self.transport_network,
                                     self.parameters.sectors_no_transport_network)
         self.transport_network.check_no_uncollected_shipment()
+        self.transport_network.reset_loads()
         self.firms.evaluate_profit(self.sc_network)
 
         self.transport_network.update_road_disruption_state()

@@ -68,39 +68,32 @@ class TransportNetwork(nx.Graph):
             logging.info(mode + ": {:.0f} km".format(km))
         logging.info(f'Nb of nodes: {len(self.nodes)}, nb of edges: {len(self.edges)}')
 
-    def add_transport_edge_with_nodes(self, edge_id: int,
-                                      all_edges_data: geopandas.GeoDataFrame,
-                                      all_nodes_data: geopandas.GeoDataFrame):
-        # Selecting data
-        edge_attributes = ['id', "type", 'surface', "geometry", "class", "km", 'special', "name",
-                           "capacity", "disruption"]
-        if all_edges_data['type'].nunique() > 1:  # if there are multiple modes
-            edge_attributes += ['multimodes']
-        edge_data = all_edges_data.loc[edge_id, edge_attributes].to_dict()
-        end_ids = all_edges_data.loc[edge_id, ["end1", "end2"]].tolist()
-        # Creating the start and end nodes
-        if end_ids[0] not in self.nodes:
-            self.add_transport_node(end_ids[0], all_nodes_data)
-        if end_ids[1] not in self.nodes:
-            self.add_transport_node(end_ids[1], all_nodes_data)
-        # Creating the edge_attr
-        self.add_edge(end_ids[0], end_ids[1], **edge_data)
-        # print("edge_attr id:", edge_id, "| end1:", end_ids[0], "| end2:", end_ids[1], "| nb edges:", len(self.edges))
-        # print(self.edges)
-        edge = self[end_ids[0]][end_ids[1]]
-        edge['node_tuple'] = (end_ids[0], end_ids[1])
-        edge['shipments'] = {}
-        edge['disruption_duration'] = 0
-        edge['current_load'] = 0
-        edge['overused'] = False
-        edge['current_capacity'] = edge['capacity']
-
-    def define_weights(self, route_optimization_weight):
-        logging.debug('Transport network: defining weights that will be used for shortest-path algorithm')
-        for edge in self.edges:
-            edge_obj = self[edge[0]][edge[1]]
-            edge_obj['weight'] = edge_obj[route_optimization_weight]
-            edge_obj['capacity_weight'] = edge_obj[route_optimization_weight]
+    # def add_transport_edge_with_nodes(self, edge_id: int,
+    #                                   all_edges_data: geopandas.GeoDataFrame,
+    #                                   all_nodes_data: geopandas.GeoDataFrame):
+    #     # Selecting data
+    #     edge_attributes = ['id', "type", 'surface', "geometry", "class", "km", 'special', "name",
+    #                        "capacity", "disruption"]
+    #     if all_edges_data['type'].nunique() > 1:  # if there are multiple modes
+    #         edge_attributes += ['multimodes']
+    #     edge_data = all_edges_data.loc[edge_id, edge_attributes].to_dict()
+    #     end_ids = all_edges_data.loc[edge_id, ["end1", "end2"]].tolist()
+    #     # Creating the start and end nodes
+    #     if end_ids[0] not in self.nodes:
+    #         self.add_transport_node(end_ids[0], all_nodes_data)
+    #     if end_ids[1] not in self.nodes:
+    #         self.add_transport_node(end_ids[1], all_nodes_data)
+    #     # Creating the edge_attr
+    #     self.add_edge(end_ids[0], end_ids[1], **edge_data)
+    #     # print("edge_attr id:", edge_id, "| end1:", end_ids[0], "| end2:", end_ids[1], "| nb edges:", len(self.edges))
+    #     # print(self.edges)
+    #     edge = self[end_ids[0]][end_ids[1]]
+    #     edge['node_tuple'] = (end_ids[0], end_ids[1])
+    #     edge['shipments'] = {}
+    #     edge['disruption_duration'] = 0
+    #     edge['current_load'] = 0
+    #     edge['overused'] = False
+    #     edge['current_capacity'] = edge['capacity']
 
     def locate_firms_on_nodes(self, firms):
         """The nodes of the transport network stores the list of firms located there
@@ -158,6 +151,9 @@ class TransportNetwork(nx.Graph):
                 # sp = nx.astar_path(self, origin_node, destination_node, weight=weight,
                 #                    heuristic=self.cost_heuristic, cutoff=TRANSPORT_MALUS)
                 route = Route(sp, self, shipment_method)
+                # if route.is_edge_in_route("turkmenbashi", self):
+                #     logging.info(f"{weight}: {route.sum_indicator(self, weight)}")
+                #     logging.info(self[8030][8038][weight])
                 return route
             except nx.NetworkXNoPath:
                 logging.info(f"There is no path between {origin_node} and {destination_node}")
@@ -248,6 +244,15 @@ class TransportNetwork(nx.Graph):
     def access_edge(self, edge):
         return self[edge[0]][edge[1]]
 
+    def _get_cost_per_ton_attributes(self, with_capacity: bool = False):
+        u, v, data = next(iter(self.edges(data=True)))  # Get first edge with attributes
+        # Filter keys that start with 'cost_per_ton' and end with 'capacity'
+        if with_capacity:
+            return [key for key in data.keys() if key.startswith("cost_per_ton_with_capacity")]
+        else:
+            return [key for key in data.keys() if key.startswith("cost_per_ton")
+                    and not key.startswith("cost_per_ton_with")]
+
     def update_load_on_route(self, route: "Route", load: float, capacity_constraint: bool):
         """Affect a load to a route
 
@@ -257,33 +262,36 @@ class TransportNetwork(nx.Graph):
         """
         # logging.info("Edge (2610, 2589): current_load "+str(self[2610][2589]['current_load']))
         capacity_burden = 1e10
-        for edge in route.transport_edges:
+        cost_per_ton_with_capacity_attributes = self._get_cost_per_ton_attributes(with_capacity=True)
+        for u, v in route.transport_edges:
+            edge = self[u][v]
+            edge['current_load'] += load
+
             # Check if the edge_attr to be used is not over capacity already
             if capacity_constraint:
-                if self[edge[0]][edge[1]]['overused']:
-                    logging.info(f"Edge {edge} ({self[edge[0]][edge[1]]['type']}) is over capacity and got selected")
-            # Add the load
-            self[edge[0]][edge[1]]['current_load'] += load
-            # If it exceeds capacity, add the capacity_burden to both the mode_weight and the capacity_weight
-            if capacity_constraint:
-                if ~self[edge[0]][edge[1]]['overused'] and \
-                        (self[edge[0]][edge[1]]['current_load'] > self[edge[0]][edge[1]]['capacity']):
-                    logging.info(f"Edge {edge} ({self[edge[0]][edge[1]]['type']}) "
-                                 f"has exceeded its capacity. Current load is {self[edge[0]][edge[1]]['current_load']},"
-                                 f" capacity is ({self[edge[0]][edge[1]]['capacity']})")
-                    self[edge[0]][edge[1]]['overused'] = True
-                    self[edge[0]][edge[1]]["capacity_weight"] += capacity_burden
+                if edge['overused']:
+                    logging.warning(f"Edge {(u, v)} ({edge['type']}, {edge['name']}) is over capacity and got selected")
+                else:
+                    if edge['current_load'] > edge['capacity']:
+                        logging.info(f"Edge {(u, v)} ({edge['type']}) has reached its capacity: "
+                                     f"{edge['current_load']:.0f} / {edge['capacity']:.0f}")
+                        edge['overused'] = True
+                        for cost_per_ton_with_capacity_labels in cost_per_ton_with_capacity_attributes:
+                            edge[cost_per_ton_with_capacity_labels] += capacity_burden
 
-    def reset_current_loads(self, route_optimization_weight):
+    def reset_loads(self):
         """
         Reset current_load to 0
         If an edge_attr was burdened due to capacity exceed, we remove the burden
         """
-        for edge in self.edges:
-            self[edge[0]][edge[1]]['current_load'] = 0
-            self[edge[0]][edge[1]]['overused'] = False
-
-        self.define_weights(route_optimization_weight)
+        cost_per_ton_labels = self._get_cost_per_ton_attributes(with_capacity=False)
+        cost_per_ton_with_capacity_labels = self._get_cost_per_ton_attributes(with_capacity=True)
+        for u, v in self.edges:
+            edge = self[u][v]
+            edge['current_load'] = 0
+            edge['overused'] = False
+            for i in range(len(cost_per_ton_labels)):
+                edge[cost_per_ton_labels[i]] = edge[cost_per_ton_with_capacity_labels[i]]
 
     def remove_all_shipments(self):
         for u, v in self.edges:
@@ -451,7 +459,8 @@ def _calculate_cost_per_ton(edge_attr, logistic_parameters: dict):
         edge_attr, logistic_parameters['border_crossing_times'], logistic_parameters['border_crossing_fees'])
     total_time = transport_time + loading_time + border_crossing_time
     total_fee = loading_fee + border_crossing_fee
-    costs_per_ton = {i: basic_cost + total_fee + total_time * logistic_parameters['cost_of_time']
+    special_cost = logistic_parameters['name-specific'].get(edge_attr['name'], 0)
+    costs_per_ton = {i: basic_cost + special_cost + total_fee + total_time * logistic_parameters['cost_of_time']
                      for i, basic_cost in basic_costs.items()}
 
     # add malus for non-supported shipment types
@@ -460,5 +469,7 @@ def _calculate_cost_per_ton(edge_attr, logistic_parameters: dict):
         for i, cost_per_ton in costs_per_ton.items():
             if edge_attr['type'] in transport_mode:
                 edge_attr['cost_per_ton_' + str(i) + "_" + shipment_method] = cost_per_ton
+                edge_attr['cost_per_ton_with_capacity_' + str(i) + "_" + shipment_method] = cost_per_ton
             else:
                 edge_attr['cost_per_ton_' + str(i) + "_" + shipment_method] = shipment_type_malus
+                edge_attr['cost_per_ton_with_capacity_' + str(i) + "_" + shipment_method] = shipment_type_malus
