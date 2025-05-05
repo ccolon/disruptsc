@@ -61,6 +61,8 @@ def create_firms(
              name=firm_table.loc[i, 'name'],
              long=float(firm_table.loc[i, 'long']),
              lat=float(firm_table.loc[i, 'lat']),
+             target_margin=float(firm_table.loc[i, 'margin']),
+             transport_share=float(firm_table.loc[i, 'transport_share']),
              utilization_rate=utilization_rate,
              inventory_restoration_time=inventory_restoration_time,
              capital_to_value_added_ratio=capital_to_value_added_ratio
@@ -467,6 +469,12 @@ def define_firms_from_mrio(mrio: Mrio, filepath_sectors: Path, filepath_regions:
     # Add usd per ton
     firm_table['usd_per_ton'] = firm_table['region_sector'].map(sector_table.set_index('region_sector')['usd_per_ton'])
 
+    # Add margin and transport input share
+    present_industries = list(firm_table['tuple'].unique())
+    firm_table['margin'] = firm_table['region_sector'].map(mrio.get_margin_per_industry(present_industries))
+    sector_to_type = firm_table[['sector', 'sector_type']].drop_duplicates().set_index('sector')['sector_type'].to_dict()
+    firm_table['transport_share'] = firm_table['region_sector'].map(
+        mrio.get_transport_input_share_per_industry(sector_to_type, present_industries))
     logging.info(f"Create {firm_table.shape[0]} firms in {firm_table['region'].nunique()} regions")
 
     return firm_table

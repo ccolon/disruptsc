@@ -71,6 +71,32 @@ class Mrio(pd.DataFrame):
             selected_industries = self.region_sectors
         return self[selected_industries].sum()
 
+    def get_margin_per_industry(self, selected_industries=None):
+        if not isinstance(selected_industries, list):
+            selected_industries = self.region_sectors
+        if self.value_added_label == "":
+            logging.warning("No value added in MRIO, defaulting to uniform 20% value added per industry")
+            return {industry: 0.2 for industry in selected_industries}
+        else:
+            va = self.loc[self.value_added_label, selected_industries]
+            output = self.loc[selected_industries].sum(axis=1)
+            va_to_output_ratios = va / output
+            return va_to_output_ratios.to_dict()
+
+    def get_transport_input_share_per_industry(self, sector_types: pd.Series | dict, selected_industries=None):
+        if not isinstance(selected_industries, list):
+            selected_industries = self.region_sectors
+        transport_industries = [industry for industry in selected_industries
+                                if sector_types[industry[1]].casefold() == "transport"]
+        if len(transport_industries) == 0:
+            logging.warning("No transport industry detected in the MRIO, defaulting to 0.2 transport input share")
+            return {industry: 0.2 for industry in selected_industries}
+        else:
+            transport_input = self.loc[transport_industries, selected_industries].sum(axis=0)
+            total_input = self[selected_industries].sum(axis=0)
+            transport_to_input_ratios = transport_input / total_input
+            return transport_to_input_ratios.to_dict()
+
     def get_region_sectors_with_internal_flows(self, threshold: float = 0):
         tot_outputs = self.get_total_output_per_region_sectors()
         matrix_output = pd.concat([tot_outputs] * len(self.index), axis=1).transpose()

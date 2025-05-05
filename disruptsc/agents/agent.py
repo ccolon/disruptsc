@@ -117,7 +117,7 @@ class Agent(object):
 
     def _get_route(self, transport_network, available_transport_network, destination_node,
                    shipment_method, normal_or_disrupted, capacity_constraint, transport_cost_noise_level,
-                   use_route_cache: bool = False):
+                   use_route_cache: bool):
         # print('_get_route', self.id_str(), destination_node)
         if use_route_cache:
             route = transport_network.retrieve_cached_route(self.od_point, destination_node, self.cost_profile,

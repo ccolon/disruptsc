@@ -24,7 +24,7 @@ EPSILON = 1e-6
 class Firm(Agent):
 
     def __init__(self, pid, od_point, sector, region_sector, region, sector_type=None, name="noname", input_mix=None,
-                 target_margin=0.2, utilization_rate=0.8,
+                 target_margin=0.2, transport_share=0.2, utilization_rate=0.8,
                  importance=1, long=None, lat=None, geometry=None,
                  suppliers=None, clients=None, production=0, min_inventory_duration_target=1,
                  inventory_restoration_time=1,
@@ -46,13 +46,14 @@ class Firm(Agent):
         self.sector_type = sector_type
         self.sector = sector
         self.input_mix = input_mix or {}
+        self.target_margin = target_margin
+        self.transport_share = transport_share
 
         # Free parameters
         self.inventory_duration_target = min_inventory_duration_target
         self.inventory_restoration_time = inventory_restoration_time
         self.eq_production_capacity = production / utilization_rate
         self.utilization_rate = utilization_rate
-        self.target_margin = target_margin
         self.capital_to_value_added_ratio = capital_to_value_added_ratio
 
         # Parameters depending on supplier-buyer network

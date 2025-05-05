@@ -107,8 +107,11 @@ class Model(object):
         self.transport_network.log_km_per_transport_modes()  # Print data on km per mode
         self.transport_network_initialized = True
 
+    def shuffle_logistic_costs(self):
+        self.parameters.add_variability_to_basic_cost()
+        self.transport_network.ingest_logistic_data(self.parameters.logistics)
+
     def setup_firms(self):
-        # TODO write
         pass
 
     def setup_households(self):
@@ -523,12 +526,13 @@ class Model(object):
         # TODO !!! aren't I computing the same thing as the IMP tech coef? To check
         import_weight_per_firm = [
             sum([
-                self.sc_network[supply_edge[0]][supply_edge[1]]['weight']
-                for supply_edge in self.sc_network.in_edges(firm)
-                if self.sc_network[supply_edge[0]][supply_edge[1]]['object'].category == 'import'
+                self.sc_network[u][v]['weight']
+                for u, v in self.sc_network.in_edges(firm)
+                if self.sc_network[u][v]['object'].category == 'import'
             ])
             for firm in self.firms.values()
         ]
+        transport_input_share_per_firm = self.firms.get_properties('transport_share', "list")
         n = len(self.firms)
 
         # Build final demand vector per firm, of length n
@@ -557,7 +561,8 @@ class Model(object):
         )
         input_cost_vector = domestic_input_cost_vector + import_input_cost_vector
         # 2. Transport costs
-        proportion_of_transport_cost_vector = 0.2 * np.ones((n, 1))  # TODO should be parametrized
+        # proportion_of_transport_cost_vector = 0.2 * np.ones((n, 1))
+        proportion_of_transport_cost_vector = np.array(transport_input_share_per_firm).reshape((n, 1))
         transport_cost_vector = np.multiply(eq_production_vector, proportion_of_transport_cost_vector)
         # 3. Compute other costs based on margin
         margin = np.array([firm.target_margin for firm in self.firms.values()]).reshape((n, 1))
@@ -598,8 +603,8 @@ class Model(object):
 
     def reset_prices(self):
         # set prices to 1
-        for edge in self.sc_network.edges:
-            self.sc_network[edge[0]][edge[1]]['object'].price = 1
+        for u, v in self.sc_network.edges:
+            self.sc_network[u][v]['object'].price = 1
 
     @staticmethod
     def build_final_demand_vector(households: "Households", countries: "Countries", firms: "Firms") -> np.array:

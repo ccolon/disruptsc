@@ -59,29 +59,8 @@ duration_dic:
   2: 6
   3: 9
   4: 11
-parameters_to_calibrate:
-  logistics:
-    loading_fees:
-      roads-maritime: [1, 10]
-      roads-railways: [1, 10]
-    border_crossing_fees:
-      roads: [1, 10]
-      railways: [1, 10]
-      maritime: [1, 10]
-flow_data:
-  dostyk: 14564000
-  khorgos: 13264000
-  bakhty: 0
-  aktau: 7313000
-  turkmenbashi: 3812000
-  serakhs: 2299000
-  maktaaral: 27405000
-  parahat: 3805000
-  divirgi: 393000
-  tbilisi: 393000
-  poti: 9612000
-  batumi: 4207000
-simulation_type: initial_state
+simulation_type: stationary_test
+mc_repetitions: 2
 t_final: 30
 criticality:
   attribute: top_flow
