@@ -2,6 +2,7 @@ import logging
 import pickle
 import threading
 
+from disruptsc.network.mrio import Mrio
 from disruptsc.paths import TMP_FOLDER
 
 
@@ -126,6 +127,7 @@ def load_cached_transaction_table():
 def load_cached_model(suffix):
     pickle_filename = TMP_FOLDER / f'model_{suffix}.pickle'
     model = pickle.load(open(pickle_filename, 'rb'))
+    model.mrio = Mrio(model.mrio, monetary_units=model.parameters.monetary_units_in_data)
     return model
 
 
