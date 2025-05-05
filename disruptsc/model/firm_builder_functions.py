@@ -478,7 +478,6 @@ def define_firms_from_mrio(mrio: Mrio, filepath_sectors: Path, filepath_regions:
     firm_table['transport_share'] = firm_table['tuple'].map(
         mrio.get_transport_input_share_per_industry(sector_to_type, present_industries))
     check_successful_extraction(firm_table, "transport_share")
-    exit()
     logging.info(f"Create {firm_table.shape[0]} firms in {firm_table['region'].nunique()} regions")
 
     return firm_table
