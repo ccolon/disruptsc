@@ -471,10 +471,14 @@ def define_firms_from_mrio(mrio: Mrio, filepath_sectors: Path, filepath_regions:
 
     # Add margin and transport input share
     present_industries = list(firm_table['tuple'].unique())
-    firm_table['margin'] = firm_table['region_sector'].map(mrio.get_margin_per_industry(present_industries))
+    firm_table['margin'] = firm_table['tuple'].map(mrio.get_margin_per_industry(present_industries))
+    check_successful_extraction(firm_table, "margin")
+
     sector_to_type = firm_table[['sector', 'sector_type']].drop_duplicates().set_index('sector')['sector_type'].to_dict()
-    firm_table['transport_share'] = firm_table['region_sector'].map(
+    firm_table['transport_share'] = firm_table['tuple'].map(
         mrio.get_transport_input_share_per_industry(sector_to_type, present_industries))
+    check_successful_extraction(firm_table, "transport_share")
+    exit()
     logging.info(f"Create {firm_table.shape[0]} firms in {firm_table['region'].nunique()} regions")
 
     return firm_table
