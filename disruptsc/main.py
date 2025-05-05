@@ -66,6 +66,32 @@ model.setup_logistic_routes(cache_parameters['logistic_routes'], parameters.with
 if parameters.simulation_type == "initial_state":
     simulation = model.run_static()
 
+elif parameters.simulation_type == "initial_state_mc":
+    flow_dfs = {}
+    model.setup_transport_network(cached=False)
+    model.setup_agents(cached=False)
+    model.save_pickle('initial_state_mc')
+    for i in range(parameters.mc_repetitions):
+        logging.info(f"")
+        logging.info(f"=============== Starting repetition #{i} ===============")
+        model = load_cached_model("initial_state_mc")
+        model.shuffle_logistic_costs()
+        model.setup_sc_network(cached=False)
+        model.set_initial_conditions()
+        model.setup_logistic_routes(cached=False)
+        simulation = model.run_static()
+        flow_df = pd.DataFrame(simulation.transport_network_data)
+        flow_df = flow_df[(flow_df['flow_total'] > 0) & (flow_df['time_step'] == 0)]
+        flow_dfs[i] = flow_df
+        flow_df.to_csv(parameters.export_folder / f"flow_df_{i}.csv")
+    mean_flows = pd.concat(flow_dfs.values())
+    mean_flows = mean_flows.groupby(mean_flows.index).mean()
+    transport_edges_with_flows = pd.merge(model.transport_edges.drop(columns=["node_tuple"]),
+                                          mean_flows, how="left", on="id")
+    transport_edges_with_flows.to_file(parameters.export_folder / f"transport_edges_with_flows.geojson",
+                                               driver="GeoJSON", index=False)
+
+
 elif parameters.simulation_type == "stationary_test":
     simulation = model.run_stationary_test()
 
@@ -219,7 +245,7 @@ elif parameters.simulation_type == "criticality":
 else:
     raise ValueError('Unimplemented simulation type chosen')
 
-if parameters.export_files and parameters.simulation_type != "criticality":
+if parameters.export_files and parameters.simulation_type not in ["criticality", "initial_state_mc"]:
     simulation.export_agent_data(parameters.export_folder)
     simulation.export_transport_network_data(model.transport_edges, parameters.export_folder)
     simulation.calculate_and_export_summary_result(model.sc_network, model.household_table,
