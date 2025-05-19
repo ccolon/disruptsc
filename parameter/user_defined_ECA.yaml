@@ -59,7 +59,7 @@ duration_dic:
   2: 6
   3: 9
   4: 11
-simulation_type: stationary_test
+simulation_type: criticality
 mc_repetitions: 2
 t_final: 30
 criticality:
