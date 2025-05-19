@@ -188,7 +188,8 @@ elif parameters.simulation_type == "criticality":
         writer = csv.writer(file)
         region_household_loss_labels = ['household_loss_' + region for region in model.mrio.regions]
         country_loss_labels = ['country_loss_' + country for country in model.mrio.external_buying_countries]
-        writer.writerow(["edge_attr", parameters.criticality['attribute'], "duration", "household_loss", "country_loss"]
+        writer.writerow(["edge", "name", "type", parameters.criticality['attribute'], "duration",
+                         "household_loss", "country_loss"]
                         + region_household_loss_labels + country_loss_labels + ['geometry'])  # Writing the header
     model.save_pickle(suffix)
 
@@ -239,7 +240,10 @@ elif parameters.simulation_type == "criticality":
             country_loss_per_region_values = [country_loss_per_country.get(country, 0.0)
                                               for country in model.mrio.external_buying_countries]
             geometry = model.transport_edges.loc[edge, 'geometry']
-            writer.writerow([edge, attribute, parameters.criticality['duration'], household_loss, country_loss] +
+            name = model.transport_edges.loc[edge, 'name']
+            transport_type = model.transport_edges.loc[edge, 'type']
+            writer.writerow([edge, name, transport_type, attribute, parameters.criticality['duration'],
+                             household_loss, country_loss] +
                             household_loss_per_region_values + country_loss_per_region_values + [geometry])
 
 else:
