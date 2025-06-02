@@ -78,7 +78,7 @@ class Mrio(pd.DataFrame):
             logging.warning("No value added in MRIO, defaulting to uniform 20% value added per industry")
             return {industry: 0.2 for industry in selected_industries}
         else:
-            va = self.loc[self.value_added_label, selected_industries]
+            va = self.loc[(None, self.value_added_label), selected_industries]
             output = self.loc[selected_industries].sum(axis=1)
             va_to_output_ratios = va / output
             return va_to_output_ratios.to_dict()
