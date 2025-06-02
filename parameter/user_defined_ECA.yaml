@@ -59,7 +59,7 @@ duration_dic:
   2: 6
   3: 9
   4: 11
-simulation_type: criticality
+simulation_type: disruption
 mc_repetitions: 2
 t_final: 30
 criticality:
@@ -71,15 +71,17 @@ criticality:
 #  edges: [12010]
   duration: 1
 events:
-  - type: transport_disruption
+  - type: transport_disruption_probability
     description_type: edge_attributes
 #    description_type: edge_attributes
     attribute: name
 #    attribute: disruption
     values: [aktau]
 #    values: ["flood_1in1000_UZB"]
-    start_time: 1
-    duration: 7
+    probability: 0.236
+    scenario_duration: 30
+#    start_time: 1
+#    duration: 7
 #disruption_description:
 #  type: compound
 #  events:
