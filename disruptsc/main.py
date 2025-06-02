@@ -120,7 +120,7 @@ elif parameters.simulation_type in ["event_mc", "disruption_mc"]:
         simulation = model.run_disruption(t_final=10)
         household_loss_per_region = simulation.calculate_household_loss(model.household_table, per_region=True)
         household_loss = sum(household_loss_per_region.values())
-        country_loss_per_country = simulation.calculate_country_loss(per_countyr=True)
+        country_loss_per_country = simulation.calculate_country_loss(per_country=True)
         country_loss = sum(country_loss_per_country.values())
         logging.info(f"Simulation terminated. "
                      f"Household loss: {int(household_loss)} {parameters.monetary_units_in_model}. "
