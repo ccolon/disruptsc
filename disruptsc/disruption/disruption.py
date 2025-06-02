@@ -1,10 +1,10 @@
-from itertools import chain
 from typing import TYPE_CHECKING
 
 import logging
 from collections import UserList
 from pathlib import Path
 
+import numpy as np
 import geopandas
 import pandas as pd
 
@@ -312,7 +312,70 @@ class DisruptionList(UserList):
                     disruption_object.start_time = event["start_time"]
                     disruption_object.recovery = Recovery(duration=event['duration'], shape="threshold")
                     event_list += [disruption_object]
+
+            if event['type'] == "transport_disruption_probability":
+                if event['description_type'] == "edge_attributes":
+                    # flat_list = list(chain.from_iterable(event['values']
+                    #                         if isinstance(event['values'], list)
+                    #                         else [event['values']]))
+                    disruption_object = TransportDisruption.from_edge_attributes(
+                        edges=edges,
+                        attribute=event['attribute'],
+                        values=event['values']
+                    )
+                    start_times, durations = cls.generate_event_scenario(event["scenario_duration"],
+                                                                         event['probability'])
+                    for start_time, duration in zip(start_times, durations):
+                        disruption_object = TransportDisruption(description=disruption_object,
+                                                                recovery=Recovery(duration=duration, shape="threshold"),
+                                                                start_time=start_time)
+                        event_list += [disruption_object]
+
         return cls(event_list)
+
+    @staticmethod
+    def generate_event_scenario(days=365, p=0.1, seed=None):
+        """
+        Simulates events over a number of days with probability p per day.
+        Consecutive events are merged into single events with a duration.
+
+        Parameters:
+            days (int): Number of days to simulate (default: 365)
+            p (float): Daily probability of an event
+            seed (int or None): Random seed for reproducibility
+
+        Returns:
+            event_times (list of int): Start days of events
+            event_durations (list of int): Durations of events
+        """
+        if seed is not None:
+            np.random.seed(seed)
+
+        # Generate event days
+        events = np.random.rand(days) < p
+        event_days = np.where(events)[0]
+
+        event_times = []
+        event_durations = []
+
+        if len(event_days) > 0:
+            start = event_days[0]
+            duration = 1
+
+            for i in range(1, len(event_days)):
+                if event_days[i] == event_days[i - 1] + 1:
+                    duration += 1
+                else:
+                    event_times.append(start)
+                    event_durations.append(duration)
+                    start = event_days[i]
+                    duration = 1
+
+            # Add the last group
+            event_times.append(start)
+            event_durations.append(duration)
+
+        return event_times, event_durations
 
     def log_info(self):
         logging.info(f'There are {len(self)} disruptions')
