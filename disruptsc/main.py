@@ -117,7 +117,7 @@ elif parameters.simulation_type in ["event_mc", "disruption_mc"]:
         model.setup_sc_network(cached=False)
         model.set_initial_conditions()
         model.setup_logistic_routes(cached=False)
-        simulation = model.run_disruption(t_final=10)
+        simulation = model.run_disruption(t_final=parameters.t_final)
         household_loss_per_region = simulation.calculate_household_loss(model.household_table, per_region=True)
         household_loss = sum(household_loss_per_region.values())
         country_loss_per_country = simulation.calculate_country_loss(per_country=True)
