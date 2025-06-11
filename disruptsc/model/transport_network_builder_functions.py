@@ -18,8 +18,12 @@ if TYPE_CHECKING:
 
 def load_transport_data(filepaths, transport_mode, time_resolution):
     edges = gpd.read_file(filepaths[transport_mode + '_edges'])
-    edges.index = edges['id']
-    edges.index.name = 'index'
+    if "id" in edges.columns:
+        edges.index = edges['id']
+        edges.index.name = 'index'
+    else:
+        edges.index.name = 'index'
+        edges['id'] = edges.index
     edges['type'] = transport_mode
 
     # Compute how much it costs to transport one USD worth of good on each edge_attr
@@ -27,6 +31,8 @@ def load_transport_data(filepaths, transport_mode, time_resolution):
 
     # Adapt capacity (given in tons per day) to time resolution
     time_resolution_in_days = {'day': 1, 'week': 7, 'month': 365.25 / 12, 'year': 365.25}
+    if "capacity" not in edges.columns:
+        edges['capacity'] = None
     edges['capacity'] = pd.to_numeric(edges['capacity'], errors="coerce")
     edges['capacity'] = edges['capacity'] * time_resolution_in_days[time_resolution]
 
