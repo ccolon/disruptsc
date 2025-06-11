@@ -108,16 +108,13 @@ Within a subfolder `Transport`, there is a series of GeoJSON files and one YAML 
 #### Transport network files (GeoJSON)
 
 There should be two GeoJSON files per transport mode, one for nodes and one for edges. 
-Acceptable transport modes are : 'roads', 'airways', 'maritime', 'waterways', 'multimodal'. For instance, for roads:
-- `roads_nodes.geojson`
+Acceptable transport modes are : 'roads', 'airways', 'maritime', 'waterways', 'pipelines', 'multimodal'. 
+For instance, for roads:
 - `roads_edges.geojson`
 
-There is only one file for the multimodal layer, which describe the edges. There is no multimodal node.
+If you use multiple modes, you need a `multimodal_edges.geojson` file.
 
-The edge's geometry is *LineString*, the node's geometry is *Point*.
-
-Nodes should contain at least the following attributes:
-- `id`: int, one unique id per mode
+The only accepted geometry is *LineString*. No *MultiLineString* is allowed.
 
 Edges should contain at least the following attributes:
 - `id`: int, one unique id per mode
@@ -131,87 +128,14 @@ Edges should contain at least the following attributes:
 - `capacity`: maximum handling capacity per time step. If unknown you can leave it empty.
 - `disruption`: flag here the disruption scenarios that affect this edge. Leave empty if unused.
 
-Nodes and Edges should not contain the following attributes:
+They should not contain the following attributes:
 - `index`
-
-Based on these input files, the model creates one *networkx.Graph* object representing the transport network.
 
 Note for multimodal edges:
 - in multimodes, it should start with `mode1-mode2`. The order of the modes does not matter. 
 - can write something after, e.g., 'roads-maritime-dom', but not before, e.g., 'roads-dom-maritime'.
 
-
-#### Transport Parameters (YAML)
-
-A YAML file `transport_parameters.yaml` with the following structure. 
-It needs to be adjusted to the transport modes modelled.
-
-	speeds: #km/hour
-	  roads
-	    paved: 31.4
-	    unpaved: 15
-	  railways: 23
-	  waterways: 7
-	  maritime: 35
-
-	loading_time: #hours 
-	  roads-waterways: 5
-	  roads-maritime: 12
-	  roads-railways: 12
-	  railways-maritime: 24
-	  waterways-maritime: 24
-
-	variability: #as fraction of travel time
-	  roads:
-	    paved: 0.01 
-	    unpaved: 0.075
-	  railways: 0.02
-	  waterways: 0.02
-	  maritime: 0.005
-	  multimodal:
-	    roads-waterways: 0.1
-	    roads-maritime: 0.1
-	    roads-railways: 0.1
-	    railways-maritime: 0.1
-	    waterways-maritime: 0.1
-
-	transport_cost_per_tonkm: #USD/(ton*km)
-	  roads:
-	    paved: 0.053
-	    unpaved: 0.1
-	  railways: 0.04
-	  waterways: 0.029
-	  maritime: 0.0017
-
-	loading_cost_per_ton: #USD/ton
-	  roads-waterways: 2.2
-	  roads-maritime-shv: 2.2
-	  roads-maritime-vnm: 2.2
-	  roads-railways: 5
-	  railways-maritime: 2.2
-	  waterways-maritime: 2.2
-
-	custom_cost: #USD/ton
-	  roads: 27
-	  waterways: 27
-	  maritime: 27
-
-	custom_time: #hours
-	  roads: 1.5
-	  waterways: 6
-	  maritime: 2
-	  multimodal: 2
-
-	travel_cost_of_time: 0.49 #USD/hour
-
-	variability_coef: 0.44 #USD/hour
-
-
-#### Constraints on transport modes (optional)
-
-An additional file `transport_modes.csv` can be used to prevent specific supply-chains flows 
-from taking specific transport modes. 
-To be further described
+Based on these input files, the model creates one *networkx.Graph* object representing the transport network.
 
 
 ### Inputs for *disaggregating IO* version
