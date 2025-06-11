@@ -414,19 +414,19 @@ class TransportNetwork(nx.Graph):
 
 def _get_speed(edge_attr: dict, speed_dict: dict) -> float:
     if edge_attr['type'] == "roads":
-        if edge_attr['class'] == 'primary':
-            return speed_dict['roads']['primary']
-        elif edge_attr['class'] == 'secondary':
-            return speed_dict['roads']['primary']
-        elif edge_attr['class'] == 'tertiary':
-            return speed_dict['roads']['primary']
+        # if edge_attr['class'] == 'primary':
+        #     return speed_dict['roads']['primary']
+        # elif edge_attr['class'] == 'secondary':
+        #     return speed_dict['roads']['primary']
+        # elif edge_attr['class'] == 'tertiary':
+        #     return speed_dict['roads']['primary']
+        # else:
+        if edge_attr['surface'] == 'paved':
+            return speed_dict['roads']['paved']
+        elif edge_attr['surface'] == 'unpaved':
+            return speed_dict['roads']['unpaved']
         else:
-            if edge_attr['surface'] == 'paved':
-                return speed_dict['roads']['paved']
-            elif edge_attr['surface'] == 'unpaved':
-                return speed_dict['roads']['unpaved']
-            else:
-                return speed_dict['roads']['paved']
+            return speed_dict['roads']['paved']
     elif edge_attr['type'] in ['railways', 'waterways', 'maritime', 'airways', "pipelines"]:
         return speed_dict[edge_attr['type']]
     elif edge_attr['type'] == "multimodal":
