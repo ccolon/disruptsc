@@ -18,11 +18,12 @@ from model.model import Model
 profiler = cProfile.Profile()
 profiler.enable()
 
-parser = argparse.ArgumentParser(description="Mix positional and keyword arguments")
-parser.add_argument("scope", type=str, help="Scope")
+parser = argparse.ArgumentParser(description="DisruptSC: Spatial agent-based supply chain disruption model")
+parser.add_argument("scope", type=str, help="Region/scope to simulate")
 parser.add_argument("--cache", type=str, help="Caching behavior")
 parser.add_argument("--duration", type=int, help="Disruption duration")
 parser.add_argument("--io_cutoff", type=float, help="IO cutoff")
+parser.add_argument("--version", action="version", version=f"DisruptSC {__import__('disruptsc').__version__}")
 # parser.add_argument("--with-transport", help="Deactivate transport completely", action='store_true')
 args = parser.parse_args()
 
