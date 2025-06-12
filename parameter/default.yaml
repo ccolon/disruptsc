@@ -152,10 +152,9 @@ monetary_units_in_model: "mUSD"
 monetary_units_in_data: "mUSD"
 
 # Define the type of input data to calibrate the model
-# - 'disaggregating IO' uses national input-table (tech_coef) with business census (district_economic_data)
-# - 'supplier buyer network' uses supplier buyer network data
 # - 'mrio' use mrio matrix directly
-firm_data_type: "disaggregating IO"
+# - 'supplier-buyer network' uses supplier buyer network data
+firm_data_type: "mrio"
 
 
 # Whether to model congestion

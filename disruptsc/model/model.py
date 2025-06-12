@@ -17,9 +17,9 @@ from .caching_functions import \
     cache_model
 from disruptsc.model.check_functions import compare_production_purchase_plans
 from disruptsc.model.country_builder_functions import create_countries_from_mrio, create_countries
-from disruptsc.model.firm_builder_functions import define_firms_from_local_economic_data, \
+from disruptsc.model.firm_builder_functions import \
     define_firms_from_network_data, \
-    define_firms_from_mrio, create_firms, load_technical_coefficients, calibrate_input_mix, load_mrio_tech_coefs, \
+    define_firms_from_mrio, create_firms, calibrate_input_mix, load_mrio_tech_coefs, \
     load_inventories
 from disruptsc.model.household_builder_functions import define_households_from_mrio, define_households, \
     add_households_for_firms, \
@@ -154,21 +154,7 @@ class Model(object):
             logging.info(f'The filtered sectors are: {filtered_industries}')
 
             logging.info('Generating the firms')
-            if self.parameters.firm_data_type == "disaggregating IO":
-                self.firm_table, firm_table_per_region = define_firms_from_local_economic_data(
-                    filepath_region_economic_data=self.parameters.filepaths['region_data'],
-                    sectors_to_include=filtered_industries,
-                    transport_nodes=self.transport_nodes,
-                    filepath_sector_table=self.parameters.filepaths['sector_table'],
-                    min_nb_firms_per_sector=self.parameters.min_nb_firms_per_sector)
-            elif self.parameters.firm_data_type == "supplier-buyer network":
-                self.firm_table = define_firms_from_network_data(
-                    filepath_firm_table=self.parameters.filepaths['firm_table'],
-                    filepath_location_table=self.parameters.filepaths['location_table'],
-                    sectors_to_include=filtered_industries,
-                    transport_nodes=self.transport_nodes,
-                    filepath_sector_table=self.parameters.filepaths['sector_table'])
-            elif self.parameters.firm_data_type == "mrio":
+            if self.parameters.firm_data_type == "mrio":
                 self.firm_table = define_firms_from_mrio(self.mrio,
                                                          filepath_sectors=self.parameters.filepaths['sector_table'],
                                                          filepath_regions=self.parameters.filepaths['region_table'],
@@ -178,9 +164,16 @@ class Model(object):
                                                          cutoff_firm_output=self.parameters.cutoff_firm_output,
                                                          monetary_units_in_data=self.parameters.monetary_units_in_data,
                                                          admin=self.parameters.admin)
+            elif self.parameters.firm_data_type == "supplier-buyer network":
+                self.firm_table = define_firms_from_network_data(
+                    filepath_firm_table=self.parameters.filepaths['firm_table'],
+                    filepath_location_table=self.parameters.filepaths['location_table'],
+                    sectors_to_include=filtered_industries,
+                    transport_nodes=self.transport_nodes,
+                    filepath_sector_table=self.parameters.filepaths['sector_table'])
             else:
-                raise ValueError(f"{self.parameters.firm_data_type} should be one of 'disaggregating', "
-                                 f"'supplier-buyer network', 'mrio'")
+                raise ValueError(f"Unknown firm_data_type: {self.parameters.firm_data_type}. "
+                               f"Supported types: 'mrio', 'supplier-buyer network'")
             nb_firms = 'all'  # Weird
             logging.info(f"Creating firms. nb_firms: {nb_firms} "
                          f"inventory_restoration_time: {self.parameters.inventory_restoration_time} "
@@ -243,13 +236,14 @@ class Model(object):
                 admin=self.parameters.admin
             )
 
-            # Loading the technical coefficients
-            if self.parameters.firm_data_type == "disaggregating IO":
-                import_code_in_table = self.sector_table.loc[self.sector_table['type'] == 'imports', 'sector'].iloc[
-                    0]  # usually it is IMP
-                load_technical_coefficients(self.firms, self.parameters.filepaths['tech_coef'],
-                                            self.parameters.io_cutoff, import_code_in_table)
-
+            # Load technical coefficients based on firm data type
+            if self.parameters.firm_data_type == "mrio":
+                load_mrio_tech_coefs(
+                    firms=self.firms,
+                    mrio=self.mrio,
+                    io_cutoff=self.parameters.io_cutoff,
+                    monetary_units_in_data=self.parameters.monetary_units_in_data
+                )
             elif self.parameters.firm_data_type == "supplier-buyer network":
                 self.firms, self.transaction_table = calibrate_input_mix(
                     firms=self.firms,
@@ -258,18 +252,10 @@ class Model(object):
                     filepath_transaction_table=self.parameters.filepaths['transaction_table']
                 )
 
-            elif self.parameters.firm_data_type == "mrio":
-                load_mrio_tech_coefs(
-                    firms=self.firms,
-                    mrio=self.mrio,
-                    io_cutoff=self.parameters.io_cutoff,
-                    monetary_units_in_data=self.parameters.monetary_units_in_data
-                )
-
             else:
                 raise ValueError(
-                    f"{self.parameters.firm_data_type} should be "
-                    f"one of 'disaggregating', 'supplier-buyer network', 'mrio'"
+                    f"Unknown firm_data_type: {self.parameters.firm_data_type}. "
+                    f"Supported types: 'mrio', 'supplier-buyer network'"
                 )
 
             # Loading the inventories
@@ -356,7 +342,7 @@ class Model(object):
                 f'(domestic B2B flows). Weight localisation is {self.parameters.weight_localization_firm}'
             )
 
-            if self.parameters.firm_data_type in ["disaggregating IO", 'mrio']:
+            if self.parameters.firm_data_type == "mrio":
                 for firm in tqdm(self.firms.values(), total=len(self.firms)):
                     firm.select_suppliers(self.sc_network, self.firms, self.countries,
                                           self.parameters.nb_suppliers_per_input,
@@ -373,8 +359,8 @@ class Model(object):
                                                     import_code='IMP')
 
             else:
-                raise ValueError(self.parameters.firm_data_type +
-                                 " should be one of 'disaggregating IO', 'supplier-buyer network', 'mrio'")
+                raise ValueError(f"Unknown firm_data_type: {self.parameters.firm_data_type}. "
+                               f"Supported types: 'mrio', 'supplier-buyer network'")
 
             unconnected_nodes = self.sc_network.identify_disconnected_nodes(self.firms, self.countries, self.households)
             if len(unconnected_nodes) > 0:
