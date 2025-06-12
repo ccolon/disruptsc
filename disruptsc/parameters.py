@@ -17,40 +17,48 @@ import_code = "IMP"
 
 @dataclass
 class Parameters:
+    # Core simulation parameters (no defaults first)
     scope: str
-    export_details: dict
-    # specific_edges_to_monitor: dict
     admin: list | None
     t_final: int
     flow_data: dict
-    parameters_to_calibrate: dict
     logging_level: str
+    simulation_type: str
+    export_files: bool
+    
+    # Transport and network parameters
     with_transport: bool
     use_route_cache: bool
     transport_modes: list
+    
+    # Economic and monetary parameters
     monetary_units_in_model: str
     monetary_units_in_data: str
     firm_data_type: str
+    
+    # Model behavior parameters
     congestion: bool
     propagate_input_price_change: bool
+    transport_to_households: bool
+    capacity_constraint: bool
+    
+    # Sector and agent filtering parameters
     sectors_to_include: str
     sectors_to_exclude: list | None
     sectors_no_transport_network: list
-    transport_to_households: bool
     cutoff_sector_output: dict
     cutoff_sector_demand: dict
     combine_sector_cutoff: str
     cutoff_firm_output: dict
     cutoff_household_demand: dict
-    districts_to_include: str | list
     pop_density_cutoff: float
     pop_cutoff: float
     min_nb_firms_per_sector: int
     local_demand_cutoff: float
     countries_to_include: str | list
-    district_sector_cutoff: str
-    nb_top_district_per_sector: None | int
     explicit_service_firm: bool
+    
+    # Economic model parameters
     inventory_duration_targets: dict
     inventory_restoration_time: float
     utilization_rate: float
@@ -59,37 +67,34 @@ class Parameters:
     nb_suppliers_per_input: float
     weight_localization_firm: float
     weight_localization_household: float
-    force_local_retailer: bool
+    
+    # Simulation control parameters
     events: list
     criticality: None | dict
     time_resolution: str
-    nodeedge_tested_topn: None | int
-    nodeedge_tested_skipn: None | int
-    model_IO: bool
     duration_dic: dict
-    extra_roads: bool
     epsilon_stop_condition: float
     route_optimization_weight: str
     cost_repercussion_mode: str
     price_increase_threshold: float
-    capacity_constraint: bool
     transport_cost_noise_level: float
-    firm_sampling_mode: str
-    filepaths: dict
-    export_files: bool
-    simulation_type: str
     adaptive_inventories: bool
     adaptive_supplier_weight: bool
-    transport_cost_data: dict
     capital_to_value_added_ratio: float
-    logistics: dict
     mc_repetitions: int
+    
+    # Configuration parameters
+    filepaths: dict
+    logistics: dict
+    
+    # Parameters with defaults (must come last)
     export_folder: Path | str = ""
 
     @classmethod
-    def load_default_parameters(cls, parameter_folder: Path):
+    def load_default_parameters(cls, parameter_folder: Path, scope: str = "default"):
         with open(parameter_folder / "default.yaml", 'r') as f:
             default_parameters = yaml.safe_load(f)
+        default_parameters['scope'] = scope
         return cls(**default_parameters)
 
     @classmethod

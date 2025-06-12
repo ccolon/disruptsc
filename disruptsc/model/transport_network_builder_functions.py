@@ -27,7 +27,7 @@ def load_transport_data(filepaths, transport_mode, time_resolution):
     edges['type'] = transport_mode
 
     # Compute how much it costs to transport one USD worth of good on each edge_attr
-    # edges = compute_cost_travel_time_edges(edges, transport_params, transport_mode, transport_cost_data)
+    # (Cost computation is handled in logistics configuration)
 
     # Adapt capacity (given in tons per day) to time resolution
     time_resolution_in_days = {'day': 1, 'week': 7, 'month': 365.25 / 12, 'year': 365.25}
