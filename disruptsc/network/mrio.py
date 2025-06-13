@@ -19,10 +19,12 @@ class Mrio(pd.DataFrame):
 
     def __init__(self, *args, monetary_units, **kwargs):
         super().__init__(*args, **kwargs)
-        self.import_label = self.detect_level1_label('import', axis=0)
         self.export_label = self.detect_level1_label('export', axis=1)
         self.final_demand_label = self.detect_level1_label('final.?demand', axis=1)
+        self.capital_label = self.detect_level1_label('capital', axis=1)
+        self.import_label = self.detect_level1_label('import', axis=0)
         self.value_added_label = self.detect_level1_label('value.?added|va', axis=0)
+        self.tax_label = self.detect_level1_label('tax', axis=0)
         self.check_square_structure()
         self.region_sectors = [tup for tup in self.columns
                                if tup[1] not in [self.final_demand_label, self.export_label]]
@@ -118,16 +120,18 @@ class Mrio(pd.DataFrame):
             return self.loc[:, self.columns.get_level_values(1) == self.final_demand_label]
 
     def check_square_structure(self):
+        intermediary_matrix = self.get_intermediary_part()
+        if intermediary_matrix.shape[0] != intermediary_matrix.shape[1]:
+            logging.info(f"Column label not in row: {set(intermediary_matrix.columns) - set(intermediary_matrix.rows)}")
+            logging.info(f"Row label not in column: {set(intermediary_matrix.rows) - set(intermediary_matrix.columns)}")
+            raise ValueError('Intermediary matrix not square')
+
+    def get_intermediary_part(self):
         region_sectors_in_columns = [tup for tup in self.columns
-                                     if tup[1] not in [self.final_demand_label, self.export_label]]
-        region_sectors_in_columns.sort()
+                                     if tup[1] not in [self.final_demand_label, self.export_label, self.capital_label]]
         region_sectors_in_rows = [tup for tup in self.index
-                                  if tup[1] not in [self.import_label, self.value_added_label]]
-        region_sectors_in_rows.sort()
-        if region_sectors_in_columns != region_sectors_in_rows:
-            logging.info(f"Column label not in row: {set(region_sectors_in_columns) - set(region_sectors_in_rows)}")
-            logging.info(f"Row label not in column: {set(region_sectors_in_rows) - set(region_sectors_in_columns)}")
-            raise ValueError('Inconsistencies between scope sectors in rows and columns')
+                                  if tup[1] not in [self.import_label, self.value_added_label, self.tax_label]]
+        return self.loc[region_sectors_in_rows, region_sectors_in_columns]
 
     def adjust_output(self):
         total_output = self.get_total_output_per_region_sectors()
