@@ -11,24 +11,24 @@ filepaths:
   "railways_edges": "Transport/railways_edges.geojson"
   "waterways_edges": "Transport/waterways_edges.geojson"
   "pipelines_edges": "Transport/pipelines_edges.geojson"
-  # National data
-  "sector_table": "National/sector_table.csv"
-  "tech_coef": "National/tech_coef.csv"
-  "inventory_duration_targets": "National/inventory_targets.csv"
-  # Region data
-  "region_data": "Subnational/region_data.geojson"
+  # Economic data
+  "sector_table": "Economic/sector_table.csv"
+  "mrio": "Economic/mrio.csv"
+  # Spatial data
+  "firms": "Spatial"
+  "households": "Spatial/households.geojson"
+  # Optional
+  "inventory_duration_targets": "Economic/inventory_targets.csv"
   "admin": "Subnational/admin.geojson"
-  # Trade
+  # Legacy
+  "tech_coef": "Economic/tech_coef.csv"
+  "firm_table": "Economic/firm_table.csv"
+  "region_table": "Economic/region_table.geojson"
+  "transaction_table": "Economic/transaction_table.csv"
   "imports": "Trade/import_table.csv"
   "exports": "Trade/export_table.csv"
   "transit": "Trade/transit_matrix.csv"
-  # Network
-  "firm_table": "Network/firm_table.csv"
-  "region_table": "Network/region_table.geojson"
-  "transaction_table": "Network/transaction_table.csv"
-  "disag": "Downscale"
-  # MRIO
-  "mrio": "Network/mrio.csv"
+
 
 
 admin: None
