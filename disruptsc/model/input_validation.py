@@ -13,6 +13,7 @@ from typing import Dict, List, Optional, Tuple, Union
 import yaml
 import numpy as np
 
+
 class InputValidationError(Exception):
     """Custom exception for input validation errors."""
     pass
@@ -115,7 +116,8 @@ class InputValidator:
                 
         # Sector type validation
         if 'type' in df.columns:
-            valid_types = ['agriculture', 'construction', 'mining', 'manufacturing', 'utility', 'transport', 'trade', 'service']
+            valid_types = ['agriculture', 'construction', 'mining', 'manufacturing', 'utility', 'transport', 'trade',
+                           'service', 'services']
             invalid_types = df[~df['type'].isin(valid_types)]['type'].unique()
             if len(invalid_types) > 0:
                 self.warnings.append(f"sector_table.csv contains non-standard sector types: {invalid_types}")
@@ -181,11 +183,7 @@ class InputValidator:
         except Exception as e:
             self.errors.append(f"Cannot read MRIO table as multi-index: {e}")
             return
-            
-        # Check if it's square (critical error)
-        if df.shape[0] != df.shape[1]:
-            self.errors.append(f"MRIO table must be square: {df.shape[0]} rows vs {df.shape[1]} columns")
-            
+
         # Check for completely empty data (critical error)
         if df.empty or df.isna().all().all():
             self.errors.append("MRIO table is empty or contains only NaN values")
@@ -193,17 +191,25 @@ class InputValidator:
             
         # Check for negative values in intermediate flows (error, not warning)
         intermediate_cols = [col for col in df.columns if not any(
-            keyword in str(col).lower() for keyword in ['final', 'export', 'value_added', 'import']
+            keyword in str(col).lower() for keyword in ['final', 'export', 'capital', 'government']
         )]
-        if len(intermediate_cols) > 0:
-            intermediate_df = df[intermediate_cols]
-            if (intermediate_df < 0).any().any():
-                self.errors.append("MRIO table contains negative intermediate flows")
+        intermediate_rows = [row for row in df.index if not any(
+            keyword in str(row).lower() for keyword in ['value', 'va', 'import', 'tax']
+        )]
+        if (len(intermediate_cols) == 0) or (len(intermediate_rows) == 0):
+            self.errors.append("No matrix of intermediate flows detected in MRIO table")
+
+        intermediate_df = df.loc[intermediate_rows, intermediate_cols]
+        if intermediate_df.shape[0] != intermediate_df.shape[1]:
+            self.errors.append(f"The intermediary part of the MRIO table must be square: "
+                               f"{intermediate_df.shape[0]} rows vs {intermediate_df.shape[1]} columns")
+        if (intermediate_df < 0).any().any():
+            self.errors.append("MRIO table contains negative intermediate flows")
                 
         # Check for extreme imbalance (critical error)
         try:
-            row_sums = df.sum(axis=1)
-            col_sums = df.sum(axis=0)
+            row_sums = df.sum(axis=1)[intermediate_rows]
+            col_sums = df.sum(axis=0)[intermediate_cols]
             if not np.allclose(row_sums, col_sums, rtol=0.5):
                 self.errors.append("MRIO table is severely unbalanced (row sums ≠ column sums)")
             elif not np.allclose(row_sums, col_sums, rtol=0.1):
@@ -225,8 +231,8 @@ class InputValidator:
             return
             
         # Check for required identifier column (critical error)
-        if 'admin_code' not in gdf.columns and 'region' not in gdf.columns:
-            self.errors.append("region_table.geojson must have 'admin_code' or 'region' column")
+        if 'region' not in gdf.columns:
+            self.errors.append("region_table.geojson must have a 'region' column")
             
         # Check geometry type (critical error)
         if not all(gdf.geometry.geom_type == 'Point'):
