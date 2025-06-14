@@ -1,15 +1,21 @@
 # Indicate the subfolder of the input folder that contains the input files
-filepaths:
-  "sector_table": "Network/sector_table.csv"
-  "mrio": "Network/tech_coef_matrix.csv"
-  "inventory_duration_targets": "Network/inventory_duration_targets.csv"
 transport_modes: [roads, maritime, waterways, railways]
 monetary_units_in_model: mUSD
 monetary_units_inputed: USD
 time_resolution: week
 io_cutoff: 0.04
-inventory_duration_target: inputed
-inventory_duration_target_unit: week
+inventory_duration_targets:
+  definition: per_input_type
+  values:
+    utility: 1
+    agriculture: 15
+    manufacturing: 30
+    service: 90
+    trade: 30
+    construction: 30
+    transport: 3
+    default: 30
+  unit: day
 transport_cost_noise_level: 0
 countries_to_include: ['AFR', 'AME', 'ASI', 'EUR', 'OCE', 'THA', 'VNM']
 simulation_type: initial_state  # disruption

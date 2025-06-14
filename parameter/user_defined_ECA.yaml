@@ -1,7 +1,7 @@
 # Indicate the subfolder of the input folder that contains the input files
 filepaths:
   "sector_table": "Network/sector_table.csv"
-  "inventory_duration_targets": "Network/inventory_targets.csv"
+#  "inventory_duration_targets": "Network/inventory_targets.csv"
   "mrio": "Network/mrio_BS_MC.csv"
   "railways_edges": "Transport/railways_edges_2030.geojson"
   "region_table": "Network/regions.geojson"
@@ -59,9 +59,10 @@ duration_dic:
   2: 6
   3: 9
   4: 11
-simulation_type: disruption
+simulation_type: disruption_mc
 mc_repetitions: 2
-t_final: 30
+t_final: 10
+epsilon_stop_condition: False
 criticality:
   attribute: top_flow
   edges: [aktau, baku, turkmenbashi, railways-GEO, railways-AZE, railways-KAZ]
@@ -79,7 +80,7 @@ events:
     values: [aktau]
 #    values: ["flood_1in1000_UZB"]
     probability: 0.236
-    scenario_duration: 30
+    scenario_duration: 10
 #    start_time: 1
 #    duration: 7
 #disruption_description:

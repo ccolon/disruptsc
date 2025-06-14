@@ -3,9 +3,8 @@ output/*
 !output/.gitkeep
 tmp/*
 !tmp/.gitkeep
-input/Ecuador
-#input/*
-#!input/Testkistan/
+# Exclude input folder - data is now in separate repository
+input/*
 parameter/*
 #!parameter/user_defined_Testkistan.yaml
 #!parameter/default.yaml

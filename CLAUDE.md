@@ -34,6 +34,17 @@ conda activate dscinter
 
 # Alternative: install via pip
 pip install -e .
+
+# Setup data repository (choose one option):
+
+# Option 1: Git submodule (recommended)
+git submodule add <your-private-data-repo-url> data
+git submodule update --init
+
+# Option 2: Environment variable
+export DISRUPT_SC_DATA_PATH=/path/to/your/data/folder
+
+# Option 3: Legacy - keep data in input/ folder (fallback)
 ```
 
 **Python requirement:** 3.10-3.11 (supports Python 3.10 and 3.11)
@@ -51,7 +62,7 @@ DisruptSC is a spatial agent-based model simulating supply chain disruptions. Ke
 
 ### Key Classes & Relationships
 - `Model` - Main orchestrator in `model/model.py`
-- `MRIO` - Multi-regional input-output data (extends pandas DataFrame)
+- `Mrio` - Multi-regional input-output data (extends pandas DataFrame)
 - `ScNetwork` - Supply chain relationships (extends NetworkX DiGraph)
 - `Agents` - Collections of firms, households, countries
 - `TransportNetwork` - Infrastructure graph with spatial data
@@ -78,16 +89,26 @@ Key configuration areas:
 
 ## Input Data Structure
 
-Data organized by region in `input/<region>/`:
+**Repository Separation:**
+The model code and data are now separated into different repositories:
+- **disrupt-sc** (public): Model code, configuration, documentation
+- **disrupt-sc-data** (private): Input data files
+
+**Data Location Options:**
+1. **Git Submodule** (recommended): `git submodule add <data-repo-url> data`
+2. **Environment Variable**: Set `DISRUPT_SC_DATA_PATH=/path/to/data`
+3. **Legacy**: Keep data in `input/` folder (fallback)
+
+**Note:** Large data files (>50MB) may trigger GitHub warnings. Consider migrating to Git Large File Storage (Git LFS) if file sizes become problematic or if frequent updates to large files are needed.
+
+**Data Structure:**
+Data organized by region in `data/<region>/` (or `input/<region>/` for legacy):
 
 ```
-input/{region}/
-├── Network/        # MRIO tables, sector definitions (for "mrio" mode)
-├── Transport/      # Infrastructure GeoJSON files + transport_parameters.yaml
-├── National/       # Legacy IO tables (no longer used)
-├── Subnational/    # Regional economic data  
-├── Trade/          # Import/export/transit matrices
-└── Downscale/      # Geographic disaggregation data
+data/{region}/
+├── Economic/        # MRIO tables, sector definitions
+├── Transport/      # Infrastructure GeoJSON files
+└── Spatial/      # Geographic disaggregation data
 ```
 
 ## Simulation Types
