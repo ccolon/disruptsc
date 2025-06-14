@@ -1,5 +1,60 @@
 # DisruptSupplyChain Model
 
+## Data Repository Setup
+
+**Important**: This repository contains only the model code. Input data is managed separately for security and size reasons.
+
+### For New Users
+
+**Step 1: Choose Data Setup Method**
+
+Choose one of the following options to provide input data to the model:
+
+**Option A: Git Submodule (Recommended for collaborators)**
+```bash
+# If you have access to the private disrupt-sc-data repository
+git submodule add <disrupt-sc-data-repository-url> data
+git submodule update --init
+```
+
+**Option B: Environment Variable (Flexible for different data locations)**
+```bash
+# Point to your local data directory
+export DISRUPT_SC_DATA_PATH=/path/to/your/data/folder
+```
+
+**Option C: Local Input Folder (Simple for standalone use)**
+```bash
+# Create input folder and organize data by region
+mkdir input
+# Copy your data files following the structure described below
+```
+
+### Data Structure
+
+Input data should be organized by region:
+```
+data/<region>/          # or input/<region>/ for local setup
+├── Economic/           # MRIO tables, sector definitions
+├── Transport/          # Infrastructure GeoJSON files
+└── Spatial/           # Geographic disaggregation data
+```
+
+### Data Path Priority
+
+The model automatically detects data location in this order:
+1. `DISRUPT_SC_DATA_PATH` environment variable (highest priority)
+2. `data/` folder (git submodule)
+3. `input/` folder (local fallback)
+
+### Large File Handling
+
+Some input files exceed 50MB and may trigger GitHub warnings. Consider using Git Large File Storage (Git LFS) if you frequently update large data files.
+
+**Step 2: Request Data Access**
+
+Contact the maintainers for access to the input data repository or sample datasets.
+
 ## Installation
 
 Git clone the project
@@ -20,12 +75,11 @@ Activate the right environment:
 
 The model is launched by the following command:
 
-	python code/main.py <region> <optional argument>
+	python disruptsc/main.py <region> <optional argument>
 
 Argument `region` corresponds to the region that is studied, for instance, `Tanzania`. This string should
 be the same as:
-- the input subfolder containing the data in the `input` folder, e.g., "input/Tanzania".
-This folder should be created manually by the user.
+- the data subfolder containing the region's data, e.g., "data/Tanzania" (or "input/Tanzania" if using local setup).
 - the suffix of the user-defined parameters yaml file in the `parameter` folder, 
 e.g., "parameter/user_defined_Tanzania.yaml".
 This file should be created manually by the user.
@@ -473,7 +527,7 @@ A capital destruction is defined by:
 
 The model is launched by the following command:
 
-	python code/main.py <region> <optional argument>
+	python disruptsc/main.py <region> <optional argument>
 
 See the section "Calling the script" for more details.
 

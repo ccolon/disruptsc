@@ -1,4 +1,4 @@
-name: dscinter
+name: dsc
 channels:
   - conda-forge
 dependencies:

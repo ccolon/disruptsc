@@ -30,7 +30,7 @@ python disruptsc/main.py <region> --duration 90 --io_cutoff 0.5
 ```bash
 # Create conda environment
 conda env create -f dsc-environment.yml
-conda activate dscinter
+conda activate dsc
 
 # Alternative: install via pip
 pip install -e .
