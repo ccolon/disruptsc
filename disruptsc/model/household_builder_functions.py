@@ -60,7 +60,7 @@ def create_households(
 
 def define_households_from_mrio(
         mrio: Mrio,
-        filepath_region_table: Path,
+        filepath_households_spatial: Path,
         transport_nodes: gpd.GeoDataFrame,
         time_resolution: str,
         target_units: str,
@@ -70,7 +70,7 @@ def define_households_from_mrio(
         admin: list | None = None,
 ):
     # Create household table
-    household_table = gpd.read_file(filepath_region_table)
+    household_table = gpd.read_file(filepath_households_spatial)
     household_table = household_table[household_table["region"].isin([tup[0] for tup in mrio.region_households])]
     admissible_node_mode = ['roads']
     potential_nodes = transport_nodes[transport_nodes['type'].isin(admissible_node_mode)]

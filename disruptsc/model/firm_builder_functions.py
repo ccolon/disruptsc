@@ -132,46 +132,94 @@ def check_successful_extraction(firm_table: pd.DataFrame, attribute: str):
                         f"{firm_table[firm_table[attribute].isnull()].index}")
 
 
-def load_disag_data(folder_path: Path, accepted_sectors: list, accepted_regions: list) -> gpd.GeoDataFrame:
+def load_firms_spatial_data(filepath_firms_spatial: Path, accepted_sectors: list, accepted_regions: list) -> gpd.GeoDataFrame:
     """
-    Load all geojson files within the folder defined in parameters, then check if they have a region column,
-    if the geometries are Points, then concatenate them.
+    Load firm spatial data from single firms.geojson file.
+    Replaces the old load_disag_data() that read from Disag/ folder.
 
     Parameters
     ----------
-    accepted_regions
-    accepted_sectors
-    folder_path : Path
-        Path to the folder containing geojson files.
+    accepted_regions : list
+        List of regions to include
+    accepted_sectors : list  
+        List of sectors to include
+    filepath_firms_spatial : Path
+        Path to the firms.geojson file
 
     Returns
     -------
     gpd.GeoDataFrame
-        Concatenated GeoDataFrame containing all valid geojson files.
+        GeoDataFrame containing firm spatial data
     """
-    geojson_files = list(folder_path.glob("*.geojson"))
-    logging.info(f'Processing files {geojson_files}')
-    geo_dfs = []
+    logging.info(f'Loading firm spatial data from {filepath_firms_spatial}')
+    
+    # Load the firms geojson file
+    gdf = gpd.read_file(filepath_firms_spatial)
+    
+    # Validate structure
+    if 'region' not in gdf.columns:
+        raise ValueError("firms.geojson must have 'region' column")
+    if not gdf.geometry.geom_type.eq('Point').all():
+        raise ValueError("firms.geojson: All geometries must be Points")
+    
+    # Filter regions
+    useless_regions = list(set(gdf['region'].unique()) - set(accepted_regions))
+    if useless_regions:
+        logging.info(f"The following regions will not be used: {useless_regions} because "
+                     f"they are not part of the MRIO table: {accepted_regions}")
+    gdf = gdf[~gdf['region'].isin(useless_regions)]
+    
+    # Filter columns to keep only relevant sectors
+    useless_cols = [col for col in gdf.columns if col not in ['region', "geometry"] + accepted_sectors]
+    if useless_cols:
+        logging.info(f"The following columns will not be used: {useless_cols} because "
+                     f"they are not part of the list of sectors defined in the MRIO table: {accepted_sectors}")
+    disag_sectors = list(set(gdf.columns) & set(accepted_sectors))
+    gdf = gdf[['region', 'geometry'] + disag_sectors]
+    
+    return gdf
 
-    for file in geojson_files:
-        gdf = gpd.read_file(file)
-        if 'region' in gdf.columns and gdf.geometry.geom_type.eq('Point').all():
-            useless_regions = list(set(gdf['region'].unique()) - set(accepted_regions))
-            logging.info(f"In file {file}, the following regions will not be used: {useless_regions} because "
-                         f"they are no part of the MRIO table: {accepted_regions}")
-            gdf = gdf[~gdf['region'].isin(useless_regions)]
-            useless_cols = [col for col in gdf.columns if col not in ['region', "geometry"] + accepted_sectors]
-            logging.info(f"In file {file}, the following columns will not be used: {useless_cols} because "
-                         f"they are no part of the list of sectors defined in the MRIO table: {accepted_sectors}")
-            disag_sectors = list(set(gdf.columns) & set(accepted_sectors))
-            gdf = gdf[['region', 'geometry'] + disag_sectors]
-            geo_dfs.append(gdf)
 
-    if geo_dfs:
-        concatenated_gdf = gpd.GeoDataFrame(pd.concat(geo_dfs, ignore_index=True))
-        return concatenated_gdf
+def load_disag_data(folder_path: Path, accepted_sectors: list, accepted_regions: list) -> gpd.GeoDataFrame:
+    """
+    DEPRECATED: Use load_firms_spatial_data() instead.
+    This function is kept for backward compatibility.
+    """
+    import warnings
+    warnings.warn(
+        "load_disag_data() is deprecated. Use load_firms_spatial_data() instead.",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    # For backward compatibility, try to find firms.geojson in the folder
+    firms_file = folder_path / "firms.geojson"
+    if firms_file.exists():
+        return load_firms_spatial_data(firms_file, accepted_sectors, accepted_regions)
     else:
-        return gpd.GeoDataFrame()
+        # Fallback to old behavior
+        geojson_files = list(folder_path.glob("*.geojson"))
+        logging.info(f'Processing files {geojson_files}')
+        geo_dfs = []
+
+        for file in geojson_files:
+            gdf = gpd.read_file(file)
+            if 'region' in gdf.columns and gdf.geometry.geom_type.eq('Point').all():
+                useless_regions = list(set(gdf['region'].unique()) - set(accepted_regions))
+                logging.info(f"In file {file}, the following regions will not be used: {useless_regions} because "
+                             f"they are no part of the MRIO table: {accepted_regions}")
+                gdf = gdf[~gdf['region'].isin(useless_regions)]
+                useless_cols = [col for col in gdf.columns if col not in ['region', "geometry"] + accepted_sectors]
+                logging.info(f"In file {file}, the following columns will not be used: {useless_cols} because "
+                             f"they are no part of the list of sectors defined in the MRIO table: {accepted_sectors}")
+                disag_sectors = list(set(gdf.columns) & set(accepted_sectors))
+                gdf = gdf[['region', 'geometry'] + disag_sectors]
+                geo_dfs.append(gdf)
+
+        if geo_dfs:
+            concatenated_gdf = gpd.GeoDataFrame(pd.concat(geo_dfs, ignore_index=True))
+            return concatenated_gdf
+        else:
+            return gpd.GeoDataFrame()
 
 
 def create_disag_firm_table(disag_data: gpd.GeoDataFrame) -> gpd.GeoDataFrame:

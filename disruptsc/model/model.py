@@ -194,7 +194,7 @@ class Model(object):
             if self.parameters.firm_data_type == "mrio":
                 self.household_table, household_sector_consumption = define_households_from_mrio(
                     mrio=self.mrio,
-                    filepath_region_table=self.parameters.filepaths['region_table'],
+                    filepath_households_spatial=self.parameters.filepaths['households_spatial'],
                     transport_nodes=self.transport_nodes,
                     time_resolution=self.parameters.time_resolution,
                     target_units=self.parameters.monetary_units_in_model,
@@ -271,7 +271,7 @@ class Model(object):
                 self.countries, self.country_table = create_countries_from_mrio(
                     mrio=self.mrio,
                     transport_nodes=self.transport_nodes,
-                    filepath_regions=self.parameters.filepaths['region_table'],
+                    filepath_countries_spatial=self.parameters.filepaths['countries_spatial'],
                     filepath_sectors=self.parameters.filepaths['sector_table'],
                     time_resolution=self.parameters.time_resolution,
                     target_units=self.parameters.monetary_units_in_model,

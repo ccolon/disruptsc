@@ -15,15 +15,17 @@ filepaths:
   "sector_table": "Economic/sector_table.csv"
   "mrio": "Economic/mrio.csv"
   # Spatial data
-  "firms": "Spatial"
-  "households": "Spatial/households.geojson"
+  "households_spatial": "Spatial/households.geojson"
+  "countries_spatial": "Spatial/countries.geojson"
+  "firms_spatial": "Spatial/firms.geojson"
   # Optional
   "inventory_duration_targets": "Economic/inventory_targets.csv"
   "admin": "Subnational/admin.geojson"
   # Legacy
+  "firms": "Spatial"  # Deprecated: use firms_spatial instead
   "tech_coef": "Economic/tech_coef.csv"
   "firm_table": "Economic/firm_table.csv"
-  "region_table": "Economic/region_table.geojson"
+  "region_table": "Economic/region_table.geojson"  # Deprecated: split into households_spatial and countries_spatial
   "transaction_table": "Economic/transaction_table.csv"
   "imports": "Trade/import_table.csv"
   "exports": "Trade/export_table.csv"

@@ -167,14 +167,8 @@ class InputValidator:
         else:
             self._validate_mrio_table(mrio_file)
             
-        # Region table is mandatory - throw error if missing
-        region_file = self.parameters.filepaths.get('region_table')
-        if not region_file:
-            self.errors.append("MRIO mode requires 'region_table' filepath to be specified in parameters")
-        elif not Path(region_file).exists():
-            self.errors.append(f"Required region table not found: {region_file}")
-        else:
-            self._validate_region_table(region_file)
+        # Spatial files are mandatory - throw error if missing
+        self._validate_spatial_files()
     
     def _validate_mrio_table(self, filepath):
         """Validate the multi-regional input-output table structure."""
@@ -217,38 +211,71 @@ class InputValidator:
         except Exception as e:
             self.errors.append(f"Cannot compute MRIO table balance: {e}")
     
-    def _validate_region_table(self, filepath):
-        """Validate the region table for MRIO mode."""
+    def _validate_spatial_files(self):
+        """Validate new spatial file structure."""
+        spatial_files = {
+            'households_spatial': 'households.geojson',
+            'countries_spatial': 'countries.geojson', 
+            'firms_spatial': 'firms.geojson'
+        }
+        
+        for file_key, filename in spatial_files.items():
+            filepath = self.parameters.filepaths.get(file_key)
+            if not filepath:
+                self.errors.append(f"MRIO mode requires '{file_key}' filepath to be specified in parameters")
+                continue
+                
+            if not Path(filepath).exists():
+                self.errors.append(f"Required spatial file not found: {filepath}")
+                continue
+                
+            self._validate_spatial_file(filepath, filename)
+        
+        # Warn about deprecated files
+        deprecated_files = ['region_table']
+        for deprecated_key in deprecated_files:
+            if self.parameters.filepaths.get(deprecated_key):
+                self.warnings.append(f"Deprecated parameter '{deprecated_key}' found. "
+                                   f"Use 'households_spatial' and 'countries_spatial' instead.")
+        
+        # Check for deprecated Disag folder
+        spatial_folder = Path(self.parameters.filepaths.get('households_spatial', '')).parent
+        disag_folder = spatial_folder / "Disag"
+        if disag_folder.exists():
+            self.warnings.append("Deprecated Disag/ folder found. Use firms.geojson instead.")
+    
+    def _validate_spatial_file(self, filepath, filename):
+        """Validate individual spatial file structure."""
         try:
             gdf = gpd.read_file(filepath)
         except Exception as e:
-            self.errors.append(f"Cannot read region table: {e}")
+            self.errors.append(f"Cannot read {filename}: {e}")
             return
             
         # Check for empty data (critical error)
         if gdf.empty:
-            self.errors.append("region_table.geojson is empty")
+            self.errors.append(f"{filename} is empty")
             return
             
         # Check for required identifier column (critical error)
         if 'region' not in gdf.columns:
-            self.errors.append("region_table.geojson must have a 'region' column")
+            self.errors.append(f"{filename} must have a 'region' column")
             
         # Check geometry type (critical error)
         if not all(gdf.geometry.geom_type == 'Point'):
-            self.errors.append("region_table.geojson: All geometries must be Points")
+            self.errors.append(f"{filename}: All geometries must be Points")
             
         # Check for missing geometries (critical error)
         if gdf.geometry.isna().any():
-            self.errors.append("region_table.geojson contains missing geometries")
+            self.errors.append(f"{filename} contains missing geometries")
             
         # Check for duplicate region identifiers (critical error)
         id_col = 'admin_code' if 'admin_code' in gdf.columns else 'region'
         if id_col in gdf.columns:
             if gdf[id_col].duplicated().any():
-                self.errors.append(f"region_table.geojson contains duplicate {id_col} values")
+                self.errors.append(f"{filename} contains duplicate {id_col} values")
             if gdf[id_col].isna().any():
-                self.errors.append(f"region_table.geojson contains missing {id_col} values")
+                self.errors.append(f"{filename} contains missing {id_col} values")
     
     def _validate_supplier_buyer_inputs(self):
         """Validate inputs specific to supplier-buyer network mode."""

@@ -145,7 +145,7 @@ def create_countries(filepath_imports: Path, filepath_exports: Path, filepath_tr
 
 def create_countries_from_mrio(mrio: Mrio,
                                transport_nodes: geopandas.GeoDataFrame,
-                               filepath_regions: Path, filepath_sectors: Path,
+                               filepath_countries_spatial: Path, filepath_sectors: Path,
                                time_resolution: str,
                                target_units: str, input_units: str) -> Countries:
     logging.info('Creating countries.')
@@ -194,7 +194,7 @@ def create_countries_from_mrio(mrio: Mrio,
 
     total_imports = import_table.sum().sum()
 
-    country_table = geopandas.read_file(filepath_regions).set_index('region').loc[country_list]
+    country_table = geopandas.read_file(filepath_countries_spatial).set_index('region').loc[country_list]
     admissible_node_mode = ['roads', 'railways', 'maritime']
     potential_nodes = transport_nodes[transport_nodes['type'].isin(admissible_node_mode)]
     country_table['od_point'] = find_nearest_node_id(potential_nodes, country_table)
