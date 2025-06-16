@@ -270,12 +270,10 @@ class InputValidator:
             self.errors.append(f"{filename} contains missing geometries")
             
         # Check for duplicate region identifiers (critical error)
-        id_col = 'admin_code' if 'admin_code' in gdf.columns else 'region'
-        if id_col in gdf.columns:
-            if gdf[id_col].duplicated().any():
-                self.errors.append(f"{filename} contains duplicate {id_col} values")
-            if gdf[id_col].isna().any():
-                self.errors.append(f"{filename} contains missing {id_col} values")
+        cols_to_checks = ['region', 'geometry']
+        for col_to_checks in cols_to_checks:
+            if gdf[col_to_checks].isna().any():
+                self.errors.append(f"{filename} contains missing {col_to_checks} values")
     
     def _validate_supplier_buyer_inputs(self):
         """Validate inputs specific to supplier-buyer network mode."""
