@@ -10,7 +10,12 @@ from shapely.geometry import Point
 from disruptsc.model.basic_functions import generate_weights, \
     compute_distance_from_arcmin, rescale_values, rescale_monetary_values, generate_weights_from_list
 
-from disruptsc.agents.agent import Agent, Agents
+from disruptsc.agents.base_agent import BaseAgent, BaseAgents
+from disruptsc.agents.transport_mixin import TransportCapable
+from disruptsc.agents.firm_components import (
+    ProductionManager, InventoryManager, FinanceManager, SupplierManager,
+    production_function, purchase_planning_function, evaluate_inventory_duration
+)
 from disruptsc.network.commercial_link import CommercialLink
 
 if TYPE_CHECKING:
@@ -21,7 +26,7 @@ if TYPE_CHECKING:
 EPSILON = 1e-6
 
 
-class Firm(Agent):
+class Firm(BaseAgent, TransportCapable):
 
     def __init__(self, pid, od_point, sector, region_sector, region, sector_type=None, name="noname", input_mix=None,
                  target_margin=0.2, transport_share=0.2, utilization_rate=0.8,
@@ -46,134 +51,129 @@ class Firm(Agent):
         self.sector_type = sector_type
         self.sector = sector
         self.input_mix = input_mix or {}
-        self.target_margin = target_margin
-        self.transport_share = transport_share
-
-        # Free parameters
-        self.inventory_duration_target = min_inventory_duration_target
-        self.inventory_restoration_time = inventory_restoration_time
-        self.eq_production_capacity = production / utilization_rate
-        self.utilization_rate = utilization_rate
-        self.capital_to_value_added_ratio = capital_to_value_added_ratio
-
-        # Parameters depending on supplier-buyer network
+        
+        # Initialize component managers
+        self.production_manager = ProductionManager(self)
+        self.inventory_manager = InventoryManager(self)
+        self.finance_manager = FinanceManager(self)
+        self.supplier_manager = SupplierManager(self)
+        
+        # Configure component managers
+        self.finance_manager.target_margin = target_margin
+        self.finance_manager.transport_share = transport_share
+        self.finance_manager.capital_to_value_added_ratio = capital_to_value_added_ratio
+        
+        self.production_manager.utilization_rate = utilization_rate
+        self.inventory_manager.inventory_duration_target = {input_id: min_inventory_duration_target for input_id in self.input_mix.keys()}
+        self.inventory_manager.inventory_restoration_time = inventory_restoration_time
+        
+        # Equilibrium values
+        self.eq_production = 0.0
+        self.eq_price = 1.0
+        
+        # Legacy attributes for backward compatibility
         self.suppliers = suppliers or {}
         self.clients = clients or {}
-
-        # Parameters sets at initialization
-        self.eq_production = 0.0
-        self.eq_finance = {"sales": 0.0, 'costs': {"input": 0.0, "transport": 0.0, "other": 0.0}}
-        self.eq_profit = 0.0
-        self.eq_price = 1.0
-        self.eq_total_order = 0.0
-
-        # Variables, all initialized
-        self.production = production
-        self.production_target = production
-        self.production_capacity = production / utilization_rate
-        self.current_production_capacity = self.production_capacity
-        self.capital_initial = 0.0
-        self.purchase_plan = {}
-        self.purchase_plan_per_input = {}
-        self.order_book = {}
-        self.total_order = 0.0
-        self.input_needs = {}
         self.rationing = 1.0
-        self.eq_needs = {}
-        self.current_inventory_duration = {}
-        self.inventory = {}
-        self.product_stock = 0.0
-        self.profit = 0.0
-        self.finance = {"sales": 0.0, 'costs': {"input": 0.0, "transport": 0.0, "other": 0.0}}
-        self.delta_price_input = 0
-        # self.generalized_transport_cost = 0
-        # self.usd_transported = 0
-        # self.tons_transported = 0
-        # self.tonkm_transported = 0
-
-        # Disruption
-        self.capital_destroyed = 0.0
-        self.remaining_disrupted_time = 0.0
-        self.production_capacity_reduction = 0.0
-        self.capital_demanded = 0.0
-        self.reconstruction_demand = 0.0
-        self.reconstruction_produced = 0.0
+        
+        # Initialize production with given value
+        if production > 0:
+            self.production_manager.initialize(production, utilization_rate)
+        
+        # Set up initial equilibrium values from the passed parameters
+        self.supplier_manager.eq_total_order = 0.0
+        self.eq_production = production
 
     def reset_variables(self):
-        self.eq_finance = {"sales": 0.0, 'costs': {"input": 0.0, "transport": 0.0, "other": 0.0}}
-        self.eq_profit = 0.0
+        """Reset all variables to their initial state."""
         self.eq_price = 1.0
-        self.production = 0.0
-        self.production_target = 0.0
-        self.production_capacity = self.eq_production_capacity
-        self.purchase_plan = {}
-        self.order_book = {}
-        self.total_order = 0.0
-        self.input_needs = {}
         self.rationing = 1.0
-        self.eq_needs = {}
-        self.current_inventory_duration = {}
-        self.inventory = {}
-        self.product_stock = 0.0
-        self.profit = 0.0
-        self.finance = {"sales": 0.0, 'costs': {"input": 0.0, "transport": 0.0, "other": 0.0}}
-        self.delta_price_input = 0.0
-        # self.generalized_transport_cost = 0
-        # self.usd_transported = 0
-        # self.tons_transported = 0
-        # self.tonkm_transported = 0
-        self.capital_destroyed = 0.0
+        
+        # Reset component managers
+        self.production_manager.reset()
+        self.inventory_manager.reset()
+        self.finance_manager.reset()
+        self.supplier_manager.reset()
 
     def reset_indicators(self):
         pass
 
     def id_str(self):
         return super().id_str() + f" sector {self.sector}"
+    
+    # Properties for backward compatibility
+    @property
+    def production(self):
+        return self.production_manager.production
+    
+    @property
+    def production_target(self):
+        return self.production_manager.production_target
+    
+    @property
+    def product_stock(self):
+        return self.production_manager.product_stock
+    
+    @property
+    def inventory(self):
+        return self.inventory_manager.inventory
+    
+    @property
+    def purchase_plan(self):
+        return self.inventory_manager.purchase_plan
+    
+    @property
+    def order_book(self):
+        return self.supplier_manager.order_book
+    
+    @property
+    def total_order(self):
+        return self.supplier_manager.total_order
+    
+    @property
+    def profit(self):
+        return self.finance_manager.profit
+    
+    @property
+    def finance(self):
+        return self.finance_manager.finance
+    
+    @property
+    def delta_price_input(self):
+        return self.finance_manager.delta_price_input
 
     def update_disrupted_production_capacity(self):
-        is_back_to_normal = self.remaining_disrupted_time == 1  # Identify those who will be back to normal
-        if self.remaining_disrupted_time > 0:  # Update the remaining time in disruption
-            self.remaining_disrupted_time -= 1
-        if is_back_to_normal:  # Update the remaining time in disruption
-            self.production_capacity_reduction = 0
-            logging.info(f'The production capacity of firm {self.pid} is back to normal')
+        """Update disruption status for production capacity."""
+        self.production_manager.update_disrupted_production_capacity()
 
     def disrupt_production_capacity(self, disruption_duration: int, reduction: float):
-        self.remaining_disrupted_time = disruption_duration
-        self.production_capacity_reduction = reduction
-        logging.info(f'The production capacity of firm {self.pid} is reduced by {reduction} '
-                     f'for {disruption_duration} time steps')
+        """Apply production capacity disruption."""
+        self.production_manager.disrupt_production_capacity(disruption_duration, reduction)
 
     def initialize_operational_variables(self, eq_production: float, time_resolution: str):
-        self.production_target = eq_production
-        self.production = self.production_target
-        self.eq_production = self.production_target
-        self.eq_production_capacity = self.production_target / self.utilization_rate
-        self.production_capacity = self.eq_production_capacity
-        self.evaluate_input_needs()
-        self.eq_needs = self.input_needs
-        self.inventory = {
-            input_id: need * self.inventory_duration_target[input_id]
-            for input_id, need in self.input_needs.items()
-        }
-        self.decide_purchase_plan(adaptive_inventories=False, adapt_weight_based_on_satisfaction=False)
-        yearly_eq_production = rescale_monetary_values(eq_production, input_time_resolution=time_resolution,
-                                                       target_time_resolution="year")
-        self.capital_initial = self.capital_to_value_added_ratio * yearly_eq_production
+        """Initialize operational variables based on equilibrium production."""
+        self.eq_production = eq_production
+        
+        # Initialize production manager
+        self.production_manager.initialize(eq_production, self.production_manager.utilization_rate)
+        
+        # Initialize inventory manager
+        input_needs = {input_pid: self.input_mix[input_pid] * eq_production for input_pid in self.input_mix.keys()}
+        min_inventory_duration = min(self.inventory_manager.inventory_duration_target.values()) if self.inventory_manager.inventory_duration_target else 1
+        self.inventory_manager.initialize(input_needs, min_inventory_duration)
+        
+        # Initialize capital
+        self.finance_manager.initialize_capital(eq_production, time_resolution)
 
     def initialize_financial_variables(self, eq_production, eq_input_cost,
                                        eq_transport_cost, eq_other_cost):
-        self.eq_finance['sales'] = eq_production
-        self.eq_finance['costs']['input'] = eq_input_cost
-        self.eq_finance['costs']['transport'] = eq_transport_cost
-        self.eq_finance['costs']['other'] = eq_other_cost
-        self.eq_profit = self.eq_finance['sales'] - sum(self.eq_finance['costs'].values())
-        self.finance['sales'] = self.eq_finance['sales']
-        self.finance['costs']['input'] = self.eq_finance['costs']['input']
-        self.finance['costs']['transport'] = self.eq_finance['costs']['transport']
-        self.finance['costs']['other'] = self.eq_finance['costs']['other']
-        self.profit = self.eq_profit
-        self.delta_price_input = 0
+        """Initialize financial variables."""
+        self.finance_manager.initialize_financial_variables(
+            eq_production, eq_input_cost, eq_transport_cost, eq_other_cost
+        )
+        # Store equilibrium values for reference
+        self.eq_finance = self.finance_manager.eq_finance.copy()
+        self.eq_profit = self.finance_manager.eq_profit
 
     def add_noise_to_geometry(self, noise_level=1e-5):
         self.geometry = Point(self.long + noise_level * random.uniform(0, 1),
@@ -392,285 +392,130 @@ class Firm(Agent):
                                                      'distance': distance}
 
     def calculate_client_share_in_sales(self):
-        # Only works if the order book was computed
-        self.total_order = sum([order for client_pid, order in self.order_book.items()])
-        total_qty_km = sum([
-            info['distance'] * self.order_book[client_pid]
-            for client_pid, info in self.clients.items()
-        ])
-        # self.total_B2B_order = sum([order for client_pid, order in self.order_book.items() if client_pid != -1])
-        # If noone ordered to me, share is 0 (avoid division per 0)
-        if self.total_order == 0:
-            for client_pid, info in self.clients.items():
-                info['share'] = 0
-                info['transport_share'] = 0
-
-        # If some clients ordered to me, but distance is 0 (no transport), then equal share of transport
-        elif total_qty_km == 0:
-            nb_active_clients = sum([order > 0 for client_pid, order in self.order_book.items()
-                                     if client_pid != "reconstruction"])
-            for client_pid, info in self.clients.items():
-                info['share'] = self.order_book[client_pid] / self.total_order
-                info['transport_share'] = 1 / nb_active_clients
-
-        # Otherwise, standard case
-        else:
-            for client_pid, info in self.clients.items():
-                info['share'] = self.order_book[client_pid] / self.total_order
-                info['transport_share'] = self.order_book[client_pid] * self.clients[client_pid][
-                    'distance'] / total_qty_km
+        """Calculate each client's share in total sales."""
+        self.supplier_manager.calculate_client_share_in_sales()
 
     def aggregate_orders(self, log_info=False):
-        self.total_order = sum([order for client_pid, order in self.order_book.items()])
-        if log_info:
-            if self.total_order == 0:
-                logging.debug(f'Firm {self.pid} ({self.region_sector}): noone ordered to me')
+        """Aggregate orders from all clients."""
+        self.supplier_manager.aggregate_orders(log_info)
 
     def decide_production_plan(self):
-        self.production_target = max(0.0, self.total_order - self.product_stock)
+        """Decide production plan based on orders and stock."""
+        self.production_manager.decide_production_plan(self.supplier_manager.total_order)
 
     def calculate_price(self, graph):
-        """
-        Evaluate the relative increase in price due to changes in input price
-        In addition, upon delivery, price will be adjusted for each client to reflect potential rerouting
-        """
-        if self.check_if_supplier_changed_price(graph):
-            # One way to compute it is commented.
-            #     self.delta_price_input = self.calculate_input_induced_price_change(graph)
-            #     logging.debug('Firm '+str(self.pid)+': Input prices have changed, I set '+
-            #     "my price to "+'{:.4f}'.format(self.eq_price*(1+self.delta_price_input))+
-            #     " instead of "+str(self.eq_price))
-
-            # I compute how much would be my input cost to produce one unit of output
-            # if I had to buy the input at this price
-            eq_unitary_input_cost, est_unitary_input_cost_at_current_price = self.get_input_costs(graph)
-            # I scale this added cost to my total orders
-            self.delta_price_input = est_unitary_input_cost_at_current_price - eq_unitary_input_cost
-            if self.delta_price_input is np.nan:
-                print(self.delta_price_input)
-                print(est_unitary_input_cost_at_current_price)
-                print(eq_unitary_input_cost)
-            # added_input_cost = (est_unitary_input_cost_at_current_price - eq_unitary_input_cost) * self.total_order
-            # self.delta_price_input = added_input_cost / self.total_order
-            logging.debug(f'Firm {self.pid}: Input prices have changed, I set my price to '
-                          f'{self.eq_price * (1 + self.delta_price_input):.4f} instead of {self.eq_price}'
-                          )
-        else:
-            self.delta_price_input = 0
+        """Calculate price changes due to input cost changes."""
+        self.finance_manager.calculate_price(graph)
 
     def get_input_costs(self, graph):
-        eq_unitary_input_cost = 0
-        est_unitary_input_cost_at_current_price = 0
-        for edge in graph.in_edges(self):
-            eq_unitary_input_cost += graph[edge[0]][self]['object'].eq_price * graph[edge[0]][self]['weight']
-            est_unitary_input_cost_at_current_price += graph[edge[0]][self]['object'].price * graph[edge[0]][self][
-                'weight']
-        return eq_unitary_input_cost, est_unitary_input_cost_at_current_price
+        """Get theoretical input costs."""
+        return self.finance_manager._get_input_costs(graph)
 
     def evaluate_input_needs(self):
-        self.input_needs = {
-            input_pid: self.input_mix[input_pid] * self.production_target
-            for input_pid, mix in self.input_mix.items()
-        }
+        """Evaluate input needs based on production target."""
+        self.inventory_manager.evaluate_input_needs(self.input_mix, self.production_manager.production_target)
 
     def decide_purchase_plan(self, adaptive_inventories: bool, adapt_weight_based_on_satisfaction: bool):
-        """
-        If adaptive_inventories, it aims to come back to equilibrium inventories
-        Else, it uses current orders to evaluate the target inventories
-        """
-
-        if adaptive_inventories:
-            ref_input_needs = self.input_needs
-        else:
-            ref_input_needs = self.eq_needs
-
-        # Evaluate the current safety days
-        self.current_inventory_duration = {
-            input_id: (evaluate_inventory_duration(ref_input_needs[input_id], stock)
-                       if input_id in ref_input_needs.keys() else 0)
-            for input_id, stock in self.inventory.items()
-        }
-
-        # Alert if there is less than a day of an input
-        for input_id, inventory_duration in self.current_inventory_duration.items():
-            if inventory_duration is not None:
-                if inventory_duration < 1 - EPSILON:
-                    logging.debug(f"{self.id_str()} - Less than 1 time step of inventory for input type {input_id}: "
-                                  f"{inventory_duration} vs. {self.inventory_duration_target[input_id]}")
-
-        # Evaluate purchase plan for each sector
-        # for input_id, need in ref_input_needs.items():
-        # if (abs(need - self.eq_needs[input_id]) > 1e-3) \
-        # or (abs(self.production_target - self.eq_production) > 1e-1):
-        #     print(self.id_str(), input_id)
-        #     print("inventory", self.inventory[input_id], 2 * self.eq_needs[input_id])
-        #     print("need", need > self.eq_needs[input_id], need, self.eq_needs[input_id])
-        #     print("order", self.total_order, self.eq_total_order)
-        #     print("production_target", self.production_target > self.eq_production, self.production_target, self.eq_production)
-        self.purchase_plan_per_input = {
-            input_id: purchase_planning_function(need, self.inventory[input_id],
-                                                 self.inventory_duration_target[input_id],
-                                                 self.inventory_restoration_time)
-            # input_id: purchase_planning_function(need, self.inventory[input_id],
-            # self.inventory_duration_old, self.reactivity_rate)
-            for input_id, need in ref_input_needs.items()
-        }
-
-        # Deduce the purchase plan for each supplier
-        if adapt_weight_based_on_satisfaction:
-            # self.purchase_plan = {}
-            for sector, need in self.purchase_plan_per_input.items():
-                suppliers_from_this_sector = [pid for pid, supplier_info in self.suppliers.items()
-                                              if supplier_info['sector'] == sector]
-                change_in_satisfaction = False
-                for pid, supplier_info in self.suppliers.items():
-                    if supplier_info['sector'] == sector:
-                        if supplier_info['satisfaction'] < 1 - EPSILON:
-                            change_in_satisfaction = True
-                            break
-
-                if change_in_satisfaction:
-                # total_satisfaction_suppliers = sum([supplier_info['satisfaction']
-                #                                     for pid, supplier_info in self.suppliers.items()
-                #                                     if pid in suppliers_from_this_sector])
-                    modified_weights = generate_weights_from_list([supplier_info['satisfaction'] * supplier_info['weight']
-                                                                   for pid, supplier_info in self.suppliers.items()
-                                                                   if pid in suppliers_from_this_sector])
-                    for i, modified_weight in enumerate(modified_weights):
-                        self.suppliers[suppliers_from_this_sector[i]]['weight'] = modified_weight
-
-                # # print(self.id_str(), sector, need, "total_satisfaction_suppliers", total_satisfaction_suppliers)
-                # for supplier_id in suppliers_from_this_sector:
-                #     supplier_info = self.suppliers[supplier_id]
-                #     if total_satisfaction_suppliers < EPSILON:
-                #         self.purchase_plan[supplier_id] = need * supplier_info['weight']
-                #     else:
-                #         relative_satisfaction = supplier_info['satisfaction'] / total_satisfaction_suppliers
-                #         print(self.id_str(), sector, relative_satisfaction)
-                #         self.purchase_plan[supplier_id] = need * supplier_info['weight'] * relative_satisfaction
-
-        # else:
-        self.purchase_plan = {supplier_id: self.purchase_plan_per_input[info['sector']] * info['weight']
-                              for supplier_id, info in self.suppliers.items()}
+        """Decide purchase plan based on inventory needs."""
+        self.inventory_manager.decide_purchase_plan(
+            adaptive_inventories, adapt_weight_based_on_satisfaction, self.suppliers
+        )
 
     def send_purchase_orders(self, sc_network: "ScNetwork"):
+        """Send purchase orders to suppliers."""
         for edge in sc_network.in_edges(self):
             supplier_id = edge[0].pid
             input_sector = edge[0].region_sector
-            if supplier_id in self.purchase_plan.keys():
-                quantity_to_buy = self.purchase_plan[supplier_id]
+            if supplier_id in self.inventory_manager.purchase_plan.keys():
+                quantity_to_buy = self.inventory_manager.purchase_plan[supplier_id]
                 if quantity_to_buy == 0:
                     logging.debug(f"{self.id_str()} - I am not planning to buy anything from supplier {supplier_id} "
                                   f"of sector {input_sector}. ")
-                    if self.purchase_plan_per_input[input_sector] == 0:
+                    if self.inventory_manager.purchase_plan_per_input[input_sector] == 0:
                         logging.debug(f"{self.id_str()} - I am not planning to buy this input at all. "
-                                      f"My needs is {self.input_needs[input_sector]}, "
-                                      f"my inventory is {self.inventory[input_sector]}, "
-                                      f"my inventory target is {self.inventory_duration_target[input_sector]} and "
+                                      f"My needs is {self.inventory_manager.input_needs[input_sector]}, "
+                                      f"my inventory is {self.inventory_manager.inventory[input_sector]}, "
+                                      f"my inventory target is {self.inventory_manager.inventory_duration_target[input_sector]} and "
                                       f"this input counts {self.input_mix[input_sector]} in my input mix.")
                     else:
-                        logging.debug(f"But I plan to buy {self.purchase_plan_per_input[input_sector]} of this input")
+                        logging.debug(f"But I plan to buy {self.inventory_manager.purchase_plan_per_input[input_sector]} of this input")
             else:
                 logging.error(f"{self.id_str()} - Supplier {supplier_id} is not in my purchase plan")
                 quantity_to_buy = 0
             sc_network[edge[0]][self]['object'].order = quantity_to_buy
 
     def retrieve_orders(self, sc_network: "ScNetwork"):
+        """Retrieve orders from clients."""
         for edge in sc_network.out_edges(self):
             quantity_ordered = sc_network[self][edge[1]]['object'].order
-            self.order_book[edge[1].pid] = quantity_ordered
+            self.supplier_manager.order_book[edge[1].pid] = quantity_ordered
 
     def add_reconstruction_order_to_order_book(self):
-        self.order_book["reconstruction"] = self.reconstruction_demand
+        """Add reconstruction demand to order book."""
+        self.supplier_manager.add_reconstruction_order_to_order_book()
 
     def evaluate_capacity(self):
-        if self.capital_destroyed > EPSILON:
-            self.production_capacity_reduction = self.capital_destroyed / self.capital_initial
-            logging.debug(f"{self.id_str()} - due to capital destruction, "
-                          f"my production capacity is reduced by {self.production_capacity_reduction}")
-        else:
-            self.production_capacity_reduction = 0
-        self.current_production_capacity = self.production_capacity * (1 - self.production_capacity_reduction)
+        """Evaluate current production capacity."""
+        self.production_manager.evaluate_capacity(
+            self.finance_manager.capital_destroyed, 
+            self.finance_manager.capital_initial
+        )
 
     def incur_capital_destruction(self, amount: float):
-        if amount > self.capital_initial:
-            logging.warning(f"{self.id_str()} - initial capital is lower than destroyed capital "
-                            f"({self.capital_initial} vs. {amount})")
-            self.capital_destroyed = self.capital_initial
-        else:
-            self.capital_destroyed = amount
+        """Apply capital destruction."""
+        self.finance_manager.incur_capital_destruction(amount)
 
     def get_spare_production_potential(self):
-        if len(self.input_mix) == 0:  # If no need for inputs
-            potential_production = self.current_production_capacity
-        else:
-            # max_production = production_function(self.inventory, self.input_mix, mode)  # Max prod given inventory
-            max_production = production_function(self.inventory, self.input_mix)  # Max prod given inventory
-            potential_production = min([max_production, self.current_production_capacity])
-        return max(0, potential_production - (self.total_order - self.product_stock))
+        """Calculate spare production capacity."""
+        return self.production_manager.get_spare_production_potential(
+            self.inventory_manager.inventory, self.input_mix, self.supplier_manager.total_order
+        )
 
     def produce(self, mode="Leontief"):
-        # Produce
-        if len(self.input_mix) == 0:  # If no need for inputs
-            self.production = min([self.production_target, self.current_production_capacity])
-        else:
-            max_production = production_function(self.inventory, self.input_mix, mode)  # Max prod given inventory
-            # if self.pid == 0:
-            #     print('max_prod', max_production)
-            self.production = min([max_production, self.production_target, self.current_production_capacity])
-
-        # Add to stock of finished goods
-        self.product_stock += self.production
-
-        # Remove input used from inventories
-        if mode == "Leontief":
-            input_used = {input_id: self.production * mix for input_id, mix in self.input_mix.items()}
-            self.inventory = {input_id: quantity - input_used[input_id]
-                              for input_id, quantity in self.inventory.items()}
-        else:
-            raise ValueError("Wrong mode chosen")
+        """Execute production and update inventories."""
+        updated_inventory = self.production_manager.produce(
+            self.inventory_manager.inventory, self.input_mix, mode
+        )
+        self.inventory_manager.inventory = updated_inventory
 
     def calculate_input_induced_price_change(self, graph):
-        """The firm evaluates the input costs of producing one unit of output if it had to buy the inputs at current
-        price It is a theoretical cost, because in simulations it may use inventory
-        """
+        """Calculate input-induced price change (legacy method)."""
         eq_theoretical_input_cost, current_theoretical_input_cost = self.get_input_costs(graph)
         input_cost_share = eq_theoretical_input_cost / 1
         relative_change = (current_theoretical_input_cost - eq_theoretical_input_cost) / eq_theoretical_input_cost
-        return relative_change * input_cost_share / (1 - self.target_margin)
+        return relative_change * input_cost_share / (1 - self.finance_manager.target_margin)
 
-    def check_if_supplier_changed_price(self, graph):  # firms could record the last price they paid their input
-        for edge in graph.in_edges(self):
-            if abs(graph[edge[0]][self]['object'].price - graph[edge[0]][self]['object'].eq_price) > 1e-6:
-                return True
-        return False
+    def check_if_supplier_changed_price(self, graph):
+        """Check if any supplier changed their price."""
+        return self.finance_manager._check_if_supplier_changed_price(graph)
 
     def evaluate_quantities_to_deliver(self, rationing_mode: str):
+        """Evaluate quantities to deliver to each client based on stock and orders."""
         # Do nothing if no orders
-        if self.total_order == 0:
-            return {buyer_id: 0.0 for buyer_id in self.order_book.keys()}
+        if self.supplier_manager.total_order == 0:
+            return {buyer_id: 0.0 for buyer_id in self.supplier_manager.order_book.keys()}
 
         # Otherwise compute rationing factor
-        self.rationing = self.product_stock / self.total_order
+        self.rationing = self.production_manager.product_stock / self.supplier_manager.total_order
         # Check the case in which the firm has too much product to sale
         # It should not happen, hence a warning
         if self.rationing > 1 + EPSILON:
-            logging.debug(f'Firm {self.pid}: I have produced too much. {self.product_stock} vs. {self.total_order}')
+            logging.debug(f'Firm {self.pid}: I have produced too much. {self.production_manager.product_stock} vs. {self.supplier_manager.total_order}')
             self.rationing = 1
-            quantities_to_deliver = {buyer_id: order for buyer_id, order in self.order_book.items()}
+            quantities_to_deliver = {buyer_id: order for buyer_id, order in self.supplier_manager.order_book.items()}
         # If rationing factor is 1, then it delivers what was ordered
         elif abs(self.rationing - 1) < EPSILON:
-            quantities_to_deliver = {buyer_id: order for buyer_id, order in self.order_book.items()}
+            quantities_to_deliver = {buyer_id: order for buyer_id, order in self.supplier_manager.order_book.items()}
         # If rationing occurs, then two rationing behavior: equal or household_first
         elif abs(self.rationing) < EPSILON:
             logging.debug(f'Firm {self.pid}: I have no stock of output, I cannot deliver to my clients')
-            quantities_to_deliver = {buyer_id: 0.0 for buyer_id in self.order_book.keys()}
+            quantities_to_deliver = {buyer_id: 0.0 for buyer_id in self.supplier_manager.order_book.keys()}
         else:
             logging.debug(f'Firm {self.pid}: I have to ration my clients by {(1 - self.rationing) * 100:.2f}%')
             # If equal, simply apply rationing factor
             if rationing_mode == "equal":
                 quantities_to_deliver = {buyer_id: order * self.rationing for buyer_id, order in
-                                         self.order_book.items()}
+                                         self.supplier_manager.order_book.items()}
             else:
                 raise ValueError('Wrong rationing_mode chosen')
 
@@ -708,7 +553,8 @@ class Firm(Agent):
         quantities_to_deliver = self.evaluate_quantities_to_deliver(rationing_mode)
 
         # We initialize transport costs, it will be updated for each shipment
-        self.finance['costs']['transport'] = 0
+        self.finance_manager.finance['costs']['transport'] = 0
+        # Transport tracking variables (could be moved to component in future)
         self.generalized_transport_cost = 0
         self.usd_transported = 0
         self.tons_transported = 0
@@ -723,7 +569,7 @@ class Firm(Agent):
                     logging.debug(f"{self.id_str()} - this client did not order: {buyer.id_str()}")
                 continue
             commercial_link.delivery = quantity_to_deliver
-            commercial_link.delivery_in_tons = Firm.transformUSD_to_tons(quantity_to_deliver, monetary_units_in_model,
+            commercial_link.delivery_in_tons = self.transformUSD_to_tons(quantity_to_deliver, monetary_units_in_model,
                                                                          self.usd_per_ton)
 
             # If the client is B2C (applied only we had one single representative agent for all households)
@@ -741,7 +587,7 @@ class Firm(Agent):
         if isinstance(quantities_to_deliver, int):
             print(quantities_to_deliver)
             raise ValueError()
-        self.reconstruction_produced = quantities_to_deliver.get('reconstruction')
+        self.supplier_manager.reconstruction_produced = quantities_to_deliver.get('reconstruction', 0)
 
     def deliver_without_infrastructure(self, commercial_link):
         """ The firm deliver its products without using transportation infrastructure
@@ -749,21 +595,14 @@ class Firm(Agent):
         Note that we still account for transport cost, proportionally to the share of the clients
         Price can be higher than 1, if there are changes in price inputs
         """
-        commercial_link.price = commercial_link.eq_price * (1 + self.delta_price_input)
-        self.product_stock -= commercial_link.delivery
-        self.finance['costs']['transport'] += (self.clients[commercial_link.buyer_id]['share'] *
-                                               self.eq_finance['costs']['transport'])
+        commercial_link.price = commercial_link.eq_price * (1 + self.finance_manager.delta_price_input)
+        self.production_manager.product_stock -= commercial_link.delivery
+        self.finance_manager.finance['costs']['transport'] += (self.clients[commercial_link.buyer_id]['share'] *
+                                               self.finance_manager.eq_finance['costs']['transport'])
 
     def record_transport_cost(self, client_id, relative_transport_cost_change):
-        self.finance['costs']['transport'] += \
-            self.eq_finance['costs']['transport'] \
-            * self.clients[client_id]['transport_share'] \
-            * (1 + relative_transport_cost_change)
-
-    def calculate_relative_price_change_transport(self, relative_transport_cost_change):
-        return self.eq_finance['costs']['transport'] \
-            * relative_transport_cost_change \
-            / ((1 - self.target_margin) * self.eq_finance['sales'])
+        """Record transport cost changes (legacy method)."""
+        self.finance_manager.record_transport_cost(client_id, relative_transport_cost_change, self.clients)
 
     def receive_service_and_pay(self, commercial_link: "CommercialLink"):
         super().receive_service_and_pay(commercial_link)
@@ -775,43 +614,117 @@ class Firm(Agent):
         self.suppliers[commercial_link.supplier_id]['satisfaction'] = commercial_link.fulfilment_rate
 
     def evaluate_profit(self, graph):
-        # Collect all payments received
-        self.finance['sales'] = sum([
-            graph[self][edge[1]]['object'].payment
-            for edge in graph.out_edges(self)
-        ])
-        # Collect all payments made
-        self.finance['costs']['input'] = sum([
-            graph[edge[0]][self]['object'].payment
-            for edge in graph.in_edges(self)
-        ])
-        # Compute profit
-        self.profit = (self.finance['sales']
-                       - self.finance['costs']['input']
-                       - self.finance['costs']['other']
-                       - self.finance['costs']['transport'])
-        # Compute Margins
-        expected_gross_margin_no_transport = 1 - sum(list(self.input_mix.values()))
-        if self.finance['sales'] > EPSILON:
-            realized_gross_margin_no_transport = ((self.finance['sales'] - self.finance['costs']['input'])
-                                                  / self.finance['sales'])
-            realized_margin = self.profit / self.finance['sales']
-        else:
-            realized_gross_margin_no_transport = 0
-            realized_margin = 0
+        """Evaluate profit based on sales and costs."""
+        self.finance_manager.evaluate_profit(graph)
+    
+    # Implementation of TransportCapable interface methods
+    def _update_after_shipment(self, commercial_link: "CommercialLink"):
+        """Update firm state after sending a shipment."""
+        self.production_manager.product_stock -= commercial_link.delivery
+    
+    def calculate_relative_price_change_transport(self, relative_transport_cost_change):
+        """Calculate price change due to transport cost changes."""
+        return self.finance_manager.calculate_relative_price_change_transport(relative_transport_cost_change)
+    
+    def _record_transport_cost(self, client_id, relative_transport_cost_change):
+        """Record transport cost changes."""
+        self.finance_manager.record_transport_cost(client_id, relative_transport_cost_change, self.clients)
+    
+    # Additional properties for backward compatibility
+    @property
+    def current_production_capacity(self):
+        return self.production_manager.current_production_capacity
+    
+    @property
+    def eq_finance(self):
+        return self.finance_manager.eq_finance
+    
+    @property
+    def eq_profit(self):
+        return self.finance_manager.eq_profit
+    
+    @property
+    def target_margin(self):
+        return self.finance_manager.target_margin
+    
+    @property
+    def capital_initial(self):
+        return self.finance_manager.capital_initial
+    
+    @property
+    def capital_destroyed(self):
+        return self.finance_manager.capital_destroyed
+    
+    @property
+    def production_capacity_reduction(self):
+        return self.production_manager.production_capacity_reduction
+    
+    @property
+    def remaining_disrupted_time(self):
+        return self.production_manager.remaining_disrupted_time
+    
+    @property
+    def current_inventory_duration(self):
+        return self.inventory_manager.current_inventory_duration
+    
+    @property
+    def eq_needs(self):
+        return self.inventory_manager.eq_needs
+    
+    @property
+    def eq_total_order(self):
+        return self.supplier_manager.eq_total_order
+    
+    @eq_total_order.setter
+    def eq_total_order(self, value):
+        self.supplier_manager.eq_total_order = value
+    
+    @property
+    def inventory_duration_target(self):
+        return self.inventory_manager.inventory_duration_target
+    
+    @property
+    def inventory_restoration_time(self):
+        return self.inventory_manager.inventory_restoration_time
+    
+    @property
+    def input_needs(self):
+        return self.inventory_manager.input_needs
+    
+    @property
+    def purchase_plan_per_input(self):
+        return self.inventory_manager.purchase_plan_per_input
+    
+    @property
+    def reconstruction_demand(self):
+        return self.supplier_manager.reconstruction_demand
+    
+    @reconstruction_demand.setter
+    def reconstruction_demand(self, value):
+        self.supplier_manager.reconstruction_demand = value
+    
+    @property
+    def reconstruction_produced(self):
+        return self.supplier_manager.reconstruction_produced
+    
+    @reconstruction_produced.setter
+    def reconstruction_produced(self, value):
+        self.supplier_manager.reconstruction_produced = value
+    
+    # Legacy methods that delegate to component managers
+    def receive_service_and_pay(self, commercial_link: "CommercialLink"):
+        """Receive services and update inventory."""
+        super().receive_service_and_pay(commercial_link)
+        quantity_delivered = commercial_link.delivery
+        self.inventory_manager.add_to_inventory(commercial_link.product, quantity_delivered)
+    
+    def update_indicator(self, quantity_delivered: float, price: float, commercial_link: "CommercialLink"):
+        """Update indicators when receiving products."""
+        super().update_indicator(quantity_delivered, price, commercial_link)
+        self.suppliers[commercial_link.supplier_id]['satisfaction'] = commercial_link.fulfilment_rate
 
-        # Log discrepancies
-        if abs(realized_gross_margin_no_transport - expected_gross_margin_no_transport) > 1e-6:
-            logging.debug('Firm ' + str(self.pid) + ': realized gross margin without transport is ' +
-                          '{:.3f}'.format(realized_gross_margin_no_transport) + " instead of " +
-                          '{:.3f}'.format(expected_gross_margin_no_transport))
 
-        if abs(realized_margin - self.target_margin) > 1e-6:
-            logging.debug('Firm ' + str(self.pid) + ': my margin differs from the target one: ' +
-                          '{:.3f}'.format(realized_margin) + ' instead of ' + str(self.target_margin))
-
-
-class Firms(Agents):
+class Firms(BaseAgents):
     def __init__(self, agent_list=None):
         super().__init__(agent_list)
 
@@ -871,36 +784,5 @@ class Firms(Agents):
                 )
 
 
-def production_function(inputs, input_mix, function_type="Leontief"):
-    # Leontief
-    if function_type == "Leontief":
-        try:
-            return min([inputs[input_id] / input_mix[input_id] for input_id, val in input_mix.items()])
-        except KeyError:
-            return 0
-
-    else:
-        raise ValueError("Wrong mode selected")
-
-
-def purchase_planning_function(estimated_need: float, inventory: float, inventory_duration_target: float,
-                               inventory_restoration_time: float):
-    """Decide the quantity of each input to buy according to a dynamical rule
-    """
-    # target_inventory = (1 + inventory_duration_target) * estimated_need
-    target_inventory = inventory_duration_target * estimated_need
-    # if inventory >= target_inventory + estimated_need:
-    #     return 0
-    # elif inventory >= target_inventory:
-    #     return target_inventory + estimated_need - inventory
-    # else:
-    #     # return (1 - 1 / inventory_restoration_time) * estimated_need + inventory_restoration_time * (
-    #     #         estimated_need + target_inventory - inventory)
-    return max(0.0, estimated_need + 1 / inventory_restoration_time * (target_inventory - inventory))
-
-
-def evaluate_inventory_duration(estimated_need, inventory):
-    if estimated_need == 0:
-        return None
-    else:
-        return inventory / estimated_need
+# These functions are now imported from firm_components
+# They remain here for backward compatibility but will be removed in future versions

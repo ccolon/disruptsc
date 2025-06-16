@@ -1,3 +1,20 @@
+"""
+DEPRECATED: This module contains legacy Agent and Agents classes.
+
+These classes have been refactored and split into:
+- disruptsc.agents.base_agent.BaseAgent and BaseAgents
+- disruptsc.agents.transport_mixin.TransportCapable 
+- disruptsc.agents.firm_components (for firm-specific functionality)
+
+Use the new classes instead:
+- Firm: inherits from BaseAgent + TransportCapable + uses component managers
+- Country: inherits from BaseAgent + TransportCapable
+- Household: inherits from BaseAgent
+
+This file will be removed in a future version.
+"""
+
+import warnings
 import copy
 import random
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
@@ -9,6 +26,13 @@ import pandas
 from tqdm import tqdm
 
 from disruptsc.model.basic_functions import rescale_values, calculate_distance_between_agents
+
+# Warn about deprecated usage
+warnings.warn(
+    "The agent.py module is deprecated. Use base_agent.py, transport_mixin.py, and firm_components.py instead.",
+    DeprecationWarning,
+    stacklevel=2
+)
 
 if TYPE_CHECKING:
     from disruptsc.agents.firm import Firms

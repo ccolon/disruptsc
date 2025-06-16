@@ -7,7 +7,7 @@ from disruptsc.model.basic_functions import calculate_distance_between_agents, r
 
 import logging
 
-from disruptsc.agents.agent import Agent, Agents
+from disruptsc.agents.base_agent import BaseAgent, BaseAgents
 from disruptsc.network.commercial_link import CommercialLink
 
 if TYPE_CHECKING:
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from disruptsc.network.transport_network import TransportNetwork
 
 
-class Household(Agent):
+class Household(BaseAgent):
 
     def __init__(self, pid, od_point, region, name, long, lat, population, sector_consumption):
         super().__init__(
@@ -164,5 +164,5 @@ class Household(Agent):
             super().receive_products_and_pay(sc_network, transport_network, sectors_no_transport_network)
 
 
-class Households(Agents):
+class Households(BaseAgents):
     pass

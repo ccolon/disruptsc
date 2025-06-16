@@ -6,7 +6,8 @@ import logging
 
 from disruptsc.model.basic_functions import calculate_distance_between_agents, rescale_values, \
     generate_weights_from_list
-from disruptsc.agents.agent import Agent, Agents
+from disruptsc.agents.base_agent import BaseAgent, BaseAgents
+from disruptsc.agents.transport_mixin import TransportCapable
 from disruptsc.network.commercial_link import CommercialLink
 
 if TYPE_CHECKING:
@@ -14,7 +15,7 @@ if TYPE_CHECKING:
     from disruptsc.network.sc_network import ScNetwork
 
 
-class Country(Agent):
+class Country(BaseAgent, TransportCapable):
 
     def __init__(self, pid=None, qty_sold=None, qty_purchased=None, od_point=None, region=None, long=None, lat=None,
                  purchase_plan=None, transit_from=None, transit_to=None, supply_importance=None,
@@ -46,10 +47,10 @@ class Country(Agent):
         self.qty_purchased_perfirm = {}
 
         # Variable
-        # self.generalized_transport_cost = 0
-        # self.usd_transported = 0
-        # self.tons_transported = 0
-        # self.tonkm_transported = 0
+        self.generalized_transport_cost = 0
+        self.usd_transported = 0
+        self.tons_transported = 0
+        self.tonkm_transported = 0
         self.extra_spending = 0
         self.consumption_loss = 0
 
@@ -207,7 +208,7 @@ class Country(Agent):
                 continue
             commercial_link.delivery = commercial_link.order
             commercial_link.delivery_in_tons = \
-                Country.transformUSD_to_tons(commercial_link.order, monetary_units_in_model,
+                self.transformUSD_to_tons(commercial_link.order, monetary_units_in_model,
                                              self.usd_per_ton)
 
             # if explicit_service_firm:
@@ -232,7 +233,12 @@ class Country(Agent):
             #                            price_increase_threshold, capacity_constraint, transport_cost_noise_level)
 
     def calculate_relative_price_change_transport(self, relative_transport_cost_change):
+        """Calculate price change due to transport cost changes."""
         return 0.2 * relative_transport_cost_change
+    
+    def _update_after_shipment(self, commercial_link: "CommercialLink"):
+        """Update country state after sending a shipment."""
+        self.qty_sold += commercial_link.delivery
 
     def evaluate_commercial_balance(self, graph):
         exports = sum([graph[self][edge[1]]['object'].payment for edge in graph.out_edges(self)])
@@ -241,7 +247,7 @@ class Country(Agent):
             exports) + " to Tanzania")
 
 
-class Countries(Agents):
+class Countries(BaseAgents):
     pass
 
 
