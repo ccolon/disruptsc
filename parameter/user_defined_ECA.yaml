@@ -1,10 +1,9 @@
 # Indicate the subfolder of the input folder that contains the input files
 filepaths:
-  "sector_table": "Network/sector_table.csv"
+  "sector_table": "Economic/sector_table.csv"
 #  "inventory_duration_targets": "Network/inventory_targets.csv"
-  "mrio": "Network/mrio_BS_MC.csv"
+  "mrio": "Economic/mrio_BS_MC.csv"
   "railways_edges": "Transport/railways_edges_2030.geojson"
-  "region_table": "Network/regions.geojson"
 transport_modes: ["roads", "maritime", "railways", "pipelines"] #, waterways, airways]
 monetary_units_in_model: mUSD
 monetary_units_in_data: mUSD
