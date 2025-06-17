@@ -6,11 +6,11 @@ This section provides detailed reference information for DisruptSC users and dev
 
 ### Command Line Interface
 - **[CLI Reference](cli.md)** - Complete command-line options and usage patterns
-- **[Parameters Reference](parameters-ref.md)** - Comprehensive parameter documentation
+- **Parameters Reference** - See User Guide for comprehensive parameter documentation
 
 ### Data Specifications  
-- **[File Formats](file-formats.md)** - Detailed file format specifications and requirements
-- **[API Reference](api/)** - Auto-generated code documentation
+- **File Formats** - See User Guide for detailed file format specifications
+- **API Reference** - Code documentation (coming soon)
 
 ## Reference Categories
 

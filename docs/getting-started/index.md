@@ -24,7 +24,7 @@ Follow these steps to get DisruptSC running on your system:
 After completing the setup:
 
 - Explore the **[User Guide](../user-guide/index.md)** for detailed usage instructions
-- Try the **[Tutorials](../tutorials/index.md)** for hands-on examples
+- Learn more about **[Parameters](../user-guide/parameters.md)** to customize your simulations
 - Read about the **[Architecture](../architecture/index.md)** to understand how the model works
 
 ## Common Issues

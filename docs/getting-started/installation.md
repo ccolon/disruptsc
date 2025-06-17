@@ -179,6 +179,6 @@ After successful installation:
 
 If you're still having trouble:
 
-- Check the [Troubleshooting section](../reference/troubleshooting.md)
+- Review the common issues above
 - Search [existing issues](https://github.com/worldbank/disrupt-sc/issues)
 - Open a new issue with your error message and system details

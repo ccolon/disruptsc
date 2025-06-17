@@ -244,7 +244,7 @@ After your first successful simulation:
 
 1. **[Explore parameters](../user-guide/parameters.md)** - Customize simulation settings
 2. **[Learn data modes](../user-guide/data-modes.md)** - Choose MRIO vs network data
-3. **[Try tutorials](../tutorials/cambodia-example.md)** - Detailed walkthroughs
+3. **[Study output files](../user-guide/output-files.md)** - Detailed output analysis
 4. **[Understand architecture](../architecture/overview.md)** - Learn how the model works
 
 ## Example Workflow
