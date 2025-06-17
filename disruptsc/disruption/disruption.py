@@ -14,6 +14,7 @@ from disruptsc.parameters import EPSILON, import_code
 if TYPE_CHECKING:
     from disruptsc.agents.firm import Firms
     from disruptsc.model.model import Model
+    from disruptsc.network.transport_network import TransportNetwork
 
 
 class DisruptionContext:
@@ -383,9 +384,8 @@ class TransportDisruption(BaseDisruption):
 
         return cls(description=description)
 
-    def implement(self, model: "Model"):
+    def implement(self, transport_network: "TransportNetwork"):
         """Implement transport disruption."""
-        transport_network = model.transport_network
         for edge in transport_network.edges:
             edge_id = transport_network[edge[0]][edge[1]]['id']
             if edge_id in self.keys():
