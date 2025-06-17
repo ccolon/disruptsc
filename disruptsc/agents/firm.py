@@ -648,6 +648,10 @@ class Firm(BaseAgent, TransportCapable):
         return self.finance_manager.target_margin
     
     @property
+    def transport_share(self):
+        return self.finance_manager.transport_share
+    
+    @property
     def capital_initial(self):
         return self.finance_manager.capital_initial
     
