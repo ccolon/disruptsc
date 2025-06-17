@@ -68,8 +68,8 @@ class Parameters:
     weight_localization_firm: float
     weight_localization_household: float
     
-    # Simulation control parameters
-    events: list
+    # Simulation control parameters  
+    events: list  # List of disruption scenarios (events and disruptions are synonymous)
     criticality: None | dict
     time_resolution: str
     duration_dic: dict

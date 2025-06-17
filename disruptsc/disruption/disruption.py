@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, Any, Type
+from abc import ABC, abstractmethod
 
 import logging
 from collections import UserList
@@ -12,8 +13,196 @@ from disruptsc.parameters import EPSILON, import_code
 
 if TYPE_CHECKING:
     from disruptsc.agents.firm import Firms
-    from disruptsc.network.transport_network import TransportNetwork
     from disruptsc.model.model import Model
+
+
+class DisruptionContext:
+    """Context object containing shared data for disruption creation."""
+    
+    def __init__(self, model_unit: str, edges: geopandas.GeoDataFrame, 
+                 firm_table: pd.DataFrame, firm_list: "Firms"):
+        self.model_unit = model_unit
+        self.edges = edges
+        self.firm_table = firm_table
+        self.firm_list = firm_list
+
+
+class DisruptionFactory:
+    """Factory for creating disruption objects from configuration."""
+    
+    _disruption_types: Dict[str, Type["BaseDisruption"]] = {}
+    _config_handlers: Dict[str, callable] = {}
+    
+    @classmethod
+    def register_disruption_type(cls, disruption_type: str, disruption_class: Type["BaseDisruption"]):
+        """Register a disruption type with its corresponding class."""
+        cls._disruption_types[disruption_type] = disruption_class
+    
+    @classmethod
+    def register_config_handler(cls, disruption_type: str, handler: callable):
+        """Register a configuration handler for a disruption type."""
+        cls._config_handlers[disruption_type] = handler
+    
+    @classmethod
+    def create_disruption(cls, config: Dict[str, Any], context: DisruptionContext) -> "BaseDisruption":
+        """Create a disruption from configuration."""
+        disruption_type = config.get('type')
+        if not disruption_type:
+            raise ValueError("Disruption configuration must include 'type'")
+        
+        if disruption_type not in cls._config_handlers:
+            raise ValueError(f"Unknown disruption type: {disruption_type}")
+        
+        handler = cls._config_handlers[disruption_type]
+        return handler(config, context)
+    
+    @classmethod
+    def get_supported_types(cls) -> list:
+        """Get list of supported disruption types."""
+        return list(cls._disruption_types.keys())
+    
+    @classmethod
+    def create_disruptions_from_list(cls, configs: list, context: DisruptionContext) -> list:
+        """Create multiple disruptions from a list of configurations."""
+        disruptions = []
+        for config in configs:
+            result = cls.create_disruption(config, context)
+            if isinstance(result, list):
+                disruptions.extend(result)
+            else:
+                disruptions.append(result)
+        return disruptions
+
+
+def _create_capital_destruction(config: Dict[str, Any], context: DisruptionContext) -> "CapitalDestruction":
+    """Create capital destruction disruption from config."""
+    description_type = config.get('description_type')
+    
+    if description_type == "region_sector_file":
+        disruption = CapitalDestruction.from_region_sector_file(
+            config['region_sector_filepath'],
+            context.firm_table,
+            context.firm_list,
+            input_units=config['unit'],
+            target_units=context.model_unit
+        )
+    elif description_type == "filter":
+        disruption = CapitalDestruction.from_firms_attributes(
+            config['destroyed_capital'],
+            config['filter'],
+            context.firm_list,
+            config['unit'],
+            context.model_unit
+        )
+    else:
+        raise ValueError(f"Unknown description_type for capital_destruction: {description_type}")
+    
+    # Set common attributes
+    disruption.start_time = config["start_time"]
+    if "reconstruction_market" in config:
+        disruption.reconstruction_market = config["reconstruction_market"]
+    if "reconstruction_target_time" in config:
+        disruption.reconstruction_target_time = config["reconstruction_target_time"]
+    if "capital_input_mix" in config:
+        disruption.capital_input_mix = config["capital_input_mix"]
+    
+    return disruption
+
+
+def _create_productivity_shock(config: Dict[str, Any], context: DisruptionContext) -> "ProductivityShock":
+    """Create productivity shock disruption from config."""
+    description_type = config.get('description_type')
+    
+    if description_type == "region_sector_file":
+        disruption = ProductivityShock.from_region_sector_file(
+            config['region_sector_filepath'],
+            context.firm_table,
+            context.firm_list
+        )
+    elif description_type == "filter":
+        disruption = ProductivityShock.from_firms_attributes(
+            config['productivity_reduction'],
+            config['filter'],
+            context.firm_list
+        )
+    else:
+        raise ValueError(f"Unknown description_type for productivity_shock: {description_type}")
+    
+    # Set common attributes
+    disruption.start_time = config["start_time"]
+    if "duration" in config:
+        shape = config.get("recovery_shape", "threshold")
+        rate = config.get("recovery_rate", 1.0)
+        disruption.recovery = Recovery(duration=config["duration"], shape=shape, rate=rate)
+    
+    return disruption
+
+
+def _create_transport_disruption(config: Dict[str, Any], context: DisruptionContext) -> "TransportDisruption":
+    """Create transport disruption from config."""
+    description_type = config.get('description_type')
+    
+    if description_type == "edge_attributes":
+        disruption = TransportDisruption.from_edge_attributes(
+            edges=context.edges,
+            attribute=config['attribute'],
+            values=config['values']
+        )
+    else:
+        raise ValueError(f"Unknown description_type for transport_disruption: {description_type}")
+    
+    # Set common attributes
+    disruption.start_time = config["start_time"]
+    if "duration" in config:
+        shape = config.get("recovery_shape", "threshold")
+        rate = config.get("recovery_rate", 1.0)
+        disruption.recovery = Recovery(duration=config["duration"], shape=shape, rate=rate)
+    
+    return disruption
+
+
+def _create_transport_disruption_probability(config: Dict[str, Any], context: DisruptionContext) -> list:
+    """Create probabilistic transport disruptions from config."""
+    description_type = config.get('description_type')
+    
+    if description_type == "edge_attributes":
+        base_disruption = TransportDisruption.from_edge_attributes(
+            edges=context.edges,
+            attribute=config['attribute'],
+            values=config['values']
+        )
+        
+        start_times, durations = DisruptionList.generate_disruption_scenario(
+            config["scenario_duration"],
+            config['probability']
+        )
+        
+        disruptions = []
+        for start_time, duration in zip(start_times, durations):
+            shape = config.get("recovery_shape", "threshold")
+            rate = config.get("recovery_rate", 1.0)
+            disruption = TransportDisruption(
+                description=base_disruption.description,
+                recovery=Recovery(duration=duration, shape=shape, rate=rate),
+                start_time=start_time
+            )
+            disruptions.append(disruption)
+        
+        return disruptions
+    else:
+        raise ValueError(f"Unknown description_type for transport_disruption_probability: {description_type}")
+
+
+# Register disruption types and handlers
+DisruptionFactory.register_disruption_type("capital_destruction", "CapitalDestruction")
+DisruptionFactory.register_disruption_type("productivity_shock", "ProductivityShock") 
+DisruptionFactory.register_disruption_type("transport_disruption", "TransportDisruption")
+DisruptionFactory.register_disruption_type("transport_disruption_probability", "TransportDisruption")
+
+DisruptionFactory.register_config_handler("capital_destruction", _create_capital_destruction)
+DisruptionFactory.register_config_handler("productivity_shock", _create_productivity_shock)
+DisruptionFactory.register_config_handler("transport_disruption", _create_transport_disruption)
+DisruptionFactory.register_config_handler("transport_disruption_probability", _create_transport_disruption_probability)
 
 
 class ReconstructionMarket:
@@ -97,37 +286,87 @@ class ReconstructionMarket:
 
 
 class Recovery:
-    def __init__(self, duration: int, shape: str):
+    def __init__(self, duration: int, shape: str = "linear", rate: float = 1.0):
         self.duration = duration
-        self.shape = shape
+        self.shape = shape  # "linear", "exponential", "threshold"
+        self.rate = rate  # Recovery rate parameter
+    
+    def get_recovery_factor(self, time_since_start: int) -> float:
+        """Calculate recovery factor based on time since disruption start."""
+        if time_since_start >= self.duration:
+            return 1.0
+        
+        progress = time_since_start / self.duration
+        
+        if self.shape == "threshold":
+            return 0.0 if time_since_start < self.duration else 1.0
+        elif self.shape == "linear":
+            return progress * self.rate
+        elif self.shape == "exponential":
+            return (1 - np.exp(-self.rate * progress)) / (1 - np.exp(-self.rate))
+        else:
+            raise ValueError(f"Unknown recovery shape: {self.shape}")
 
 
-class TransportDisruption(dict):
-    def __init__(self, description: dict, recovery: Recovery | None = None, start_time: int = 1):
+class BaseDisruption(ABC):
+    """Abstract base class for all disruption types."""
+    
+    def __init__(self, description: dict, recovery: Recovery = None, start_time: int = 1):
         self.start_time = start_time
         self.recovery = recovery
-        if description is not None:
-            for key, value in description.items():
-                self.__setitem__(key, value)
-        super().__init__()
+        self.description = description or {}
+        self._validate_description()
+    
+    @abstractmethod
+    def _validate_description(self):
+        """Validate the description dictionary for this disruption type."""
+        pass
+    
+    @abstractmethod
+    def implement(self, model: "Model"):
+        """Implement the disruption in the model."""
+        pass
+    
+    def log_info(self):
+        """Log information about this disruption."""
+        recovery_info = f"with {self.recovery.shape} recovery over {self.recovery.duration} steps" if self.recovery else "with no recovery"
+        logging.info(f"{self.__class__.__name__}: {len(self.description)} items disrupted at time {self.start_time} {recovery_info}")
+    
+    def __len__(self):
+        return len(self.description)
+    
+    def keys(self):
+        return self.description.keys()
+    
+    def items(self):
+        return self.description.items()
+    
+    def values(self):
+        return self.description.values()
+    
+    def __getitem__(self, key):
+        return self.description[key]
+    
+    def __contains__(self, key):
+        return key in self.description
 
-    def __setitem__(self, key, value):
-        if not isinstance(key, int):
-            raise KeyError("Key must be a int: the id of the transport edge_attr to be disrupted")
-        if not isinstance(value, float):
-            raise ValueError("Value must be a float: the fraction of lost capacity")
-        super().__setitem__(key, value)
+
+class TransportDisruption(BaseDisruption):
+    def __init__(self, description: dict, recovery: Recovery = None, start_time: int = 1):
+        super().__init__(description, recovery, start_time)
+
+    def _validate_description(self):
+        """Validate transport disruption description."""
+        for key, value in self.description.items():
+            if not isinstance(key, int):
+                raise KeyError("Key must be an int: the id of the transport edge to be disrupted")
+            if not isinstance(value, float):
+                raise ValueError("Value must be a float: the fraction of lost capacity")
+            if not 0 <= value <= 1:
+                raise ValueError("Capacity loss fraction must be between 0 and 1")
 
     def __repr__(self):
-        return f"EventDict(start_time={self.start_time}, data={super().__repr__()})"
-
-    def log_info(self):
-        if self.recovery:
-            logging.info(f"{len(self)} transport edges are disrupted at {self.start_time} time steps. "
-                         f"They recover after {self.recovery.duration} time steps.")
-        else:
-            logging.info(f"{len(self)} transport edges are disrupted at {self.start_time} time steps. "
-                         f"There is no recovery.")
+        return f"TransportDisruption(start_time={self.start_time}, edges={len(self.description)}, recovery={self.recovery})"
 
     @classmethod
     def from_edge_attributes(cls, edges: geopandas.GeoDataFrame, attribute: str, values: list):
@@ -142,45 +381,39 @@ class TransportDisruption(dict):
         item_ids = edges.sort_values('id').loc[condition, 'id'].tolist()
         description = pd.Series(1.0, index=item_ids).to_dict()
 
-        return cls(
-            description=description,
-        )
+        return cls(description=description)
 
-    def implement(self, transport_network: "TransportNetwork"):
+    def implement(self, model: "Model"):
+        """Implement transport disruption."""
+        transport_network = model.transport_network
         for edge in transport_network.edges:
             edge_id = transport_network[edge[0]][edge[1]]['id']
             if edge_id in self.keys():
-                transport_network.disrupt_one_edge(edge, self[edge_id], self.recovery.duration)
+                duration = self.recovery.duration if self.recovery else float('inf')
+                transport_network.disrupt_one_edge(edge, self[edge_id], duration)
 
 
-class CapitalDestruction(dict):
-    def __init__(self, description: dict, recovery: Recovery | None = None, start_time: int = 1,
-                 reconstruction_market: bool = False):
-        self.start_time = start_time
-        self.recovery = recovery
+class CapitalDestruction(BaseDisruption):
+    def __init__(self, description: dict, recovery: Recovery = None, start_time: int = 1,
+                 reconstruction_market: bool = False, reconstruction_target_time: int = 30,
+                 capital_input_mix: dict = None):
         self.reconstruction_market = reconstruction_market
-        if description is not None:
-            for key, value in description.items():
-                self.__setitem__(key, value)
-        super().__init__()
+        self.reconstruction_target_time = reconstruction_target_time
+        self.capital_input_mix = capital_input_mix or {"CON": 0.7, "MAN": 0.2, "IMP": 0.1}
+        super().__init__(description, recovery, start_time)
 
-    def __setitem__(self, key, value):
-        if not isinstance(key, int):
-            raise KeyError("Key must be an int: the id of the firm")
-        if not isinstance(value, float):
-            raise ValueError("Value must be a float: the amount of destroyed capital")
-        super().__setitem__(key, value)
+    def _validate_description(self):
+        """Validate capital destruction description."""
+        for key, value in self.description.items():
+            if not isinstance(key, int):
+                raise KeyError("Key must be an int: the id of the firm")
+            if not isinstance(value, (int, float)):
+                raise ValueError("Value must be a number: the amount of destroyed capital")
+            if value < 0:
+                raise ValueError("Destroyed capital must be non-negative")
 
     def __repr__(self):
-        return f"EventDict(start_time={self.start_time}, data={super().__repr__()})"
-
-    def log_info(self):
-        logging.info(f"{len(self)} firms incur capital destruction at {self.start_time} time steps. "
-                     f"There is {'a' if self.reconstruction_market else 'no'} reconstruction market.")
-        if self.recovery:
-            logging.info(f"There is exogenous recovery after {self.recovery.duration} time steps.")
-        else:
-            logging.info("There is no exogenous recovery.")
+        return f"CapitalDestruction(start_time={self.start_time}, firms={len(self.description)}, reconstruction={self.reconstruction_market})"
 
     @classmethod
     def from_region_sector_file(cls, filepath: Path, firm_table: pd.DataFrame, firm_list: "Firms",
@@ -207,10 +440,7 @@ class CapitalDestruction(dict):
         logging.info(f"Destroyed capital in data: {total_destroyed_capital_in_data}, "
                      f"Destroyed capital in model: {total_destroyed_capital_in_model}")
 
-        return cls(
-            description=result,
-            recovery=None
-        )
+        return cls(description=result, recovery=None)
 
     @classmethod
     def from_firms_attributes(cls, destroyed_amount: float, filters: dict, firms: "Firms",
@@ -226,176 +456,168 @@ class CapitalDestruction(dict):
         else:
             description = {firm_id: firm.capital_initial / total_capital * destroyed_amount
                            for firm_id, firm in affected_firms.items()}
-        return cls(
-            description=description,
-            recovery=None
-        )
+        return cls(description=description, recovery=None)
 
-    def implement(self, firms: "Firms", model: "Model"):
+    def implement(self, model: "Model"):
+        """Implement capital destruction."""
+        firms = model.firms
         for firm_id, destroyed_capital in self.items():
             firms[firm_id].incur_capital_destruction(destroyed_capital)
         if self.reconstruction_market:
-            model.reconstruction_market = ReconstructionMarket(reconstruction_target_time=30,
-                                                               capital_input_mix={"CON": 0.7, "MAN": 0.2, "IMP": 0.1})
+            model.reconstruction_market = ReconstructionMarket(
+                reconstruction_target_time=self.reconstruction_target_time,
+                capital_input_mix=self.capital_input_mix
+            )
+
+
+class ProductivityShock(BaseDisruption):
+    """Disruption affecting firm productivity for a specified duration."""
+    
+    def __init__(self, description: dict, recovery: Recovery = None, start_time: int = 1):
+        super().__init__(description, recovery, start_time)
+    
+    def _validate_description(self):
+        """Validate productivity shock description."""
+        for key, value in self.description.items():
+            if not isinstance(key, int):
+                raise KeyError("Key must be an int: the id of the firm")
+            if not isinstance(value, (int, float)):
+                raise ValueError("Value must be a number: the productivity reduction factor")
+            if not 0 <= value <= 1:
+                raise ValueError("Productivity reduction factor must be between 0 and 1")
+    
+    def __repr__(self):
+        return f"ProductivityShock(start_time={self.start_time}, firms={len(self.description)}, recovery={self.recovery})"
+    
+    @classmethod
+    def from_firms_attributes(cls, productivity_reduction: float, filters: dict, firms: "Firms"):
+        """Create productivity shock from firm attributes and filters."""
+        if not 0 <= productivity_reduction <= 1:
+            raise ValueError("Productivity reduction must be between 0 and 1")
+        
+        affected_firms = firms.select_by_properties(filters)
+        description = {firm_id: productivity_reduction for firm_id in affected_firms.keys()}
+        
+        return cls(description=description)
+    
+    @classmethod
+    def from_region_sector_file(cls, filepath: Path, firm_table: pd.DataFrame, firms: "Firms"):
+        """Create productivity shock from region-sector file."""
+        df = pd.read_csv(filepath, dtype={'region': str, 'sector': str, 'productivity_reduction': float})
+        result = {}
+        
+        for _, row in df.iterrows():
+            region, sector, reduction = row['region'], row['sector'], row['productivity_reduction']
+            firm_ids = firm_table.loc[
+                (firm_table['region'] == region) & (firm_table['sector'] == sector), "id"
+            ].tolist()
+            
+            if len(firm_ids) == 0:
+                logging.warning(f"In region {region}, sector {sector}: no firms found for productivity shock")
+            else:
+                for firm_id in firm_ids:
+                    result[firm_id] = reduction
+        
+        return cls(description=result)
+    
+    def implement(self, model: "Model"):
+        """Implement productivity shock."""
+        firms = model.firms
+        for firm_id, reduction_factor in self.items():
+            if hasattr(firms[firm_id], 'apply_productivity_shock'):
+                firms[firm_id].apply_productivity_shock(reduction_factor, self.recovery)
+            else:
+                logging.warning(f"Firm {firm_id} does not support productivity shocks")
 
 
 class DisruptionList(UserList):
     def __init__(self, disruption_list: list):
         super().__init__(disruption for disruption in disruption_list
-                         if isinstance(disruption, CapitalDestruction) or isinstance(disruption, TransportDisruption))
+                         if isinstance(disruption, BaseDisruption))
         if len(disruption_list) > 0:
             self.start_time = min([disruption.start_time for disruption in disruption_list])
             self.end_time = max([disruption.start_time + 1 for disruption in disruption_list])
-            # self.end_time = max([disruption.start_time + disruption.duration for disruption in disruption_list])
-            # self.transport_nodes = [
-            #     disruption.item_id
-            #     for disruption in disruption_list
-            #     if disruption.item_type == "transport_node"
-            # ]
-            # self.transport_edges = [
-            #     disruption.item_id
-            #     for disruption in disruption_list
-            #     if disruption.item_type == "transport_edge"
-            # ]
-            # self.firms = [
-            #     disruption.item_id
-            #     for disruption in disruption_list
-            #     if disruption.item_type == "firm"
-            # ]
         else:
             self.start_time = 0
             self.end_time = 0
 
     @classmethod
-    def from_events_parameter(
+    def from_disruptions_parameter(
             cls,
-            events: list,
+            disruptions: list,
             model_unit: str,
             edges: geopandas.GeoDataFrame,
             firm_table: pd.DataFrame,
             firm_list: "Firms"
     ):
-        event_list = []
-        for event in events:
-            # TODO: create a load_one_event fct, and factor
-            if event['type'] == "capital_destruction":
-                if event['description_type'] == "region_sector_file":
-                    disruption_object = CapitalDestruction.from_region_sector_file(event['region_sector_filepath'],
-                                                                                   firm_table,
-                                                                                   firm_list,
-                                                                                   input_units=event['unit'],
-                                                                                   target_units=model_unit)
-                    disruption_object.start_time = event["start_time"]
-                    if "reconstruction_market" in event.keys():
-                        disruption_object.reconstruction_market = event["reconstruction_market"]
-                    event_list += [disruption_object]
+        """Create DisruptionList from configuration using factory pattern."""
+        context = DisruptionContext(model_unit, edges, firm_table, firm_list)
+        
+        try:
+            disruption_list = DisruptionFactory.create_disruptions_from_list(disruptions, context)
+            return cls(disruption_list)
+        except Exception as e:
+            logging.error(f"Failed to create disruptions from configuration: {e}")
+            raise
 
-                if event['description_type'] == "filter":
-                    disruption_object = CapitalDestruction.from_firms_attributes(event['destroyed_capital'],
-                                                                                 event['filter'], firm_list,
-                                                                                 event['unit'], model_unit)
-                    disruption_object.start_time = event["start_time"]
-                    if "reconstruction_market" in event.keys():
-                        disruption_object.reconstruction_market = event["reconstruction_market"]
-                    event_list += [disruption_object]
-
-            if event['type'] == "transport_disruption":
-                if event['description_type'] == "edge_attributes":
-                    # flat_list = list(chain.from_iterable(event['values']
-                    #                         if isinstance(event['values'], list)
-                    #                         else [event['values']]))
-                    disruption_object = TransportDisruption.from_edge_attributes(
-                        edges=edges,
-                        attribute=event['attribute'],
-                        values=event['values']
-                    )
-                    disruption_object.start_time = event["start_time"]
-                    disruption_object.recovery = Recovery(duration=event['duration'], shape="threshold")
-                    event_list += [disruption_object]
-
-            if event['type'] == "transport_disruption_probability":
-                if event['description_type'] == "edge_attributes":
-                    # flat_list = list(chain.from_iterable(event['values']
-                    #                         if isinstance(event['values'], list)
-                    #                         else [event['values']]))
-                    disruption_object = TransportDisruption.from_edge_attributes(
-                        edges=edges,
-                        attribute=event['attribute'],
-                        values=event['values']
-                    )
-                    start_times, durations = cls.generate_event_scenario(event["scenario_duration"],
-                                                                         event['probability'])
-                    for start_time, duration in zip(start_times, durations):
-                        disruption_object = TransportDisruption(description=disruption_object,
-                                                                recovery=Recovery(duration=duration, shape="threshold"),
-                                                                start_time=start_time)
-                        event_list += [disruption_object]
-
-        return cls(event_list)
+    @classmethod
+    def register_disruption_type(cls, disruption_type: str, handler: callable):
+        """Register a new disruption type with the factory."""
+        DisruptionFactory.register_config_handler(disruption_type, handler)
+    
+    @classmethod 
+    def get_supported_disruption_types(cls) -> list:
+        """Get list of supported disruption types."""
+        return DisruptionFactory.get_supported_types()
 
     @staticmethod
-    def generate_event_scenario(days=365, p=0.1, seed=None):
+    def generate_disruption_scenario(days=365, p=0.1, seed=None):
         """
-        Simulates events over a number of days with probability p per day.
-        Consecutive events are merged into single events with a duration.
+        Simulates disruptions over a number of days with probability p per day.
+        Consecutive disruptions are merged into single disruptions with a duration.
 
         Parameters:
             days (int): Number of days to simulate (default: 365)
-            p (float): Daily probability of an event
+            p (float): Daily probability of a disruption
             seed (int or None): Random seed for reproducibility
 
         Returns:
-            event_times (list of int): Start days of events
-            event_durations (list of int): Durations of events
+            disruption_times (list of int): Start days of disruptions
+            disruption_durations (list of int): Durations of disruptions
         """
         if seed is not None:
             np.random.seed(seed)
 
-        # Generate event days
-        events = np.random.rand(days) < p
-        event_days = np.where(events)[0]
+        # Generate disruption days
+        disruptions = np.random.rand(days) < p
+        disruption_days = np.where(disruptions)[0]
 
-        event_times = []
-        event_durations = []
+        disruption_times = []
+        disruption_durations = []
 
-        if len(event_days) > 0:
-            start = event_days[0]
+        if len(disruption_days) > 0:
+            start = disruption_days[0]
             duration = 1
 
-            for i in range(1, len(event_days)):
-                if event_days[i] == event_days[i - 1] + 1:
+            for i in range(1, len(disruption_days)):
+                if disruption_days[i] == disruption_days[i - 1] + 1:
                     duration += 1
                 else:
-                    event_times.append(start)
-                    event_durations.append(duration)
-                    start = event_days[i]
+                    disruption_times.append(start)
+                    disruption_durations.append(duration)
+                    start = disruption_days[i]
                     duration = 1
 
             # Add the last group
-            event_times.append(start)
-            event_durations.append(duration)
+            disruption_times.append(start)
+            disruption_durations.append(duration)
 
-        return event_times, event_durations
+        return disruption_times, disruption_durations
 
     def log_info(self):
         logging.info(f'There are {len(self)} disruptions')
         for disruption in self:
             disruption.log_info()
 
-    # def filter_type(self, selected_item_type):
-    #     return DisruptionList([disruption for disruption in self if disruption.item_type == selected_item_type])
-
     def filter_start_time(self, selected_start_time):
         return DisruptionList([disruption for disruption in self if disruption.start_time == selected_start_time])
-
-    def get_item_id_duration_reduction_dict(self) -> dict:
-        return {
-            disruption.item_id: {
-                "duration": disruption.duration,
-                "reduction": disruption.reduction
-            }
-            for disruption in self
-        }
-
-    def get_id_list(self) -> list:
-        return [disruption.item_id for disruption in self]

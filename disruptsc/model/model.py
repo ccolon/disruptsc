@@ -678,7 +678,7 @@ class Model(object):
         self.run_one_time_step(time_step=0, current_simulation=simulation)
 
         # Get disruptions
-        self.disruption_list = DisruptionList.from_events_parameter(self.parameters.events,
+        self.disruption_list = DisruptionList.from_disruptions_parameter(self.parameters.events,
                                                                     self.parameters.monetary_units_in_model,
                                                                     self.transport_edges, self.firm_table,
                                                                     self.firms)
