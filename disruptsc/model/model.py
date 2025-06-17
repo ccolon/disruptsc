@@ -21,9 +21,7 @@ from disruptsc.model.firm_builder_functions import \
     define_firms_from_network_data, \
     define_firms_from_mrio, create_firms, calibrate_input_mix, load_mrio_tech_coefs, \
     load_inventories
-from disruptsc.model.household_builder_functions import define_households_from_mrio, define_households, \
-    add_households_for_firms, \
-    create_households
+from disruptsc.model.household_builder_functions import define_households_from_mrio, create_households
 from disruptsc.model.transport_network_builder_functions import \
     create_transport_network
 from disruptsc.model.builder_functions import filter_sector
@@ -111,184 +109,227 @@ class Model(object):
         self.parameters.add_variability_to_basic_cost()
         self.transport_network.ingest_logistic_data(self.parameters.logistics)
 
-    def setup_firms(self):
-        pass
+    def setup_firms(self, filtered_industries: list) -> tuple[list, list, list]:
+        """Setup firms from either network data or MRIO data.
+        
+        Parameters
+        ----------
+        filtered_industries : list
+            List of industries/sectors to include
+            
+        Returns
+        -------
+        tuple[list, list, list]
+            Tuple of (present_sectors, present_region_sectors, flow_types_to_export)
+        """
+        logging.info('Generating the firms')
+        
+        if self.parameters.firm_data_type == "supplier-buyer network":
+            self.firm_table = define_firms_from_network_data(
+                filepath_firm_table=self.parameters.filepaths['firm_table'],
+                filepath_location_table=self.parameters.filepaths['location_table'],
+                sectors_to_include=filtered_industries,
+                transport_nodes=self.transport_nodes,
+                filepath_sector_table=self.parameters.filepaths['sector_table']
+            )
+        else:
+            self.firm_table = define_firms_from_mrio(
+                mrio=self.mrio,
+                filepath_sectors=self.parameters.filepaths['sector_table'],
+                households_spatial=self.parameters.filepaths['households_spatial'],
+                firms_spatial=self.parameters.filepaths['firms_spatial'],
+                transport_nodes=self.transport_nodes,
+                io_cutoff=self.parameters.io_cutoff,
+                cutoff_firm_output=self.parameters.cutoff_firm_output,
+                monetary_units_in_data=self.parameters.monetary_units_in_data,
+                admin=self.parameters.admin
+            )
 
-    def setup_households(self):
-        pass
+        # Create firm instances
+        nb_firms = 'all'
+        logging.info(f"Creating firms. nb_firms: {nb_firms} "
+                     f"inventory_restoration_time: {self.parameters.inventory_restoration_time} "
+                     f"utilization_rate: {self.parameters.utilization_rate}")
+        
+        self.firms = create_firms(
+            firm_table=self.firm_table,
+            keep_top_n_firms=nb_firms,
+            inventory_restoration_time=self.parameters.inventory_restoration_time,
+            utilization_rate=self.parameters.utilization_rate,
+            capital_to_value_added_ratio=self.parameters.capital_to_value_added_ratio,
+            admin=self.parameters.admin
+        )
 
-    def setup_countries(self):
-        pass
+        # Load technical coefficients based on firm data type
+        if self.parameters.firm_data_type == "supplier-buyer network":
+            self.firms, self.transaction_table = calibrate_input_mix(
+                firms=self.firms,
+                firm_table=self.firm_table,
+                sector_table=self.sector_table,
+                filepath_transaction_table=self.parameters.filepaths['transaction_table']
+            )
+        else:
+            load_mrio_tech_coefs(
+                firms=self.firms,
+                mrio=self.mrio,
+                io_cutoff=self.parameters.io_cutoff
+            )
+
+        # Load inventory targets
+        load_inventories(
+            firms=self.firms,
+            inventory_duration_targets=self.parameters.inventory_duration_targets,
+            model_time_unit=self.parameters.time_resolution,
+            sector_table=self.sector_table
+        )
+
+        # Extract sector information
+        present_sectors, present_region_sectors, flow_types_to_export = self.firms.extract_sectors()
+        
+        return present_sectors, present_region_sectors, flow_types_to_export
+
+    def setup_households(self, present_region_sectors: list) -> None:
+        """Setup households from MRIO data.
+        
+        Parameters
+        ----------
+        present_region_sectors : list
+            List of region_sector combinations present in the model
+        """
+        logging.info('Defining the number of households to generate and their purchase plan')
+        
+        self.household_table, household_sector_consumption = define_households_from_mrio(
+            mrio=self.mrio,
+            filepath_households_spatial=self.parameters.filepaths['households_spatial'],
+            transport_nodes=self.transport_nodes,
+            time_resolution=self.parameters.time_resolution,
+            target_units=self.parameters.monetary_units_in_model,
+            input_units=self.parameters.monetary_units_in_data,
+            final_demand_cutoff=self.parameters.cutoff_household_demand,
+            present_region_sectors=present_region_sectors,
+            admin=self.parameters.admin
+        )
+        
+        self.households = create_households(
+            household_table=self.household_table,
+            household_sector_consumption=household_sector_consumption,
+            admin=self.parameters.admin
+        )
+
+    def setup_countries(self) -> None:
+        """Setup countries from MRIO data."""
+        logging.info('Creating countries from MRIO data')
+        
+        self.countries, self.country_table = create_countries_from_mrio(
+            mrio=self.mrio,
+            transport_nodes=self.transport_nodes,
+            filepath_countries_spatial=self.parameters.filepaths['countries_spatial'],
+            filepath_sectors=self.parameters.filepaths['sector_table'],
+            time_resolution=self.parameters.time_resolution,
+            target_units=self.parameters.monetary_units_in_model,
+            input_units=self.parameters.monetary_units_in_data
+        )
 
     def setup_agents(self, cached: bool = False):
+        """Main orchestrator function for setting up all agent types.
+        
+        Coordinates the creation of firms, households, and countries by delegating
+        to specialized setup methods. Handles both cached and fresh data loading.
+        
+        Parameters
+        ----------
+        cached : bool, default False
+            Whether to load from cache or create fresh agents
+        """
         if cached:
+            # Load all agent data from cache
             self.mrio, self.sector_table, self.firms, self.firm_table, self.households, self.household_table, \
                 self.countries = load_cached_agent_data()
             if self.parameters.firm_data_type == "supplier-buyer network":
                 self.transaction_table = load_cached_transaction_table()
             self.mrio = Mrio(self.mrio, monetary_units=self.parameters.monetary_units_in_data)
+            
         else:
-            logging.info(f"Filtering the sectors based on their output. "
-                         f"Cutoff type is {self.parameters.cutoff_sector_output['type']}, "
-                         f"cutoff value is {self.parameters.cutoff_sector_output['value']}")
-            self.mrio = Mrio.load_mrio_from_filepath(self.parameters.filepaths['mrio'],
-                                                     self.parameters.monetary_units_in_data)
-            self.sector_table = pd.read_csv(self.parameters.filepaths['sector_table'])
+            # Create agents from scratch
+            
+            # 1. Load and prepare MRIO data
+            self._prepare_mrio_and_sectors()
+            
+            # 2. Filter sectors based on economic significance
+            filtered_industries = self._filter_sectors()
+            
+            # 3. Setup firms (defines present_region_sectors needed for households)
+            present_sectors, present_region_sectors, flow_types_to_export = self.setup_firms(filtered_industries)
+            
+            # 4. Setup households (depends on present_region_sectors from firms)
+            self.setup_households(present_region_sectors)
+            
+            # 5. Setup countries 
+            self.setup_countries()
+            
+            # 6. Cache the created data
+            self._cache_agent_data(present_sectors, present_region_sectors, flow_types_to_export)
 
-            filtered_industries = filter_sector(self.mrio,
-                                                cutoff_sector_output=self.parameters.cutoff_sector_output,
-                                                cutoff_sector_demand=self.parameters.cutoff_sector_demand,
-                                                combine_sector_cutoff=self.parameters.combine_sector_cutoff,
-                                                sectors_to_include=self.parameters.sectors_to_include,
-                                                sectors_to_exclude=self.parameters.sectors_to_exclude,
-                                                monetary_units_in_data=self.parameters.monetary_units_in_data)
-            output_selected = self.mrio.get_total_output_per_region_sectors(filtered_industries).sum()
-            output_total = self.mrio.get_total_output_per_region_sectors().sum()
-            final_demand_selected = self.mrio.get_final_demand(filtered_industries).sum(axis=1).sum()
-            final_demand_total = self.mrio.get_final_demand().sum(axis=1).sum()
-            # final_demand_selected = self.sector_table.loc[
-            #     self.sector_table['sector'].isin(filtered_industries), 'final_demand'].sum()
-            logging.info(f"{len(filtered_industries)} sectors selected over {len(self.mrio.region_sectors)} "
-                         f"covering {output_selected / output_total:.0%} of total output "
-                         f"& {final_demand_selected / final_demand_total:.0%} of final demand")
-            logging.info(f'The filtered sectors are: {filtered_industries}')
-
-            logging.info('Generating the firms')
-            if self.parameters.firm_data_type == "supplier-buyer network":
-                self.firm_table = define_firms_from_network_data(
-                    filepath_firm_table=self.parameters.filepaths['firm_table'],
-                    filepath_location_table=self.parameters.filepaths['location_table'],
-                    sectors_to_include=filtered_industries,
-                    transport_nodes=self.transport_nodes,
-                    filepath_sector_table=self.parameters.filepaths['sector_table'])
-
-            else:
-                self.firm_table = define_firms_from_mrio(self.mrio,
-                                                         filepath_sectors=self.parameters.filepaths['sector_table'],
-                                                         households_spatial=self.parameters.filepaths['households_spatial'],
-                                                         firms_spatial=self.parameters.filepaths['firms_spatial'],
-                                                         transport_nodes=self.transport_nodes,
-                                                         io_cutoff=self.parameters.io_cutoff,
-                                                         cutoff_firm_output=self.parameters.cutoff_firm_output,
-                                                         monetary_units_in_data=self.parameters.monetary_units_in_data,
-                                                         admin=self.parameters.admin)
-
-            nb_firms = 'all'  # Weird
-            logging.info(f"Creating firms. nb_firms: {nb_firms} "
-                         f"inventory_restoration_time: {self.parameters.inventory_restoration_time} "
-                         f"utilization_rate: {self.parameters.utilization_rate}")
-            self.firms = create_firms(
-                firm_table=self.firm_table,
-                keep_top_n_firms=nb_firms,
-                inventory_restoration_time=self.parameters.inventory_restoration_time,
-                utilization_rate=self.parameters.utilization_rate,
-                capital_to_value_added_ratio=self.parameters.capital_to_value_added_ratio,
-                admin=self.parameters.admin
-            )
-
-            present_sectors, present_region_sectors, flow_types_to_export = self.firms.extract_sectors()
-
-            # Create households
-            logging.info('Defining the number of households to generate and their purchase plan')
-            # if self.parameters.firm_data_type == "mrio":
-            self.household_table, household_sector_consumption = define_households_from_mrio(
-                mrio=self.mrio,
-                filepath_households_spatial=self.parameters.filepaths['households_spatial'],
-                transport_nodes=self.transport_nodes,
-                time_resolution=self.parameters.time_resolution,
-                target_units=self.parameters.monetary_units_in_model,
-                input_units=self.parameters.monetary_units_in_data,
-                final_demand_cutoff=self.parameters.cutoff_household_demand,
-                present_region_sectors=present_region_sectors,
-                admin=self.parameters.admin
-            )
-            # else:
-            #     self.household_table, household_sector_consumption = define_households(
-            #         sector_table=self.sector_table,
-            #         filepath_region_data=self.parameters.filepaths['region_data'],
-            #         filtered_sectors=present_sectors,
-            #         pop_cutoff=self.parameters.pop_cutoff,
-            #         pop_density_cutoff=self.parameters.pop_density_cutoff,
-            #         local_demand_cutoff=self.parameters.local_demand_cutoff,
-            #         transport_nodes=self.transport_nodes,
-            #         time_resolution=self.parameters.time_resolution,
-            #         target_units=self.parameters.monetary_units_in_model,
-            #         input_units=self.parameters.monetary_units_in_data
-            #     )
-            #     cond_no_household = ~self.firm_table['od_point'].isin(self.household_table['od_point'])
-            #     if cond_no_household.sum() > 0:
-            #         logging.info('We add local households for firms')
-            #         self.household_table, household_sector_consumption = add_households_for_firms(
-            #             firm_table=self.firm_table,
-            #             household_table=self.household_table,
-            #             filepath_region_data=self.parameters.filepaths['region_data'],
-            #             sector_table=self.sector_table,
-            #             filtered_sectors=present_sectors,
-            #             time_resolution=self.parameters.time_resolution,
-            #             target_units=self.parameters.monetary_units_in_model,
-            #             input_units=self.parameters.monetary_units_in_data
-            #         )
-            self.households = create_households(
-                household_table=self.household_table,
-                household_sector_consumption=household_sector_consumption,
-                admin=self.parameters.admin
-            )
-
-            # Load technical coefficients based on firm data type
-            if self.parameters.firm_data_type == "supplier-buyer network":
-                self.firms, self.transaction_table = calibrate_input_mix(
-                    firms=self.firms,
-                    firm_table=self.firm_table,
-                    sector_table=self.sector_table,
-                    filepath_transaction_table=self.parameters.filepaths['transaction_table']
-                )
-            else:
-                load_mrio_tech_coefs(
-                    firms=self.firms,
-                    mrio=self.mrio,
-                    io_cutoff=self.parameters.io_cutoff
-                )
-
-            # Loading the inventories
-            load_inventories(
-                firms=self.firms,
-                inventory_duration_targets=self.parameters.inventory_duration_targets,
-                model_time_unit=self.parameters.time_resolution,
-                sector_table=self.sector_table
-            )
-
-            # Create agents: Countries
-            self.countries, self.country_table = create_countries_from_mrio(
-                mrio=self.mrio,
-                transport_nodes=self.transport_nodes,
-                filepath_countries_spatial=self.parameters.filepaths['countries_spatial'],
-                filepath_sectors=self.parameters.filepaths['sector_table'],
-                time_resolution=self.parameters.time_resolution,
-                target_units=self.parameters.monetary_units_in_model,
-                input_units=self.parameters.monetary_units_in_data
-            )
-
-            # Save to tmp folder
-            data_to_cache = {
-                "mrio": self.mrio,
-                "sector_table": self.sector_table,
-                'firm_table': self.firm_table,
-                'present_sectors': present_sectors,
-                'present_region_sectors': present_region_sectors,
-                'flow_types_to_export': flow_types_to_export,
-                'firms': self.firms,
-                'household_table': self.household_table,
-                'households': self.households,
-                'countries': self.countries
-            }
-            if self.parameters.firm_data_type == "supplier-buyer network":
-                data_to_cache['transaction_table'] = self.transaction_table
-            cache_agent_data(data_to_cache)
-
-        # Locate firms and households on transport network
+        # Locate agents on transport network
         self.transport_network.locate_firms_on_nodes(self.firms)
         self.transport_network.locate_households_on_nodes(self.households)
         self.agents_initialized = True
+
+    def _prepare_mrio_and_sectors(self) -> None:
+        """Load MRIO data and sector table."""
+        self.mrio = Mrio.load_mrio_from_filepath(
+            self.parameters.filepaths['mrio'],
+            self.parameters.monetary_units_in_data
+        )
+        self.sector_table = pd.read_csv(self.parameters.filepaths['sector_table'])
+
+    def _filter_sectors(self) -> list:
+        """Filter sectors based on output and demand criteria."""
+        logging.info(f"Filtering the sectors based on their output. "
+                     f"Cutoff type is {self.parameters.cutoff_sector_output['type']}, "
+                     f"cutoff value is {self.parameters.cutoff_sector_output['value']}")
+        
+        filtered_industries = filter_sector(
+            self.mrio,
+            cutoff_sector_output=self.parameters.cutoff_sector_output,
+            cutoff_sector_demand=self.parameters.cutoff_sector_demand,
+            combine_sector_cutoff=self.parameters.combine_sector_cutoff,
+            sectors_to_include=self.parameters.sectors_to_include,
+            sectors_to_exclude=self.parameters.sectors_to_exclude,
+            monetary_units_in_data=self.parameters.monetary_units_in_data
+        )
+        
+        # Log filtering results
+        output_selected = self.mrio.get_total_output_per_region_sectors(filtered_industries).sum()
+        output_total = self.mrio.get_total_output_per_region_sectors().sum()
+        final_demand_selected = self.mrio.get_final_demand(filtered_industries).sum(axis=1).sum()
+        final_demand_total = self.mrio.get_final_demand().sum(axis=1).sum()
+        
+        logging.info(f"{len(filtered_industries)} sectors selected over {len(self.mrio.region_sectors)} "
+                     f"covering {output_selected / output_total:.0%} of total output "
+                     f"& {final_demand_selected / final_demand_total:.0%} of final demand")
+        logging.info(f'The filtered sectors are: {filtered_industries}')
+        
+        return filtered_industries
+
+    def _cache_agent_data(self, present_sectors: list, present_region_sectors: list, 
+                          flow_types_to_export: list) -> None:
+        """Cache all agent data for future use."""
+        data_to_cache = {
+            "mrio": self.mrio,
+            "sector_table": self.sector_table,
+            'firm_table': self.firm_table,
+            'present_sectors': present_sectors,
+            'present_region_sectors': present_region_sectors,
+            'flow_types_to_export': flow_types_to_export,
+            'firms': self.firms,
+            'household_table': self.household_table,
+            'households': self.households,
+            'countries': self.countries
+        }
+        if self.parameters.firm_data_type == "supplier-buyer network":
+            data_to_cache['transaction_table'] = self.transaction_table
+        cache_agent_data(data_to_cache)
 
     def setup_sc_network(self, cached: bool = False):
         if cached:
