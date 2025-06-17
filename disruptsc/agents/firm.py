@@ -171,9 +171,7 @@ class Firm(BaseAgent, TransportCapable):
         self.finance_manager.initialize_financial_variables(
             eq_production, eq_input_cost, eq_transport_cost, eq_other_cost
         )
-        # Store equilibrium values for reference
-        self.eq_finance = self.finance_manager.eq_finance.copy()
-        self.eq_profit = self.finance_manager.eq_profit
+        # Note: equilibrium values are now accessed via properties that delegate to finance_manager
 
     def add_noise_to_geometry(self, noise_level=1e-5):
         self.geometry = Point(self.long + noise_level * random.uniform(0, 1),
