@@ -1,0 +1,85 @@
+/* Custom styles for DisruptSC documentation */
+
+/* Add custom styling for code blocks */
+.highlight {
+    border-radius: 0.25rem;
+}
+
+/* Improve table styling */
+.md-typeset table:not([class]) {
+    border: 1px solid var(--md-default-fg-color--lightest);
+    border-radius: 0.25rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+/* Custom admonition styling */
+.md-typeset .admonition.tip {
+    border-color: #4CAF50;
+}
+
+.md-typeset .admonition.warning {
+    border-color: #FF9800;
+}
+
+/* Navigation improvements */
+.md-nav__item--active > .md-nav__link {
+    font-weight: 600;
+}
+
+/* Code copy button styling */
+.md-clipboard {
+    border-radius: 0.125rem;
+}
+
+/* Mermaid diagram styling */
+.mermaid {
+    text-align: center;
+    margin: 2rem 0;
+}
+
+/* Custom colors for DisruptSC branding */
+:root {
+    --md-primary-fg-color: #1976D2;
+    --md-accent-fg-color: #FF6F00;
+}
+
+/* Responsive image styling */
+.md-typeset img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.25rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
+}
+
+/* API documentation styling */
+.doc-heading {
+    border-bottom: 1px solid var(--md-default-fg-color--lightest);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Custom grid layout for feature cards */
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    margin: 2rem 0;
+}
+
+.feature-card {
+    padding: 1.5rem;
+    border: 1px solid var(--md-default-fg-color--lightest);
+    border-radius: 0.5rem;
+    background: var(--md-code-bg-color);
+}
+
+/* File tree styling */
+.file-tree {
+    font-family: var(--md-code-font);
+    font-size: 0.85rem;
+    line-height: 1.4;
+    background: var(--md-code-bg-color);
+    padding: 1rem;
+    border-radius: 0.25rem;
+    border-left: 4px solid var(--md-primary-fg-color);
+}

@@ -1,0 +1,168 @@
+site_name: DisruptSC Documentation
+site_description: Spatial agent-based model for supply chain disruption analysis
+site_author: Celian Collon
+site_url: https://ccolon.github.io/disrupt-sc
+
+repo_name: ccolon/disrupt-sc
+repo_url: https://github.com/ccolon/disrupt-sc
+edit_uri: edit/main/docs/
+
+copyright: Copyright &copy; 2024 Celian Colon
+
+# Configuration
+theme:
+  name: material
+  language: en
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      primary: blue
+      accent: orange
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - scheme: slate
+      primary: blue
+      accent: orange
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Roboto
+    code: Roboto Mono
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    - navigation.indexes
+    - search.highlight
+    - search.share
+    - search.suggest
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+
+# Extensions
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - meta
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      user: ccolon
+      repo: disrupt-sc
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+# Plugins
+plugins:
+  - search:
+      lang: en
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: numpy
+            members_order: source
+            show_root_heading: true
+            show_source: true
+            show_category_heading: true
+  - autorefs
+  - section-index
+
+# Extra
+extra:
+  version:
+    provider: mike
+    default: latest
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/ccolon/disrupt-sc
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/disruptsc/
+
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+# Navigation
+nav:
+  - Home: index.md
+  - Getting Started:
+    - getting-started/index.md
+    - Installation: getting-started/installation.md
+    - Data Setup: getting-started/data-setup.md
+    - Quick Start: getting-started/quick-start.md
+    - Input Validation: getting-started/validation.md
+  - User Guide:
+    - user-guide/index.md
+    - Basic Usage: user-guide/basic-usage.md
+    - Parameters: user-guide/parameters.md
+    - Data Modes: user-guide/data-modes.md
+    - Input Data: user-guide/input-data.md
+    - Output Files: user-guide/output-files.md
+  - Tutorials:
+    - tutorials/index.md
+    - Cambodia Example: tutorials/cambodia-example.md
+    - Custom Disruptions: tutorials/custom-disruption.md
+    - Performance Tuning: tutorials/performance-tuning.md
+    - Visualization: tutorials/visualization.md
+  - Architecture:
+    - architecture/index.md
+    - Model Overview: architecture/overview.md
+    - Agents: architecture/agents.md
+    - Networks: architecture/networks.md
+    - Disruptions: architecture/disruptions.md
+    - Simulation: architecture/simulation.md
+  - Reference:
+    - reference/index.md
+    - CLI Reference: reference/cli.md
+    - File Formats: reference/file-formats.md
+    - Parameters Reference: reference/parameters-ref.md
+    - API Reference: reference/api/
+  - Development:
+    - development/index.md
+    - Contributing: development/contributing.md
+    - Architecture Notes: development/architecture-notes.md
+    - Claude Code Guide: development/claude-code.md
+    - Testing: development/testing.md
+  - Examples:
+    - examples/index.md
