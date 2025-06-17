@@ -53,6 +53,24 @@ export DISRUPT_SC_DATA_PATH=/path/to/your/data/folder
 
 DisruptSC is a spatial agent-based model simulating supply chain disruptions. Key architectural components:
 
+### Disruption System Architecture
+
+The disruption system uses a factory pattern for flexible creation of different disruption types:
+
+- **DisruptionFactory** - Central factory for creating disruptions from configuration
+- **BaseDisruption** - Abstract base class for all disruption types
+- **DisruptionContext** - Shared context data for disruption creation
+- **DisruptionList** - Container for managing multiple disruptions
+
+**Adding new disruption types:**
+```python
+def create_my_disruption(config: dict, context: DisruptionContext) -> MyDisruption:
+    # Custom creation logic
+    return MyDisruption(...)
+
+DisruptionList.register_disruption_type("my_disruption", create_my_disruption)
+```
+
 ### Core Model Flow
 1. **Transport Network Setup** - Load/build infrastructure (roads, maritime, railways)
 2. **Agent Creation** - Firms, households, countries based on economic data
@@ -83,9 +101,30 @@ Configuration uses YAML files in `parameter/`:
 
 Key configuration areas:
 - `simulation_type` - Controls execution mode (initial_state, disruption, criticality, etc.)
-- `firm_data_type` - Data source ("mrio" vs "supplier-buyer network")  
-- `events` - Disruption scenarios for disruption simulations
+- `firm_data_type` - Data source (default: "mrio", alternative: "supplier-buyer network")
+- `events` - Disruption scenarios for disruption simulations (note: "events" and "disruptions" refer to the same concept)
 - File paths for region-specific input data
+
+## Data Modes
+
+DisruptSC supports two firm data modes:
+
+### MRIO Mode (Default)
+- **Usage**: Default mode, used as fallback for all cases
+- **Data source**: Multi-Regional Input-Output tables
+- **Households**: Generated from MRIO final demand
+- **Countries**: Generated from MRIO trade flows
+- **Supply chains**: Generated from IO technical coefficients
+- **Configuration**: `firm_data_type: "mrio"` (or omitted)
+
+### Supplier-Buyer Network Mode (Experimental)
+- **Usage**: Alternative mode requiring specific network data
+- **Data source**: Explicit supplier-buyer transaction tables
+- **Households**: Still generated from MRIO final demand
+- **Countries**: Still generated from MRIO trade flows  
+- **Supply chains**: Generated from predefined transaction relationships
+- **Configuration**: `firm_data_type: "supplier-buyer network"`
+- **Required files**: `firm_table.csv`, `location_table.csv`, `transaction_table.csv`
 
 ## Input Data Structure
 
@@ -102,10 +141,10 @@ The model code and data are now separated into different repositories:
 **Note:** Large data files (>50MB) may trigger GitHub warnings. Consider migrating to Git Large File Storage (Git LFS) if file sizes become problematic or if frequent updates to large files are needed.
 
 **Data Structure:**
-Data organized by region in `data/<region>/` (or `input/<region>/` for legacy):
+Data organized by scope in `data/<scope>/` (or `input/<scope>/` for legacy):
 
 ```
-data/{region}/
+data/{scope}/
 ├── Economic/        # MRIO tables, sector definitions
 ├── Transport/      # Infrastructure GeoJSON files
 └── Spatial/      # Geographic disaggregation data
@@ -131,7 +170,7 @@ Use `--cache` parameter to selectively reuse cached components across runs.
 
 ## Output Structure
 
-Results saved to `output/<region>/<timestamp>/`:
+Results saved to `output/<scope>/<timestamp>/`:
 - `*_data.json` - Agent state timeseries
 - `*_table.csv` - Tabular results  
 - `*.geojson` - Geographic outputs
@@ -143,8 +182,8 @@ Results saved to `output/<region>/<timestamp>/`:
 Validate input files before running simulations to catch errors early:
 
 ```bash
-# Validate all input files for a region
-python validate_inputs.py <region>
+# Validate all input files for a scope
+python validate_inputs.py <scope>
 
 # Example
 python validate_inputs.py Cambodia
@@ -177,7 +216,7 @@ if not is_valid:
 # Run input validation tests
 python test_input_validation.py
 
-# Test specific region inputs
+# Test specific scope inputs
 python validate_inputs.py Cambodia
 python validate_inputs.py ECA
 ```
@@ -199,6 +238,9 @@ python -m disruptsc.model.input_validation --version
 To update version: edit `disruptsc/_version.py` - setup.py automatically reads from this file.
 
 **Recent changes (v1.0.8):**
+- Simplified data modes: MRIO as default/fallback, supplier-buyer network as alternative
+- Removed IO disaggregation mode complexity for cleaner codebase
+- Households and countries now always use MRIO data for consistency
 - Removed 12 unused parameters from Parameters class for cleaner codebase
 - Updated dependencies with flexible version ranges
 - Added comprehensive input validation system

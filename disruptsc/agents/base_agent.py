@@ -317,6 +317,67 @@ class BaseAgents(dict):
         for agent in self.values():
             agent.assign_cost_profile(nb_cost_profiles)
 
+    def choose_initial_routes(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
+                              capacity_constraint: bool,
+                              explicit_service_firm: bool, transport_to_households: bool,
+                              sectors_no_transport_network: list,
+                              transport_cost_noise_level: float,
+                              monetary_units_in_model: str,
+                              parallelized: bool,
+                              use_route_cache: bool):
+        """
+        Choose initial routes for all agents that have transport capabilities.
+        
+        This method delegates to each agent's choose_initial_routes method if it exists.
+        """
+        if parallelized and (not capacity_constraint):
+            # Parallelized execution when routes are independent
+            from concurrent.futures import ProcessPoolExecutor
+            with ProcessPoolExecutor() as executor:
+                futures = [
+                    executor.submit(
+                        agent.choose_initial_routes, sc_network, transport_network, capacity_constraint,
+                        explicit_service_firm, transport_to_households, sectors_no_transport_network,
+                        transport_cost_noise_level, monetary_units_in_model, use_route_cache
+                    )
+                    for agent in self.values()
+                    if hasattr(agent, 'choose_initial_routes')
+                ]
+                for future in futures:
+                    future.result()
+        else:
+            # Sequential execution
+            for agent in tqdm(self.values(), total=len(self)):
+                if hasattr(agent, 'choose_initial_routes'):
+                    agent.choose_initial_routes(
+                        sc_network, transport_network, capacity_constraint, explicit_service_firm,
+                        transport_to_households, sectors_no_transport_network,
+                        transport_cost_noise_level, monetary_units_in_model, use_route_cache
+                    )
+
+    def deliver(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
+                available_transport_network: "TransportNetwork",
+                sectors_no_transport_network: list, rationing_mode: str, with_transport: bool,
+                transport_to_households: bool, capacity_constraint: bool,
+                monetary_units_in_model: str, cost_repercussion_mode: str, price_increase_threshold: float,
+                transport_cost_noise_level: float, use_route_cache: bool):
+        """Deliver products for all agents that have delivery capabilities."""
+        for agent in tqdm(self.values(), total=len(self), desc=f"Delivering"):
+            if hasattr(agent, 'deliver_products'):
+                agent.deliver_products(
+                    sc_network, transport_network, available_transport_network,
+                    sectors_no_transport_network=sectors_no_transport_network,
+                    rationing_mode=rationing_mode,
+                    with_transport=with_transport,
+                    transport_to_households=transport_to_households,
+                    monetary_units_in_model=monetary_units_in_model,
+                    cost_repercussion_mode=cost_repercussion_mode,
+                    price_increase_threshold=price_increase_threshold,
+                    capacity_constraint=capacity_constraint,
+                    transport_cost_noise_level=transport_cost_noise_level,
+                    use_route_cache=use_route_cache
+                )
+
 
 def determine_nb_suppliers(nb_suppliers_per_input: float, max_nb_of_suppliers=None):
     """

@@ -20,16 +20,7 @@ filepaths:
   "firms_spatial": "Spatial/firms.geojson"
   # Optional
   "inventory_duration_targets": "Economic/inventory_targets.csv"
-  "admin": "Subnational/admin.geojson"
-  # Legacy
-  "firms": "Spatial"  # Deprecated: use firms_spatial instead
-  "tech_coef": "Economic/tech_coef.csv"
-  "firm_table": "Economic/firm_table.csv"
-  "region_table": "Economic/region_table.geojson"  # Deprecated: split into households_spatial and countries_spatial
-  "transaction_table": "Economic/transaction_table.csv"
-  "imports": "Trade/import_table.csv"
-  "exports": "Trade/export_table.csv"
-  "transit": "Trade/transit_matrix.csv"
+  "admin": "Spatial/admin.geojson"
 
 
 
@@ -93,7 +84,7 @@ logistics:
     waterways-maritime: 24
     roads-pipelines: 6
     railways-pipelines: 6
-    maritime-pipelines: 6
+    pipelines-maritime: 6
   loading_fees: #USD/ton
     roads-maritime: 2.2
     roads-maritime-dom: 2.2
@@ -105,7 +96,7 @@ logistics:
     waterways-maritime: 2.2
     roads-pipelines: 1.0
     railways-pipelines: 1.0
-    maritime-pipelines: 1.0
+    pipelines-maritime: 1.0
   border_crossing_fees: #USD/ton
     roads: 30
     maritime: 30
@@ -135,6 +126,7 @@ logistics:
       roads-waterways: 0.1
       roads-railways: 0.1
       railways-maritime: 0.1
+      pipelines-maritime: 0.1
   name-specific:
     azerty: 0
 
