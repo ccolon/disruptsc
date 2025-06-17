@@ -1,6 +1,6 @@
 site_name: DisruptSC Documentation
 site_description: Spatial agent-based model for supply chain disruption analysis
-site_author: Celian Collon
+site_author: Celian Colon
 site_url: https://ccolon.github.io/disrupt-sc
 
 repo_name: ccolon/disrupt-sc
