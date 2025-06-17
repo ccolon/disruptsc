@@ -37,14 +37,14 @@ Input data should be organized by scope:
 data/<scope>/          # or input/<scope>/ for local setup
 ├── Economic/           # MRIO tables, sector definitions
 ├── Transport/          # Infrastructure GeoJSON files
-    ├── roads_edges.geojson          # Road transport edges, LineString geometry
-    ├── maritime_edges.geojson       # Marigimate transport edges, LineString geometry
-    ├── .....                        # Possiblty other transport modes: airways, railways, waterways, pipelines
-    └── multimodal_edges.geojson     # Firm spatial disaggregation data
-└── Spatial/                  # Geographic disaggregation data
-    ├── households.geojson    # Household location points
-    ├── countries.geojson     # Country points  
-    └── firms.geojson         # Firm spatial disaggregation points
+│   ├── roads_edges.geojson          # Road transport edges, LineString geometry
+│   ├── maritime_edges.geojson       # Maritime transport edges, LineString geometry
+│   ├── [other modes]                # Possibly other transport modes: airways, railways, waterways, pipelines
+│   └── multimodal_edges.geojson     # Multimodal connections
+└── Spatial/                         # Geographic disaggregation data
+    ├── households.geojson           # Household location points for disaggregation
+    ├── countries.geojson            # Country/import entry points  
+    └── firms.geojson                # Firm spatial disaggregation data
 ```
 
 ### Data Path Priority
@@ -99,12 +99,43 @@ The default parameters are defined in the "parameter/default.yaml" file. This fi
 to the input files. To change a parameter of filepath value, write it into the "parameter/user_defined_\<scope\>.yaml"
 file.
 
+### Data Modes
+
+DisruptSC supports two firm data modes controlled by the `firm_data_type` parameter:
+
+#### MRIO Mode (Default)
+```yaml
+firm_data_type: "mrio"  # or omit parameter entirely
+```
+
+- **Default**: Used automatically if `firm_data_type` is not specified
+- **Data source**: Multi-Regional Input-Output tables
+- **Households**: Generated from MRIO final demand data
+- **Countries**: Generated from MRIO international trade flows
+- **Supply chains**: Generated from IO technical coefficients
+- **Benefits**: Comprehensive, well-tested, works with standard economic data
+
+#### Supplier-Buyer Network Mode (Experimental)
+```yaml
+firm_data_type: "supplier-buyer network"
+```
+
+- **Alternative**: Requires specific transaction data files
+- **Data source**: Explicit supplier-buyer transaction tables
+- **Households**: Still generated from MRIO final demand
+- **Countries**: Still generated from MRIO trade flows
+- **Supply chains**: Generated from predefined transaction relationships
+- **Required files**: `firm_table.csv`, `location_table.csv`, `transaction_table.csv`
+- **Use case**: When you have detailed firm-level transaction data
+
+**Note**: MRIO mode is recommended for most users as it provides a complete, consistent framework using standard economic data.
+
 ### Input Validation
 
 Before running the model, validate your input files to catch errors early:
 
 ```bash
-python validate_inputs.py <region>
+python validate_inputs.py <scope>
 ```
 
 **Example:**
@@ -300,7 +331,7 @@ A capital destruction is defined by:
 
 The model is launched by the following command:
 
-	python disruptsc/main.py <region> <optional argument>
+	python disruptsc/main.py <scope> <optional argument>
 
 See the section "Calling the script" for more details.
 
