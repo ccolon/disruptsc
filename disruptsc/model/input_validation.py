@@ -97,7 +97,7 @@ class InputValidator:
             return
             
         # Required columns for all modes
-        required_cols = ['sector', 'type', 'output', 'final_demand', 'usd_per_ton']
+        required_cols = ['sector', 'type', 'usd_per_ton']
         missing_cols = [col for col in required_cols if col not in df.columns]
         if missing_cols:
             self.errors.append(f"sector_table.csv missing required columns: {missing_cols}")
@@ -202,12 +202,13 @@ class InputValidator:
                 
         # Check for extreme imbalance (critical error)
         try:
-            row_sums = df.sum(axis=1)[intermediate_rows]
-            col_sums = df.sum(axis=0)[intermediate_cols]
-            if not np.allclose(row_sums, col_sums, rtol=0.5):
-                self.errors.append("MRIO table is severely unbalanced (row sums ≠ column sums)")
-            elif not np.allclose(row_sums, col_sums, rtol=0.1):
-                self.warnings.append("MRIO table appears unbalanced (row sums ≠ column sums)")
+            row_sums = df.sum(axis=1)
+            col_sums = df.sum(axis=0)
+            unbalance_message = 'unbalanced (row sums ≠ column sums). Maybe taxes or value-added row is missing.'
+            if not np.allclose(row_sums[intermediate_rows], col_sums[intermediate_cols], rtol=0.5):
+                self.warnings.append("MRIO table is severely " + unbalance_message)
+            elif not np.allclose(row_sums[intermediate_rows], col_sums[intermediate_cols], rtol=0.1):
+                self.warnings.append("MRIO table appears " + unbalance_message)
         except Exception as e:
             self.errors.append(f"Cannot compute MRIO table balance: {e}")
     
