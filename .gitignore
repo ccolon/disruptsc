@@ -3,14 +3,22 @@ output/*
 !output/.gitkeep
 tmp/*
 !tmp/.gitkeep
+
 # Exclude input folder - data is now in separate repository
 input/*
 parameter/*
 #!parameter/user_defined_Testkistan.yaml
-#!parameter/default.yaml
+!parameter/default.yaml
 
 # PyCharm
 .idea/
+
+# Claude
+CLAUDE.md
+disruptsc/.claude
+
+# Legacy
+disruptsc/legacy
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
