@@ -11,10 +11,29 @@ This guide will help you install DisruptSC and set up the required environment.
 
 ## Step 1: Clone the Repository
 
+The DisruptSC project uses Git submodules to manage data separately from the main codebase. Choose one of the following methods:
+
+### Method A: Clone with Submodules (Recommended)
+
 ```bash
-git clone https://github.com/worldbank/disrupt-sc.git
+# Clone repository and initialize submodules in one step
+git clone --recurse-submodules https://github.com/worldbank/disrupt-sc.git
 cd disrupt-sc
 ```
+
+### Method B: Clone then Initialize Submodules
+
+```bash
+# Clone repository
+git clone https://github.com/ccolon/disrupt-sc.git
+cd disrupt-sc
+
+# Initialize and update data submodule
+git submodule update --init --recursive
+```
+
+!!! info "About Data Submodules"
+    DisruptSC uses a separate private repository for input data to keep the main codebase lightweight. The data is automatically linked as a Git submodule in the `data/` folder.
 
 ## Step 2: Environment Setup
 
@@ -87,6 +106,30 @@ DisruptSC relies on several key packages:
 
 ### Common Installation Issues
 
+??? failure "Empty data folder after cloning"
+    
+    If your `data/` folder is empty after cloning, the submodule wasn't initialized:
+    
+    ```bash
+    # Initialize and update submodules
+    git submodule update --init --recursive
+    
+    # Verify data is present
+    ls data/
+    # Should show: Cambodia, ECA, Ecuador, Global, Testkistan, etc.
+    ```
+
+??? failure "Submodule already exists error"
+    
+    If you get `fatal: 'data' already exists in the index` when trying to add submodules:
+    
+    ```bash
+    # The submodule is already configured, just update it
+    git submodule update --init --recursive
+    
+    # Don't run git submodule add again
+    ```
+
 ??? failure "Conda environment creation hangs"
     
     The environment creation may get stuck in the "solving environment" step. Try:
@@ -152,8 +195,8 @@ pip install -e .
 For developers contributing to DisruptSC:
 
 ```bash
-# Clone with development dependencies
-git clone https://github.com/worldbank/disrupt-sc.git
+# Clone with development dependencies and submodules
+git clone --recurse-submodules https://github.com/worldbank/disrupt-sc.git
 cd disrupt-sc
 
 # Create development environment

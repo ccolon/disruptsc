@@ -20,16 +20,23 @@ Choose one of the following methods to provide input data:
 
 ### Option 1: Git Submodule (Recommended)
 
-If you have access to the private data repository:
+If you have access to the private data repository, the submodule should be automatically set up when you clone:
 
 ```bash
-# Add data repository as submodule
-git submodule add <disrupt-sc-data-repository-url> data
-git submodule update --init
+# If you cloned with --recurse-submodules, data is already available
+ls data/  # Should show: Cambodia, ECA, Ecuador, etc.
+
+# If data folder is empty, initialize the submodule
+git submodule update --init --recursive
 
 # Update data to latest version
 git submodule update --remote data
 ```
+
+!!! warning "Common Submodule Issues"
+    - **Empty data folder**: Run `git submodule update --init --recursive`
+    - **"Already exists" error**: Don't run `git submodule add` again, just update existing submodule
+    - **New computer setup**: Always use `git clone --recurse-submodules` or initialize submodules after cloning
 
 **Advantages:**
 - Version-controlled data
@@ -190,13 +197,17 @@ python disruptsc/main.py Cambodia --help
 ??? failure "Git submodule problems"
     
     ```bash
-    # Initialize submodules
+    # Most common issue: initialize submodules
     git submodule update --init --recursive
     
-    # Reset submodule
+    # Check submodule status
+    git submodule status
+    
+    # If completely broken, reset submodule (last resort)
     git submodule deinit data
     git rm data
-    git submodule add <url> data
+    git submodule add <data-repository-url> data
+    git submodule update --init --recursive
     ```
 
 ### File Format Issues
