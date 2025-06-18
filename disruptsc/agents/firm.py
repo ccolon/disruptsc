@@ -17,13 +17,12 @@ from disruptsc.agents.firm_components import (
     production_function, purchase_planning_function, evaluate_inventory_duration
 )
 from disruptsc.network.commercial_link import CommercialLink
+from disruptsc.parameters import EPSILON
 
 if TYPE_CHECKING:
     from disruptsc.agents.country import Countries
     from disruptsc.network.sc_network import ScNetwork
     from disruptsc.network.transport_network import TransportNetwork
-
-EPSILON = 1e-6
 
 
 class Firm(BaseAgent, TransportCapable):
@@ -438,8 +437,7 @@ class Firm(BaseAgent, TransportCapable):
                     else:
                         logging.debug(f"But I plan to buy {self.inventory_manager.purchase_plan_per_input[input_sector]} of this input")
             else:
-                logging.error(f"{self.id_str()} - Supplier {supplier_id} is not in my purchase plan")
-                quantity_to_buy = 0
+                raise KeyError(f"{self.id_str()} - Supplier {supplier_id} is not in my purchase plan")
             sc_network[edge[0]][self]['object'].order = quantity_to_buy
 
     def retrieve_orders(self, sc_network: "ScNetwork"):

@@ -310,20 +310,11 @@ simulation_type: initial_state
 mc_repetitions: 5
 
 # Determines the disruptive events to model TODO elaborate
-events: null
+disruptions: null
 
 # What time interval does a time step represents
 # Possible values are: 'day', 'week', 'month', 'year'
 time_resolution: 'week'
-
-
-# Provides default simulation duration Tfinal for different disruption duration
-duration_dic:
-  0: 1
-  1: 4
-  2: 8
-  3: 11
-  4: 14
 
 # Defines the criticality loop
 criticality:
@@ -333,7 +324,6 @@ criticality:
 
 # Value of the household extra spending and consumption loss under which we stop the simulation
 # Units is the monetary_units_in_model
-# If None, then we use the default simulation duration Tfinal, see duration_dic
 epsilon_stop_condition: 1e-3
 
 # Characteristic of the transport edges that the path chosen by firms to
