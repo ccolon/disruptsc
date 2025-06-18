@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import os
 
 # Read version from _version.py
-version_file = os.path.join(os.path.dirname(__file__), 'disruptsc', '_version.py')
+version_file = os.path.join(os.path.dirname(__file__), 'src', 'disruptsc', '_version.py')
 with open(version_file) as f:
     exec(f.read())
 
@@ -15,7 +15,8 @@ setup(
     author="Celian Colon",
     author_email="celian.colon.2007@polytechnique.org",
     url="https://github.com/ccolon/disruptsc",
-    packages=find_packages(),
+    packages=find_packages(where="src"),
+    package_dir={"": "src"},
     license="CC BY-NC-ND 4.0",
     classifiers=[
         "Programming Language :: Python :: 3",

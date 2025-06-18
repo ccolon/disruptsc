@@ -3,8 +3,8 @@ import sys
 import os
 #logger = logging.getLogger(__name__)
 
-ROOT_FOLDER = pathlib.Path(__file__).parent.parent
-PARAMETER_FOLDER = ROOT_FOLDER / "parameter"
+ROOT_FOLDER = pathlib.Path(__file__).parent.parent.parent
+PARAMETER_FOLDER = ROOT_FOLDER / "config" / "parameters"
 OUTPUT_FOLDER = ROOT_FOLDER / "output"
 TMP_FOLDER = ROOT_FOLDER / "tmp"
 

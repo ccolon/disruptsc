@@ -79,10 +79,14 @@ Test that DisruptSC is correctly installed:
 python -c "import disruptsc; print(disruptsc.__version__)"
 
 # Test CLI
-python disruptsc/main.py --version
+python src/disruptsc/main.py --version
+# Or use the installed script:
+disruptsc --version
 
 # Run input validation (requires data setup)
-python validate_inputs.py --help
+python scripts/validate_inputs.py --help
+# Or use the installed script:
+validate-inputs --help
 ```
 
 ## Dependencies

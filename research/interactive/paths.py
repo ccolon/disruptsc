@@ -3,8 +3,8 @@ import sys
 import os
 #logger = logging.getLogger(__name__)
 
-ROOT_FOLDER = pathlib.Path(__file__).parent.parent
-PARAMETER_FOLDER = ROOT_FOLDER / "parameter"
+ROOT_FOLDER = pathlib.Path(__file__).parent.parent.parent
+PARAMETER_FOLDER = ROOT_FOLDER / "config" / "parameters"
 OUTPUT_FOLDER = ROOT_FOLDER / "output"
 TMP_FOLDER = ROOT_FOLDER / "tmp"
 
@@ -17,10 +17,7 @@ elif (ROOT_FOLDER / "data").exists():
 else:
     INPUT_FOLDER = ROOT_FOLDER / "input"  # Fallback to current structure
 
-sys.path.insert(1, str(ROOT_FOLDER))
-sys.path.insert(1, str(ROOT_FOLDER / "code" / "model"))
-sys.path.insert(1, str(ROOT_FOLDER / "code" / "parameters"))
-sys.path.insert(1, str(ROOT_FOLDER / "code" / "simualations"))
+sys.path.insert(1, str(ROOT_FOLDER / "src"))
 # if __file__ == "__main__":
 #     print(ROOT_FOLDER)
 

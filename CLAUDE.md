@@ -4,17 +4,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Running the Model
 
-The main entry point is `disruptsc/main.py`. Run simulations with:
+The main entry point is `src/disruptsc/main.py`. Run simulations with:
 
 ```bash
 # Basic usage
-python disruptsc/main.py <region>
+python src/disruptsc/main.py <region>
 
 # With caching options  
-python disruptsc/main.py <region> --cache <cache_type>
+python src/disruptsc/main.py <region> --cache <cache_type>
 
 # With custom parameters
-python disruptsc/main.py <region> --duration 90 --io_cutoff 0.5
+python src/disruptsc/main.py <region> --duration 90 --io_cutoff 0.5
 ```
 
 **Regions available:** Cambodia, ECA, Ecuador, Global, Testkistan
@@ -95,7 +95,7 @@ DisruptionList.register_disruption_type("my_disruption", create_my_disruption)
 
 ## Configuration
 
-Configuration uses YAML files in `parameter/`:
+Configuration uses YAML files in `config/parameters/`:
 - `default.yaml` - Base parameters
 - `user_defined_<region>.yaml` - Region-specific overrides
 
@@ -217,13 +217,13 @@ if not is_valid:
 python test_input_validation.py
 
 # Test specific scope inputs
-python validate_inputs.py Cambodia
-python validate_inputs.py ECA
+python scripts/validate_inputs.py Cambodia
+python scripts/validate_inputs.py ECA
 ```
 
 ## Version Management
 
-Version is centrally managed in `disruptsc/_version.py`:
+Version is centrally managed in `src/disruptsc/_version.py`:
 
 ```python
 # Check version programmatically
@@ -231,11 +231,11 @@ import disruptsc
 print(disruptsc.__version__)
 
 # Check version via CLI
-python disruptsc/main.py --version
+python src/disruptsc/main.py --version
 python -m disruptsc.model.input_validation --version
 ```
 
-To update version: edit `disruptsc/_version.py` - setup.py automatically reads from this file.
+To update version: edit `src/disruptsc/_version.py` - setup.py automatically reads from this file.
 
 **Recent changes (v1.0.8):**
 - Simplified data modes: MRIO as default/fallback, supplier-buyer network as alternative
@@ -247,9 +247,9 @@ To update version: edit `disruptsc/_version.py` - setup.py automatically reads f
 
 ## Development Notes
 
-- Input validation system in `disruptsc/model/input_validation.py`
+- Input validation system in `src/disruptsc/model/input_validation.py`
 - Test suite covers common input file errors and edge cases
-- Interactive development notebooks in `interactive/` folder
+- Interactive development notebooks in `research/interactive/` folder
 - Profiling enabled by default in main.py (cProfile)
 - Logging configured via parameters, exports to timestamped folders
 - Core dependencies: pandas, numpy, geopandas, networkx, scipy, shapely, PyYAML, tqdm (flexible version ranges)

@@ -3,22 +3,20 @@ output/*
 !output/.gitkeep
 tmp/*
 !tmp/.gitkeep
+research/dataprep/
 
 # Exclude input folder - data is now in separate repository
 input/*
-parameter/*
-#!parameter/user_defined_Testkistan.yaml
-!parameter/default.yaml
+
+# Claude
+.claude
+CLAUDE.md
 
 # PyCharm
 .idea/
 
-# Claude
-CLAUDE.md
-disruptsc/.claude
-
 # Legacy
-disruptsc/legacy
+src/disruptsc/legacy
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -149,4 +147,3 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-/disruptsc/legacy/
