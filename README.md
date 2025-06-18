@@ -9,7 +9,7 @@
 
 _DisruptSC_ simulates economic impacts of supply chain disruptions using spatial networks, multi-regional input-output data, and agent-based modeling. Analyze transport infrastructure failures, natural disasters, and other disruptions across countries and regions.
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Installation
 ```bash
@@ -38,7 +38,7 @@ python disruptsc/main.py Cambodia
 python disruptsc/main.py Cambodia --simulation_type disruption
 ```
 
-## 📖 Documentation
+## Documentation
 
 **Full documentation available at: [https://ccolon.github.io/disrupt-sc](https://ccolon.github.io/disrupt-sc)**
 
@@ -47,21 +47,21 @@ python disruptsc/main.py Cambodia --simulation_type disruption
 - **[Tutorials](https://ccolon.github.io/disrupt-sc/tutorials/)** - Step-by-step examples and workflows
 - **[Architecture](https://ccolon.github.io/disrupt-sc/architecture/)** - Model design, agents, networks, disruptions
 
-## 💡 Key Features
+## Key Features
 
 - **Spatial Networks**: Multimodal transport infrastructure
 - **Economic Agents**: Firms, households, and countries with spatial disaggregation
 - **Disruption Scenarios**: Transport failures, capital destruction, productivity shock
 - **Input Validation**: Comprehensive data quality checks before simulation
 
-## 🤝 Contributing & Support
+## Contributing & Support
 
 - **Issues**: [Report bugs or request features](https://github.com/ccolon/disrupt-sc/issues)
 - **Discussions**: [Ask questions or share ideas](https://github.com/ccolon/disrupt-sc/discussions)
 - **Get involved**: See [contributor guidelines](https://ccolon.github.io/disrupt-sc/contacts/)
 
 
-## 📚 Citation
+## Citation
 
 If you use _DisruptSC_, please cite:
 
