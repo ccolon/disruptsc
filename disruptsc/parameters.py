@@ -81,6 +81,7 @@ class Parameters:
     adaptive_supplier_weight: bool
     capital_to_value_added_ratio: float
     mc_repetitions: int
+    mc_caching: dict
     
     # Configuration parameters
     filepaths: dict

@@ -52,8 +52,13 @@ logistics:
   name-specific:
     turkmenbashi: 125.0
 use_route_cache: True
-simulation_type: disruption
+simulation_type: disruption_mc
 mc_repetitions: 2
+mc_caching:
+  transport_network: true  # Reuse transport network
+  agents: true             # Reuse agents 
+  sc_network: true        # Regenerate for stochastic variation
+  logistic_routes: true   # Regenerate for stochastic variation
 t_final: 365
 epsilon_stop_condition: False
 criticality:

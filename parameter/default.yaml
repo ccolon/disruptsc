@@ -309,6 +309,13 @@ simulation_type: initial_state
 # Nb of Monte Carlo simulations to run
 mc_repetitions: 5
 
+# Monte Carlo caching configuration - specifies which model components to reuse between iterations
+mc_caching:
+  transport_network: true  # Reuse transport network (expensive to rebuild)
+  agents: true            # Reuse agents (firms, households, countries)
+  sc_network: false       # Regenerate supply chain network (allows stochastic variation)
+  logistic_routes: false  # Regenerate logistic routes (allows stochastic variation)
+
 # Determines the disruptive events to model TODO elaborate
 disruptions: null
 
