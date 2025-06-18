@@ -123,7 +123,7 @@ class Model(object):
             Tuple of (present_sectors, present_region_sectors, flow_types_to_export)
         """
         logging.info('Generating the firms')
-        
+
         if self.parameters.firm_data_type == "supplier-buyer network":
             self.firm_table = define_firms_from_network_data(
                 filepath_firm_table=self.parameters.filepaths['firm_table'],
@@ -150,7 +150,7 @@ class Model(object):
         logging.info(f"Creating firms. nb_firms: {nb_firms} "
                      f"inventory_restoration_time: {self.parameters.inventory_restoration_time} "
                      f"utilization_rate: {self.parameters.utilization_rate}")
-        
+
         self.firms = create_firms(
             firm_table=self.firm_table,
             keep_top_n_firms=nb_firms,
@@ -185,7 +185,7 @@ class Model(object):
 
         # Extract sector information
         present_sectors, present_region_sectors, flow_types_to_export = self.firms.extract_sectors()
-        
+
         return present_sectors, present_region_sectors, flow_types_to_export
 
     def setup_households(self, present_region_sectors: list) -> None:
@@ -197,7 +197,7 @@ class Model(object):
             List of region_sector combinations present in the model
         """
         logging.info('Defining the number of households to generate and their purchase plan')
-        
+
         self.household_table, household_sector_consumption = define_households_from_mrio(
             mrio=self.mrio,
             filepath_households_spatial=self.parameters.filepaths['households_spatial'],
@@ -209,7 +209,7 @@ class Model(object):
             present_region_sectors=present_region_sectors,
             admin=self.parameters.admin
         )
-        
+
         self.households = create_households(
             household_table=self.household_table,
             household_sector_consumption=household_sector_consumption,
@@ -219,7 +219,7 @@ class Model(object):
     def setup_countries(self) -> None:
         """Setup countries from MRIO data."""
         logging.info('Creating countries from MRIO data')
-        
+
         self.countries, self.country_table = create_countries_from_mrio(
             mrio=self.mrio,
             transport_nodes=self.transport_nodes,
@@ -248,25 +248,25 @@ class Model(object):
             if self.parameters.firm_data_type == "supplier-buyer network":
                 self.transaction_table = load_cached_transaction_table()
             self.mrio = Mrio(self.mrio, monetary_units=self.parameters.monetary_units_in_data)
-            
+
         else:
             # Create agents from scratch
-            
+
             # 1. Load and prepare MRIO data
             self._prepare_mrio_and_sectors()
-            
+
             # 2. Filter sectors based on economic significance
             filtered_industries = self._filter_sectors()
-            
+
             # 3. Setup firms (defines present_region_sectors needed for households)
             present_sectors, present_region_sectors, flow_types_to_export = self.setup_firms(filtered_industries)
-            
+
             # 4. Setup households (depends on present_region_sectors from firms)
             self.setup_households(present_region_sectors)
-            
+
             # 5. Setup countries 
             self.setup_countries()
-            
+
             # 6. Cache the created data
             self._cache_agent_data(present_sectors, present_region_sectors, flow_types_to_export)
 
@@ -288,7 +288,7 @@ class Model(object):
         logging.info(f"Filtering the sectors based on their output. "
                      f"Cutoff type is {self.parameters.cutoff_sector_output['type']}, "
                      f"cutoff value is {self.parameters.cutoff_sector_output['value']}")
-        
+
         filtered_industries = filter_sector(
             self.mrio,
             cutoff_sector_output=self.parameters.cutoff_sector_output,
@@ -298,21 +298,21 @@ class Model(object):
             sectors_to_exclude=self.parameters.sectors_to_exclude,
             monetary_units_in_data=self.parameters.monetary_units_in_data
         )
-        
+
         # Log filtering results
         output_selected = self.mrio.get_total_output_per_region_sectors(filtered_industries).sum()
         output_total = self.mrio.get_total_output_per_region_sectors().sum()
         final_demand_selected = self.mrio.get_final_demand(filtered_industries).sum(axis=1).sum()
         final_demand_total = self.mrio.get_final_demand().sum(axis=1).sum()
-        
+
         logging.info(f"{len(filtered_industries)} sectors selected over {len(self.mrio.region_sectors)} "
                      f"covering {output_selected / output_total:.0%} of total output "
                      f"& {final_demand_selected / final_demand_total:.0%} of final demand")
         logging.info(f'The filtered sectors are: {filtered_industries}')
-        
+
         return filtered_industries
 
-    def _cache_agent_data(self, present_sectors: list, present_region_sectors: list, 
+    def _cache_agent_data(self, present_sectors: list, present_region_sectors: list,
                           flow_types_to_export: list) -> None:
         """Cache all agent data for future use."""
         data_to_cache = {
@@ -375,7 +375,6 @@ class Model(object):
                                           self.parameters.weight_localization_firm,
                                           self.parameters.logistics['sector_types_to_shipment_method'],
                                           import_label=self.mrio.import_label)
-
 
             unconnected_nodes = self.sc_network.identify_disconnected_nodes(self.firms, self.countries, self.households)
             if len(unconnected_nodes) > 0:
@@ -590,6 +589,10 @@ class Model(object):
             household.send_purchase_orders(self.sc_network)
         for country in self.countries.values():
             country.send_purchase_orders(self.sc_network)
+        # For firms, we need to evaluate input needs and decide purchase plans first
+        for firm in self.firms.values():
+            firm.evaluate_input_needs()
+            firm.decide_purchase_plan(adaptive_inventories=False, adapt_weight_based_on_satisfaction=False)
         for firm in self.firms.values():
             firm.send_purchase_orders(self.sc_network)
         # 4. The following is just to set once for all the share of sales of each client
@@ -673,7 +676,6 @@ class Model(object):
 
         # Adjust t_final
         t_final = self.parameters.criticality['duration'] + 2
-        # t_final = self.parameters.duration_dic[self.disruption_list.end_time]
         logging.info('Simulation will last at max ' + str(t_final) + ' time steps.')
 
         logging.info("Starting time loop")
@@ -686,26 +688,21 @@ class Model(object):
                     break
         return simulation
 
-    def run_disruption(self, t_final: int | None = None):
+    def run_disruption(self, t_final: int):
         # Initialize the model
         simulation = Simulation("event")
         logging.info("Simulating the initial state")
         self.run_one_time_step(time_step=0, current_simulation=simulation)
 
         # Get disruptions
-        self.disruption_list = DisruptionList.from_disruptions_parameter(self.parameters.events,
-                                                                    self.parameters.monetary_units_in_model,
-                                                                    self.transport_edges, self.firm_table,
-                                                                    self.firms)
+        self.disruption_list = DisruptionList.from_disruptions_parameter(self.parameters.disruptions,
+                                                                         self.parameters.monetary_units_in_model,
+                                                                         self.transport_edges, self.firm_table,
+                                                                         self.firms)
         if len(self.disruption_list) == 0:
             raise ValueError("No disruption could be read")
         logging.info(f"{len(self.disruption_list)} disruption(s) will occur")
         self.disruption_list.log_info()
-
-        # Adjust t_final
-        if not isinstance(t_final, int):
-            t_final = self.parameters.duration_dic[self.disruption_list.end_time]
-        logging.info('Simulation will last at max ' + str(t_final) + ' time steps.')
 
         logging.info("Starting time loop")
         for t in range(1, t_final + 1):

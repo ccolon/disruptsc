@@ -69,10 +69,9 @@ class Parameters:
     weight_localization_household: float
     
     # Simulation control parameters  
-    events: list  # List of disruption scenarios (events and disruptions are synonymous)
+    disruptions: list
     criticality: None | dict
     time_resolution: str
-    duration_dic: dict
     epsilon_stop_condition: float
     route_optimization_weight: str
     cost_repercussion_mode: str
@@ -127,7 +126,6 @@ class Parameters:
 
         # Cast datatype
         parameters.epsilon_stop_condition = float(parameters.epsilon_stop_condition)
-        parameters.duration_dic = {int(key): val for key, val in parameters.duration_dic.items()}
 
         return parameters
 
@@ -149,11 +147,6 @@ class Parameters:
                 self.filepaths[key] = None
             else:
                 self.filepaths[key] = self.get_full_filepath(val)
-        if self.events:
-            for event in self.events:
-                for key, item in event.items():
-                    if "filepath" in key:
-                        event[key] = self.get_full_filepath(item)
 
     def export(self):
         with open(self.export_folder / 'parameters.yaml', 'w') as file:

@@ -173,9 +173,9 @@ def _create_transport_disruption_probability(config: Dict[str, Any], context: Di
             values=config['values']
         )
         
-        start_times, durations = DisruptionList.generate_disruption_scenario(
+        start_times, durations = DisruptionList.generate_disruption_scenario_from_probabilities(
             config["scenario_duration"],
-            config['probability']
+            probability_duration_pairs=config['probability_duration_pairs']
         )
         
         disruptions = []
@@ -571,46 +571,73 @@ class DisruptionList(UserList):
         return DisruptionFactory.get_supported_types()
 
     @staticmethod
-    def generate_disruption_scenario(days=365, p=0.1, seed=None):
+    def generate_disruption_scenario_from_probabilities(scenario_duration_in_days: int = 365, probability_duration_pairs=None, seed=None):
         """
-        Simulates disruptions over a number of days with probability p per day.
-        Consecutive disruptions are merged into single disruptions with a duration.
+        Simulates disruptions over a number of days with multiple (probability, duration) pairs.
+        Each day, for each pair, there is a chance of a disruption starting with that duration.
+        Overlapping disruptions are merged.
 
         Parameters:
-            days (int): Number of days to simulate (default: 365)
-            p (float): Daily probability of a disruption
+            scenario_duration_in_days (int): Number of days to simulate (default: 365)
+            probability_duration_pairs (list of tuples): List of (probability, duration) pairs
+                e.g., [(0.1, 1), (0.01, 10)] means 10% chance of 1-day disruption, 1% chance of 10-day disruption
             seed (int or None): Random seed for reproducibility
 
         Returns:
-            disruption_times (list of int): Start days of disruptions
-            disruption_durations (list of int): Durations of disruptions
+            disruption_times (list of int): Start days of merged disruptions
+            disruption_durations (list of int): Durations of merged disruptions
+            
+        Example:
+            With probability_duration_pairs=[(0.1, 1), (0.01, 10)]:
+            Each day has 10% chance of 1-day disruption and 1% chance of 10-day disruption.
+            If disruptions occur at t=3 (4 days) and t=5 (4 days):
+            - First disruption: days 3,4,5,6
+            - Second disruption: days 5,6,7,8  
+            - Merged: one disruption at t=3 for 6 days (3,4,5,6,7,8)
         """
         if seed is not None:
             np.random.seed(seed)
 
-        # Generate disruption days
-        disruptions = np.random.rand(days) < p
-        disruption_days = np.where(disruptions)[0]
+        if probability_duration_pairs is None:
+            raise ValueError("probability_duration_pairs is required")
 
-        disruption_times = []
-        disruption_durations = []
+        all_intervals = []
 
-        if len(disruption_days) > 0:
-            start = disruption_days[0]
-            duration = 1
+        # Generate disruptions for each probability-duration pair
+        for prob, dur in probability_duration_pairs:
+            # Generate disruption start days for this probability
+            disruption_starts = np.random.rand(scenario_duration_in_days) < prob
+            disruption_start_days = np.where(disruption_starts)[0]
+            
+            # Create intervals for each disruption [start, end)
+            intervals = [(start, start + dur) for start in disruption_start_days]
+            all_intervals.extend(intervals)
 
-            for i in range(1, len(disruption_days)):
-                if disruption_days[i] == disruption_days[i - 1] + 1:
-                    duration += 1
-                else:
-                    disruption_times.append(start)
-                    disruption_durations.append(duration)
-                    start = disruption_days[i]
-                    duration = 1
-
-            # Add the last group
-            disruption_times.append(start)
-            disruption_durations.append(duration)
+        if len(all_intervals) == 0:
+            return [], []
+        
+        # Sort all intervals by start time
+        all_intervals.sort()
+        
+        # Merge overlapping intervals
+        merged_intervals = []
+        current_start, current_end = all_intervals[0]
+        
+        for start, end in all_intervals[1:]:
+            if start <= current_end:  # Overlapping or adjacent
+                # Merge by extending the current interval
+                current_end = max(current_end, end)
+            else:
+                # No overlap, save current interval and start new one
+                merged_intervals.append((current_start, current_end))
+                current_start, current_end = start, end
+        
+        # Add the last interval
+        merged_intervals.append((current_start, current_end))
+        
+        # Convert back to start times and durations
+        disruption_times = [start for start, end in merged_intervals]
+        disruption_durations = [end - start for start, end in merged_intervals]
 
         return disruption_times, disruption_durations
 
