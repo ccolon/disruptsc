@@ -4,7 +4,7 @@
 
 <div style="display: flex; align-items: center; gap: 20px;">
 
-  <img src="cc_iiasa_pix_small.jpg" alt="Lead Author" height="120" style="border-radius: 10px;"/>
+  <img src="cc_iiasa_pix_small.jpg" alt="Lead Author" height="120"/>
 
   <div>
     <strong>Celian Colon</strong><br>
