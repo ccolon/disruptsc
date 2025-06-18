@@ -4,6 +4,13 @@ import logging
 import pstats
 import time
 import argparse
+import sys
+from pathlib import Path
+
+# Add src to Python path for direct script execution
+src_path = Path(__file__).parent.parent.parent / "src"
+if str(src_path) not in sys.path:
+    sys.path.insert(0, str(src_path))
 
 from disruptsc import paths
 from disruptsc.model.caching_functions import generate_cache_parameters_from_command_line_argument
@@ -19,6 +26,7 @@ def parse_arguments():
     parser.add_argument("--cache", type=str, help="Caching behavior")
     parser.add_argument("--duration", type=int, help="Disruption duration")
     parser.add_argument("--io_cutoff", type=float, help="IO cutoff")
+    parser.add_argument("--simulation_type", type=str, help="Simulation type")
     parser.add_argument("--version", action="version", version=f"DisruptSC {__import__('disruptsc').__version__}")
     return parser.parse_args()
 
