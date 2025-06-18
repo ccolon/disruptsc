@@ -29,13 +29,16 @@ DisruptSC is a **spatial agent-based model** for simulating supply chain disrupt
     Start with our [Installation Guide](getting-started/installation.md) and then try the [Quick Start Tutorial](getting-started/quick-start.md).
 
 ```bash
+# Clone repo
+git clone 
+
 # Install dependencies
 conda env create -f dsc-environment.yml
 conda activate dsc
 
 # Set up data (choose one option)
-export DISRUPT_SC_DATA_PATH=/path/to/data  # Option 1: Environment variable
-git submodule add <data-repo-url> data     # Option 2: Git submodule
+mkdir DISRUPT_SC_DATA_PATH=/path/to/data  # Option 1: create your set of input data
+git submodule add <data-repo-url> data     # Option 2: Git disrupt-sc-data submodule (invitation-only)
 
 # Validate inputs
 python validate_inputs.py Cambodia
@@ -54,9 +57,6 @@ python disruptsc/main.py Cambodia
 
 **🚧 Infrastructure Planning**
 :   Evaluate critical transport links and redundancy needs
-
-**📈 Economic Research**
-:   Study spatial economic dynamics and regional dependencies
 
 ## Model Workflow
 
@@ -80,6 +80,8 @@ DisruptSC uses a modular architecture with clear separation of concerns:
 - **[Disruptions](architecture/disruptions.md)**: Events that affect agent capabilities or network availability
 - **[Simulation](architecture/simulation.md)**: Time-stepped execution with data collection
 
+---
+
 ## Getting Help
 
 📖 **Documentation**
@@ -89,12 +91,33 @@ DisruptSC uses a modular architecture with clear separation of concerns:
 :   Report bugs and request features on [GitHub Issues](https://github.com/worldbank/disrupt-sc/issues)
 
 💬 **Discussions**
-:   Ask questions and share insights on [GitHub Discussions](https://github.com/worldbank/disrupt-sc/discussions)
+:   Contact the [lead author](contributors/index.md) directly
+
+---
 
 ## Citation
 
 If you use DisruptSC in your research, please cite:
 
+### 📚 APA Style
+
+Colon, C., Hallegatte, S., & Rozenberg, J. (2021). Criticality analysis of a country’s transport network via an agent-based supply chain model. Nature Sustainability, 4(3), 209-215.
+
+
+### 🔖 BibTeX
+
+```bibtex
+@article{colon2020disruptsc,
+  author  = {Celian Colon and Stephane Hallegatte and Julie Rozenberg},
+  title   = {Criticality analysis of a country’s transport network via an agent-based supply chain model},
+  journal = {Nature Sustainability},
+  volume  = {4},
+  pages   = {209--215},
+  year    = {2021},
+  doi     = {10.1038/s41893-020-00649-4},
+  url     = {https://www.nature.com/articles/s41893-020-00649-4}
+}
+```
 ```bibtex
 @software{disruptsc2024,
   title={DisruptSC: Spatial Agent-Based Model for Supply Chain Disruption Analysis},

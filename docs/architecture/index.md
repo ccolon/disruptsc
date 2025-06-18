@@ -9,9 +9,8 @@ DisruptSC is built as a modular, extensible spatial agent-based model with the f
 - **Modular Design** - Independent, replaceable components
 - **Spatial Modeling** - Geographic awareness throughout the system
 - **Network-Based** - Explicit modeling of relationships and infrastructure
-- **Data-Driven** - Real-world data integration and validation
-- **Event-Driven** - Disruptions and recovery as discrete events
-- **Performance-Oriented** - Optimized for large-scale simulations
+- **Data-Driven** - Real-world data integration
+- **Disruption Analysis** - Disruptions and recovery as discrete events
 
 ## Architecture Components
 
@@ -77,7 +76,7 @@ Core simulation engine architecture, time management, and execution control.
 DisruptSC combines two powerful modeling paradigms:
 
 **Agent-Based Modeling (ABM)**
-:   Economic actors (agents) with autonomous behaviors and interactions
+:   Economic agents with autonomous behaviors and interactions
 
 **Spatial Modeling**
 :   Agents are embedded in geographic space with transport networks
@@ -92,10 +91,10 @@ This combination enables realistic simulation of:
 
 ```mermaid
 graph TD
-    A[Transport Network] --> B[Agent Placement]
+    A[Transport Network] --> B[Agent Location]
     B --> C[Supply Chain Network]
     C --> D[Economic Equilibrium]
-    D --> E[Disruption Events]
+    D --> E[Disruption Scenarios]
     E --> F[Dynamic Simulation]
     F --> G[Impact Analysis]
 ```
@@ -114,34 +113,34 @@ DisruptSC models three types of economic agents:
 - **Role**: Final consumers of goods and services
 - **Behavior**: Consumption demand, retailer selection
 - **Location**: Population-weighted spatial distribution
-- **Key Attributes**: Region, consumption patterns, population
+- **Key Attributes**: Region, consumption patterns, size
 
 ### 🌍 [Countries](agents.md#countries)
 - **Role**: International trade partners
-- **Behavior**: Import/export flows, transit services
-- **Location**: Border points and trade gateways
-- **Key Attributes**: Trade volumes, entry/exit points
+- **Behavior**: Imports and exports goods and services
+- **Location**: Border points
+- **Key Attributes**: Trade shares
 
 ## Network Structures
 
 ### [Transport Networks](networks.md#transport-networks)
 
-Multi-modal infrastructure connecting all locations:
+Multi-modal infrastructure with :
 
 - **Roads** - Primary domestic transport
-- **Maritime** - International and bulk transport  
+- **Maritime** - International transport  
 - **Railways** - Freight corridors
-- **Airways** - High-value goods
+- **Airways** - High-value goods or distant islands
 - **Waterways** - River and canal transport
-- **Pipelines** - Energy and chemicals
+- **Pipelines** - Oil and gas
 
 ### [Supply Chain Networks](networks.md#supply-chain-networks)
 
 Commercial relationships between agents:
-- **B2B Links** - Firm-to-firm transactions
-- **B2C Links** - Firm-to-household sales
-- **Import/Export** - International trade flows
-- **Transit** - Country-to-country flows
+- **B2B Links** - Firm-to-firm
+- **B2C Links** - Firm-to-household
+- **Imports/Exports** - Country-to-firm, country-to-household, firm-to-country
+- **Transit** - Country-to-country
 
 ## Model Workflow
 
@@ -162,46 +161,43 @@ Commercial relationships between agents:
    - Assign commercial relationships
    - Configure trade parameters
 
-4. **[Route Optimization](networks.md#route-optimization)**
-   - Find optimal transport paths
-   - Assign logistics costs
-   - Configure capacity constraints
+4. **[Logistic Routes Identification](networks.md#route-optimization)**
+   - Find lower-cost transport paths from suppliers to clients
+   - Assign transport costs to firms
 
-5. **[Economic Equilibrium](simulation.md#equilibrium)**
+5. **[Initial Economic Equilibrium](simulation.md#equilibrium)**
    - Calculate production levels
    - Set prices and flows
    - Initialize inventories
 
 ### Simulation Phase
 
-1. **[Disruption Events](disruptions.md)**
-   - Apply transport disruptions
-   - Implement capital destruction
-   - Trigger recovery processes
+1. **[Disruption Scenario](disruptions.md)**
+   - Schedule disruption: transport, capital, productivity
+   - Trigger disruption and recovery processes
 
 2. **[Dynamic Simulation](simulation.md#time-steps)**
-   - Agent decision-making
-   - Market transactions
-   - Transport operations
+   - Logistic adaptation via rerouting
+   - Cost-push price adjustment 
+   - Commercial adaptation: change of suppliers
    - Impact propagation
 
-3. **[Data Collection](simulation.md#data-collection)**
+3. **[Impact Analysis](simulation.md#data-collection)**
    - Agent state tracking
    - Flow monitoring
    - Performance metrics
 
 ## Design Principles
 
-### Modularity
+### Parsimonious
+
+###
+
+### Modular and extensible
 - Clear separation of concerns
 - Pluggable component architecture
 - Flexible configuration system
-
-### Scalability
-- Efficient algorithms for large networks
-- Parallel processing capabilities
-- Memory-optimized data structures
-
+- 
 ### Extensibility
 - Abstract base classes for new agent types
 - Plugin system for disruption types
@@ -231,23 +227,25 @@ graph LR
     F --> F3[Network Flows]
 ```
 
-## Performance Characteristics
+## Performance
 
 ### Computational Complexity
-- **Agents**: Linear scaling O(n)
-- **Networks**: Depends on connectivity O(n log n to n²)
-- **Time Steps**: Linear in simulation duration
-- **Overall**: Suitable for regional to national scale
+- **Shortest path algorithm** is for initial route selection and rerouting is most computationally intensive
+- **Scales** with number of agents and number of linkages, linear in simulation duration
 
 ### Memory Requirements
 - **Minimum**: 8GB RAM for small models
-- **Recommended**: 16GB+ for production use
-- **Large Scale**: 32GB+ for continental models
+- **Recommended**: 16GB+
 
 ### Runtime Performance
-- **Initialization**: Minutes to hours (depending on scale)
-- **Simulation**: Seconds to minutes per time step
-- **Caching**: Significant speedup for repeated runs
+- **Initialization**: Seconds to minutes, depending on scale
+- **Simulation**: Seconds for undisrupted time steps, minutes for disrupted time steps
+
+### How to speed-up
+- **Cut off** small agents and commercial relationship
+- **Cache** routes and initial states
+- **Parallelize**: not yet implemented
+
 
 ## Technology Stack
 

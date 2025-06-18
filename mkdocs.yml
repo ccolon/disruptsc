@@ -16,15 +16,15 @@ theme:
   palette:
     # Palette toggle for light mode
     - scheme: default
-      primary: blue
-      accent: orange
+      primary: indigo
+      accent: deep orange
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     # Palette toggle for dark mode
     - scheme: slate
-      primary: blue
-      accent: orange
+      primary: indigo
+      accent: deep orange
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
@@ -139,8 +139,8 @@ nav:
     - Data Modes: user-guide/data-modes.md
     - Input Data: user-guide/input-data.md
     - Output Files: user-guide/output-files.md
-  # - Tutorials:
-  #   - tutorials/index.md
+  - Tutorials:
+    - tutorials/index.md
   #   - Cambodia Example: tutorials/cambodia-example.md
   #   - Custom Disruptions: tutorials/custom-disruption.md
   #   - Performance Tuning: tutorials/performance-tuning.md
@@ -152,18 +152,9 @@ nav:
     - Networks: architecture/networks.md
     - Disruptions: architecture/disruptions.md
     - Simulation: architecture/simulation.md
-  - Reference:
-    - reference/index.md
-    - CLI Reference: reference/cli.md
-    # - File Formats: reference/file-formats.md
-    # - Parameters Reference: reference/parameters-ref.md
-    # - API Reference: reference/api/
-  - Development:
-    - development/index.md
-    # - Contributing: development/contributing.md
-    # - Architecture Notes: development/architecture-notes.md
-    # - Claude Code Guide: development/claude-code.md
-    # - Testing: development/testing.md
-  - Deployment: deployment.md
-  # - Examples:
-  #   - examples/index.md
+  - Research:
+    - research/index.md
+  - Contributors:
+    - contributors/index.md
+  - Get involved:
+    - contact/index.md
