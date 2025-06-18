@@ -74,21 +74,32 @@ class DisruptionMCWriter(CSVResultsWriter):
     
     def write_iteration_results(self, iteration: int, simulation: "Simulation", model: "Model"):
         """Write results for a single Monte Carlo iteration."""
-        household_loss_per_region = simulation.calculate_household_loss(model.household_table, per_region=True)
-        household_loss = sum(household_loss_per_region.values())
-        country_loss_per_country = simulation.calculate_country_loss(per_country=True)
-        country_loss = sum(country_loss_per_country.values())
-        
-        logging.info(f"Simulation terminated. "
-                    f"Household loss: {int(household_loss)} {self.parameters.monetary_units_in_model}. "
-                    f"Country loss: {int(country_loss)} {self.parameters.monetary_units_in_model}.")
-        
-        household_loss_per_region_values = [
-            household_loss_per_region.get(region, 0.0) for region in model.mrio.regions
-        ]
-        country_loss_per_region_values = [
-            country_loss_per_country.get(country, 0.0) for country in model.mrio.external_buying_countries
-        ]
+        # Check if this is a baseline simulation (no disruptions occurred)
+        if not hasattr(model, 'disruption_list') or len(model.disruption_list) == 0:
+            # Write zeros for all loss values
+            household_loss = 0.0
+            country_loss = 0.0
+            household_loss_per_region_values = [0.0 for _ in model.mrio.regions]
+            country_loss_per_region_values = [0.0 for _ in model.mrio.external_buying_countries]
+            
+            logging.info(f"No disruptions occurred - writing zero losses for iteration {iteration}")
+        else:
+            # Normal disruption simulation - calculate actual losses
+            household_loss_per_region = simulation.calculate_household_loss(model.household_table, per_region=True)
+            household_loss = sum(household_loss_per_region.values())
+            country_loss_per_country = simulation.calculate_country_loss(per_country=True)
+            country_loss = sum(country_loss_per_country.values())
+            
+            logging.info(f"Simulation terminated. "
+                        f"Household loss: {int(household_loss)} {self.parameters.monetary_units_in_model}. "
+                        f"Country loss: {int(country_loss)} {self.parameters.monetary_units_in_model}.")
+            
+            household_loss_per_region_values = [
+                household_loss_per_region.get(region, 0.0) for region in model.mrio.regions
+            ]
+            country_loss_per_region_values = [
+                country_loss_per_country.get(country, 0.0) for country in model.mrio.external_buying_countries
+            ]
         
         self.write_row([iteration, household_loss, country_loss] + 
                       household_loss_per_region_values + country_loss_per_region_values)

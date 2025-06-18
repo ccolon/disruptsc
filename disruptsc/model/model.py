@@ -700,7 +700,11 @@ class Model(object):
                                                                          self.transport_edges, self.firm_table,
                                                                          self.firms)
         if len(self.disruption_list) == 0:
-            raise ValueError("No disruption could be read")
+            logging.info("No disruption generated from scenario - running baseline simulation")
+            # Run one time step to collect baseline data, then return simulation with zero losses
+            for t in range(1, t_final + 1):
+                self.run_one_time_step(time_step=t, current_simulation=simulation)
+            return simulation
         logging.info(f"{len(self.disruption_list)} disruption(s) will occur")
         self.disruption_list.log_info()
 
