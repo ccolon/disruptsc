@@ -358,6 +358,8 @@ class TransportDisruption(BaseDisruption):
 
     def _validate_description(self):
         """Validate transport disruption description."""
+        if len(self.description) == 0:
+            raise ValueError("There should be at least one item in the disruption description")
         for key, value in self.description.items():
             if not isinstance(key, int):
                 raise KeyError("Key must be an int: the id of the transport edge to be disrupted")
