@@ -125,36 +125,26 @@ extra_javascript:
 
 # Navigation
 nav:
-  - Home: index.md
+  - Home: tutorial.md
   - Getting Started:
-    - getting-started/index.md
+    - getting-started/tutorial.md
     - Installation: getting-started/installation.md
     - Data Setup: getting-started/data-setup.md
     - Quick Start: getting-started/quick-start.md
     - Input Validation: getting-started/validation.md
   - User Guide:
-    - user-guide/index.md
+    - user-guide/tutorial.md
     - Basic Usage: user-guide/basic-usage.md
     - Parameters: user-guide/parameters.md
     - Data Modes: user-guide/data-modes.md
     - Input Data: user-guide/input-data.md
     - Output Files: user-guide/output-files.md
-  - Tutorials:
-    - tutorials/index.md
-  #   - Cambodia Example: tutorials/cambodia-example.md
-  #   - Custom Disruptions: tutorials/custom-disruption.md
-  #   - Performance Tuning: tutorials/performance-tuning.md
-  #   - Visualization: tutorials/visualization.md
-  - Architecture:
-    - architecture/index.md
-    - Model Overview: architecture/overview.md
-    - Agents: architecture/agents.md
-    - Networks: architecture/networks.md
-    - Disruptions: architecture/disruptions.md
-    - Simulation: architecture/simulation.md
-  - Research:
-    - research/index.md
+    - Tutorials: user-guide/tutorials.md
+  - Use Cases:
+      - applications/index.md
+  - Research & Policy:
+    - research/tutorial.md
   - Contributors:
-    - contributors/index.md
+    - contributors/tutorial.md
   - Get involved:
-    - contact/index.md
+    - contact/tutorial.md
