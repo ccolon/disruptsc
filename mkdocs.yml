@@ -125,15 +125,15 @@ extra_javascript:
 
 # Navigation
 nav:
-  - Home: tutorial.md
+  - Home: index.md
   - Getting Started:
-    - getting-started/tutorial.md
+    - getting-started/index.md
     - Installation: getting-started/installation.md
     - Data Setup: getting-started/data-setup.md
     - Quick Start: getting-started/quick-start.md
     - Input Validation: getting-started/validation.md
   - User Guide:
-    - user-guide/tutorial.md
+    - user-guide/index.md
     - Basic Usage: user-guide/basic-usage.md
     - Parameters: user-guide/parameters.md
     - Data Modes: user-guide/data-modes.md
@@ -141,10 +141,10 @@ nav:
     - Output Files: user-guide/output-files.md
     - Tutorials: user-guide/tutorials.md
   - Use Cases:
-      - applications/index.md
+    - applications/index.md
   - Research & Policy:
-    - research/tutorial.md
+    - research/index.md
   - Contributors:
-    - contributors/tutorial.md
+    - contributors/index.md
   - Get involved:
-    - contact/tutorial.md
+    - contact/index.md

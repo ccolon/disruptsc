@@ -1,6 +1,6 @@
-# Applications
+# Existing applications
 
-## 🇹🇿 Tanzania
+## <img src="https://upload.wikimedia.org/wikipedia/commons/3/38/Flag_of_Tanzania.svg" alt="Tanzania Flag" width="25"/> Tanzania
 
 First application of the model.
 - Data:
@@ -13,7 +13,7 @@ First application of the model.
   - Assess benefits of various adaption measures: on the supply and demand side of disruption
 
 
-## 🇰🇭 Cambodia
+## <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Flag_of_Cambodia.svg" alt="Tanzania Flag" width="25"/> Cambodia
 
 Second application.
 
@@ -25,7 +25,7 @@ Second application.
   - Criticality analysis
 
 
-## 🇪🇨 Ecuador
+## <img src="https://upload.wikimedia.org/wikipedia/commons/e/e8/Flag_of_Ecuador.svg" alt="Ecuador Flag" width="25"/> Ecuador
 
 Third application.
 - Data:
