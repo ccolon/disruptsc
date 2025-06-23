@@ -7,7 +7,7 @@
   <img src="cc_iiasa_pix_small.jpg" alt="Lead Author" style="height:120px;"/>
 
   <div>
-    <strong>Celian Colon</strong><br>
+    <strong>Celian Colon</strong>, <a href="https://iiasa.ac.at/">IIASA</a><br>
     <a href="https://orcid.org/0000-0002-4132-4648">ORCID</a><br>
     <a href="https://scholar.google.com/citations?user=EL2q1fQAAAAJ&hl=en">Google Scholar</a><br>
     <a href="https://github.com/ccolon">GitHub</a><br>
