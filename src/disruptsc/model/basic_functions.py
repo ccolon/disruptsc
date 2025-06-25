@@ -204,3 +204,25 @@ def find_min_in_nested_dict(d):
 
     return min_value
 
+
+def load_sector_table(filepath: str) -> pd.DataFrame:
+    """
+    Load sector table from CSV file and ensure region_sector column exists.
+    
+    Parameters
+    ----------
+    filepath : str
+        Path to the sector table CSV file
+        
+    Returns
+    -------
+    pd.DataFrame
+        Sector table with region_sector column guaranteed to exist
+    """
+    sector_table = pd.read_csv(filepath)
+    
+    if "region_sector" not in sector_table.columns:
+        sector_table['region_sector'] = sector_table['region'] + '_' + sector_table['sector']
+    
+    return sector_table
+
