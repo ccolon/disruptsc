@@ -2,8 +2,8 @@
 transport_modes: [roads, maritime, waterways, railways]
 monetary_units_in_model: mUSD
 monetary_units_inputed: USD
-time_resolution: week
-io_cutoff: 0.04
+time_resolution: day
+io_cutoff: 0.1
 inventory_duration_targets:
   definition: per_input_type
   values:
@@ -18,7 +18,7 @@ inventory_duration_targets:
   unit: day
 transport_cost_noise_level: 0
 countries_to_include: ['AFR', 'AME', 'ASI', 'EUR', 'OCE', 'THA', 'VNM']
-simulation_type: initial_state  # disruption
+simulation_type: stationary_test  # disruption
 export_files: False
 events:
   - type: transport_disruption
@@ -33,3 +33,14 @@ events:
     values: ["1"]
     start_time: 3
     duration: 2
+# Filter out sectors firms output is below that cutoff value
+cutoff_firm_output:
+  'type': 'absolute'
+  'value': 100
+  "unit": "kUSD"
+
+# Filter out region_sector to households links if purchase is below that cutoff value
+cutoff_household_demand:
+  'type': 'absolute'  # only absolute works
+  'value': 100
+  "unit": "kUSD"
