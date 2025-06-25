@@ -106,7 +106,7 @@ def create_mrio_supply_chains(self, mrio, agents):
                 
                 # Create links with spatial preferences
                 for buyer in buyers:
-                    selected_suppliers = self.select_suppliers(
+                    selected_suppliers = self.****************************************************************************select_suppliers(
                         buyer, suppliers, coefficient
                     )
                     

@@ -374,15 +374,15 @@ def _assign_transport_nodes(firm_table: gpd.GeoDataFrame, transport_nodes: gpd.G
     return firm_table
 
 
-def _enrich_sector_metadata(firm_table: pd.DataFrame, filepath_sectors: Path, mrio: Mrio) -> pd.DataFrame:
+def _enrich_sector_metadata(firm_table: pd.DataFrame, sector_table: pd.DataFrame, mrio: Mrio) -> pd.DataFrame:
     """Add sector type, usd_per_ton, margin, and transport_share.
     
     Parameters
     ----------
     firm_table : pd.DataFrame
         Firm table to enrich
-    filepath_sectors : Path
-        Path to sector metadata file
+    sector_table : pd.DataFrame
+        Sector table
     mrio : Mrio
         Multi-regional input-output table
         
@@ -392,9 +392,6 @@ def _enrich_sector_metadata(firm_table: pd.DataFrame, filepath_sectors: Path, mr
         Enriched firm table with sector metadata
     """
     # Add sector type
-    sector_table = pd.read_csv(filepath_sectors)
-    if "region_sector" not in sector_table.columns:
-        sector_table['region_sector'] = sector_table['region'] + '_' + sector_table['sector']
     firm_table['sector_type'] = firm_table['region_sector'].map(sector_table.set_index('region_sector')['type'])
     check_successful_extraction(firm_table, "sector_type")
 
@@ -415,7 +412,7 @@ def _enrich_sector_metadata(firm_table: pd.DataFrame, filepath_sectors: Path, mr
     return firm_table
 
 
-def define_firms_from_mrio(mrio: Mrio, filepath_sectors: Path, households_spatial: Path, firms_spatial: Path,
+def define_firms_from_mrio(mrio: Mrio, sector_table: pd.DataFrame, households_spatial: Path, firms_spatial: Path,
                            transport_nodes: gpd.GeoDataFrame, io_cutoff: float, cutoff_firm_output: dict,
                            monetary_units_in_data: str, admin: Optional[list[str]] = None) -> pd.DataFrame:
     """Main orchestrator function for creating firms from MRIO data.
@@ -427,8 +424,8 @@ def define_firms_from_mrio(mrio: Mrio, filepath_sectors: Path, households_spatia
     ----------
     mrio : Mrio
         Multi-regional input-output table
-    filepath_sectors : Path
-        Path to sector metadata file
+    sector_table : pd.DataFrame
+        Sector table
     households_spatial : Path
         Path to households spatial data
     firms_spatial : Path
@@ -465,7 +462,7 @@ def define_firms_from_mrio(mrio: Mrio, filepath_sectors: Path, households_spatia
     firm_table = _assign_transport_nodes(firm_table, transport_nodes, admin)
     
     # 6. Enrich with sector metadata
-    firm_table = _enrich_sector_metadata(firm_table, filepath_sectors, mrio)
+    firm_table = _enrich_sector_metadata(firm_table, sector_table, mrio)
     
     logging.info(f"Created {firm_table.shape[0]} firms in {firm_table['region'].nunique()} regions")
     return firm_table
@@ -476,7 +473,7 @@ def define_firms_from_network_data(
         filepath_location_table: str,
         sectors_to_include: list[str],
         transport_nodes: pd.DataFrame,
-        filepath_sector_table: str
+        sector_table: pd.DataFrame
 ) -> pd.DataFrame:
     """Define firms based on the firm_table
     The output is a dataframe, 1 row = 1 firm.
@@ -505,7 +502,6 @@ def define_firms_from_network_data(
 
     # Information required by the createFirms function
     # add sector type
-    sector_table = pd.read_csv(filepath_sector_table)
     sector_to_sector_type = sector_table.set_index('sector')['type']
     firm_table['sector_type'] = firm_table['sector'].map(sector_to_sector_type)
     # add long lat
@@ -599,7 +595,9 @@ def load_inventories(firms: Firms, inventory_duration_targets: dict, model_time_
 
     Parameters
     ----------
-    sector_table
+
+    sector_table : pd.DataFrame
+        Sector table
     model_time_unit
     firms : pandas.DataFrame
         the list of Firms generated from the createFirms function

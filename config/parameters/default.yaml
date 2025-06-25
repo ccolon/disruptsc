@@ -354,7 +354,7 @@ adaptive_inventories: False
 # Whether to account for transport network capacity
 # If True, then each shipment adds a "load" on transport edges
 # it the load exceed the capacity, then the edges cannot be used anymore
-capacity_constraint: True
+capacity_constraint: False
 
 # Level of the noise to be added to the 'route_optimization_weight' attributes of the transport edges
 # when agents choose the lowest cost route. If 0, then no noise is added.

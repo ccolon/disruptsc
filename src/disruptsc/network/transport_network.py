@@ -31,11 +31,60 @@ class TransportNetwork(nx.Graph):
         # manager = Manager()
         self.shortest_path_library = {'normal': {}, 'alternative': {}}
         # self.lock = threading.Lock()
+        
+        # Phase 1: Distance cache for od_points
+        self._distance_cache = {}  # (node_id1, node_id2) -> distance_km
 
     def info(self):
         transport_modes = self.get_transport_modes()
         return f"Transport network with {len(transport_modes)} modes: {transport_modes}\n" \
                f"Nb of nodes: {len(self.nodes)}, nb of edges: {len(self.edges)}"
+
+    def get_distance_between_nodes(self, node_id1: int, node_id2: int) -> float:
+        """
+        Get cached distance between two transport nodes.
+        
+        Parameters
+        ----------
+        node_id1 : int
+            First transport node ID
+        node_id2 : int  
+            Second transport node ID
+            
+        Returns
+        -------
+        float
+            Distance in kilometers between the nodes
+        """
+        if node_id1 == node_id2:
+            return 0.0
+            
+        # Ensure consistent cache key ordering
+        key = (min(node_id1, node_id2), max(node_id1, node_id2))
+        
+        if key not in self._distance_cache:
+            # Get coordinates from network nodes
+            node1_data = self._node[node_id1]
+            node2_data = self._node[node_id2]
+            
+            # Calculate distance using existing function
+            distance = degrees_to_km(
+                node1_data['long'], node1_data['lat'],
+                node2_data['long'], node2_data['lat']
+            )
+            self._distance_cache[key] = distance
+            
+        return self._distance_cache[key]
+    
+    def get_cache_stats(self) -> dict:
+        """Get statistics about the distance cache."""
+        total_possible_pairs = len(self.nodes) * (len(self.nodes) - 1) // 2
+        return {
+            'cached_pairs': len(self._distance_cache),
+            'total_possible_pairs': total_possible_pairs,
+            'cache_hit_ratio': len(self._distance_cache) / max(1, total_possible_pairs),
+            'memory_usage_kb': len(self._distance_cache) * 8 / 1024  # Rough estimate
+        }
 
     def add_transport_node(self, node_id, all_nodes_data):  # used in add_transport_edge_with_nodes
         node_attributes = ["id", "geometry"]

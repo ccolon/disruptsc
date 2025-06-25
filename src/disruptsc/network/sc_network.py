@@ -68,13 +68,19 @@ class ScNetwork(nx.DiGraph):
 
     def remove_useless_commercial_links(self):
         firms_without_clients = self.identify_firms_without_clients()
-        # print(firms_without_clients)
-        logging.info(f"There are {len(firms_without_clients)} firms without clients. Removing associated links")
+        logging.info(f"Removing {len(firms_without_clients)} firms without clients and their associated links")
+        
         for firm_without_clients in firms_without_clients:
+            # Remove all incoming edges and update supplier records
             suppliers = [edge[0] for edge in self.in_edges(firm_without_clients)]
             for supplier in suppliers:
                 self.remove_edge(supplier, firm_without_clients)
-                del supplier.clients[firm_without_clients.pid]
-                del firm_without_clients.suppliers[supplier.pid]
-        # logging.info(f"There remain {len(self.identify_firms_without_clients())} firms without clients.")
-        # print(self.identify_firms_without_clients())
+                if firm_without_clients.pid in supplier.clients:
+                    del supplier.clients[firm_without_clients.pid]
+                if supplier.pid in firm_without_clients.suppliers:
+                    del firm_without_clients.suppliers[supplier.pid]
+            
+            # Remove the firm node from the supply chain network
+            self.remove_node(firm_without_clients)
+        
+        return len(firms_without_clients)  # Return count for validation

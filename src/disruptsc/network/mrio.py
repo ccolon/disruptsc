@@ -27,7 +27,7 @@ class Mrio(pd.DataFrame):
         self.tax_label = self.detect_level1_label('tax', axis=0)
         self.check_square_structure()
         self.region_sectors = [tup for tup in self.columns
-                               if tup[1] not in [self.final_demand_label, self.export_label]]
+                               if tup[1] not in [self.final_demand_label, self.export_label, self.capital_label]]
         self.region_sector_names = ['_'.join(tup) for tup in self.region_sectors]
         self.regions = list(set([tup[0] for tup in self.region_sectors]))
         self.sectors = list(set([tup[1] for tup in self.region_sectors]))

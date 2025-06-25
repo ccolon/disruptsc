@@ -140,35 +140,53 @@ class BaseAgent:
         commercial_link.update_status()
 
     def identify_suppliers(self, region_sector: str, firms: "Firms", nb_suppliers_per_input: float,
-                           weight_localization: float, import_label: str):
+                           weight_localization: float, import_label: str, transport_network=None):
         """
         Identify suppliers for a given region_sector.
         
         Returns:
-            tuple: (supplier_type, supplier_ids, weights)
+            tuple: (supplier_type, supplier_ids, weights, distances)
                 supplier_type: 'country' or 'firm'
                 supplier_ids: list of supplier IDs
                 weights: list of weights for each supplier
+                distances: list of distances to each supplier (for firms) or None (for countries)
         """
         if import_label in region_sector:
-            return "country", [region_sector.split('_')[0]], [1]
+            return "country", [region_sector.split('_')[0]], [1], None
 
-        # Firm selection
-        potential_suppliers = [pid for pid, firm in firms.items() if firm.region_sector == region_sector]
+        # Firm selection using O(1) index lookup instead of O(N) search
+        potential_suppliers = firms.get_firms_by_region_sector(region_sector)
         if region_sector == self.region_sector and self.pid in potential_suppliers:
-            potential_suppliers.remove(self.pid)  # Remove self if needed
+            potential_suppliers = [pid for pid in potential_suppliers if pid != self.pid]  # Remove self if needed
 
         if not potential_suppliers:
             raise ValueError(f"{self.id_str().capitalize()}: No supplier for {region_sector}")
 
-        importances = [firms[firm_pid].importance for firm_pid in potential_suppliers]
-        distances = rescale_values([calculate_distance_between_agents(self, firms[firm_id])
-                                    for firm_id in potential_suppliers])
-        weighted_importance = [importances[i] / distances[i] ** weight_localization for i in range(len(importances))]
+        # Vectorized computation using NumPy arrays for performance
+        num_suppliers = len(potential_suppliers)
+        
+        # Extract importances as numpy array
+        importances = np.array([firms[firm_pid].importance for firm_pid in potential_suppliers], dtype=float)
+        
+        # Calculate distances vectorized (still need individual calls, but store in array)
+        # Phase 3: Pass transport_network for cached od_point distance lookups
+        distances_raw = np.array([calculate_distance_between_agents(self, firms[firm_id], transport_network) 
+                                 for firm_id in potential_suppliers], dtype=float)
+        
+        # Vectorized distance rescaling using optimized rescale_values
+        distances = np.array(rescale_values(distances_raw), dtype=float)
+        
+        # Vectorized weighted importance calculation 
+        weighted_importance = importances / (distances ** weight_localization)
 
-        return "firm", *self._select_ids_and_weight(potential_suppliers,
-                                                    self._get_probabilities(weighted_importance),
+        supplier_type, selected_ids, weights = "firm", *self._select_ids_and_weight(potential_suppliers,
+                                                    self._get_probabilities(weighted_importance.tolist()),
                                                     round(nb_suppliers_per_input))
+        
+        # Return distances for selected suppliers (using raw distances, not rescaled)
+        selected_distances = [distances_raw[potential_suppliers.index(supplier_id)] for supplier_id in selected_ids]
+        
+        return supplier_type, selected_ids, weights, selected_distances
 
     @staticmethod
     def _get_probabilities(weights: list) -> np.ndarray:
@@ -222,7 +240,11 @@ class BaseAgents(dict):
     
     def __init__(self, agent_list=None):
         super().__init__()
+        self.agents_type = None
         if agent_list is not None:
+            self.agents_type = agent_list[0].agent_type + 's'
+            if self.agents_type[-2:] == "ys":
+                self.agents_type[-2:] = "ies"
             for agent in agent_list:
                 self[agent.pid] = agent
 
@@ -308,7 +330,7 @@ class BaseAgents(dict):
     def receive_products(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
                          sectors_no_transport_network: list, transport_to_households: bool = False):
         """All agents receive products from their suppliers."""
-        for agent in self.values():
+        for agent in tqdm(self.values(), total=len(self), desc=f"{self.agents_type} receiving products"):
             agent.receive_products_and_pay(sc_network, transport_network, sectors_no_transport_network,
                                            transport_to_households)
 
@@ -362,7 +384,7 @@ class BaseAgents(dict):
                 monetary_units_in_model: str, cost_repercussion_mode: str, price_increase_threshold: float,
                 transport_cost_noise_level: float, use_route_cache: bool):
         """Deliver products for all agents that have delivery capabilities."""
-        for agent in tqdm(self.values(), total=len(self), desc=f"Delivering"):
+        for agent in tqdm(self.values(), total=len(self), desc=f"{self.agents_type} delivering"):
             if hasattr(agent, 'deliver_products'):
                 agent.deliver_products(
                     sc_network, transport_network, available_transport_network,

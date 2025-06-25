@@ -1,9 +1,6 @@
 from typing import TYPE_CHECKING
 
-import numpy as np
-
-from disruptsc.model.basic_functions import calculate_distance_between_agents, rescale_values, generate_weights, \
-    add_or_increment_dict_key, select_ids_and_weight
+from disruptsc.model.basic_functions import calculate_distance_between_agents, add_or_increment_dict_key
 
 import logging
 
@@ -95,53 +92,79 @@ class Household(BaseAgent):
 
     def select_suppliers(self, sc_network: "ScNetwork", firms: "Firms", countries: "Countries",
                          weight_localization: float, nb_suppliers_per_input: int,
-                         sector_types_to_shipment_methods: dict, import_label: str):
+                         sector_types_to_shipment_methods: dict, import_label: str, transport_network=None):
+        
+        # Batch data collection phase - collect all supplier data before network operations
+        all_edges_to_add = []  # For batched NetworkX operations
+        all_purchase_plan_updates = {}  # For vectorized dictionary updates
+        all_retailer_updates = {}  # For vectorized dictionary updates
+        all_client_updates = {}  # For vectorized dictionary updates (supplier.clients)
+        
         for region_sector, amount in self.sector_consumption.items():
-            supplier_type, retailers, retailer_weights = self.identify_suppliers(region_sector, firms,
+            supplier_type, retailers, retailer_weights, distances = self.identify_suppliers(region_sector, firms,
                                                                                  nb_suppliers_per_input,
                                                                                  weight_localization,
-                                                                                 import_label)
-            # For each of them, create commercial link
-            retailer_weight_iter = iter(retailer_weights)
-
-            for retailer_id in retailers:
+                                                                                 import_label,
+                                                                                 transport_network)
+            
+            # Prepare data for batch operations
+            distance_iter = iter(distances) if distances is not None else iter([None] * len(retailers))
+            
+            for retailer_id, weight in zip(retailers, retailer_weights):
                 # Retrieve the appropriate supplier object from the id
-                # If it is a country we get it from the country list
-                # If it is a firm we get it from the firm list
                 if supplier_type == "country":
                     supplier_object = countries[retailer_id]
                     link_category = 'import_B2C'
                     product_type = "imports"
+                    # For countries, we still need to calculate distance since it's not returned
+                    distance = calculate_distance_between_agents(self, supplier_object, transport_network)
                 else:
                     supplier_object = firms[retailer_id]
                     link_category = 'domestic_B2C'
                     product_type = supplier_object.sector_type
+                    # Use the pre-calculated distance from identify_suppliers
+                    distance = next(distance_iter)
 
-                # For each retailer, create an edge_attr in the economic network
+                # Create commercial link
                 commercial_link = CommercialLink(
-                                        pid=str(retailer_id) + '->' + str(self.pid),
-                                        product=region_sector,
-                                        product_type=product_type,
-                                        category=link_category,
-                                        origin_node=supplier_object.od_point,
-                                        destination_node=self.od_point,
-                                        supplier_id=retailer_id,
-                                        buyer_id=self.pid)
-                sc_network.add_edge(supplier_object, self, object=commercial_link)
-
-                # Associate a weight in the commercial link, the household's purchase plan & retailer list, in the retailer's client list
-                edge_data = sc_network[supplier_object][self]
-                edge_data['object'].determine_transportation_mode(sector_types_to_shipment_methods)
-                weight = next(retailer_weight_iter)
-                edge_data['weight'] = weight
-
-                self.purchase_plan[retailer_id] = weight * amount
-                self.retailers[retailer_id] = {'sector': region_sector, 'weight': weight}
-                distance = calculate_distance_between_agents(self, supplier_object)
-
-                supplier_object.clients[self.pid] = {
+                    pid=str(retailer_id) + '->' + str(self.pid),
+                    product=region_sector,
+                    product_type=product_type,
+                    category=link_category,
+                    origin_node=supplier_object.od_point,
+                    destination_node=self.od_point,
+                    supplier_id=retailer_id,
+                    buyer_id=self.pid
+                )
+                
+                # Configure commercial link
+                commercial_link.determine_transportation_mode(sector_types_to_shipment_methods)
+                
+                # Collect data for batch operations
+                all_edges_to_add.append((supplier_object, self, commercial_link, weight))
+                all_purchase_plan_updates[retailer_id] = weight * amount
+                all_retailer_updates[retailer_id] = {'sector': region_sector, 'weight': weight}
+                
+                # Prepare supplier client updates (keyed by supplier object for batch update)
+                if supplier_object not in all_client_updates:
+                    all_client_updates[supplier_object] = {}
+                all_client_updates[supplier_object][self.pid] = {
                     'sector': "households", 'share': 0, 'transport_share': 0, "distance": distance
-                }  # The share of sales cannot be calculated now.
+                }
+        
+        # Batch NetworkX operations - minimize graph operations
+        for supplier_object, buyer, commercial_link, weight in all_edges_to_add:
+            sc_network.add_edge(supplier_object, buyer, object=commercial_link)
+            # Set edge weight immediately after adding edge
+            sc_network[supplier_object][buyer]['weight'] = weight
+        
+        # Vectorized dictionary updates - batch update all dictionaries at once
+        self.purchase_plan.update(all_purchase_plan_updates)
+        self.retailers.update(all_retailer_updates)
+        
+        # Batch update supplier client dictionaries
+        for supplier_object, client_updates in all_client_updates.items():
+            supplier_object.clients.update(client_updates)
 
     def send_purchase_orders(self, graph):
         for edge in graph.in_edges(self):

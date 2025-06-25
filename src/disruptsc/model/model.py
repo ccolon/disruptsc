@@ -8,6 +8,8 @@ import logging
 import pandas as pd
 from tqdm import tqdm
 
+from .basic_functions import load_sector_table
+from .profiling_utils import profile_method
 from .caching_functions import \
     load_cached_transport_network, \
     load_cached_agent_data, \
@@ -76,6 +78,7 @@ class Model(object):
         else:
             return False
 
+    @profile_method
     def setup_transport_network(self, cached: bool = False, with_transport: bool = True):
         if cached:
             self.transport_network, self.transport_edges, self.transport_nodes = \
@@ -109,6 +112,7 @@ class Model(object):
         self.parameters.add_variability_to_basic_cost()
         self.transport_network.ingest_logistic_data(self.parameters.logistics)
 
+    @profile_method
     def setup_firms(self, filtered_industries: list) -> tuple[list, list, list]:
         """Setup firms from either network data or MRIO data.
         
@@ -130,12 +134,12 @@ class Model(object):
                 filepath_location_table=self.parameters.filepaths['location_table'],
                 sectors_to_include=filtered_industries,
                 transport_nodes=self.transport_nodes,
-                filepath_sector_table=self.parameters.filepaths['sector_table']
+                sector_table=self.sector_table
             )
         else:
             self.firm_table = define_firms_from_mrio(
                 mrio=self.mrio,
-                filepath_sectors=self.parameters.filepaths['sector_table'],
+                sector_table=self.sector_table,
                 households_spatial=self.parameters.filepaths['households_spatial'],
                 firms_spatial=self.parameters.filepaths['firms_spatial'],
                 transport_nodes=self.transport_nodes,
@@ -186,8 +190,13 @@ class Model(object):
         # Extract sector information
         present_sectors, present_region_sectors, flow_types_to_export = self.firms.extract_sectors()
 
+        # Build region_sector index for O(1) supplier lookups during SC network creation
+        logging.info("Building firms index for optimized supplier selection")
+        self.firms._build_region_sector_index()
+
         return present_sectors, present_region_sectors, flow_types_to_export
 
+    @profile_method
     def setup_households(self, present_region_sectors: list) -> None:
         """Setup households from MRIO data.
         
@@ -216,6 +225,7 @@ class Model(object):
             admin=self.parameters.admin
         )
 
+    @profile_method
     def setup_countries(self) -> None:
         """Setup countries from MRIO data."""
         logging.info('Creating countries from MRIO data')
@@ -230,6 +240,7 @@ class Model(object):
             input_units=self.parameters.monetary_units_in_data
         )
 
+    @profile_method
     def setup_agents(self, cached: bool = False):
         """Main orchestrator function for setting up all agent types.
         
@@ -281,7 +292,7 @@ class Model(object):
             self.parameters.filepaths['mrio'],
             self.parameters.monetary_units_in_data
         )
-        self.sector_table = pd.read_csv(self.parameters.filepaths['sector_table'])
+        self.sector_table = load_sector_table(self.parameters.filepaths['sector_table'])
 
     def _filter_sectors(self) -> list:
         """Filter sectors based on output and demand criteria."""
@@ -331,6 +342,7 @@ class Model(object):
             data_to_cache['transaction_table'] = self.transaction_table
         cache_agent_data(data_to_cache)
 
+    @profile_method
     def setup_sc_network(self, cached: bool = False):
         if cached:
             self.sc_network, self.firms, self.households, self.countries = load_cached_sc_network()
@@ -347,7 +359,8 @@ class Model(object):
                                            self.parameters.weight_localization_household,
                                            self.parameters.nb_suppliers_per_input,
                                            self.parameters.logistics['sector_types_to_shipment_method'],
-                                           import_label=self.mrio.import_label)
+                                           import_label=self.mrio.import_label,
+                                           transport_network=self.transport_network)
 
             logging.info('Exporters are being selected by purchasing countries (export B2B flows)')
             logging.info('and trading countries are being connected (transit flows)')
@@ -374,7 +387,8 @@ class Model(object):
                                           self.parameters.nb_suppliers_per_input,
                                           self.parameters.weight_localization_firm,
                                           self.parameters.logistics['sector_types_to_shipment_method'],
-                                          import_label=self.mrio.import_label)
+                                          import_label=self.mrio.import_label,
+                                          transport_network=self.transport_network)
 
             unconnected_nodes = self.sc_network.identify_disconnected_nodes(self.firms, self.countries, self.households)
             if len(unconnected_nodes) > 0:
@@ -392,8 +406,33 @@ class Model(object):
                         for unconnected_household_id in unconnected_node_ids:
                             del self.households[unconnected_household_id]
 
-            for _ in range(10):
-                self.sc_network.remove_useless_commercial_links()
+            # Iteratively remove firms without clients until convergence
+            total_removed = 0
+            max_iterations = 10
+            for iteration in range(max_iterations):
+                removed_count = self.sc_network.remove_useless_commercial_links()
+                if removed_count == 0:
+                    logging.info(f"Converged after {iteration + 1} iterations")
+                    break
+                total_removed += removed_count
+                
+                # Remove firms from model collections that were removed from sc_network
+                current_firm_pids_in_network = {node.pid for node in self.sc_network.nodes() 
+                                              if hasattr(node, 'agent_type') and node.agent_type == "firm"}
+                firms_to_remove = set(self.firms.keys()) - current_firm_pids_in_network
+                for firm_id in firms_to_remove:
+                    del self.firms[firm_id]
+            else:
+                logging.warning(f"Reached maximum iterations ({max_iterations}) without convergence")
+            
+            logging.info(f"Total firms removed in cleanup: {total_removed}")
+            
+            # Final validation: Check for any remaining firms without clients
+            remaining_firms_without_clients = self.sc_network.identify_firms_without_clients()
+            if remaining_firms_without_clients:
+                logging.warning(f"Warning: {len(remaining_firms_without_clients)} firms still without clients after cleanup")
+            else:
+                logging.info("Cleanup successful: All remaining firms have clients")
 
             logging.info(f'Nb of commercial links: {self.sc_network.number_of_edges()}')
 
@@ -428,6 +467,7 @@ class Model(object):
         }).transpose()
         self.commercial_link_table.index.name = "pid"
 
+    @profile_method
     def setup_logistic_routes(self, cached: bool = False, with_transport: bool = True):
         if not with_transport:
             self.create_commercial_link_table()
@@ -492,6 +532,7 @@ class Model(object):
         for country in self.countries.values():
             country.reset_variables()
 
+    @profile_method
     def set_initial_conditions(self):
         logging.info("Setting initial conditions to input-output equilibrium")
         """
@@ -653,6 +694,9 @@ class Model(object):
         # print("self.production_capacity", self.firms[0].production_capacity)
         for i in range(nb_time_steps):
             self.run_one_time_step(time_step=i, current_simulation=simulation)
+        simulation.calculate_and_export_summary_result(self.sc_network, self.household_table,
+                                                       self.parameters.monetary_units_in_model,
+                                                       None)
         return simulation
 
     def save_pickle(self, suffix):

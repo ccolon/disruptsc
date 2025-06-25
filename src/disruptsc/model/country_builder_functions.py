@@ -65,7 +65,7 @@ def _extract_trade_matrices(mrio: Mrio, time_resolution: str, target_units: str,
 
 
 def _prepare_country_spatial_data(filepath_countries_spatial: Path, filepath_sectors: Path,
-                                 country_list: List[str], transport_nodes: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+                                  country_list: List[str], transport_nodes: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     """Load and prepare country spatial data."""
     # Load spatial data
     country_table = gpd.read_file(filepath_countries_spatial).set_index('region')

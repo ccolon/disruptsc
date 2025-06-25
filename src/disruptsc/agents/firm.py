@@ -302,7 +302,7 @@ class Firm(BaseAgent, TransportCapable):
 
     def select_suppliers(self, graph: "ScNetwork", firms: "Firms", countries: "Countries",
                          nb_suppliers_per_input: float, weight_localization: float,
-                         sector_types_to_shipment_methods: dict, import_label: str):
+                         sector_types_to_shipment_methods: dict, import_label: str, transport_network=None):
         """
         The firm selects its suppliers.
 
@@ -344,10 +344,11 @@ class Firm(BaseAgent, TransportCapable):
 
             # If it is imports, identify international suppliers and calculate
             # their probability to be chosen, which is based on importance.
-            supplier_type, selected_supplier_ids, supplier_weights = self.identify_suppliers(sector_id, firms,
+            supplier_type, selected_supplier_ids, supplier_weights, distances = self.identify_suppliers(sector_id, firms,
                                                                                              nb_suppliers_per_input,
                                                                                              weight_localization,
-                                                                                             import_label)
+                                                                                             import_label,
+                                                                                             transport_network)
 
             # For each new supplier, create a new CommercialLink in the supply chain network.
             # print(f"{self.id_str()}: for input {sector_id} I selected {len(selected_supplier_ids)} suppliers")
@@ -727,6 +728,40 @@ class Firm(BaseAgent, TransportCapable):
 class Firms(BaseAgents):
     def __init__(self, agent_list=None):
         super().__init__(agent_list)
+        self._region_sector_index = {}
+        self._index_built = False
+
+    def _build_region_sector_index(self):
+        """Build index mapping region_sector -> [firm_ids] for O(1) lookups."""
+        self._region_sector_index.clear()
+        for firm_id, firm in self.items():
+            region_sector = firm.region_sector
+            if region_sector not in self._region_sector_index:
+                self._region_sector_index[region_sector] = []
+            self._region_sector_index[region_sector].append(firm_id)
+        self._index_built = True
+        logging.debug(f"Built region_sector index with {len(self._region_sector_index)} unique region_sectors")
+
+    def get_firms_by_region_sector(self, region_sector: str) -> list:
+        """
+        Get list of firm IDs for a given region_sector.
+        
+        Returns:
+            list: List of firm IDs that produce in the given region_sector
+        """
+        if not self._index_built:
+            self._build_region_sector_index()
+        return self._region_sector_index.get(region_sector, [])
+
+    def __setitem__(self, key, value):
+        """Override to invalidate index when firms are added/modified."""
+        super().__setitem__(key, value)
+        self._index_built = False
+
+    def __delitem__(self, key):
+        """Override to invalidate index when firms are removed."""
+        super().__delitem__(key)
+        self._index_built = False
 
     def filter_by_sector(self, sector):
         filtered_agents = Firms()

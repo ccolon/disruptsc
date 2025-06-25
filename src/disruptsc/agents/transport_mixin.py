@@ -195,7 +195,7 @@ class TransportCapable:
             commercial_link.store_route_information(route, "main", cost_per_ton)
 
             if capacity_constraint:
-                logging.info(f"{self.id_str()}, {client.pid}, {route.is_edge_in_route('turkmenbashi', transport_network)}")
+                # logging.info(f"{self.id_str()}, {client.pid}, {route.is_edge_in_route('turkmenbashi', transport_network)}")
                 self.update_transport_load(client, monetary_unit_flow, route, sc_network, transport_network,
                                            capacity_constraint)
 

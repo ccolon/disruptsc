@@ -100,25 +100,78 @@ def generate_weights_from_list(list_nb):
 
 
 def rescale_values(input_list, minimum=0.1, maximum=1, max_val=None, alpha=1, normalize=False):
-    max_val = max_val or max(input_list)
-    min_val = min(input_list)
+    """
+    Rescale values to a specified range using NumPy vectorization for performance.
+    
+    Parameters
+    ----------
+    input_list : list or np.ndarray
+        Input values to rescale
+    minimum : float
+        Minimum value of output range
+    maximum : float  
+        Maximum value of output range
+    max_val : float, optional
+        Override maximum value for scaling
+    alpha : float
+        Power scaling factor
+    normalize : bool
+        Whether to normalize result to sum to 1
+        
+    Returns
+    -------
+    list
+        Rescaled values as list (for backward compatibility)
+    """
+    import numpy as np
+    
+    # Convert to numpy array for vectorized operations
+    values = np.asarray(input_list, dtype=float)
+    
+    max_val = max_val if max_val is not None else np.max(values)
+    min_val = np.min(values)
+    
     if max_val == min_val:
-        res = [0.5 * maximum] * len(input_list)
+        # All values are the same
+        res = np.full_like(values, 0.5 * maximum)
     else:
-        res = [
-            minimum + (((val - min_val) / (max_val - min_val)) ** alpha) * (maximum - minimum)
-            for val in input_list
-        ]
+        # Vectorized rescaling computation
+        normalized = (values - min_val) / (max_val - min_val)
+        res = minimum + (normalized ** alpha) * (maximum - minimum)
+    
     if normalize:
-        res = [x / sum(res) for x in res]
-    return res
+        res = res / np.sum(res)
+    
+    return res.tolist()  # Return as list for backward compatibility
 
 
-def calculate_distance_between_agents(agentA, agentB):
+def calculate_distance_between_agents(agentA, agentB, transport_network=None):
+    """
+    Calculate distance between two agents.
+    
+    Parameters
+    ----------
+    agentA : BaseAgent
+        First agent
+    agentB : BaseAgent 
+        Second agent
+    transport_network : TransportNetwork, optional
+        Transport network for cached od_point distances
+        
+    Returns
+    -------
+    float
+        Distance in kilometers
+    """
     if (agentA.od_point == -1) or (agentB.od_point == -1):
         logging.warning("Try to calculate distance between agents, but one of them does not have real od point")
         return 1
+    
+    # Use cached od_point distances if transport_network provided
+    if transport_network is not None:
+        return transport_network.get_distance_between_nodes(agentA.od_point, agentB.od_point)
     else:
+        # Fallback to direct coordinate calculation
         return compute_distance_from_arcmin(agentA.long, agentA.lat, agentB.long, agentB.lat)
 
 
