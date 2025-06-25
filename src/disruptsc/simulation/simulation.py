@@ -30,15 +30,16 @@ class Simulation(object):
             json.dump(self.household_data, jsonfile)
 
     def export_transport_network_data(self, transport_edges: gpd.GeoDataFrame, export_folder: Path):
-        logging.info(f'Exporting transport network data to {export_folder}')
-        flow_df = pd.DataFrame(self.transport_network_data)
-        flow_df = flow_df[flow_df['flow_total'] > 0]
-        for time_step in flow_df['time_step'].unique():
-            transport_edges_with_flows = pd.merge(
-                transport_edges.drop(columns=["node_tuple"]), flow_df[flow_df['time_step'] == time_step],
-                how="left", on="id")
-            transport_edges_with_flows.to_file(export_folder / f"transport_edges_with_flows_{time_step}.geojson",
-                                               driver="GeoJSON", index=False)
+        if export_folder:
+            logging.info(f'Exporting transport network data to {export_folder}')
+            flow_df = pd.DataFrame(self.transport_network_data)
+            flow_df = flow_df[flow_df['flow_total'] > 0]
+            for time_step in flow_df['time_step'].unique():
+                transport_edges_with_flows = pd.merge(
+                    transport_edges.drop(columns=["node_tuple"]), flow_df[flow_df['time_step'] == time_step],
+                    how="left", on="id")
+                transport_edges_with_flows.to_file(export_folder / f"transport_edges_with_flows_{time_step}.geojson",
+                                                   driver="GeoJSON", index=False)
 
     def calculate_and_export_summary_result(self, sc_network: ScNetwork, household_table: pd.DataFrame,
                                             monetary_unit_in_model: str, export_folder: Path):
@@ -51,7 +52,6 @@ class Simulation(object):
 
         else:# self.type == "event":
             # export loss time series for households
-            logging.info(f'Exporting loss time series of households per region sector to {export_folder}')
             household_result_table = pd.DataFrame(self.household_data)
             loss_per_region_sector_time = household_result_table.groupby('household').apply(
                 self.summarize_results_one_household).reset_index().drop(columns=['level_1'])
@@ -60,21 +60,25 @@ class Simulation(object):
                 household_table.set_index('id')['region'])
             loss_per_region_sector_time = \
                 loss_per_region_sector_time.groupby(['region', 'sector', 'time_step'], as_index=False)['loss'].sum()
-            loss_per_region_sector_time.to_csv(export_folder / "loss_per_region_sector_time.csv", index=False)
+            if export_folder:
+                logging.info(f'Exporting loss time series of households per region sector to {export_folder}')
+                loss_per_region_sector_time.to_csv(export_folder / "loss_per_region_sector_time.csv", index=False)
             household_loss = loss_per_region_sector_time['loss'].sum()
-            logging.info(f'Exporting loss time series of countries to {export_folder}')
             # export loss time series for countries
             country_result_table = pd.DataFrame(self.country_data)
             country_result_table['loss'] = country_result_table['extra_spending'] \
                                            + country_result_table['consumption_loss']
             country_result_table = country_result_table[['time_step', 'country', 'loss']]
             country_loss = country_result_table['loss'].sum()
-            country_result_table.to_csv(export_folder / "loss_per_country.csv", index=False)
+            if export_folder:
+                logging.info(f'Exporting loss time series of countries to {export_folder}')
+                country_result_table.to_csv(export_folder / "loss_per_country.csv", index=False)
             logging.info(f"Cumulated household loss: {household_loss:,.2f} {monetary_unit_in_model}")
             logging.info(f"Cumulated country loss: {country_loss:,.2f} {monetary_unit_in_model}")
             # Export summary
             total_loss = pd.DataFrame({"households": household_loss, "countries": country_loss}, index=[0])
-            total_loss.to_csv(export_folder / "loss_summary.csv", index=False)
+            if export_folder:
+                total_loss.to_csv(export_folder / "loss_summary.csv", index=False)
 
         # elif self.type == "criticality":
         #     household_loss = self.calculate_household_loss()
