@@ -216,7 +216,7 @@ def _integrate_disaggregated_data(firm_table: gpd.GeoDataFrame, firms_spatial: P
     disag_firm_table = create_disag_firm_table(disag_data)
     
     # Remove the firms in the original table for which we have the disag info
-    firm_table = firm_table[~firm_table['tuple'].isin(disag_firm_table['tuple'])]
+    firm_table = firm_table[~firm_table['tuple'].isin(disag_firm_table['tuple'])].copy()
     
     # Add the disaggregated firms
     firm_table = pd.concat([firm_table, disag_firm_table])
@@ -323,7 +323,7 @@ def _filter_small_firms(firm_table: gpd.GeoDataFrame, mrio: Mrio, cutoff_firm_ou
     cond_low_output = estimated_output <= cutoff
     
     # Cut out those that are not in the top 2 and have estimated output below threshold
-    firm_table = firm_table[(~cond_low_output) | top2_bool_index]
+    firm_table = firm_table[(~cond_low_output) | top2_bool_index].copy()
     logging.info(f'Number of firms removed by the firm cutoff condition: {cond_low_output.sum()}')
     
     # Reset ids
@@ -393,23 +393,25 @@ def _enrich_sector_metadata(firm_table: pd.DataFrame, filepath_sectors: Path, mr
     """
     # Add sector type
     sector_table = pd.read_csv(filepath_sectors)
+    if "region_sector" not in sector_table.columns:
+        sector_table['region_sector'] = sector_table['region'] + '_' + sector_table['sector']
     firm_table['sector_type'] = firm_table['region_sector'].map(sector_table.set_index('region_sector')['type'])
     check_successful_extraction(firm_table, "sector_type")
-    
+
     # Add usd per ton
     firm_table['usd_per_ton'] = firm_table['region_sector'].map(sector_table.set_index('region_sector')['usd_per_ton'])
-    
+
     # Add margin and transport input share
     present_industries = list(firm_table['tuple'].unique())
     firm_table['margin'] = firm_table['tuple'].map(mrio.get_margin_per_industry(present_industries))
     check_successful_extraction(firm_table, "margin")
-    
+
     sector_to_type = firm_table[['sector', 'sector_type']].drop_duplicates().set_index('sector')[
         'sector_type'].to_dict()
     firm_table['transport_share'] = firm_table['tuple'].map(
         mrio.get_transport_input_share_per_industry(sector_to_type, present_industries))
     check_successful_extraction(firm_table, "transport_share")
-    
+
     return firm_table
 
 
