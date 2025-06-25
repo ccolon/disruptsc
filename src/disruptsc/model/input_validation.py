@@ -129,6 +129,7 @@ class InputValidator:
         for mode in self.parameters.transport_modes:
             edges_file = transport_folder / f"{mode}_edges.geojson"
             if not edges_file.exists():
+                self.errors.append(f"{mode} specified in the parameter file but no corresponding geojson")
                 continue
                 
             try:
@@ -155,7 +156,11 @@ class InputValidator:
                     self.errors.append(f"{edges_file}: Non-positive distance values found")
                 if (gdf['km'] > 10000).any():
                     self.warnings.append(f"{edges_file}: Very long edges (>10,000 km) found - check units")
-    
+
+        if len(self.parameters.transport_modes) > 2:
+            if not (transport_folder / f"multimodal_edges.geojson").exists():
+                self.errors.append("More than 2 transport modes defined, but no multimodal edges geojson")
+
     def _validate_mrio_inputs(self):
         """Validate inputs specific to MRIO mode."""
         # MRIO table is mandatory - throw error if missing
