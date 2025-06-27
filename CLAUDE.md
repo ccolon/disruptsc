@@ -253,3 +253,99 @@ To update version: edit `src/disruptsc/_version.py` - setup.py automatically rea
 - Profiling enabled by default in main.py (cProfile)
 - Logging configured via parameters, exports to timestamped folders
 - Core dependencies: pandas, numpy, geopandas, networkx, scipy, shapely, PyYAML, tqdm (flexible version ranges)
+
+## Performance Optimization - Logistics Routes
+
+### Current Bottleneck Analysis
+The logistics routes setup phase is the primary performance bottleneck during model initialization. Key issues:
+- Sequential processing with `parallelized=False` in `model.py:495,505`
+- Individual route calculations for each commercial link using NetworkX shortest path
+- Limited effectiveness of route caching during bulk setup phase
+
+### Spatial Clustering Optimization Framework
+
+**Available Spatial Infrastructure:**
+- Transport nodes with `lat`/`long` coordinates via `TransportNetwork._node[id]['lat/long']`
+- Agents assigned to nodes using `od_point` via KDTree nearest neighbor (`find_nearest_node_id`)
+- Distance calculations using `degrees_to_km` function
+- Existing distance caching system in `TransportNetwork._distance_cache`
+
+**Implementation Workflow:**
+
+#### 1. Agent Spatial Clustering
+```python
+def create_agent_clusters(agents, transport_network, cluster_params):
+    # Extract agent coordinates via their od_points
+    agent_coords = [(agent.od_point, 
+                    transport_network._node[agent.od_point]['lat'],
+                    transport_network._node[agent.od_point]['long']) 
+                   for agent in agents]
+    
+    # Apply clustering algorithm (DBSCAN or K-means)
+    from sklearn.cluster import DBSCAN
+    clustering = DBSCAN(eps=cluster_params['max_distance_km'] / 111,  # degrees
+                       min_samples=cluster_params['min_agents_per_cluster'])
+    
+    return group_agents_by_cluster(agents, clustering.labels_)
+```
+
+#### 2. Hub Identification Algorithm
+```python
+def identify_transport_hubs(transport_network, centrality_params):
+    # Calculate multiple centrality measures
+    centrality_scores = {
+        'betweenness': nx.betweenness_centrality(transport_network),
+        'closeness': nx.closeness_centrality(transport_network),
+        'degree': nx.degree_centrality(transport_network),
+        'eigenvector': nx.eigenvector_centrality(transport_network)
+    }
+    
+    # Weighted composite score
+    hub_scores = calculate_composite_hub_score(centrality_scores)
+    return select_top_hubs(hub_scores, centrality_params['num_hubs'])
+```
+
+#### 3. Hierarchical Routing Workflow
+- **Hub-to-Hub Backbone**: Pre-compute all hub-to-hub routes
+- **Cluster-to-Hub Assignment**: Assign each agent cluster to nearest hub
+- **Route Construction**: Agent → Hub → Hub → Agent routing pattern
+- **Cache Integration**: Hierarchical cache structure with route segment reuse
+
+#### 4. Core Data Structures
+```python
+class SpatialCluster:
+    def __init__(self, cluster_id, agents, centroid_node, hub_node):
+        self.cluster_id = cluster_id
+        self.agents = agents
+        self.centroid_node = centroid_node
+        self.hub_node = hub_node
+        self.internal_routes_cache = {}
+
+class TransportHub:
+    def __init__(self, node_id, centrality_score, economic_score):
+        self.node_id = node_id
+        self.centrality_score = centrality_score
+        self.economic_score = economic_score
+        self.connected_clusters = []
+        self.hub_routes = {}  # Routes to other hubs
+```
+
+#### 5. Integration Points
+- **Model Setup**: Add clustering/hub identification after agent location in `setup_logistic_routes`
+- **Route Selection**: Replace direct routing with hierarchical routing in `choose_initial_routes`
+- **Caching**: Extend existing cache with hierarchical structure in `caching_functions.py`
+- **Parameters**: Add clustering/hub configuration to YAML parameter files
+
+#### 6. Implementation Priority
+1. **Enable parallelization** (immediate 2-4x speedup) - Change `parallelized=False` to `True`
+2. **Bulk route pre-computation** - Collect all OD pairs before computing routes
+3. **Spatial clustering** - Implement agent clustering and hub identification
+4. **Hierarchical routing** - Implement hub-based routing logic
+5. **Enhanced caching** - Hierarchical cache structure with segment reuse
+
+**Files to modify:**
+- `src/disruptsc/model/model.py` - Add clustering to `setup_logistic_routes`
+- `src/disruptsc/agents/transport_mixin.py` - Modify `choose_initial_routes` for hierarchical routing
+- `src/disruptsc/network/transport_network.py` - Add hub identification methods
+- `src/disruptsc/model/caching_functions.py` - Extend caching for hierarchical routes
+- Configuration files - Add clustering/hub parameters
