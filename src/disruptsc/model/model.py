@@ -771,6 +771,9 @@ class Model(object):
                 if self.is_back_to_equilibrium:
                     logging.info("Simulation stops")
                     break
+        # simulation.calculate_and_export_summary_result(self.sc_network, self.household_table,
+        #                                                self.parameters.monetary_units_in_model,
+        #                                                None)
         return simulation
 
     def debug_print(self):
