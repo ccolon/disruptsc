@@ -33,7 +33,7 @@ def load_transport_data(filepaths, transport_mode, time_resolution):
     time_resolution_in_days = {'day': 1, 'week': 7, 'month': 365.25 / 12, 'year': 365.25}
     if "capacity" not in edges.columns:
         edges['capacity'] = None
-    edges['capacity'] = pd.to_numeric(edges['capacity'], errors="coerce")
+    edges['capacity'] = pd.to_numeric(edges['capacity'], errors="coerce").astype(float)
     edges['capacity'] = edges['capacity'] * time_resolution_in_days[time_resolution]
 
     # When there is no capacity, it means that there is no limitation

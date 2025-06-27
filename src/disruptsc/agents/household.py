@@ -188,4 +188,6 @@ class Household(BaseAgent):
 
 
 class Households(BaseAgents):
-    pass
+    def __init__(self, agent_list=None):
+        super().__init__(agent_list)
+        self.agents_type = "households"

@@ -728,6 +728,7 @@ class Firm(BaseAgent, TransportCapable):
 class Firms(BaseAgents):
     def __init__(self, agent_list=None):
         super().__init__(agent_list)
+        self.agents_type = "firms"
         self._region_sector_index = {}
         self._index_built = False
 
@@ -793,10 +794,45 @@ class Firms(BaseAgents):
             if propagate_input_price_change:
                 firm.calculate_price(sc_network)
 
-    def plan_purchase(self, adaptive_inventories: bool, adapt_weight_based_on_satisfaction: bool):
-        for firm in self.values():
-            firm.evaluate_input_needs()
-            firm.decide_purchase_plan(adaptive_inventories, adapt_weight_based_on_satisfaction)  # mode="reactive"
+    def plan_purchase(self, adaptive_inventories: bool, adapt_weight_based_on_satisfaction: bool,
+                     use_vectorized: bool = True):
+        if use_vectorized and len(self) > 10:  # Use vectorized approach for larger firm collections
+            from disruptsc.agents.vectorized_operations import vectorized_updater
+            
+            logging.debug(f"Using vectorized purchase planning for {len(self)} firms")
+            
+            # First evaluate input needs for all firms
+            for firm in self.values():
+                firm.evaluate_input_needs()
+            
+            # Calculate purchase plans in batch
+            purchase_plans = vectorized_updater.vectorized_purchase_planning(
+                self, adaptive_inventories
+            )
+            
+            # Apply results back to firms
+            for firm_id, purchase_plan in purchase_plans.items():
+                if firm_id in self:
+                    firm = self[firm_id]
+                    # Update the firm's purchase plan
+                    firm.inventory_manager.purchase_plan = purchase_plan
+                    
+                    # Calculate purchase plan per input from supplier plans
+                    purchase_plan_per_input = {}
+                    for supplier_id, quantity in purchase_plan.items():
+                        if supplier_id in firm.suppliers:
+                            sector = firm.suppliers[supplier_id]['sector']
+                            if sector not in purchase_plan_per_input:
+                                purchase_plan_per_input[sector] = 0
+                            purchase_plan_per_input[sector] += quantity
+                    firm.inventory_manager.purchase_plan_per_input = purchase_plan_per_input
+            
+            logging.debug(f"Vectorized planning processed {len(purchase_plans)} firms")
+        else:
+            # Fallback to sequential processing
+            for firm in self.values():
+                firm.evaluate_input_needs()
+                firm.decide_purchase_plan(adaptive_inventories, adapt_weight_based_on_satisfaction)  # mode="reactive"
 
     def produce(self):
         for firm in self.values():

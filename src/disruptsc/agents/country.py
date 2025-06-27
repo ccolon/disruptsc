@@ -248,7 +248,9 @@ class Country(BaseAgent, TransportCapable):
 
 
 class Countries(BaseAgents):
-    pass
+    def __init__(self, agent_list=None):
+        super().__init__(agent_list)
+        self.agents_type = "countries"
 
 
 def determine_suppliers_and_weights(potential_supplier_pids,

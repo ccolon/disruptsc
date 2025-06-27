@@ -1,3 +1,4 @@
+import logging
 import random
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from typing import TYPE_CHECKING
@@ -240,11 +241,7 @@ class BaseAgents(dict):
     
     def __init__(self, agent_list=None):
         super().__init__()
-        self.agents_type = None
         if agent_list is not None:
-            self.agents_type = agent_list[0].agent_type + 's'
-            if self.agents_type[-2:] == "ys":
-                self.agents_type[-2:] = "ies"
             for agent in agent_list:
                 self[agent.pid] = agent
 
@@ -328,11 +325,28 @@ class BaseAgents(dict):
                 agent.send_purchase_orders(sc_network)
 
     def receive_products(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
-                         sectors_no_transport_network: list, transport_to_households: bool = False):
+                         sectors_no_transport_network: list, transport_to_households: bool = False, 
+                         use_vectorized: bool = True):
         """All agents receive products from their suppliers."""
-        for agent in tqdm(self.values(), total=len(self), desc=f"{self.agents_type} receiving products"):
-            agent.receive_products_and_pay(sc_network, transport_network, sectors_no_transport_network,
-                                           transport_to_households)
+        if use_vectorized and len(self) > 10:  # Use vectorized approach for larger agent collections
+            from disruptsc.agents.vectorized_operations import vectorized_updater
+            
+            logging.debug(f"Using vectorized product reception for {len(self)} {self.agents_type}")
+            results = vectorized_updater.vectorized_receive_products(
+                self, sc_network, transport_network, sectors_no_transport_network
+            )
+            logging.debug(f"Vectorized reception processed {len(results['deliveries'])} deliveries")
+            
+            # Log cache performance if available
+            if results.get('performance_metrics', {}).get('cache_used', False):
+                from disruptsc.network.topology_cache import get_topology_cache
+                cache_stats = get_topology_cache().get_cache_statistics()
+                logging.debug(f"Cache hit rate: {cache_stats['hit_rate']:.1%} ({cache_stats['hit_count']} hits, {cache_stats['miss_count']} misses)")
+        else:
+            # Fallback to sequential processing
+            for agent in tqdm(self.values(), total=len(self), desc=f"{self.agents_type.capitalize()} receiving products"):
+                agent.receive_products_and_pay(sc_network, transport_network, sectors_no_transport_network,
+                                               transport_to_households)
 
     def assign_cost_profile(self, nb_cost_profiles: int):
         """Assign cost profiles to all agents."""
@@ -384,7 +398,7 @@ class BaseAgents(dict):
                 monetary_units_in_model: str, cost_repercussion_mode: str, price_increase_threshold: float,
                 transport_cost_noise_level: float, use_route_cache: bool):
         """Deliver products for all agents that have delivery capabilities."""
-        for agent in tqdm(self.values(), total=len(self), desc=f"{self.agents_type} delivering"):
+        for agent in tqdm(self.values(), total=len(self), desc=f"{self.agents_type.capitalize()} delivering"):
             if hasattr(agent, 'deliver_products'):
                 agent.deliver_products(
                     sc_network, transport_network, available_transport_network,

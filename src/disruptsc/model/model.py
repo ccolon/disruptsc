@@ -32,6 +32,7 @@ from disruptsc.disruption.disruption import DisruptionList, TransportDisruption,
 from disruptsc.simulation.simulation import Simulation
 from disruptsc.network.sc_network import ScNetwork
 from disruptsc.network.mrio import Mrio
+from disruptsc.network.topology_cache import NetworkTopologyCache, set_topology_cache
 
 if TYPE_CHECKING:
     from disruptsc.agents.country import Countries
@@ -346,6 +347,11 @@ class Model(object):
     def setup_sc_network(self, cached: bool = False):
         if cached:
             self.sc_network, self.firms, self.households, self.countries = load_cached_sc_network()
+            
+            # Build network topology cache for cached network
+            logging.info('Building network topology cache for cached supply chain network...')
+            topology_cache = NetworkTopologyCache(self.sc_network)
+            set_topology_cache(topology_cache)
 
         else:
             logging.info(
@@ -443,6 +449,11 @@ class Model(object):
             #     del self.countries[unconnected_country]
 
             logging.info('The nodes and edges of the supplier--buyer have been created')
+            
+            # Build network topology cache for performance optimization
+            logging.info('Building network topology cache for optimized agent operations...')
+            topology_cache = NetworkTopologyCache(self.sc_network)
+            set_topology_cache(topology_cache)
             # Save to tmp folder
             data_to_cache = {
                 "supply_chain_network": self.sc_network,
