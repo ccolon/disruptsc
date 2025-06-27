@@ -85,10 +85,13 @@ def _prepare_country_spatial_data(filepath_countries_spatial: Path, filepath_sec
     
     # Add USD per ton data
     sector_data = pd.read_csv(filepath_sectors).set_index("sector")
-    if 'IMP' not in sector_data.index:
-        raise ValueError("Import sector 'IMP' not found in sector table")
-    country_table['country_usd_per_ton'] = sector_data.loc['IMP', 'usd_per_ton']
-    
+    import_index = sector_data.index[sector_data.index.str.contains('imp', case=False)]
+    if len(import_index) == 0:
+        raise ValueError("Imports not found in sector table")
+    elif len(import_index) > 1:
+        raise ValueError(f"Multiple imports row found in sector table: {import_index}")
+    import_index = import_index[0]
+    country_table['country_usd_per_ton'] = sector_data.loc[import_index, 'usd_per_ton']
     return country_table
 
 

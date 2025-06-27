@@ -122,8 +122,8 @@ class Mrio(pd.DataFrame):
     def check_square_structure(self):
         intermediary_matrix = self.get_intermediary_part()
         if intermediary_matrix.shape[0] != intermediary_matrix.shape[1]:
-            logging.info(f"Column label not in row: {set(intermediary_matrix.columns) - set(intermediary_matrix.rows)}")
-            logging.info(f"Row label not in column: {set(intermediary_matrix.rows) - set(intermediary_matrix.columns)}")
+            logging.info(f"Column label not in row: {set(intermediary_matrix.columns) - set(intermediary_matrix.index)}")
+            logging.info(f"Row label not in column: {set(intermediary_matrix.index) - set(intermediary_matrix.columns)}")
             raise ValueError('Intermediary matrix not square')
 
     def get_intermediary_part(self):
