@@ -326,16 +326,16 @@ class BaseAgents(dict):
 
     def receive_products(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
                          sectors_no_transport_network: list, transport_to_households: bool = False, 
-                         use_vectorized: bool = True):
+                         use_vectorized: bool = False):
         """All agents receive products from their suppliers."""
-        if use_vectorized and len(self) > 10:  # Use vectorized approach for larger agent collections
+        if use_vectorized and len(self) > 5:  # Use vectorized approach for larger agent collections
             from disruptsc.agents.vectorized_operations import vectorized_updater
             
-            logging.debug(f"Using vectorized product reception for {len(self)} {self.agents_type}")
+            logging.info(f"Using vectorized product reception for {len(self)} {self.agents_type}")
             results = vectorized_updater.vectorized_receive_products(
                 self, sc_network, transport_network, sectors_no_transport_network
             )
-            logging.debug(f"Vectorized reception processed {len(results['deliveries'])} deliveries")
+            logging.info(f"Vectorized reception processed {len(results['deliveries'])} deliveries")
             
             # Log cache performance if available
             if results.get('performance_metrics', {}).get('cache_used', False):
