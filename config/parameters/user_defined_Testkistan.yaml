@@ -18,16 +18,16 @@ time_resolution: week
 io_cutoff: 0.01
 
 # Simple disruption scenario
-simulation_type: stationary_test
-export_files: True
+simulation_type: disruption
+export_files: False
+t_final: 10
 disruptions:
-  type: compound
-  events:
-    - item_type: transport_edges
-      attribute: id
-      values: [0]  # Disrupt Main Road North
-      start_time: 1
-      duration: 2
+  - type: transport_disruption
+    description_type: edge_attributes
+    attribute: id
+    values: [0, 1, 2, 3, 4]  # Disrupt Main Road North
+    start_time: 1
+    duration: 2
 
 # Model parameters
 utilization_rate: 0.8
