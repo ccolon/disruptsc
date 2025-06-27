@@ -1,25 +1,35 @@
-# Indicate the subfolder of the input folder that contains the input files
+# Simple test configuration for Testkistan
+# 2 sectors, 10 firms, 1 household, 1 country
 filepaths:
-  "sector_table": "National/sector_table.csv"
-  "tech_coef": "National/tech_coef.csv"
-  "inventory_duration_targets": "National/inventory_targets.csv"
-  "admin_unit_data": "Subnational/admin_unit_data.geojson"
-  "imports": "Trade/import_table.csv"
-  "exports": "Trade/export_table.csv"
-  "transit": "Trade/transit_matrix.csv"
+  "sector_table": "Economic/sector_table.csv"
+  "mrio": "Economic/mrio.csv"
+  "firms_spatial": "Spatial/firms.geojson"
+  "households_spatial": "Spatial/households.geojson"
+  "countries_spatial": "Spatial/countries.geojson"
+
+# Transport configuration
 transport_modes: [roads, maritime]
+with_transport: True
+
+# Economic parameters
 monetary_units_in_model: mUSD
-monetary_units_inputed: USD
+monetary_units_in_data: kUSD
 time_resolution: week
-io_cutoff: 0.02
-countries_to_include: ['VO1', 'VO2']
-simulation_type: disruption
+io_cutoff: 0.01
+
+# Simple disruption scenario
+simulation_type: stationary_test
 export_files: True
-disruption_description:
+disruptions:
   type: compound
   events:
     - item_type: transport_edges
       attribute: id
-      values: [0]
+      values: [0]  # Disrupt Main Road North
       start_time: 1
-      duration: 1
+      duration: 2
+
+# Model parameters
+utilization_rate: 0.8
+inventory_restoration_time: 4
+capital_to_value_added_ratio: 3.0
