@@ -470,19 +470,19 @@ class VectorizedAgentUpdater:
                     commercial_link = sc_network[supplier][agent]['object']
                     supplier_links.append((supplier, commercial_link))
             
-            # Process commercial links
+            # Process commercial links - exactly mirror the sequential logic
             for supplier, commercial_link in supplier_links:
-                # Process delivery based on transport requirements
+                # Process delivery based on transport requirements (exactly like sequential)
                 if commercial_link.use_transport_network:
-                    # Transport-based delivery
+                    # Transport-based delivery - use original method to ensure proper shipment removal
                     if hasattr(agent, 'receive_shipment_and_pay'):
                         agent.receive_shipment_and_pay(commercial_link, transport_network)
                 else:
-                    # Service delivery (no transport)
-                    quantity_delivered = commercial_link.delivery
-                    commercial_link.payment = quantity_delivered * commercial_link.price
+                    # Service delivery - use original method to ensure proper processing
+                    if hasattr(agent, 'receive_service_and_pay'):
+                        agent.receive_service_and_pay(commercial_link)
                 
-                # Collect delivery data for batch processing
+                # Collect delivery data for batch processing (use original delivery amount)
                 if commercial_link.delivery > 0:
                     all_deliveries[agent_id][commercial_link.product] = commercial_link.delivery
                     all_payments[f"{agent_id}_{supplier.pid}"] = commercial_link.payment
