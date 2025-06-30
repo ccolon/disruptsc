@@ -16,7 +16,15 @@ inventory_duration_targets:
     transport: 3
     default: 30
   unit: day
-transport_cost_noise_level: 0
+basic_cost_random: False  # deactivate all randomness
+basic_cost_variability: # coefficient of variation
+  roads: 0.1
+  maritime: 0.05
+  airways: 0.01
+  railways: 0.2
+  waterways: 0.2
+  pipelines: 0.01
+  multimodal: 0.01
 countries_to_include: ['AFR', 'AME', 'ASI', 'EUR', 'OCE', 'THA', 'VNM']
 simulation_type: disruption  # disruption
 export_files: True

@@ -177,7 +177,7 @@ class TransportNetwork(nx.Graph):
             # transport_nodes.loc[transport_nodes['id'] == household.od_point, "household_there"] = pid
 
     def provide_shortest_route(self, origin_node: int, destination_node: int,
-                               shipment_method: str, route_weight: str, noise_level: float = 0.0) -> Route or None:
+                               shipment_method: str, route_weight: str) -> Route or None:
         """nx.shortest_path returns path as list of nodes
         we transform it into a route, which contains nodes and edges:
         [(1,), (1,5), (5,), (5,8), (8,)]
@@ -192,9 +192,6 @@ class TransportNetwork(nx.Graph):
 
         else:
             weight = route_weight + '_' + shipment_method
-            if noise_level > 0:
-                weight = weight + '_noise'
-                self.add_noise_to_weight(weight, noise_level)
             try:
                 sp = nx.shortest_path(self, origin_node, destination_node, weight=weight)
                 # sp = nx.astar_path(self, origin_node, destination_node, weight=weight,
@@ -214,11 +211,6 @@ class TransportNetwork(nx.Graph):
             self._node[v]['long'], self._node[v]['lat']
         )
         return distance * self.min_cost_per_tonkm
-
-    def add_noise_to_weight(self, weight: str, noise_sd: float):
-        noise_levels = np.random.normal(0, noise_sd, len(self.edges)).tolist()
-        for edge in self.edges:
-            self[edge[0]][edge[1]][weight + '_noise'] = self[edge[0]][edge[1]][weight] * (1 + noise_levels.pop())
 
     def get_undisrupted_network(self):
         # available_nodes = [node for node in self.nodes if self._node[node]['disruption_duration'] == 0]

@@ -357,7 +357,6 @@ class BaseAgents(dict):
                               capacity_constraint: bool,
                               explicit_service_firm: bool, transport_to_households: bool,
                               sectors_no_transport_network: list,
-                              transport_cost_noise_level: float,
                               monetary_units_in_model: str,
                               parallelized: bool,
                               use_route_cache: bool):
@@ -374,7 +373,7 @@ class BaseAgents(dict):
                     executor.submit(
                         agent.choose_initial_routes, sc_network, transport_network, capacity_constraint,
                         explicit_service_firm, transport_to_households, sectors_no_transport_network,
-                        transport_cost_noise_level, monetary_units_in_model, use_route_cache
+                        monetary_units_in_model, use_route_cache
                     )
                     for agent in self.values()
                     if hasattr(agent, 'choose_initial_routes')
@@ -388,7 +387,7 @@ class BaseAgents(dict):
                     agent.choose_initial_routes(
                         sc_network, transport_network, capacity_constraint, explicit_service_firm,
                         transport_to_households, sectors_no_transport_network,
-                        transport_cost_noise_level, monetary_units_in_model, use_route_cache
+                        monetary_units_in_model, use_route_cache
                     )
 
     def deliver(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
@@ -396,7 +395,7 @@ class BaseAgents(dict):
                 sectors_no_transport_network: list, rationing_mode: str, with_transport: bool,
                 transport_to_households: bool, capacity_constraint: bool,
                 monetary_units_in_model: str, cost_repercussion_mode: str, price_increase_threshold: float,
-                transport_cost_noise_level: float, use_route_cache: bool):
+                use_route_cache: bool):
         """Deliver products for all agents that have delivery capabilities."""
         for agent in tqdm(self.values(), total=len(self), desc=f"{self.agents_type.capitalize()} delivering"):
             if hasattr(agent, 'deliver_products'):
@@ -410,7 +409,6 @@ class BaseAgents(dict):
                     cost_repercussion_mode=cost_repercussion_mode,
                     price_increase_threshold=price_increase_threshold,
                     capacity_constraint=capacity_constraint,
-                    transport_cost_noise_level=transport_cost_noise_level,
                     use_route_cache=use_route_cache
                 )
 

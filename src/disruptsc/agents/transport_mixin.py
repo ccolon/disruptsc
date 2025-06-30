@@ -30,7 +30,7 @@ class TransportCapable:
     """
     
     def choose_route(self, transport_network: "TransportNetwork", origin_node: int, destination_node: int,
-                     shipment_method: str, capacity_constraint: bool, transport_cost_noise_level: float):
+                     shipment_method: str, capacity_constraint: bool):
         """
         The agent chooses the delivery route based on cost profiles and constraints.
         """
@@ -40,11 +40,10 @@ class TransportCapable:
             weight_considered = "cost_per_ton_" + str(self.cost_profile)
 
         return transport_network.provide_shortest_route(origin_node, destination_node, shipment_method,
-                                                        route_weight=weight_considered,
-                                                        noise_level=transport_cost_noise_level)
+                                                        route_weight=weight_considered)
 
     def _get_route(self, transport_network, available_transport_network, destination_node,
-                   shipment_method, normal_or_disrupted, capacity_constraint, transport_cost_noise_level,
+                   shipment_method, normal_or_disrupted, capacity_constraint,
                    use_route_cache: bool):
         """Internal method to get route with caching support."""
         if use_route_cache:
@@ -58,8 +57,7 @@ class TransportCapable:
             origin_node=self.od_point,
             destination_node=destination_node,
             shipment_method=shipment_method,
-            capacity_constraint=capacity_constraint,
-            transport_cost_noise_level=transport_cost_noise_level
+            capacity_constraint=capacity_constraint
         )
         if route and use_route_cache:
             transport_network.cache_route(route, self.od_point, destination_node, self.cost_profile,
@@ -68,14 +66,14 @@ class TransportCapable:
 
     def discover_new_route(self, commercial_link: "CommercialLink", transport_network: "TransportNetwork",
                            available_transport_network: "TransportNetwork",
-                           account_capacity: bool, transport_cost_noise_level: float, use_route_cache: bool):
+                           account_capacity: bool, use_route_cache: bool):
         """
         Discover alternative route when main route is unavailable.
         """
         destination_node = commercial_link.route[-1][0]
         route = self._get_route(transport_network, available_transport_network, destination_node,
                                 commercial_link.shipment_method, 'alternative', account_capacity,
-                                transport_cost_noise_level, use_route_cache)
+                                use_route_cache)
 
         if route is not None:
             cost_per_ton_label = "cost_per_ton_" + str(self.cost_profile) + "_" + commercial_link.shipment_method
@@ -87,7 +85,7 @@ class TransportCapable:
 
     def send_shipment(self, commercial_link: "CommercialLink", transport_network: "TransportNetwork",
                       available_transport_network: "TransportNetwork", price_increase_threshold: float,
-                      capacity_constraint: bool, transport_cost_noise_level: float, use_route_cache: bool):
+                      capacity_constraint: bool, use_route_cache: bool):
         """
         Send shipment using transport network, with fallback to alternative routes.
         
@@ -122,7 +120,7 @@ class TransportCapable:
         if not usable_alternative:
             usable_alternative = self.discover_new_route(commercial_link, transport_network,
                                                          available_transport_network,
-                                                         capacity_constraint, transport_cost_noise_level,
+                                                         capacity_constraint,
                                                          use_route_cache)
 
         if usable_alternative:
@@ -166,7 +164,7 @@ class TransportCapable:
 
     def choose_initial_routes(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
                               capacity_constraint: bool, explicit_service_firm: bool, transport_to_households: bool,
-                              sectors_no_transport_network: list, transport_cost_noise_level: float,
+                              sectors_no_transport_network: list,
                               monetary_unit_flow: str, use_route_cache: bool):
         """
         Choose initial routes for all outgoing commercial links.
@@ -188,7 +186,7 @@ class TransportCapable:
             destination_node = client.od_point
             route = self._get_route(transport_network, transport_network, destination_node,
                                     commercial_link.shipment_method,
-                                    'normal', capacity_constraint, transport_cost_noise_level,
+                                    'normal', capacity_constraint,
                                     use_route_cache)
             cost_per_ton_label = "cost_per_ton_" + str(self.cost_profile) + "_" + commercial_link.shipment_method
             cost_per_ton = route.sum_indicator(transport_network, cost_per_ton_label)

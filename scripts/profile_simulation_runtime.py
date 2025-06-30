@@ -90,7 +90,7 @@ class SimulationRuntimeProfiler:
                                model.parameters.rationing_mode, model.parameters.with_transport,
                                model.parameters.transport_to_households, model.parameters.capacity_constraint,
                                model.parameters.monetary_units_in_model, model.parameters.cost_repercussion_mode,
-                               model.parameters.price_increase_threshold, model.parameters.transport_cost_noise_level,
+                               model.parameters.price_increase_threshold,
                                model.parameters.use_route_cache)
         self.time_step_timings[time_step]['countries_delivery'] = time.perf_counter() - phase_start
         
@@ -101,7 +101,7 @@ class SimulationRuntimeProfiler:
                            model.parameters.rationing_mode, model.parameters.with_transport,
                            model.parameters.transport_to_households, model.parameters.capacity_constraint,
                            model.parameters.monetary_units_in_model, model.parameters.cost_repercussion_mode,
-                           model.parameters.price_increase_threshold, model.parameters.transport_cost_noise_level,
+                           model.parameters.price_increase_threshold,
                            model.parameters.use_route_cache)
         self.time_step_timings[time_step]['firms_delivery'] = time.perf_counter() - phase_start
         

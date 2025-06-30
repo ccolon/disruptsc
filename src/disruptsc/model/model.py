@@ -501,7 +501,6 @@ class Model(object):
                                                  self.parameters.explicit_service_firm,
                                                  self.parameters.transport_to_households,
                                                  self.parameters.sectors_no_transport_network,
-                                                 self.parameters.transport_cost_noise_level,
                                                  self.parameters.monetary_units_in_model,
                                                  parallelized=False,
                                                  use_route_cache=self.parameters.use_route_cache)
@@ -511,7 +510,6 @@ class Model(object):
                                              self.parameters.explicit_service_firm,
                                              self.parameters.transport_to_households,
                                              self.parameters.sectors_no_transport_network,
-                                             self.parameters.transport_cost_noise_level,
                                              self.parameters.monetary_units_in_model,
                                              parallelized=False,
                                              use_route_cache=self.parameters.use_route_cache)
@@ -818,14 +816,14 @@ class Model(object):
                                self.parameters.rationing_mode, self.parameters.with_transport,
                                self.parameters.transport_to_households, self.parameters.capacity_constraint,
                                self.parameters.monetary_units_in_model, self.parameters.cost_repercussion_mode,
-                               self.parameters.price_increase_threshold, self.parameters.transport_cost_noise_level,
+                               self.parameters.price_increase_threshold,
                                self.parameters.use_route_cache)
         self.firms.deliver(self.sc_network, self.transport_network, available_transport_network,
                            self.parameters.sectors_no_transport_network,
                            self.parameters.rationing_mode, self.parameters.with_transport,
                            self.parameters.transport_to_households, self.parameters.capacity_constraint,
                            self.parameters.monetary_units_in_model, self.parameters.cost_repercussion_mode,
-                           self.parameters.price_increase_threshold, self.parameters.transport_cost_noise_level,
+                           self.parameters.price_increase_threshold,
                            self.parameters.use_route_cache)
         # print(self.firms[0].rationing)
         # print(com.delivery)

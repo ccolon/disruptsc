@@ -181,13 +181,12 @@ class Country(BaseAgent, TransportCapable):
                          sectors_no_transport_network: list[str], rationing_mode: str, with_transport: bool,
                          transport_to_households: bool,
                          monetary_units_in_model: str, cost_repercussion_mode: str, price_increase_threshold: float,
-                         capacity_constraint: bool, transport_cost_noise_level: float, use_route_cache: bool):
+                         capacity_constraint: bool, use_route_cache: bool):
         """ The quantity to be delivered is the quantity that was ordered (no rationing takes place)
 
         Parameters
         ----------
         explicit_service_firm
-        transport_cost_noise_level
         cost_repercussion_mode
         capacity_constraint
         monetary_units_in_model
@@ -221,7 +220,7 @@ class Country(BaseAgent, TransportCapable):
             # Otherwise, send shipment through transportation network
             else:
                 self.send_shipment(commercial_link, transport_network, available_transport_network,
-                                   price_increase_threshold, capacity_constraint, transport_cost_noise_level,
+                                   price_increase_threshold, capacity_constraint,
                                    use_route_cache)
             # else:
             #     if buyer.agent_type == 'firm':
@@ -230,7 +229,7 @@ class Country(BaseAgent, TransportCapable):
             #             self.qty_sold += commercial_link.delivery
             #     else:
             #         self.send_shipment(commercial_link, transport_network, available_transport_network,
-            #                            price_increase_threshold, capacity_constraint, transport_cost_noise_level)
+            #                            price_increase_threshold, capacity_constraint)
 
     def calculate_relative_price_change_transport(self, relative_transport_cost_change):
         """Calculate price change due to transport cost changes."""

@@ -76,7 +76,6 @@ class Parameters:
     route_optimization_weight: str
     cost_repercussion_mode: str
     price_increase_threshold: float
-    transport_cost_noise_level: float
     adaptive_inventories: bool
     adaptive_supplier_weight: bool
     capital_to_value_added_ratio: float
