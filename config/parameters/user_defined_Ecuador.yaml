@@ -1,27 +1,9 @@
 # Indicate the subfolder of the input folder that contains the input files
 logging_level: info
-filepaths:
-  sector_table: Network/59sector_2016_sector_table.csv
-  region_table: Network/regions.geojson
-#  "tech_coef": "National/13sector_2016_tech_coef.csv"
-#  "inventory_duration_targets": "Network/59sector_inventory_targets.csv"
-#  "region_data": "Subnational/13sector_2016_canton_data.geojson"
-#  "region_table": "Network/canton_reference.geojson"
-  mrio: Network/mrio_59sectors.csv
-  admin: Downscale/gadm41_ECU_1.json
-#  "imports": "Trade/13sector_2016_import_table.csv"
-#  "exports": "Trade/13sector_2016_export_table.csv"
-#  "transit": "Trade/2016_transit_matrix.csv"
-#  "roads_nodes": "Transport/roads_nodes.geojson"  # roads_nodes_ximena for TR2
-  roads_edges: Transport/roads_edges.geojson  # roads_edges_ximena for TR2
-  airways_edges: Transport/airways_edges.geojson  # roads_edges_ximena for TR2
-  waterways_edges: Transport/waterways_edges.geojson  # roads_edges_ximena for TR2
-  maritime_edges: Transport/maritime_edges.geojson  # roads_edges_ximena for TR2
-  multimodal_edges: Transport/multimodal_edges.geojson  # multimodal_edges_ximena for TR2
-admin: [province]
+#admin: [province]
 transport_modes: [roads, maritime, waterways, airways]
-transport_cost_data:
-  roads: surface-specific  # edge_attr-specific for TR2 (Ximena's data), surface-specific for TR1 (OSM data)
+#transport_cost_data:
+#  roads: surface-specific  # edge_attr-specific for TR2 (Ximena's data), surface-specific for TR1 (OSM data)
 monetary_units_in_model: mUSD
 monetary_units_in_data: kUSD
 time_resolution: day
@@ -39,7 +21,6 @@ inventory_duration_targets:
     transport: 3
     default: 30
   unit: day
-firm_data_type: "mrio"  #  'disaggregating IO' for GR-13 and GR-59, 'mrio' for TR-AGG
 #sectors_no_transport_network: ['utility', 'transport', 'trade', 'service']  # remove trade for mrio
 io_cutoff: 0.01  # 0.01
 cutoff_sector_output:
