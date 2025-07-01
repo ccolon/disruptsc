@@ -2,13 +2,10 @@ import copy
 import math
 from typing import TYPE_CHECKING
 
-import geopandas
 import networkx as nx
-import numpy as np
 import pandas as pd
 import logging
 
-from disruptsc.model.basic_functions import add_or_append_to_dict
 from disruptsc.network.route import Route
 from disruptsc.parameters import TRANSPORT_MALUS
 
@@ -479,7 +476,7 @@ class TransportNetwork(nx.Graph):
             edge_data['current_load'] = 0
             edge_data['overused'] = False
 
-    def ingest_logistic_data(self, logistic_parameters: dict):
+    def ingest_logistic_data(self, logistic_parameters: dict, time_resolution: str):
         # Apply the function based on the edge_attr type
         self.shipment_methods = list(logistic_parameters['shipment_methods_to_transport_modes'].keys())
         nb_cost_profiles = logistic_parameters['nb_cost_profiles']
@@ -490,7 +487,7 @@ class TransportNetwork(nx.Graph):
             } for i in range(nb_cost_profiles)
         }
         for _, attr in self.edges.items():
-            _calculate_cost_per_ton(attr, logistic_parameters)
+            _calculate_cost_per_ton(attr, logistic_parameters, time_resolution)
 
     def retrieve_cached_route(self, from_node: int, to_node: int, cost_profile: int,
                               normal_or_disrupted: str, shipment_method: str):
@@ -556,7 +553,13 @@ def _get_border_crossing_time_and_fee(edge_attr: dict, border_crossing_times: di
     return 0.0, 0.0
 
 
-def _calculate_cost_per_ton(edge_attr, logistic_parameters: dict):
+def _calculate_cost_per_ton(edge_attr, logistic_parameters: dict, time_resolution: str):
+    # adjust cost of time: we suppose that there is one shipment per week
+    # so if the model has a daily time steps, it is as if a shipment is "chuncked" in 7 small pieces
+    # so what is "paid" in terms of time should be divided by 7
+    # for costs that scale with tons, no need, because the tons are already adjusted
+    time_resolution_in_days = {'day': 1, 'week': 7, 'month': 365.25 / 12, 'year': 365.25}
+    adjusted_delay_cost = logistic_parameters['cost_of_time'] * (time_resolution_in_days[time_resolution] / 7)
     # calculate cost per ton
     basic_costs = {i: edge_attr['km'] * basic_cost_random[edge_attr['type']]
                    for i, basic_cost_random in logistic_parameters['basic_cost_profiles'].items()}
@@ -568,7 +571,7 @@ def _calculate_cost_per_ton(edge_attr, logistic_parameters: dict):
     total_time = transport_time + loading_time + border_crossing_time
     total_fee = loading_fee + border_crossing_fee
     special_cost = logistic_parameters['name-specific'].get(edge_attr['name'], 0)
-    costs_per_ton = {i: basic_cost + special_cost + total_fee + total_time * logistic_parameters['cost_of_time']
+    costs_per_ton = {i: basic_cost + special_cost + total_fee + total_time * adjusted_delay_cost
                      for i, basic_cost in basic_costs.items()}
 
     # add malus for non-supported shipment types

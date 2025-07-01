@@ -3,7 +3,7 @@ transport_modes: [roads, maritime, waterways, railways]
 monetary_units_in_model: mUSD
 monetary_units_inputed: USD
 time_resolution: day
-io_cutoff: 0.2
+io_cutoff: 0.02
 inventory_duration_targets:
   definition: per_input_type
   values:
@@ -21,7 +21,7 @@ logistics:
   nb_cost_profiles: 1
   basic_cost: # per ton*km
     roads: 0.073
-    railways: 0.03
+    railways: 0.025
     waterways: 0.01
   speed:
     roads: 50
@@ -43,6 +43,7 @@ logistics:
     roads: 8
     railways: 8
     maritime: 10
+    waterways: 10
     multimodal: 10
   border_crossing_fees: #USD/ton
     roads: 5

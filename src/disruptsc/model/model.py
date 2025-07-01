@@ -106,13 +106,13 @@ class Model(object):
         #     route_optimization_weight=self.parameters.route_optimization_weight
         # )
         self.parameters.add_variability_to_basic_cost()
-        self.transport_network.ingest_logistic_data(self.parameters.logistics)
+        self.transport_network.ingest_logistic_data(self.parameters.logistics, self.parameters.time_resolution)
         self.transport_network.log_km_per_transport_modes()  # Print data on km per mode
         self.transport_network_initialized = True
 
     def shuffle_logistic_costs(self):
         self.parameters.add_variability_to_basic_cost()
-        self.transport_network.ingest_logistic_data(self.parameters.logistics)
+        self.transport_network.ingest_logistic_data(self.parameters.logistics, self.parameters.time_resolution)
 
     @profile_method
     def setup_firms(self, filtered_industries: list) -> tuple[list, list, list]:
