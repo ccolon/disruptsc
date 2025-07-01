@@ -16,17 +16,49 @@ inventory_duration_targets:
     transport: 3
     default: 30
   unit: day
-basic_cost_random: False  # deactivate all randomness
-basic_cost_variability: # coefficient of variation
-  roads: 0.1
-  maritime: 0.05
-  airways: 0.01
-  railways: 0.2
-  waterways: 0.2
-  pipelines: 0.01
-  multimodal: 0.01
+logistics:
+  basic_cost_random: False  # deactivate all randomness
+  nb_cost_profiles: 1
+  basic_cost: # per ton*km
+    roads: 0.073
+    railways: 0.03
+    waterways: 0.01
+  speed:
+    roads: 50
+    railways: 20
+    waterways: 10
+  dwell_times:  # hours
+    roads-railways: 5
+    roads-maritime: 12
+    roads-waterways: 12
+    railways-maritime: 24
+    waterways-maritime: 24
+  loading_fees: #USD/ton
+    roads-railways: 6
+    roads-maritime: 7
+    roads-waterways: 5
+    railways-maritime: 7
+    waterways-maritime: 6
+  border_crossing_times: #hours
+    roads: 8
+    railways: 8
+    maritime: 10
+    multimodal: 10
+  border_crossing_fees: #USD/ton
+    roads: 5
+    maritime: 5
+    railways: 5
+    waterways: 5
+    pipelines: 5
+
 countries_to_include: ['AFR', 'AME', 'ASI', 'EUR', 'OCE', 'THA', 'VNM']
-simulation_type: disruption  # disruption
+simulation_type: initial_state  # disruption
+capacity_constraint: none
+transport_capacity_overrides:  # tons per day
+  pp_sihanoukville: 1000
+  pp_city_port: 4500
+  pp_main_port: 15000
+  bavet_border_crossing: 9000
 export_files: True
 t_final: 5
 disruptions:
@@ -39,7 +71,7 @@ disruptions:
 # Filter out sectors firms output is below that cutoff value
 cutoff_firm_output:
   'type': 'absolute'
-  'value': 100
+  'value': 1000
   "unit": "kUSD"
 
 # Filter out region_sector to households links if purchase is below that cutoff value
