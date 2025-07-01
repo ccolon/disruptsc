@@ -13,8 +13,7 @@ from disruptsc.network.mrio import Mrio
 
 def create_households(
         household_table: pd.DataFrame,
-        household_sector_consumption: dict[int, dict[str, float]],
-        admin: Optional[list[str]] = None
+        household_sector_consumption: dict[int, dict[str, float]]
 ) -> Households:
     """Create household agents from processed data.
 
@@ -27,8 +26,6 @@ def create_households(
         Table with household data including id, name, od_point, region, long, lat, population
     household_sector_consumption : dict[int, dict[str, float]]
         Household consumption by sector: {household_id: {sector: consumption_amount}}
-    admin : Optional[list[str]], default None
-        Administrative levels to include as household attributes
 
     Returns
     -------
@@ -52,21 +49,13 @@ def create_households(
     ])
     logging.info('Households generated')
 
-    if isinstance(admin, list):
-        household_table.index = 'hh_' + household_table.index.astype(str)
-        for pid, household in households.items():
-            for admin_level in admin:
-                value = household_table.loc[pid, admin_level]
-                setattr(household, admin_level, value)
-
     return households
 
 
 def _load_and_assign_household_spatial_data(
     filepath_households_spatial: Path, 
     mrio: Mrio, 
-    transport_nodes: gpd.GeoDataFrame,
-    admin: Optional[list[str]]
+    transport_nodes: gpd.GeoDataFrame
 ) -> gpd.GeoDataFrame:
     """Load household spatial data and assign to transport nodes.
     
@@ -78,8 +67,6 @@ def _load_and_assign_household_spatial_data(
         Multi-regional input-output table for region filtering
     transport_nodes : gpd.GeoDataFrame
         Transport network nodes
-    admin : Optional[list[str]]
-        Administrative levels to include
         
     Returns
     -------
@@ -94,11 +81,6 @@ def _load_and_assign_household_spatial_data(
     admissible_node_mode = ['roads']
     potential_nodes = transport_nodes[transport_nodes['type'].isin(admissible_node_mode)]
     household_table['od_point'] = find_nearest_node_id(potential_nodes, household_table)
-    
-    # Add administrative levels
-    if isinstance(admin, list):
-        for admin_level in admin:
-            household_table[admin_level] = household_table["od_point"].map(potential_nodes[admin_level])
     
     logging.info(f"Select {household_table.shape[0]} households in {household_table['region'].nunique()} regions")
     return household_table
@@ -259,8 +241,7 @@ def define_households_from_mrio(
         target_units: str,
         input_units: str,
         final_demand_cutoff: dict,
-        present_region_sectors: list[str],
-        admin: Optional[list[str]] = None,
+        present_region_sectors: list[str]
 ) -> tuple[pd.DataFrame, dict[int, dict[str, float]]]:
     """Define households from MRIO data and spatial information.
     
@@ -285,8 +266,6 @@ def define_households_from_mrio(
         Cutoff configuration for minimum consumption thresholds
     present_region_sectors : list[str]
         List of region_sector combinations to include
-    admin : Optional[list[str]], default None
-        Administrative levels to include as household attributes
         
     Returns
     -------
@@ -297,7 +276,7 @@ def define_households_from_mrio(
     """
     # 1. Load spatial data and assign to transport nodes
     household_table = _load_and_assign_household_spatial_data(
-        filepath_households_spatial, mrio, transport_nodes, admin
+        filepath_households_spatial, mrio, transport_nodes
     )
     
     # 2. Add coordinates, IDs, and names

@@ -106,7 +106,7 @@ def apply_capacity_overrides(edges: gpd.GeoDataFrame, capacity_overrides: dict, 
 
 
 def create_transport_network(transport_modes: list, filepaths: dict, logistics_parameters: dict, time_resolution: str,
-                             admin: list | None = None, capacity_overrides: dict | None = None):
+                             capacity_overrides: dict | None = None):
     """Create the transport network object
 
     It uses one shapefile for the nodes and another for the edges.
@@ -115,7 +115,6 @@ def create_transport_network(transport_modes: list, filepaths: dict, logistics_p
 
     Parameters
     ----------
-    admin
     logistics_parameters
     time_resolution
     transport_modes : list
@@ -199,17 +198,6 @@ def create_transport_network(transport_modes: list, filepaths: dict, logistics_p
     nodes['firms_there'] = [[] for _ in range(len(nodes))]
     nodes['households_there'] = None
     selected_node_attributes = ['long', 'lat', 'disruption_duration', 'shipments', 'firms_there', 'households_there']
-    if isinstance(admin, list):
-        admin_gdf = gpd.read_file(filepaths['admin'])
-        admin_gdf = admin_gdf.to_crs(nodes.crs)
-        nodes.index.name = "node_id"
-        nodes = nodes.reset_index()
-        points_with_province = gpd.sjoin(nodes[["node_id", 'geometry']], admin_gdf[admin + ['geometry']],
-                                         how="left", predicate="within")
-        for admin_level in admin:
-            nodes[admin_level] = nodes['node_id'].map(points_with_province.set_index('node_id')[admin_level])
-        nodes.index.name = "id"
-        selected_node_attributes += admin
 
     nx.set_node_attributes(transport_network, nodes[selected_node_attributes].to_dict("index"))
     min_basic_cost = find_min_in_nested_dict(logistics_parameters['basic_cost'])

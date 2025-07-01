@@ -54,7 +54,6 @@ epsilon_stop_condition: true      # Stop when equilibrium reached
 
 ```yaml
 scope: "Cambodia"                 # Main study region
-admin: ["admin_level1", "admin_level2"]  # Administrative levels to track
 ```
 
 ## Data Configuration

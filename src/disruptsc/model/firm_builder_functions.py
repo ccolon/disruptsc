@@ -16,8 +16,7 @@ def create_firms(
         keep_top_n_firms: Optional[int] = None,
         inventory_restoration_time: float = 4,
         utilization_rate: float = 0.8,
-        capital_to_value_added_ratio: float = 4,
-        admin: Optional[list[str]] = None
+        capital_to_value_added_ratio: float = 4
 ) -> Firms:
     """Create the firms
 
@@ -25,7 +24,6 @@ def create_firms(
 
     Parameters
     ----------
-    admin
     capital_to_value_added_ratio
     firm_table: pandas.DataFrame
         firm_table from rescaleNbFirms
@@ -72,12 +70,6 @@ def create_firms(
     # It allows to visually disentangle firms located at the same od-point when plotting the map.
     for firm in firms.values():
         firm.add_noise_to_geometry()
-
-    if isinstance(admin, list):
-        for pid, firm in firms.items():
-            for admin_level in admin:
-                value = firm_table.loc[pid, admin_level]
-                setattr(firm, admin_level, value)
 
     return firms
 
@@ -337,8 +329,7 @@ def _filter_small_firms(firm_table: gpd.GeoDataFrame, mrio: Mrio, cutoff_firm_ou
     return firm_table
 
 
-def _assign_transport_nodes(firm_table: gpd.GeoDataFrame, transport_nodes: gpd.GeoDataFrame, 
-                           admin: Optional[list[str]]) -> pd.DataFrame:
+def _assign_transport_nodes(firm_table: gpd.GeoDataFrame, transport_nodes: gpd.GeoDataFrame) -> pd.DataFrame:
     """Assign firms to nearest transport nodes and add coordinates.
     
     Parameters
@@ -347,8 +338,6 @@ def _assign_transport_nodes(firm_table: gpd.GeoDataFrame, transport_nodes: gpd.G
         Firm table with geometry
     transport_nodes : gpd.GeoDataFrame
         Transport network nodes
-    admin : Optional[list[str]]
-        Administrative levels to include
         
     Returns
     -------
@@ -361,10 +350,6 @@ def _assign_transport_nodes(firm_table: gpd.GeoDataFrame, transport_nodes: gpd.G
     potential_nodes = transport_nodes[transport_nodes['type'].isin(admissible_node_mode)]
     firm_table['od_point'] = find_nearest_node_id(potential_nodes, firm_table)
     check_successful_extraction(firm_table, "od_point")
-    
-    if isinstance(admin, list):
-        for admin_level in admin:
-            firm_table[admin_level] = firm_table["od_point"].map(potential_nodes[admin_level])
     
     # Add long lat
     long_lat = get_long_lat(firm_table['od_point'], transport_nodes)
@@ -414,7 +399,7 @@ def _enrich_sector_metadata(firm_table: pd.DataFrame, sector_table: pd.DataFrame
 
 def define_firms_from_mrio(mrio: Mrio, sector_table: pd.DataFrame, households_spatial: Path, firms_spatial: Path,
                            transport_nodes: gpd.GeoDataFrame, io_cutoff: float, cutoff_firm_output: dict,
-                           monetary_units_in_data: str, admin: Optional[list[str]] = None) -> pd.DataFrame:
+                           monetary_units_in_data: str) -> pd.DataFrame:
     """Main orchestrator function for creating firms from MRIO data.
     
     This function coordinates the entire firm creation process by delegating
@@ -438,8 +423,6 @@ def define_firms_from_mrio(mrio: Mrio, sector_table: pd.DataFrame, households_sp
         Firm output cutoff configuration
     monetary_units_in_data : str
         Monetary units used in data
-    admin : Optional[list[str]]
-        Administrative levels to include
         
     Returns
     -------
@@ -459,7 +442,7 @@ def define_firms_from_mrio(mrio: Mrio, sector_table: pd.DataFrame, households_sp
     firm_table = _filter_small_firms(firm_table, mrio, cutoff_firm_output, monetary_units_in_data)
     
     # 5. Assign transport nodes and coordinates
-    firm_table = _assign_transport_nodes(firm_table, transport_nodes, admin)
+    firm_table = _assign_transport_nodes(firm_table, transport_nodes)
     
     # 6. Enrich with sector metadata
     firm_table = _enrich_sector_metadata(firm_table, sector_table, mrio)
