@@ -254,7 +254,8 @@ class TransportNetwork(nx.Graph):
             if self[edge[0]][edge[1]]['disruption_duration'] > 0:
                 self[edge[0]][edge[1]]['disruption_duration'] -= 1
 
-    def transport_shipment(self, commercial_link: "CommercialLink", capacity_constraint: bool):
+    def transport_shipment(self, commercial_link: "CommercialLink", capacity_constraint: bool,
+                           capacity_constraint_mode: str = "gradual"):
         # Select the route to transport the shipment: main or alternative
         if commercial_link.current_route == 'main':
             route_to_take = commercial_link.route
@@ -280,7 +281,8 @@ class TransportNetwork(nx.Graph):
         # Add the shipment to the destination node
         self._node[commercial_link.destination_node]['shipments'][commercial_link.pid] = shipment
         # Propagate the load
-        self.update_load_on_route(route_to_take, commercial_link.delivery_in_tons, capacity_constraint)
+        self.update_load_on_route(route_to_take, commercial_link.delivery_in_tons, capacity_constraint,
+                                  capacity_constraint_mode)
 
     def access_edge(self, edge):
         return self[edge[0]][edge[1]]
@@ -294,36 +296,101 @@ class TransportNetwork(nx.Graph):
             return [key for key in data.keys() if key.startswith("cost_per_ton")
                     and not key.startswith("cost_per_ton_with")]
 
-    def update_load_on_route(self, route: "Route", load: float, capacity_constraint: bool):
+    def calculate_capacity_cost_multiplier(self, current_load: float, capacity: float) -> float:
+        """
+        Calculate gradual capacity cost multiplier based on utilization.
+        
+        Returns a multiplier that increases costs as capacity utilization increases:
+        - < 70% utilization: 1.0x (no penalty)
+        - 70-90% utilization: 1.0x → 1.5x (linear scaling)  
+        - 90-100% utilization: 1.5x → 3.0x (steeper scaling)
+        - > 100% utilization: 3.0x → 10.0x (very steep, capped at 10x)
+        """
+        if capacity <= 0:
+            return 1.0
+        
+        utilization = current_load / capacity
+        if utilization < 0.7:
+            return 1.0  # No penalty
+        elif utilization < 0.9:
+            return 1.0 + (utilization - 0.7) * 2.5  # Linear scaling 1.0 → 1.5
+        elif utilization < 1.0:
+            return 1.5 + (utilization - 0.9) * 15.0  # Linear scaling 1.5 → 3.0
+        else:
+            return 3.0 + min(utilization - 1.0, 1.0) * 7.0  # Linear scaling 3.0 → 10.0 (capped)
+
+    def update_load_on_route(self, route: "Route", load: float, capacity_constraint: bool,
+                             capacity_constraint_mode: str = "gradual"):
         """Affect a load to a route
 
-        The current_load attribute of each edge_attr in the route will be increased by the new load.
-        A load is typically expressed in tons. If the current_load exceeds the capacity,
-        then capacity_burden is added to the capacity_weight. This will prevent firms from choosing this route
+        The current_load attribute of each edge in the route will be increased by the new load.
+        A load is typically expressed in tons. Supports both binary and gradual capacity constraints.
+        
+        Parameters:
+        -----------
+        route : Route
+            The transport route to update
+        load : float
+            Load to add in tons
+        capacity_constraint : bool
+            Whether to apply capacity constraints
+        capacity_constraint_mode : str
+            "binary" for traditional on/off penalty or "gradual" for smooth scaling
         """
-        # logging.info("Edge (2610, 2589): current_load "+str(self[2610][2589]['current_load']))
-        capacity_burden = 1e10
-        cost_per_ton_with_capacity_attributes = self._get_cost_per_ton_attributes(with_capacity=True)
+        cost_per_ton_labels = self._get_cost_per_ton_attributes(with_capacity=False)
+        cost_per_ton_with_capacity_labels = self._get_cost_per_ton_attributes(with_capacity=True)
+        
         for u, v in route.transport_edges:
             edge = self[u][v]
             edge['current_load'] += load
 
-            # Check if the edge_attr to be used is not over capacity already
             if capacity_constraint:
-                if edge['overused']:
-                    logging.warning(f"Edge {(u, v)} ({edge['type']}, {edge['name']}) is over capacity and got selected")
-                else:
-                    if edge['current_load'] > edge['capacity']:
-                        logging.info(f"Edge {(u, v)} ({edge['type']}) has reached its capacity: "
-                                     f"{edge['current_load']:.0f} / {edge['capacity']:.0f}")
-                        edge['overused'] = True
-                        for cost_per_ton_with_capacity_labels in cost_per_ton_with_capacity_attributes:
-                            edge[cost_per_ton_with_capacity_labels] += capacity_burden
+                if capacity_constraint_mode == "gradual":
+                    # Use gradual capacity cost scaling
+                    multiplier = self.calculate_capacity_cost_multiplier(
+                        edge['current_load'], edge['capacity']
+                    )
+                    
+                    # Apply gradual cost scaling to all capacity-aware cost attributes
+                    for i in range(len(cost_per_ton_labels)):
+                        base_cost = edge[cost_per_ton_labels[i]]
+                        edge[cost_per_ton_with_capacity_labels[i]] = base_cost * multiplier
+                    
+                    # Update overused flag for logging (binary flag for compatibility)
+                    was_overused = edge.get('overused', False)
+                    edge['overused'] = edge['current_load'] > edge['capacity']
+                    
+                    # Log capacity status changes
+                    if edge['overused'] and not was_overused:
+                        logging.info(f"Edge {(u, v)} ({edge['type']}) over capacity: "
+                                   f"{edge['current_load']:.0f} / {edge['capacity']:.0f} "
+                                   f"(cost multiplier: {multiplier:.1f}x)")
+                    elif multiplier > 2.0 and not edge['overused']:
+                        logging.debug(f"Edge {(u, v)} ({edge['type']}) congested: "
+                                    f"{edge['current_load']:.0f} / {edge['capacity']:.0f} "
+                                    f"(cost multiplier: {multiplier:.1f}x)")
+                        
+                else:  # capacity_constraint_mode == "binary"
+                    # Use traditional binary penalty system
+                    if edge.get('overused', False):
+                        logging.warning(f"Edge {(u, v)} ({edge['type']}, {edge.get('name', '')}) is over capacity and got selected")
+                    else:
+                        if edge['current_load'] > edge['capacity']:
+                            logging.info(f"Edge {(u, v)} ({edge['type']}) has reached its capacity: "
+                                       f"{edge['current_load']:.0f} / {edge['capacity']:.0f}")
+                            edge['overused'] = True
+                            capacity_burden = 1e10
+                            for cost_per_ton_with_capacity_label in cost_per_ton_with_capacity_labels:
+                                edge[cost_per_ton_with_capacity_label] += capacity_burden
 
     def reset_loads(self):
         """
-        Reset current_load to 0
-        If an edge_attr was burdened due to capacity exceed, we remove the burden
+        Reset current_load to 0 and restore base costs (removes capacity scaling).
+        
+        This method is called at the end of each time step to:
+        - Reset all edge loads to zero
+        - Reset overused flags to False  
+        - Restore cost_per_ton_with_capacity_* attributes to base costs (multiplier = 1.0)
         """
         cost_per_ton_labels = self._get_cost_per_ton_attributes(with_capacity=False)
         cost_per_ton_with_capacity_labels = self._get_cost_per_ton_attributes(with_capacity=True)
@@ -474,9 +541,9 @@ def _get_speed(edge_attr: dict, speed_dict: dict) -> float:
         return speed_dict['roads']['paved']  # these are very small links, so we assume paved roads
 
 
-def _get_loading_time_and_fee(edge_attr: dict, loading_times: dict, loading_fees: dict) -> (float, float):
+def _get_dwell_time_and_fee(edge_attr: dict, dwell_times: dict, loading_fees: dict) -> (float, float):
     if edge_attr['type'] == "multimodal":
-        return loading_times[edge_attr['multimodes']], loading_fees[edge_attr['multimodes']]
+        return dwell_times[edge_attr['multimodes']], loading_fees[edge_attr['multimodes']]
     else:
         return 0.0, 0.0
 
@@ -494,8 +561,8 @@ def _calculate_cost_per_ton(edge_attr, logistic_parameters: dict):
     basic_costs = {i: edge_attr['km'] * basic_cost_random[edge_attr['type']]
                    for i, basic_cost_random in logistic_parameters['basic_cost_profiles'].items()}
     transport_time = edge_attr['km'] / _get_speed(edge_attr, logistic_parameters['speeds'])
-    loading_time, loading_fee = _get_loading_time_and_fee(
-        edge_attr, logistic_parameters['loading_times'], logistic_parameters['loading_fees'])
+    loading_time, loading_fee = _get_dwell_time_and_fee(
+        edge_attr, logistic_parameters['dwell_times'], logistic_parameters['loading_fees'])
     border_crossing_time, border_crossing_fee = _get_border_crossing_time_and_fee(
         edge_attr, logistic_parameters['border_crossing_times'], logistic_parameters['border_crossing_fees'])
     total_time = transport_time + loading_time + border_crossing_time

@@ -545,7 +545,7 @@ class Firm(BaseAgent, TransportCapable):
                          transport_to_households: bool,
                          monetary_units_in_model: str,
                          cost_repercussion_mode: str, price_increase_threshold: float, capacity_constraint: bool,
-                         use_route_cache: bool):
+                         capacity_constraint_mode: str, use_route_cache: bool):
 
         quantities_to_deliver = self.evaluate_quantities_to_deliver(rationing_mode)
 
@@ -577,7 +577,7 @@ class Firm(BaseAgent, TransportCapable):
                 self.deliver_without_infrastructure(commercial_link)
             else:
                 self.send_shipment(commercial_link, transport_network, available_transport_network,
-                                   price_increase_threshold, capacity_constraint,
+                                   price_increase_threshold, capacity_constraint, capacity_constraint_mode,
                                    use_route_cache)
 
         # For reconstruction orders, we register it

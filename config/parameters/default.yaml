@@ -65,6 +65,7 @@ logistics:
     multimodal: 0.01
   nb_cost_profiles: 1
   basic_cost_random: False  # deactivate all randomness
+  modal_switching_cost_percentage: 0.15  # Additional cost percentage when switching transport modes (e.g., rail to road)
   basic_cost_variability: # coefficient of variation
     roads: 0.1
     maritime: 0.05
@@ -73,7 +74,7 @@ logistics:
     waterways: 0.2
     pipelines: 0.01
     multimodal: 0.01
-  loading_times:  # hours
+  dwell_times:  # hours
     roads-maritime: 12
     roads-railways: 12
     roads-maritime-dom: 12
@@ -104,7 +105,7 @@ logistics:
     waterways: 30
     pipelines: 5
   border_crossing_times: #hours
-    roads: 1.5 #from JICA (2016) International Logistics Function Strengthening. See excel
+    roads: 1.5
     maritime: 2
     multimodal: 2
     railways: 2
@@ -132,6 +133,14 @@ logistics:
 
 # Dictionary of edges, identified by their name, for which we have data on their flow, in monetary terms
 flow_data: {}
+
+# Transport capacity overrides: edge_name -> capacity in tons per day
+# These values will replace any capacity values from the GeoJSON files
+transport_capacity_overrides: {}
+  # Example entries:
+  # "Highway 1 Segment A": 80000  # tons per day
+  # "Port of Sihanoukville": 120000
+  # "Main Railway Line": 45000
 
 # Whether to cache route in a dictionary
 use_route_cache: True
@@ -351,10 +360,12 @@ price_increase_threshold: 2
 # If True, they reassess their inventory targets based on current orders
 adaptive_inventories: False
 
-# Whether to account for transport network capacity
-# If True, then each shipment adds a "load" on transport edges
-# it the load exceed the capacity, then the edges cannot be used anymore
-capacity_constraint: False
+# Transport capacity constraint behavior
+# Options:
+#   "off" or false: No capacity constraints (unlimited capacity)
+#   "gradual": Gradual cost scaling based on utilization (1x → 10x cost multiplier)  
+#   "binary": Traditional on/off penalty when capacity exceeded (1e10x cost penalty)
+capacity_constraint: "off"
 
 
 

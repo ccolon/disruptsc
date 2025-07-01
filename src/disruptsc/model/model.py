@@ -91,7 +91,8 @@ class Model(object):
                     filepaths=self.parameters.filepaths,
                     logistics_parameters=self.parameters.logistics,
                     time_resolution=self.parameters.time_resolution,
-                    admin=self.parameters.admin
+                    admin=self.parameters.admin,
+                    capacity_overrides=getattr(self.parameters, 'transport_capacity_overrides', None)
                 )
 
             data_to_cache = {
@@ -492,12 +493,17 @@ class Model(object):
         else:
             self.countries.assign_cost_profile(self.parameters.logistics['nb_cost_profiles'])
             self.firms.assign_cost_profile(self.parameters.logistics['nb_cost_profiles'])
+            
+            # Assign modal switching cost parameter to agents
+            modal_switching_cost = self.parameters.logistics.get('modal_switching_cost_percentage', 0)
+            for agent in list(self.countries.values()) + list(self.firms.values()):
+                agent.modal_switching_cost_percentage = modal_switching_cost
 
             logging.info('The supplier--buyer graph is being connected to the transport network')
             logging.info('Each B2B and transit edge_attr is being linked to a route of the transport network')
             logging.info('Routes for transit and import flows are being selected by trading countries')
             self.countries.choose_initial_routes(self.sc_network, self.transport_network,
-                                                 self.parameters.capacity_constraint,
+                                                 self.parameters.get_capacity_constraint_enabled(),
                                                  self.parameters.explicit_service_firm,
                                                  self.parameters.transport_to_households,
                                                  self.parameters.sectors_no_transport_network,
@@ -506,7 +512,7 @@ class Model(object):
                                                  use_route_cache=self.parameters.use_route_cache)
             logging.info('Routes for exports and B2B domestic flows are being selected by domestic firms')
             self.firms.choose_initial_routes(self.sc_network, self.transport_network,
-                                             self.parameters.capacity_constraint,
+                                             self.parameters.get_capacity_constraint_enabled(),
                                              self.parameters.explicit_service_firm,
                                              self.parameters.transport_to_households,
                                              self.parameters.sectors_no_transport_network,
@@ -814,14 +820,16 @@ class Model(object):
         self.countries.deliver(self.sc_network, self.transport_network, available_transport_network,
                                self.parameters.sectors_no_transport_network,
                                self.parameters.rationing_mode, self.parameters.with_transport,
-                               self.parameters.transport_to_households, self.parameters.capacity_constraint,
+                               self.parameters.transport_to_households, self.parameters.get_capacity_constraint_enabled(),
+                               self.parameters.get_capacity_constraint_mode(),
                                self.parameters.monetary_units_in_model, self.parameters.cost_repercussion_mode,
                                self.parameters.price_increase_threshold,
                                self.parameters.use_route_cache)
         self.firms.deliver(self.sc_network, self.transport_network, available_transport_network,
                            self.parameters.sectors_no_transport_network,
                            self.parameters.rationing_mode, self.parameters.with_transport,
-                           self.parameters.transport_to_households, self.parameters.capacity_constraint,
+                           self.parameters.transport_to_households, self.parameters.get_capacity_constraint_enabled(),
+                           self.parameters.get_capacity_constraint_mode(),
                            self.parameters.monetary_units_in_model, self.parameters.cost_repercussion_mode,
                            self.parameters.price_increase_threshold,
                            self.parameters.use_route_cache)
@@ -970,15 +978,20 @@ class Model(object):
         self.transport_nodes[['geometry', 'geometry_wkt', 'id', 'long', 'lat']].to_file(
             self.parameters.export_folder / 'transport_nodes.geojson',
             driver="GeoJSON", index=False)
-        cost_columns = pd.concat([
-            pd.DataFrame(nx.get_edge_attributes(self.transport_network, "cost_per_ton_solid_bulk"),
-                         index=["cost_per_ton_solid_bulk"]).transpose(),
-            pd.DataFrame(nx.get_edge_attributes(self.transport_network, "cost_per_ton_liquid_bulk"),
-                         index=["cost_per_ton_liquid_bulk"]).transpose(),
-            pd.DataFrame(nx.get_edge_attributes(self.transport_network, "cost_per_ton_container"),
-                         index=["cost_per_ton_container"]).transpose(),
-            pd.DataFrame(nx.get_edge_attributes(self.transport_network, "id"), index=["id"]).transpose()
-        ], axis=1).set_index("id", drop=True)
+        # Get all cost_per_ton attributes dynamically
+        cost_per_ton_attrs = self.transport_network._get_cost_per_ton_attributes(with_capacity=False)
+        cost_dataframes = []
+        for attr in cost_per_ton_attrs:
+            df = pd.DataFrame(nx.get_edge_attributes(self.transport_network, attr), 
+                             index=[attr]).transpose()
+            cost_dataframes.append(df)
+        
+        # Add edge ID for merging
+        id_df = pd.DataFrame(nx.get_edge_attributes(self.transport_network, "id"), 
+                           index=["id"]).transpose()
+        cost_dataframes.append(id_df)
+        
+        cost_columns = pd.concat(cost_dataframes, axis=1).set_index("id", drop=True)
         self.transport_edges = pd.concat([self.transport_edges, cost_columns], axis=1)
         self.transport_edges.drop(columns=['node_tuple']).to_file(
             self.parameters.export_folder / 'transport_edges.geojson',

@@ -89,6 +89,7 @@ class SimulationRuntimeProfiler:
                                model.parameters.sectors_no_transport_network,
                                model.parameters.rationing_mode, model.parameters.with_transport,
                                model.parameters.transport_to_households, model.parameters.capacity_constraint,
+                               model.parameters.capacity_constraint_mode,
                                model.parameters.monetary_units_in_model, model.parameters.cost_repercussion_mode,
                                model.parameters.price_increase_threshold,
                                model.parameters.use_route_cache)
@@ -100,6 +101,7 @@ class SimulationRuntimeProfiler:
                            model.parameters.sectors_no_transport_network,
                            model.parameters.rationing_mode, model.parameters.with_transport,
                            model.parameters.transport_to_households, model.parameters.capacity_constraint,
+                           model.parameters.capacity_constraint_mode,
                            model.parameters.monetary_units_in_model, model.parameters.cost_repercussion_mode,
                            model.parameters.price_increase_threshold,
                            model.parameters.use_route_cache)

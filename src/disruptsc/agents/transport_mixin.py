@@ -85,7 +85,7 @@ class TransportCapable:
 
     def send_shipment(self, commercial_link: "CommercialLink", transport_network: "TransportNetwork",
                       available_transport_network: "TransportNetwork", price_increase_threshold: float,
-                      capacity_constraint: bool, use_route_cache: bool):
+                      capacity_constraint: bool, capacity_constraint_mode: str, use_route_cache: bool):
         """
         Send shipment using transport network, with fallback to alternative routes.
         
@@ -106,7 +106,7 @@ class TransportCapable:
             if self.agent_type == "firm" and hasattr(self, 'delta_price_input'):
                 commercial_link.price = commercial_link.price * (1 + self.delta_price_input)
             
-            transport_network.transport_shipment(commercial_link, capacity_constraint)
+            transport_network.transport_shipment(commercial_link, capacity_constraint, capacity_constraint_mode)
             self._update_after_shipment(commercial_link)
             self._record_transport_cost(commercial_link.buyer_id, 0)
             return 0
@@ -125,8 +125,11 @@ class TransportCapable:
 
         if usable_alternative:
             relative_transport_cost_change = commercial_link.calculate_relative_increase_in_transport_cost()
+            modal_switching_cost = commercial_link.calculate_modal_switching_cost(
+                getattr(self, 'modal_switching_cost_percentage', 0))
+            total_transport_cost_change = relative_transport_cost_change + modal_switching_cost
             relative_price_change_transport = self.calculate_relative_price_change_transport(
-                relative_transport_cost_change)
+                total_transport_cost_change)
             
             if relative_price_change_transport > price_increase_threshold:
                 logging.debug(f"{self.id_str()}: found an alternative route to {commercial_link.buyer_id} "
@@ -144,7 +147,7 @@ class TransportCapable:
             commercial_link.current_route = 'alternative'
             
             # Record transport cost increase
-            self._record_transport_cost(commercial_link.buyer_id, relative_transport_cost_change)
+            self._record_transport_cost(commercial_link.buyer_id, total_transport_cost_change)
             
             # Calculate total price change including input price changes
             total_relative_price_change = relative_price_change_transport
@@ -155,7 +158,7 @@ class TransportCapable:
                 raise ValueError(str(relative_price_change_transport))
             
             commercial_link.price = commercial_link.eq_price * (1 + total_relative_price_change)
-            transport_network.transport_shipment(commercial_link, capacity_constraint)
+            transport_network.transport_shipment(commercial_link, capacity_constraint, capacity_constraint_mode)
             self._update_after_shipment(commercial_link)
             
             logging.debug(f"{self.id_str().capitalize()}: found an alternative route to {commercial_link.buyer_id}, "
@@ -206,7 +209,7 @@ class TransportCapable:
         
         new_load_in_usd = sc_network[self][client]['object'].order
         new_load_in_tons = BaseAgent.transformUSD_to_tons(new_load_in_usd, monetary_unit_flow, self.usd_per_ton)
-        transport_network.update_load_on_route(route, new_load_in_tons, capacity_constraint)
+        transport_network.update_load_on_route(route, new_load_in_tons, capacity_constraint, "gradual")
 
     def assign_cost_profile(self, nb_cost_profiles: int):
         """

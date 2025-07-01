@@ -34,7 +34,7 @@ class ExecutorFactory:
         
         # Monte Carlo simulation types
         elif simulation_type == "initial_state_mc":
-            return InitialStateMCExecutor(model, parameters)
+            return InitialStateMCExecutor(model, parameters, InitialStateExecutor)
         
         elif simulation_type in ["event_mc", "disruption_mc"]:
             results_writer = CSVResultsWriter.create_disruption_mc_writer(parameters)

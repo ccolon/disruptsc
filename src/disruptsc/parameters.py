@@ -30,6 +30,7 @@ class Parameters:
     with_transport: bool
     use_route_cache: bool
     transport_modes: list
+    transport_capacity_overrides: list
     
     # Economic and monetary parameters
     monetary_units_in_model: str
@@ -40,8 +41,8 @@ class Parameters:
     congestion: bool
     propagate_input_price_change: bool
     transport_to_households: bool
-    capacity_constraint: bool
-    
+    capacity_constraint: str | bool
+
     # Sector and agent filtering parameters
     sectors_to_include: str
     sectors_to_exclude: list | None
@@ -131,12 +132,17 @@ class Parameters:
 
     @staticmethod
     def merge_dict_with_priority(default_dict: dict, overriding_dict: dict):
+        """
+        Recursively merge overriding_dict into default_dict.
+        For nested dictionaries, merge keys instead of replacing entire dict.
+        """
         for key, val in overriding_dict.items():
-            default_dict[key] = val
-            # if key in default_dict:
-            #     default_dict[key] = overriding_dict[key]
-            # else:
-            #     default_dict[key] = val
+            if key in default_dict and isinstance(default_dict[key], dict) and isinstance(val, dict):
+                # Recursively merge nested dictionaries
+                Parameters.merge_dict_with_priority(default_dict[key], val)
+            else:
+                # Replace or add the value
+                default_dict[key] = val
 
     def get_full_filepath(self, filepath):
         return paths.INPUT_FOLDER / self.scope / filepath
@@ -189,6 +195,43 @@ class Parameters:
             console_handler.setLevel(logging.INFO)
         console_handler.setFormatter(formatter)
         logger.addHandler(console_handler)
+
+    def get_capacity_constraint_enabled(self) -> bool:
+        """
+        Convert unified capacity_constraint parameter to boolean for enabled/disabled.
+        
+        Returns
+        -------
+        bool
+            True if capacity constraints are enabled, False otherwise
+        """
+        if isinstance(self.capacity_constraint, bool):
+            return self.capacity_constraint
+        elif isinstance(self.capacity_constraint, str):
+            return self.capacity_constraint.lower() not in ["off", "disabled", "false"]
+        else:
+            return False
+
+    def get_capacity_constraint_mode(self) -> str:
+        """
+        Convert unified capacity_constraint parameter to mode string.
+        
+        Returns
+        -------
+        str
+            Capacity constraint mode: "gradual" or "binary"
+        """
+        if isinstance(self.capacity_constraint, str):
+            mode = self.capacity_constraint.lower()
+            if mode in ["gradual", "binary"]:
+                return mode
+        
+        # Fallback to existing capacity_constraint_mode if available
+        if hasattr(self, 'capacity_constraint_mode'):
+            return self.capacity_constraint_mode
+        
+        # Default to gradual
+        return "gradual"
 
     def add_variability_to_basic_cost(self):
         if not self.logistics['basic_cost_random']:

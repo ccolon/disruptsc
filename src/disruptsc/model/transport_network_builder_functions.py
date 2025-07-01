@@ -37,7 +37,7 @@ def load_transport_data(filepaths, transport_mode, time_resolution):
     edges['capacity'] = edges['capacity'] * time_resolution_in_days[time_resolution]
 
     # When there is no capacity, it means that there is no limitation
-    unlimited_capacity = 1e9 * time_resolution_in_days[time_resolution]  # tons per year
+    unlimited_capacity = 1e9 * time_resolution_in_days[time_resolution]
     no_capacity_cond = (edges['capacity'].isnull()) | (edges['capacity'] == 0)
     edges.loc[no_capacity_cond, 'capacity'] = unlimited_capacity
 
@@ -68,8 +68,45 @@ def offset_ids(edges, offset_edge_id):
     return edges
 
 
+def apply_capacity_overrides(edges: gpd.GeoDataFrame, capacity_overrides: dict, time_resolution: str):
+    """
+    Apply capacity overrides from configuration to transport edges.
+    
+    Parameters
+    ----------
+    edges : gpd.GeoDataFrame
+        Transport edges geodataframe
+    capacity_overrides : dict
+        Dictionary with edge names as keys and capacities (tons per day) as values
+    time_resolution : str
+        Time resolution to scale capacities ('day', 'week', 'month', 'year')
+    """
+    time_resolution_in_days = {'day': 1, 'week': 7, 'month': 365.25 / 12, 'year': 365.25}
+    scaling_factor = time_resolution_in_days[time_resolution]
+    
+    overrides_applied = 0
+    
+    for edge_name, capacity_tons_per_day in capacity_overrides.items():
+        # Scale capacity to simulation time resolution
+        scaled_capacity = capacity_tons_per_day * scaling_factor
+        
+        # Match by name
+        name_matches = edges['name'] == edge_name
+        if name_matches.any():
+            edges.loc[name_matches, 'capacity'] = scaled_capacity
+            edges.loc[name_matches, 'current_capacity'] = scaled_capacity
+            overrides_applied += name_matches.sum()
+            logging.info(f"Applied capacity override: '{edge_name}' -> {capacity_tons_per_day:,.0f} tons/day "
+                        f"({scaled_capacity:,.0f} tons/{time_resolution})")
+        else:
+            logging.warning(f"Capacity override not applied: No edge found with name '{edge_name}'")
+    
+    if overrides_applied > 0:
+        logging.info(f"Applied {overrides_applied} capacity overrides from configuration")
+
+
 def create_transport_network(transport_modes: list, filepaths: dict, logistics_parameters: dict, time_resolution: str,
-                             admin: list | None = None):
+                             admin: list | None = None, capacity_overrides: dict | None = None):
     """Create the transport network object
 
     It uses one shapefile for the nodes and another for the edges.
@@ -148,6 +185,10 @@ def create_transport_network(transport_modes: list, filepaths: dict, logistics_p
     edges['current_load'] = 0
     edges['overused'] = False
     edges['current_capacity'] = edges['capacity']
+    
+    # Apply capacity overrides from configuration
+    if capacity_overrides:
+        apply_capacity_overrides(edges, capacity_overrides, time_resolution)
 
     logging.info('Creating the network')
     transport_network = TransportNetwork()

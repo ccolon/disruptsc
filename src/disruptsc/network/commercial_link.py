@@ -112,6 +112,20 @@ class CommercialLink(object):
         new_transport_bill = self.delivery_in_tons * self.alternative_route_cost_per_ton
         return max(new_transport_bill - normal_transport_bill, 0) / normal_transport_bill
 
+    def has_modal_switch(self):
+        """Check if alternative route uses different transportation modes than main route."""
+        if not self.alternative_found:
+            return False
+        main_modes = set(self.route.transport_modes)
+        alt_modes = set(self.alternative_route.transport_modes)
+        return main_modes != alt_modes
+
+    def calculate_modal_switching_cost(self, modal_switching_cost_percentage):
+        """Calculate additional percentage cost penalty for switching transportation modes."""
+        if self.has_modal_switch():
+            return modal_switching_cost_percentage
+        return 0
+
     def store_route_information(self, route: Route, main_or_alternative: str, cost_per_ton: float):
 
         self.use_transport_network = True
