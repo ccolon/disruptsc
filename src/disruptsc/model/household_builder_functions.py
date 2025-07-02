@@ -43,7 +43,8 @@ def create_households(
                   long=float(household_table.loc[i, 'long']),
                   lat=float(household_table.loc[i, 'lat']),
                   population=household_table.loc[i, "population"],
-                  sector_consumption=household_sector_consumption[i]
+                  sector_consumption=household_sector_consumption[i],
+                  subregion=household_table.loc[i, "subregion"] if "subregion" in household_table.columns else None
                   )
         for i in household_table.index.tolist()
     ])
@@ -76,6 +77,13 @@ def _load_and_assign_household_spatial_data(
     # Load and filter spatial data
     household_table = gpd.read_file(filepath_households_spatial)
     household_table = household_table[household_table["region"].isin([tup[0] for tup in mrio.region_households])]
+    
+    # Handle optional subregion attribute
+    if 'subregion' in household_table.columns:
+        logging.info(f"Found subregion attribute in household spatial data")
+    else:
+        household_table['subregion'] = None
+        logging.debug(f"No subregion attribute found in household spatial data, using None")
     
     # Assign to transport nodes
     admissible_node_mode = ['roads']

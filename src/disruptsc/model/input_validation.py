@@ -280,6 +280,12 @@ class InputValidator:
         for col_to_checks in cols_to_checks:
             if gdf[col_to_checks].isna().any():
                 self.errors.append(f"{filename} contains missing {col_to_checks} values")
+        
+        # Check subregion data quality if present (warning only)
+        if 'subregion' in gdf.columns:
+            if gdf['subregion'].isna().any():
+                missing_count = gdf['subregion'].isna().sum()
+                self.warnings.append(f"{filename} contains {missing_count} missing subregion values")
     
     def _validate_supplier_buyer_inputs(self):
         """Validate inputs specific to supplier-buyer network mode."""

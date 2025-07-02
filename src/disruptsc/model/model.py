@@ -91,7 +91,6 @@ class Model(object):
                     filepaths=self.parameters.filepaths,
                     logistics_parameters=self.parameters.logistics,
                     time_resolution=self.parameters.time_resolution,
-                    admin=self.parameters.admin,
                     capacity_overrides=getattr(self.parameters, 'transport_capacity_overrides', None)
                 )
 
@@ -147,8 +146,7 @@ class Model(object):
                 transport_nodes=self.transport_nodes,
                 io_cutoff=self.parameters.io_cutoff,
                 cutoff_firm_output=self.parameters.cutoff_firm_output,
-                monetary_units_in_data=self.parameters.monetary_units_in_data,
-                admin=self.parameters.admin
+                monetary_units_in_data=self.parameters.monetary_units_in_data
             )
 
         # Create firm instances
@@ -162,8 +160,7 @@ class Model(object):
             keep_top_n_firms=nb_firms,
             inventory_restoration_time=self.parameters.inventory_restoration_time,
             utilization_rate=self.parameters.utilization_rate,
-            capital_to_value_added_ratio=self.parameters.capital_to_value_added_ratio,
-            admin=self.parameters.admin
+            capital_to_value_added_ratio=self.parameters.capital_to_value_added_ratio
         )
 
         # Load technical coefficients based on firm data type
@@ -217,14 +214,12 @@ class Model(object):
             target_units=self.parameters.monetary_units_in_model,
             input_units=self.parameters.monetary_units_in_data,
             final_demand_cutoff=self.parameters.cutoff_household_demand,
-            present_region_sectors=present_region_sectors,
-            admin=self.parameters.admin
+            present_region_sectors=present_region_sectors
         )
 
         self.households = create_households(
             household_table=self.household_table,
-            household_sector_consumption=household_sector_consumption,
-            admin=self.parameters.admin
+            household_sector_consumption=household_sector_consumption
         )
 
     @profile_method
@@ -884,7 +879,7 @@ class Model(object):
             if isinstance(disruption, TransportDisruption):
                 disruption.implement(self.transport_network)
             if isinstance(disruption, CapitalDestruction):
-                disruption.implement(self.firms, self)
+                disruption.implement(self)
         return self.transport_network.get_undisrupted_network()
         # edge_disruptions_starting_now = disruptions_starting_now.filter_type('transport_edge')
         # if len(edge_disruptions_starting_now) > 0:

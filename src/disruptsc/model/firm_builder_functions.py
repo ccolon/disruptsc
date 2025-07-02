@@ -58,6 +58,7 @@ def create_firms(
              name=firm_table.loc[i, 'name'],
              long=float(firm_table.loc[i, 'long']),
              lat=float(firm_table.loc[i, 'lat']),
+             subregion=firm_table.loc[i, "subregion"] if "subregion" in firm_table.columns else None,
              target_margin=float(firm_table.loc[i, 'margin']),
              transport_share=float(firm_table.loc[i, 'transport_share']),
              utilization_rate=utilization_rate,
@@ -111,6 +112,13 @@ def load_firms_spatial_data(filepath_firms_spatial: Path, accepted_sectors: list
     if not gdf.geometry.geom_type.eq('Point').all():
         raise ValueError("firms.geojson: All geometries must be Points")
 
+    # Handle optional subregion attribute
+    if 'subregion' in gdf.columns:
+        logging.info(f"Found subregion attribute in firms spatial data")
+    else:
+        gdf['subregion'] = None
+        logging.debug(f"No subregion attribute found in firms spatial data, using None")
+
     # Filter regions
     useless_regions = list(set(gdf['region'].unique()) - set(accepted_regions))
     if useless_regions:
@@ -119,22 +127,36 @@ def load_firms_spatial_data(filepath_firms_spatial: Path, accepted_sectors: list
     gdf = gdf[~gdf['region'].isin(useless_regions)]
 
     # Filter columns to keep only relevant sectors
-    useless_cols = [col for col in gdf.columns if col not in ['region', "geometry"] + accepted_sectors]
+    useless_cols = [col for col in gdf.columns if col not in ['region', 'subregion', "geometry"] + accepted_sectors]
     if useless_cols:
         logging.info(f"The following columns will not be used: {useless_cols} because "
                      f"they are not part of the list of sectors defined in the MRIO table: {accepted_sectors}")
     disag_sectors = list(set(gdf.columns) & set(accepted_sectors))
-    gdf = gdf[['region', 'geometry'] + disag_sectors]
+    gdf = gdf[['region', 'subregion', 'geometry'] + disag_sectors]
 
     return gdf
 
 
 def create_disag_firm_table(disag_data: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    # Identify numeric columns (sectors) to stack, excluding metadata columns
+    metadata_cols = ['region', 'subregion', 'geometry']
+    numeric_cols = [col for col in disag_data.columns if col not in metadata_cols]
+    
+    # Only stack the numeric sector columns
     disag_firm_table = disag_data.reset_index().drop("geometry", axis=1) \
-        .set_index(['index', 'region']).stack().reset_index()
+        .set_index(['index', 'region'])[numeric_cols].stack().reset_index()
     disag_firm_table['geometry'] = disag_firm_table['index'].map(disag_data['geometry'])
+    # Preserve subregion information if it exists
+    if 'subregion' in disag_data.columns:
+        disag_firm_table['subregion'] = disag_firm_table['index'].map(disag_data['subregion'])
     disag_firm_table = disag_firm_table.drop('index', axis=1)
-    disag_firm_table.columns = ['region', 'sector', 'importance', 'geometry']
+    
+    # Set column names based on whether subregion exists
+    if 'subregion' in disag_firm_table.columns:
+        disag_firm_table.columns = ['region', 'sector', 'importance', 'geometry', 'subregion']
+    else:
+        disag_firm_table.columns = ['region', 'sector', 'importance', 'geometry']
+    
     disag_firm_table = disag_firm_table[disag_firm_table['importance'].notnull()]
     disag_firm_table = disag_firm_table[disag_firm_table['importance'] > 0]
     disag_firm_table['tuple'] = list(zip(disag_firm_table['region'], disag_firm_table['sector']))

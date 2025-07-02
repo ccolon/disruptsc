@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 class Household(BaseAgent):
 
-    def __init__(self, pid, od_point, region, name, long, lat, population, sector_consumption):
+    def __init__(self, pid, od_point, region, name, long, lat, population, sector_consumption, subregion=None):
         super().__init__(
             agent_type="household",
             name=name,
@@ -29,6 +29,7 @@ class Household(BaseAgent):
         # Parameters depending on data
         self.sector_consumption = sector_consumption
         self.population = population
+        self.subregion = subregion
         # Parameters depending on network
         self.purchase_plan = {}
         self.retailers = {}

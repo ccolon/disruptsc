@@ -14,7 +14,6 @@ from disruptsc.agents.base_agent import BaseAgent, BaseAgents
 from disruptsc.agents.transport_mixin import TransportCapable
 from disruptsc.agents.firm_components import (
     ProductionManager, InventoryManager, FinanceManager, SupplierManager,
-    production_function, purchase_planning_function, evaluate_inventory_duration
 )
 from disruptsc.network.commercial_link import CommercialLink
 from disruptsc.parameters import EPSILON
@@ -29,7 +28,7 @@ class Firm(BaseAgent, TransportCapable):
 
     def __init__(self, pid, od_point, sector, region_sector, region, sector_type=None, name="noname", input_mix=None,
                  target_margin=0.2, transport_share=0.2, utilization_rate=0.8,
-                 importance=1, long=None, lat=None, geometry=None,
+                 importance=1, long=None, lat=None, geometry=None, subregion=None,
                  suppliers=None, clients=None, production=0, min_inventory_duration_target=1,
                  inventory_restoration_time=1,
                  usd_per_ton=2864, capital_to_value_added_ratio=4):
@@ -45,6 +44,7 @@ class Firm(BaseAgent, TransportCapable):
         # Parameters depending on data
         self.usd_per_ton = usd_per_ton
         self.geometry = geometry
+        self.subregion = subregion
         self.importance = importance
         self.region_sector = region_sector
         self.sector_type = sector_type
