@@ -138,13 +138,14 @@ def load_firms_spatial_data(filepath_firms_spatial: Path, accepted_sectors: list
                      f"they are not part of the MRIO table: {accepted_regions}")
     gdf = gdf[~gdf['region'].isin(useless_regions)]
 
-    # Filter columns to keep only relevant sectors
-    useless_cols = [col for col in gdf.columns if col not in ['region', 'subregion', "geometry"] + accepted_sectors]
+    # Filter columns to keep only relevant sectors and subregion columns
+    subregion_cols = [col for col in gdf.columns if col.startswith('subregion_')]
+    useless_cols = [col for col in gdf.columns if col not in ['region', 'subregion', "geometry"] + accepted_sectors + subregion_cols]
     if useless_cols:
         logging.info(f"The following columns will not be used: {useless_cols} because "
                      f"they are not part of the list of sectors defined in the MRIO table: {accepted_sectors}")
     disag_sectors = list(set(gdf.columns) & set(accepted_sectors))
-    gdf = gdf[['region', 'subregion', 'geometry'] + disag_sectors]
+    gdf = gdf[['region', 'subregion', 'geometry'] + disag_sectors + subregion_cols]
 
     return gdf
 

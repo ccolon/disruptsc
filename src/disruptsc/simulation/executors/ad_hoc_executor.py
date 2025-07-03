@@ -6,6 +6,13 @@ if TYPE_CHECKING:
     from disruptsc.simulation.simulation import Simulation
 
 
+def _get_disrupted_sector_list() -> List:
+    """Get the list of sector combinations to test."""
+    # This would ideally be loaded from a config file
+    # For now, keeping the original hardcoded list
+    return ['all', ['ADM'], ['ADP'], ['ALD'], ['ASO'], ['AYG'], ['BAL'], ['CAR'], ['CIN'], ['COM'], ['CON'], ['DEM'], ['EDU'], ['ELE'], ['FIN'], ['FRT'], ['FRV'], ['GAN'], ['INM'], ['LAC'], ['MAQ'], ['MIP'], ['MOL'], ['MUE'], ['PAN'], ['PES'], ['PPR'], ['QU2'], ['REF'], ['RES'], ['SAL'], ['SEG'], ['TEL'], ['TRA'], ['AGU', 'BNA'], ['AGU', 'CHO'], ['AGU', 'HIL'], ['AGU', 'MET'], ['AGU', 'SIL'], ['AGU', 'VES'], ['AZU', 'BNA'], ['AZU', 'CHO'], ['AZU', 'DOM'], ['AZU', 'HIL'], ['AZU', 'MAD'], ['AZU', 'MET'], ['AZU', 'SIL'], ['AZU', 'VES'], ['BNA', 'CAN'], ['BNA', 'CAU'], ['BNA', 'CER'], ['BNA', 'CHO'], ['BNA', 'CUE'], ['BNA', 'DOM'], ['BNA', 'FID'], ['BNA', 'HIL'], ['BNA', 'HOT'], ['BNA', 'MAD'], ['BNA', 'MAN'], ['BNA', 'MET'], ['BNA', 'PAP'], ['BNA', 'PLS'], ['BNA', 'POS'], ['BNA', 'REP'], ['BNA', 'SIL'], ['BNA', 'TAB'], ['BNA', 'VES'], ['CAN', 'CHO'], ['CAN', 'MET'], ['CAN', 'SIL'], ['CAN', 'VES'], ['CAU', 'CHO'], ['CAU', 'VES'], ['CER', 'CHO'], ['CER', 'DOM'], ['CER', 'HIL'], ['CER', 'MAD'], ['CER', 'MET'], ['CER', 'REP'], ['CER', 'SIL'], ['CER', 'VES'], ['CHO', 'CUE'], ['CHO', 'DOM'], ['CHO', 'FID'], ['CHO', 'HIL'], ['CHO', 'HOT'], ['CHO', 'MAD'], ['CHO', 'MAN'], ['CHO', 'MET'], ['CHO', 'PAP'], ['CHO', 'PLS'], ['CHO', 'POS'], ['CHO', 'REP'], ['CHO', 'SIL'], ['CHO', 'VES'], ['CUE', 'HIL'], ['CUE', 'MAD'], ['CUE', 'MET'], ['CUE', 'SIL'], ['CUE', 'VES'], ['DOM', 'HIL'], ['DOM', 'HOT'], ['DOM', 'MAD'], ['DOM', 'MET'], ['DOM', 'PAP'], ['DOM', 'REP'], ['DOM', 'SIL'], ['DOM', 'VES'], ['FID', 'VES'], ['HIL', 'HOT'], ['HIL', 'MAD'], ['HIL', 'MET'], ['HIL', 'PAP'], ['HIL', 'PLS'], ['HIL', 'REP'], ['HIL', 'SIL'], ['HIL', 'VES'], ['HOT', 'MAD'], ['HOT', 'MET'], ['HOT', 'SIL'], ['HOT', 'VES'], ['MAD', 'MET'], ['MAD', 'PAP'], ['MAD', 'REP'], ['MAD', 'SIL'], ['MAD', 'VES'], ['MAN', 'VES'], ['MET', 'PAP'], ['MET', 'PLS'], ['MET', 'REP'], ['MET', 'SIL'], ['MET', 'VES'], ['PAP', 'REP'], ['PAP', 'SIL'], ['PAP', 'VES'], ['PLS', 'SIL'], ['PLS', 'VES'], ['POS', 'SIL'], ['POS', 'VES'], ['REP', 'SIL'], ['REP', 'VES'], ['SIL', 'VES'], ['TAB', 'VES']]
+
+
 class AdHocExecutor(SimulationExecutor):
     """Executes ad-hoc disruption analysis across multiple sectors."""
 
@@ -23,7 +30,7 @@ class AdHocExecutor(SimulationExecutor):
         self.model.save_pickle(suffix)
 
         # Get disrupted sector combinations
-        disrupted_sector_list = self._get_disrupted_sector_list()
+        disrupted_sector_list = _get_disrupted_sector_list()
         present_sectors = list(set(self.model.firms.get_properties('region_sector', 'list')))
         periods = [30, 90, 180]
 
@@ -72,55 +79,15 @@ class AdHocExecutor(SimulationExecutor):
 
         return results
 
-    def _get_disrupted_sector_list(self) -> List:
-        """Get the list of sector combinations to test."""
-        # This would ideally be loaded from a config file
-        # For now, keeping the original hardcoded list
-        return ['all', ['ADM'], ['ADP'], ['ASO'], ['CAR'], ['CIN'], ['COM'], ['CON'], ['EDU'], ['ELE'], ['FIN'],
-                ['FRT'], ['FRV'], ['INM'], ['MAQ'], ['MIP'], ['PES'], ['PPR'], ['QU2'], ['REF'], ['REP'], ['RES'],
-                ['SAL'], ['SIL'], ['TEL'], ['TRA'], ('AGU', 'AYG'), ('AGU', 'BAL'), ('AGU', 'CEM'), ('AGU', 'CER'),
-                ('AGU', 'DEM'), ('AGU', 'DOM'), ('AGU', 'GAN'), ('AGU', 'HIL'), ('AGU', 'LAC'), ('AGU', 'MAD'),
-                ('AGU', 'MAN'), ('AGU', 'MOL'), ('AGU', 'MUE'), ('AGU', 'PAN'), ('AGU', 'PAP'), ('AGU', 'PLS'),
-                ('AGU', 'SEG'), ('AGU', 'VES'), ('ALD', 'BAL'), ('ALD', 'CEM'), ('ALD', 'CER'), ('ALD', 'DOM'),
-                ('ALD', 'GAN'), ('ALD', 'MAD'), ('ALD', 'MAN'), ('ALD', 'MOL'), ('ALD', 'PAP'), ('ALD', 'SEG'),
-                ('AYG', 'BAL'), ('AYG', 'CEM'), ('AYG', 'CER'), ('AYG', 'DEM'), ('AYG', 'DOM'), ('AYG', 'GAN'),
-                ('AYG', 'HIL'), ('AYG', 'LAC'), ('AYG', 'MAD'), ('AYG', 'MAN'), ('AYG', 'MOL'), ('AYG', 'MUE'),
-                ('AYG', 'PAN'), ('AYG', 'PAP'), ('AYG', 'PLS'), ('AYG', 'SEG'), ('AYG', 'VES'), ('AZU', 'BAL'),
-                ('AZU', 'CEM'), ('AZU', 'CER'), ('BAL', 'BNA'), ('BAL', 'CAN'), ('BAL', 'CAU'), ('BAL', 'CEM'),
-                ('BAL', 'CER'), ('BAL', 'CHO'), ('BAL', 'CUE'), ('BAL', 'CUL'), ('BAL', 'DEM'), ('BAL', 'DOM'),
-                ('BAL', 'FID'), ('BAL', 'GAN'), ('BAL', 'HIL'), ('BAL', 'HOT'), ('BAL', 'LAC'), ('BAL', 'MAD'),
-                ('BAL', 'MAN'), ('BAL', 'MET'), ('BAL', 'MOL'), ('BAL', 'MUE'), ('BAL', 'PAN'), ('BAL', 'PAP'),
-                ('BAL', 'PLS'), ('BAL', 'POS'), ('BAL', 'QU1'), ('BAL', 'SEG'), ('BAL', 'TAB'), ('BAL', 'VES'),
-                ('BAL', 'VID'), ('BNA', 'CEM'), ('BNA', 'CER'), ('BNA', 'DEM'), ('BNA', 'DOM'), ('BNA', 'GAN'),
-                ('BNA', 'MAD'), ('BNA', 'MAN'), ('BNA', 'MOL'), ('BNA', 'PAP'), ('BNA', 'SEG'), ('CAN', 'CEM'),
-                ('CAN', 'CER'), ('CAU', 'CEM'), ('CAU', 'CER'), ('CEM', 'CER'), ('CEM', 'CHO'), ('CEM', 'CUE'),
-                ('CEM', 'CUL'), ('CEM', 'DEM'), ('CEM', 'DOM'), ('CEM', 'FID'), ('CEM', 'GAN'), ('CEM', 'HIL'),
-                ('CEM', 'HOT'), ('CEM', 'LAC'), ('CEM', 'MAD'), ('CEM', 'MAN'), ('CEM', 'MET'), ('CEM', 'MOL'),
-                ('CEM', 'MUE'), ('CEM', 'PAN'), ('CEM', 'PAP'), ('CEM', 'PLS'), ('CEM', 'POS'), ('CEM', 'QU1'),
-                ('CEM', 'SEG'), ('CEM', 'TAB'), ('CEM', 'VES'), ('CEM', 'VID'), ('CER', 'CHO'), ('CER', 'CUE'),
-                ('CER', 'CUL'), ('CER', 'DEM'), ('CER', 'DOM'), ('CER', 'GAN'), ('CER', 'HIL'), ('CER', 'HOT'),
-                ('CER', 'LAC'), ('CER', 'MAD'), ('CER', 'MAN'), ('CER', 'MET'), ('CER', 'MOL'), ('CER', 'MUE'),
-                ('CER', 'PAN'), ('CER', 'PAP'), ('CER', 'PLS'), ('CER', 'POS'), ('CER', 'QU1'), ('CER', 'SEG'),
-                ('CER', 'VES'), ('CER', 'VID'), ('CUL', 'GAN'), ('CUL', 'MAD'), ('CUL', 'MAN'), ('CUL', 'MOL'),
-                ('CUL', 'PAP'), ('DEM', 'DOM'), ('DEM', 'GAN'), ('DEM', 'HIL'), ('DEM', 'HOT'), ('DEM', 'LAC'),
-                ('DEM', 'MAD'), ('DEM', 'MAN'), ('DEM', 'MET'), ('DEM', 'MOL'), ('DEM', 'MUE'), ('DEM', 'PAN'),
-                ('DEM', 'PAP'), ('DEM', 'PLS'), ('DEM', 'SEG'), ('DEM', 'VES'), ('DEM', 'VID'), ('DOM', 'GAN'),
-                ('DOM', 'HIL'), ('DOM', 'HOT'), ('DOM', 'LAC'), ('DOM', 'MAD'), ('DOM', 'MAN'), ('DOM', 'MET'),
-                ('DOM', 'MOL'), ('DOM', 'MUE'), ('DOM', 'PAN'), ('DOM', 'PAP'), ('DOM', 'PLS'), ('DOM', 'SEG'),
-                ('DOM', 'VES'), ('DOM', 'VID'), ('GAN', 'HIL'), ('GAN', 'HOT'), ('GAN', 'LAC'), ('GAN', 'MAD'),
-                ('GAN', 'MAN'), ('GAN', 'MET'), ('GAN', 'MOL'), ('GAN', 'MUE'), ('GAN', 'PAN'), ('GAN', 'PAP'),
-                ('GAN', 'PLS'), ('GAN', 'QU1'), ('GAN', 'SEG'), ('GAN', 'VES'), ('GAN', 'VID'), ('HIL', 'MAD'),
-                ('HIL', 'MAN'), ('HIL', 'MOL'), ('HIL', 'PAN'), ('HIL', 'PAP'), ('HIL', 'SEG'), ('HIL', 'VES'),
-                ('HOT', 'MAD'), ('HOT', 'MAN'), ('HOT', 'MOL'), ('HOT', 'PAP'), ('HOT', 'SEG'), ('LAC', 'MAD'),
-                ('LAC', 'MAN'), ('LAC', 'MOL'), ('LAC', 'PAN'), ('LAC', 'PAP'), ('LAC', 'SEG'), ('MAD', 'MAN'),
-                ('MAD', 'MET'), ('MAD', 'MOL'), ('MAD', 'MUE'), ('MAD', 'PAN'), ('MAD', 'PAP'), ('MAD', 'PLS'),
-                ('MAD', 'SEG'), ('MAD', 'VES'), ('MAD', 'VID'), ('MAN', 'MET'), ('MAN', 'MOL'), ('MAN', 'MUE'),
-                ('MAN', 'PAN'), ('MAN', 'PAP'), ('MAN', 'PLS'), ('MAN', 'SEG'), ('MAN', 'VES'), ('MAN', 'VID'),
-                ('MET', 'MOL'), ('MET', 'PAN'), ('MET', 'PAP'), ('MET', 'SEG'), ('MOL', 'MUE'), ('MOL', 'PAN'),
-                ('MOL', 'PAP'), ('MOL', 'PLS'), ('MOL', 'SEG'), ('MOL', 'VES'), ('MOL', 'VID'), ('MUE', 'PAN'),
-                ('MUE', 'PAP'), ('MUE', 'SEG'), ('MUE', 'VES'), ('PAN', 'PAP'), ('PAN', 'PLS'), ('PAN', 'SEG'),
-                ('PAN', 'VES'), ('PAP', 'PLS'), ('PAP', 'SEG'), ('PAP', 'VES'), ('PAP', 'VID'), ('PLS', 'SEG'),
-                ('PLS', 'VES'), ('SEG', 'VES'), ('SEG', 'VID')]
+
+def _get_disrupted_subregion_list(which_subregion: str) -> List:
+    """Get the list of sector combinations to test."""
+    # This would ideally be loaded from a config file
+    # For now, keeping the original hardcoded list
+    if which_subregion == "province":
+        return [['AZUAY'], ['CAÑAR'], ['CHIMBORAZO'], ['COTOPAXI'], ['EL ORO'], ['ESMERALDAS'], ['GUAYAS'], ['LOJA'], ['LOS RIOS'], ['MANABI'], ['PICHINCHA'], ['TUNGURAHUA'], ['CARCHI', 'IMBABURA'], ['IMBABURA', 'NAPO'], ['IMBABURA', 'SUCUMBIOS'], ['ORELLANA', 'SUCUMBIOS']]
+    if which_subregion == "canton":
+        return [['AZUAY - CUENCA'], ['CAÑAR - AZOGUES'], ['COTOPAXI - LATACUNGA'], ['EL ORO - MACHALA'], ['ESMERALDAS - RIO VERDE'], ['GUAYAS - DURAN'], ['GUAYAS - GUAYAQUIL'], ['GUAYAS - SAMBORONDON'], ['LOJA - LOJA'], ['LOS RIOS - QUEVEDO'], ['MANABI - JARAMIJO'], ['MANABI - MANTA'], ['MANABI - PORTOVIEJO'], ['PICHINCHA - QUITO'], ['PICHINCHA - SANTO DOMINGO'], ['TUNGURAHUA - AMBATO'], ['BOLIVAR - GUARANDA', 'CHIMBORAZO - RIOBAMBA'], ['CHIMBORAZO - GUANO', 'CHIMBORAZO - PENIPE'], ['CHIMBORAZO - GUANO', 'CHIMBORAZO - RIOBAMBA'], ['CHIMBORAZO - GUANO', 'TUNGURAHUA - QUERO'], ['CHIMBORAZO - GUANO', 'TUNGURAHUA - SAN PEDRO DE PELILEO'], ['EL ORO - PASAJE', 'EL ORO - SANTA ROSA'], ['ESMERALDAS - ESMERALDAS', 'ESMERALDAS - QUININDE'], ['GUAYAS - EL TRIUNFO', 'GUAYAS - SAN JACINTO DE YAGUACHI'], ['GUAYAS - MILAGRO', 'GUAYAS - SAN JACINTO DE YAGUACHI'], ['IMBABURA - IBARRA', 'PICHINCHA - CAYAMBE'], ['PICHINCHA - MEJIA', 'PICHINCHA - RUMIÑAHUI'], ['GUAYAS - DAULE', 'GUAYAS - PEDRO CARBO', 'GUAYAS - SANTA LUCIA'], ['GUAYAS - DAULE', 'GUAYAS - SALITRE', 'LOS RIOS - BABAHOYO'], ['ESMERALDAS - LA CONCORDIA', 'MANABI - CHONE', 'MANABI - ROCAFUERTE', 'MANABI - TOSAGUA'], ['MANABI - CHONE', 'MANABI - EL CARMEN', 'MANABI - ROCAFUERTE', 'MANABI - SUCRE'], ['MANABI - CHONE', 'MANABI - EL CARMEN', 'MANABI - ROCAFUERTE', 'MANABI - TOSAGUA'], ['MANABI - CHONE', 'MANABI - JUNIN', 'MANABI - ROCAFUERTE', 'MANABI - TOSAGUA'], ['MANABI - CHONE', 'MANABI - PICHINCHA', 'MANABI - ROCAFUERTE', 'MANABI - TOSAGUA'], ['MANABI - JIPIJAPA', 'MANABI - MONTECRISTI', 'MANABI - PICHINCHA', 'MANABI - SANTA ANA']]
 
 
 class AdHocExecutorSubregion(SimulationExecutor):
@@ -140,9 +107,10 @@ class AdHocExecutorSubregion(SimulationExecutor):
         self.model.save_pickle(suffix)
 
         # Get disrupted sector combinations
-        # disrupted_subregion_list = self._get_disrupted_province_list()
-        disrupted_subregion_list = self._get_disrupted_canton_list()
-        present_subregions = list(set(self.model.firms.get_properties('subregion', 'list')))
+        which_subregion = "province"
+        disrupted_subregion_list = _get_disrupted_subregion_list(which_subregion)
+        present_subregions = self.model.firms.get_properties('subregions', 'list')
+        present_subregions = list(set([s['which_subregion'] for s in present_subregions]))
         periods = [30, 90, 180]
 
         logging.info(f"{len(disrupted_subregion_list)} sector combinations to test")
@@ -161,7 +129,7 @@ class AdHocExecutorSubregion(SimulationExecutor):
 
             # Load fresh model state
             model = load_cached_model(suffix)
-            model.parameters.disruptions[0]['filter']['subregion'] = disrupted_subregion
+            model.parameters.disruptions[0]['filter']['subregion_province'] = disrupted_subregion
 
             # Run simulation
             simulation = model.run_disruption(t_final=periods[-1])
@@ -188,60 +156,4 @@ class AdHocExecutorSubregion(SimulationExecutor):
 
         return results
 
-    def _get_disrupted_province_list(self) -> List:
-        """Get the list of sector combinations to test."""
-        # This would ideally be loaded from a config file
-        # For now, keeping the original hardcoded list
-        return [['AZUAY'],
-                ['CAÑAR'],
-                ['CHIMBORAZO'],
-                ['COTOPAXI'],
-                ['EL ORO'],
-                ['ESMERALDAS'],
-                ['GALAPAGOS'],
-                ['GUAYAS'],
-                ['IMBABURA'],
-                ['LOJA'],
-                ['LOS RIOS'],
-                ['MANABI'],
-                ['PICHINCHA'],
-                ['SUCUMBIOS'],
-                ['TUNGURAHUA'],
-                ['BOLIVAR', 'CARCHI'],
-                ['BOLIVAR', 'ORELLANA'],
-                ['BOLIVAR', 'ZAMORA CHINCHIPE'],
-                ['CARCHI', 'MORONA SANTIAGO'],
-                ['CARCHI', 'ORELLANA'],
-                ['CARCHI', 'ZAMORA CHINCHIPE'],
-                ['MORONA SANTIAGO', 'ORELLANA'],
-                ['MORONA SANTIAGO', 'ZAMORA CHINCHIPE'],
-                ['ORELLANA', 'ZAMORA CHINCHIPE']]
 
-    def _get_disrupted_canton_list(self) -> List:
-        """Get the list of sector combinations to test."""
-        # This would ideally be loaded from a config file
-        # For now, keeping the original hardcoded list
-        return [['AZUAY'],
-                ['CAÑAR'],
-                ['CHIMBORAZO'],
-                ['COTOPAXI'],
-                ['EL ORO'],
-                ['ESMERALDAS'],
-                ['GALAPAGOS'],
-                ['GUAYAS'],
-                ['IMBABURA'],
-                ['LOJA'],
-                ['LOS RIOS'],
-                ['MANABI'],
-                ['PICHINCHA'],
-                ['SUCUMBIOS'],
-                ['TUNGURAHUA'],
-                ['BOLIVAR', 'CARCHI'],
-                ['BOLIVAR', 'ORELLANA'],
-                ['BOLIVAR', 'ZAMORA CHINCHIPE'],
-                ['CARCHI', 'MORONA SANTIAGO'],
-                ['CARCHI', 'ORELLANA'],
-                ['CARCHI', 'ZAMORA CHINCHIPE'],
-                ['MORONA SANTIAGO', 'ORELLANA'],
-                ['MORONA SANTIAGO', 'ZAMORA CHINCHIPE'],
-                ['ORELLANA', 'ZAMORA CHINCHIPE']]
