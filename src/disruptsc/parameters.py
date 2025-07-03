@@ -181,7 +181,8 @@ class Parameters:
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
         # File handler (DEBUG and above)
-        if self.export_files and self.simulation_type != "criticality":
+        if (self.export_files and self.simulation_type not in ["criticality", "ad_hoc_province", "ad_hoc_canton"]
+                and (self.mc_repetitions == 0)):
             file_handler = logging.FileHandler(self.export_folder / 'exp.log')
             file_handler.setLevel(logging.DEBUG)
             file_handler.setFormatter(formatter)
