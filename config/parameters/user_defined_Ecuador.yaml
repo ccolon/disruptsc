@@ -8,7 +8,7 @@ monetary_units_in_model: mUSD
 monetary_units_in_data: kUSD
 time_resolution: day
 #inventory_duration_target: 2  # inputed
-with_transport: True
+with_transport: False
 inventory_duration_targets:
   definition: per_input_type
   values:
@@ -55,7 +55,7 @@ disruptions:
     description_type: filter  # sectors_homogeneous
     filter:
       #region_sector: ['ECU_TRA', 'ECU_INM']
-      subregion: ['Esmeraldas', 'SantoDomingodelosTsachilas', "Manabi"]
+      subregion_province: ['ESMERALDAS']
     destroyed_capital: 2510.0
 #    region_sector_filepath: "Disruption/earthquake_capital_destruction.csv"
     unit: mUSD

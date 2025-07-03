@@ -70,10 +70,8 @@ class AdHocExecutor(SimulationExecutor):
 
             # Write results if writer provided
             if self.results_writer:
-                self.results_writer.write_ad_hoc_results(
-                    disrupted_sectors, simulation, model,
-                    household_loss, country_loss, household_loss_per_periods
-                )
+                self.results_writer.write_ad_hoc_results(disrupted_sectors, household_loss, country_loss,
+                                                         household_loss_per_periods)
 
             results.append(simulation)
 
@@ -110,7 +108,7 @@ class AdHocExecutorSubregion(SimulationExecutor):
         which_subregion = "province"
         disrupted_subregion_list = _get_disrupted_subregion_list(which_subregion)
         present_subregions = self.model.firms.get_properties('subregions', 'list')
-        present_subregions = list(set([s['which_subregion'] for s in present_subregions]))
+        present_subregions = list(set([s[which_subregion] for s in present_subregions]))
         periods = [30, 90, 180]
 
         logging.info(f"{len(disrupted_subregion_list)} sector combinations to test")
@@ -125,11 +123,11 @@ class AdHocExecutorSubregion(SimulationExecutor):
                 continue
 
             logging.info(f"")
-            logging.info(f"=============== Disrupting sector #{disrupted_subregion} ===============")
+            logging.info(f"=============== Disrupting {which_subregion} #{disrupted_subregion} ===============")
 
             # Load fresh model state
             model = load_cached_model(suffix)
-            model.parameters.disruptions[0]['filter']['subregion_province'] = disrupted_subregion
+            model.parameters.disruptions[0]['filter']['subregion_'+which_subregion] = disrupted_subregion
 
             # Run simulation
             simulation = model.run_disruption(t_final=periods[-1])
@@ -147,10 +145,8 @@ class AdHocExecutorSubregion(SimulationExecutor):
 
             # Write results if writer provided
             if self.results_writer:
-                self.results_writer.write_ad_hoc_results(
-                    disrupted_subregion, simulation, model,
-                    household_loss, country_loss, household_loss_per_periods
-                )
+                self.results_writer.write_ad_hoc_results(disrupted_subregion, household_loss, country_loss,
+                                                         household_loss_per_periods)
 
             results.append(simulation)
 
