@@ -31,7 +31,7 @@ class Firm(BaseAgent, TransportCapable):
                  importance=1, long=None, lat=None, geometry=None, subregion=None,
                  suppliers=None, clients=None, production=0, min_inventory_duration_target=1,
                  inventory_restoration_time=1,
-                 usd_per_ton=2864, capital_to_value_added_ratio=4):
+                 usd_per_ton=2864, capital_to_value_added_ratio=4, **kwargs):
         super().__init__(
             agent_type="firm",
             pid=pid,
@@ -46,6 +46,13 @@ class Firm(BaseAgent, TransportCapable):
         self.geometry = geometry
         self.subregion = subregion
         self.importance = importance
+        
+        # Dynamic subregion system
+        self.subregions = {}
+        for key, value in kwargs.items():
+            if key.startswith('subregion_'):
+                level = key[10:]  # Remove 'subregion_' prefix
+                self.subregions[level] = value
         self.region_sector = region_sector
         self.sector_type = sector_type
         self.sector = sector
@@ -99,6 +106,18 @@ class Firm(BaseAgent, TransportCapable):
 
     def id_str(self):
         return super().id_str() + f" sector {self.sector}"
+    
+    def get_subregion(self, level):
+        """Get subregion for specific level (e.g., 'province', 'district')"""
+        return self.subregions.get(level)
+
+    def get_all_subregions(self):
+        """Get all subregion levels and values"""
+        result = {}
+        if self.subregion:  # Backward compatibility
+            result['default'] = self.subregion
+        result.update(self.subregions)
+        return result
     
     # Properties for backward compatibility
     @property

@@ -46,6 +46,9 @@ def create_firms(
     ids = firm_table['id'].tolist()
     firm_table = firm_table.set_index('id')
 
+    # Identify all subregion columns for dynamic passing
+    subregion_cols = [col for col in firm_table.columns if col.startswith('subregion_')]
+    
     firms = Firms([
         Firm(pid=i,
              region_sector=firm_table.loc[i, "region_sector"],
@@ -63,7 +66,8 @@ def create_firms(
              transport_share=float(firm_table.loc[i, 'transport_share']),
              utilization_rate=utilization_rate,
              inventory_restoration_time=inventory_restoration_time,
-             capital_to_value_added_ratio=capital_to_value_added_ratio
+             capital_to_value_added_ratio=capital_to_value_added_ratio,
+             **{col: firm_table.loc[i, col] for col in subregion_cols if col in firm_table.columns}
              )
         for i in ids
     ])
@@ -112,12 +116,20 @@ def load_firms_spatial_data(filepath_firms_spatial: Path, accepted_sectors: list
     if not gdf.geometry.geom_type.eq('Point').all():
         raise ValueError("firms.geojson: All geometries must be Points")
 
-    # Handle optional subregion attribute
+    # Handle optional subregion attributes
     if 'subregion' in gdf.columns:
-        logging.info(f"Found subregion attribute in firms spatial data")
+        logging.info(f"Found legacy subregion attribute in firms spatial data")
     else:
         gdf['subregion'] = None
-        logging.debug(f"No subregion attribute found in firms spatial data, using None")
+        logging.debug(f"No legacy subregion attribute found in firms spatial data, using None")
+    
+    # Detect and log all subregion_ columns
+    subregion_cols = [col for col in gdf.columns if col.startswith('subregion_')]
+    if subregion_cols:
+        levels = [col[10:] for col in subregion_cols]  # Remove 'subregion_' prefix
+        logging.info(f"Found subregion levels in firms spatial data: {levels}")
+    else:
+        logging.debug("No subregion_ attributes found in firms spatial data")
 
     # Filter regions
     useless_regions = list(set(gdf['region'].unique()) - set(accepted_regions))
@@ -138,24 +150,28 @@ def load_firms_spatial_data(filepath_firms_spatial: Path, accepted_sectors: list
 
 
 def create_disag_firm_table(disag_data: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    # Identify all subregion columns (legacy and new format)
+    subregion_cols = [col for col in disag_data.columns if col.startswith('subregion_')]
+    all_subregion_cols = ['subregion'] + subregion_cols
+    
     # Identify numeric columns (sectors) to stack, excluding metadata columns
-    metadata_cols = ['region', 'subregion', 'geometry']
+    metadata_cols = ['region', 'geometry'] + all_subregion_cols
     numeric_cols = [col for col in disag_data.columns if col not in metadata_cols]
     
     # Only stack the numeric sector columns
     disag_firm_table = disag_data.reset_index().drop("geometry", axis=1) \
         .set_index(['index', 'region'])[numeric_cols].stack().reset_index()
     disag_firm_table['geometry'] = disag_firm_table['index'].map(disag_data['geometry'])
-    # Preserve subregion information if it exists
-    if 'subregion' in disag_data.columns:
-        disag_firm_table['subregion'] = disag_firm_table['index'].map(disag_data['subregion'])
-    disag_firm_table = disag_firm_table.drop('index', axis=1)
     
-    # Set column names based on whether subregion exists
-    if 'subregion' in disag_firm_table.columns:
-        disag_firm_table.columns = ['region', 'sector', 'importance', 'geometry', 'subregion']
-    else:
-        disag_firm_table.columns = ['region', 'sector', 'importance', 'geometry']
+    # Preserve all subregion information if it exists
+    preserved_cols = ['region', 'sector', 'importance', 'geometry']
+    for col in all_subregion_cols:
+        if col in disag_data.columns:
+            disag_firm_table[col] = disag_firm_table['index'].map(disag_data[col])
+            preserved_cols.append(col)
+    
+    disag_firm_table = disag_firm_table.drop('index', axis=1)
+    disag_firm_table.columns = preserved_cols
     
     disag_firm_table = disag_firm_table[disag_firm_table['importance'].notnull()]
     disag_firm_table = disag_firm_table[disag_firm_table['importance'] > 0]
@@ -637,3 +653,4 @@ def load_inventories(firms: Firms, inventory_duration_targets: dict, model_time_
 
     else:
         raise ValueError("Unknown value entered for 'inventory_duration_targets.definition'")
+ 

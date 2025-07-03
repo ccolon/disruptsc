@@ -35,6 +35,10 @@ def create_households(
 
     logging.debug('Creating households')
     household_table = household_table.set_index('id')
+    
+    # Identify all subregion columns for dynamic passing
+    subregion_cols = [col for col in household_table.columns if col.startswith('subregion_')]
+    
     households = Households([
         Household('hh_' + str(i),
                   name=household_table.loc[i, "name"],
@@ -44,7 +48,8 @@ def create_households(
                   lat=float(household_table.loc[i, 'lat']),
                   population=household_table.loc[i, "population"],
                   sector_consumption=household_sector_consumption[i],
-                  subregion=household_table.loc[i, "subregion"] if "subregion" in household_table.columns else None
+                  subregion=household_table.loc[i, "subregion"] if "subregion" in household_table.columns else None,
+                  **{col: household_table.loc[i, col] for col in subregion_cols if col in household_table.columns}
                   )
         for i in household_table.index.tolist()
     ])
@@ -78,12 +83,20 @@ def _load_and_assign_household_spatial_data(
     household_table = gpd.read_file(filepath_households_spatial)
     household_table = household_table[household_table["region"].isin([tup[0] for tup in mrio.region_households])]
     
-    # Handle optional subregion attribute
+    # Handle optional subregion attributes
     if 'subregion' in household_table.columns:
-        logging.info(f"Found subregion attribute in household spatial data")
+        logging.info(f"Found legacy subregion attribute in household spatial data")
     else:
         household_table['subregion'] = None
-        logging.debug(f"No subregion attribute found in household spatial data, using None")
+        logging.debug(f"No legacy subregion attribute found in household spatial data, using None")
+    
+    # Detect and log all subregion_ columns
+    subregion_cols = [col for col in household_table.columns if col.startswith('subregion_')]
+    if subregion_cols:
+        levels = [col[10:] for col in subregion_cols]  # Remove 'subregion_' prefix
+        logging.info(f"Found subregion levels in household spatial data: {levels}")
+    else:
+        logging.debug("No subregion_ attributes found in household spatial data")
     
     # Assign to transport nodes
     admissible_node_mode = ['roads']

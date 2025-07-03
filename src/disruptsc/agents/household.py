@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 class Household(BaseAgent):
 
-    def __init__(self, pid, od_point, region, name, long, lat, population, sector_consumption, subregion=None):
+    def __init__(self, pid, od_point, region, name, long, lat, population, sector_consumption, subregion=None, **kwargs):
         super().__init__(
             agent_type="household",
             name=name,
@@ -30,6 +30,13 @@ class Household(BaseAgent):
         self.sector_consumption = sector_consumption
         self.population = population
         self.subregion = subregion
+        
+        # Dynamic subregion system
+        self.subregions = {}
+        for key, value in kwargs.items():
+            if key.startswith('subregion_'):
+                level = key[10:]  # Remove 'subregion_' prefix
+                self.subregions[level] = value
         # Parameters depending on network
         self.purchase_plan = {}
         self.retailers = {}
@@ -79,6 +86,18 @@ class Household(BaseAgent):
                                * commercial_link.eq_price
         self.consumption_loss += new_consumption_loss
         add_or_increment_dict_key(self.consumption_loss_per_sector, commercial_link.product, new_consumption_loss)
+    
+    def get_subregion(self, level):
+        """Get subregion for specific level (e.g., 'province', 'district')"""
+        return self.subregions.get(level)
+
+    def get_all_subregions(self):
+        """Get all subregion levels and values"""
+        result = {}
+        if self.subregion:  # Backward compatibility
+            result['default'] = self.subregion
+        result.update(self.subregions)
+        return result
 
     def initialize_var_on_purchase_plan(self):
         if len(self.purchase_plan) == 0:
