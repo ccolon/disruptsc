@@ -300,10 +300,18 @@ class BaseAgents(dict):
         """
         Select agents where the property values match any of the given values in each filter.
         Example: filters = {'region_sector': [...], 'province': [...]}
+        Supports nested subregion properties: filters = {'subregion_province': [...]}
         """
         selected = self.values()
         for prop, values in filters.items():
-            selected = [agent for agent in selected if getattr(agent, prop, None) in values]
+            if prop.startswith('subregion_') and len(prop) > 10:  # subregion_* properties
+                subregion_level = prop[10:]  # Remove 'subregion_' prefix
+                selected = [agent for agent in selected 
+                           if hasattr(agent, 'subregions') and 
+                           isinstance(agent.subregions, dict) and
+                           agent.subregions.get(subregion_level) in values]
+            else:
+                selected = [agent for agent in selected if getattr(agent, prop, None) in values]
         return self.__class__(selected)
 
     def group_agent_ids_by_property(self, property_name: str):
