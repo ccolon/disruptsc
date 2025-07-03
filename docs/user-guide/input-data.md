@@ -296,7 +296,9 @@ Population distribution for household placement.
     "region": "Phnom_Penh",
     "population": 15000,
     "admin_level1": "Phnom_Penh",
-    "admin_level2": "Khan_Chamkar_Mon"
+    "admin_level2": "Khan_Chamkar_Mon",
+    "subregion_province": "ESMERALDAS",
+    "subregion_canton": "EL ORO - MACHALA"
   },
   "geometry": {
     "type": "Point", 
@@ -308,6 +310,10 @@ Population distribution for household placement.
 **Required properties:**
 - `region` - Region identifier (must match MRIO regions)
 - `population` - Population count (optional, defaults to 1)
+
+**Optional subregion properties:**
+- `subregion_*` - Hierarchical geographic divisions (must start with `subregion_` prefix)
+- Used for filtering agents during disruption scenarios
 
 ### Countries (`Spatial/countries.geojson`)
 
@@ -343,7 +349,9 @@ Economic activity distribution for firm placement.
     "ag_prod": 150,
     "man_prod": 85,  
     "ser_emp": 200,
-    "admin_level1": "Phnom_Penh"
+    "admin_level1": "Phnom_Penh",
+    "subregion_province": "ESMERALDAS",
+    "subregion_canton": "EL ORO - MACHALA"
   },
   "geometry": {
     "type": "Point",
@@ -355,6 +363,11 @@ Economic activity distribution for firm placement.
 **Required properties:**
 - `region` - Region identifier (must match MRIO regions)
 - Sector-specific attributes referenced in `sector_table.csv` `supply_data` column
+
+**Optional subregion properties:**
+- `subregion_*` - Hierarchical geographic divisions (must start with `subregion_` prefix)
+- Examples: `subregion_province`, `subregion_canton`, `subregion_state`
+- Used for filtering agents during disruption scenarios
 
 **Sector attribute examples:**
 - `ag_prod` - Agricultural production value
@@ -394,6 +407,29 @@ events:
     value: ["primary", "trunk"]
     start_time: 10
     duration: 20
+```
+
+### Subregion-Based Disruptions
+
+Use subregion attributes for geographic filtering:
+
+```yaml
+# Capital destruction by province
+disruptions:
+  - type: capital_destruction
+    description_type: filter
+    filter:
+      subregion_province: ['ESMERALDAS', 'MANABI']  # Filter by province
+    destroyed_capital: 1000.0
+    unit: mUSD
+
+# Productivity shock by canton
+  - type: productivity_shock
+    description_type: filter
+    filter:
+      subregion_canton: ['EL ORO - MACHALA']        # Filter by canton
+    productivity_reduction: 0.3
+    duration: 10
 ```
 
 ## Data Preparation Guidelines

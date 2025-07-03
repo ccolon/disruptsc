@@ -95,9 +95,22 @@ simulation_type: "initial_state"  # Options below
 |------|---------|-------------|
 | `initial_state` | Baseline equilibrium | Understanding normal operations |
 | `disruption` | Single disruption scenario | Testing specific events |
-| `disruption_mc` | Monte Carlo analysis | Statistical robustness |
 | `criticality` | Infrastructure assessment | Finding critical links |
 | `flow_calibration` | Transport calibration | Matching observed data |
+
+### Monte Carlo Simulations
+
+Control Monte Carlo runs with the `mc_repetitions` parameter:
+
+```yaml
+# In parameter file
+mc_repetitions: 10               # Run 10 iterations
+simulation_type: "disruption"    # Base simulation type
+```
+
+**Behavior:**
+- **`mc_repetitions = 0`**: Single run with full output files
+- **`mc_repetitions ≥ 1`**: Multiple runs with CSV summary only
 
 ### Caching for Performance
 

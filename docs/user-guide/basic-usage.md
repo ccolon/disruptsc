@@ -21,6 +21,9 @@ python disruptsc/main.py <region> --cache <cache_type>
 
 # With custom parameters
 python disruptsc/main.py <region> --duration 90 --io_cutoff 0.5
+
+# With cache isolation (for concurrent server runs)
+python disruptsc/main.py <region> --cache_isolation
 ```
 
 ### Scope Argument
@@ -72,6 +75,7 @@ The `scope` argument specifies the region/case study:
 --help                            # Show help message
 --verbose                         # Enable verbose output
 --config path/to/config.yaml      # Use custom config file
+--cache_isolation                 # Isolate cache directory per process (for server runs)
 ```
 
 ## Simulation Workflow
@@ -194,18 +198,23 @@ events:
 
 ### Monte Carlo Analysis
 
-Multiple disruption realizations:
+Multiple disruption realizations controlled by the `mc_repetitions` parameter:
 
 ```yaml
-simulation_type: "disruption_mc"
-mc_repetitions: 100
+# Monte Carlo configuration in YAML
+mc_repetitions: 100               # Run 100 iterations
+simulation_type: "disruption"     # Base simulation type to repeat
 events:
   - type: "transport_disruption"
     # ... disruption configuration
 ```
 
+**Monte Carlo Behavior:**
+- **`mc_repetitions = 0, False, or None`**: Single run with full output folder
+- **`mc_repetitions >= 1`**: Multiple runs with consolidated CSV results only
+
 **Purpose:** Statistical analysis of disruption impacts
-**Output:** Distribution of outcomes, confidence intervals
+**Output:** Single CSV file with aggregated results across all iterations
 
 ### Criticality Assessment
 
