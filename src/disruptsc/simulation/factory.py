@@ -19,26 +19,28 @@ class ExecutorFactory:
     def create_executor(cls, simulation_type: str, model: "Model", parameters: "Parameters") -> SimulationExecutor:
         """Create appropriate executor for the given simulation type."""
         
-        # Single simulation types
+        # Determine if this should be a Monte Carlo run
+        is_monte_carlo = parameters.mc_repetitions and parameters.mc_repetitions >= 1
+        
+        # Base simulation types
         if simulation_type == "initial_state":
-            return InitialStateExecutor(model, parameters)
+            if is_monte_carlo:
+                return InitialStateMCExecutor(model, parameters, InitialStateExecutor)
+            else:
+                return InitialStateExecutor(model, parameters)
         
         elif simulation_type == "stationary_test":
             return StationaryTestExecutor(model, parameters)
         
         elif simulation_type in ["event", "disruption"]:
-            return DisruptionExecutor(model, parameters)
+            if is_monte_carlo:
+                results_writer = CSVResultsWriter.create_disruption_mc_writer(parameters)
+                return MonteCarloExecutor(model, parameters, DisruptionExecutor, results_writer)
+            else:
+                return DisruptionExecutor(model, parameters)
         
         elif simulation_type == "flow_calibration":
             return FlowCalibrationExecutor(model, parameters)
-        
-        # Monte Carlo simulation types
-        elif simulation_type == "initial_state_mc":
-            return InitialStateMCExecutor(model, parameters, InitialStateExecutor)
-        
-        elif simulation_type in ["event_mc", "disruption_mc"]:
-            results_writer = CSVResultsWriter.create_disruption_mc_writer(parameters)
-            return MonteCarloExecutor(model, parameters, DisruptionExecutor, results_writer)
         
         # Complex simulation types
         elif simulation_type == "criticality":

@@ -140,7 +140,8 @@ class AdHocExecutorSubregion(SimulationExecutor):
         self.model.save_pickle(suffix)
 
         # Get disrupted sector combinations
-        disrupted_subregion_list = self._get_disrupted_province_list()
+        # disrupted_subregion_list = self._get_disrupted_province_list()
+        disrupted_subregion_list = self._get_disrupted_canton_list()
         present_subregions = list(set(self.model.firms.get_properties('subregion', 'list')))
         periods = [30, 90, 180]
 
@@ -188,6 +189,35 @@ class AdHocExecutorSubregion(SimulationExecutor):
         return results
 
     def _get_disrupted_province_list(self) -> List:
+        """Get the list of sector combinations to test."""
+        # This would ideally be loaded from a config file
+        # For now, keeping the original hardcoded list
+        return [['AZUAY'],
+                ['CAÑAR'],
+                ['CHIMBORAZO'],
+                ['COTOPAXI'],
+                ['EL ORO'],
+                ['ESMERALDAS'],
+                ['GALAPAGOS'],
+                ['GUAYAS'],
+                ['IMBABURA'],
+                ['LOJA'],
+                ['LOS RIOS'],
+                ['MANABI'],
+                ['PICHINCHA'],
+                ['SUCUMBIOS'],
+                ['TUNGURAHUA'],
+                ['BOLIVAR', 'CARCHI'],
+                ['BOLIVAR', 'ORELLANA'],
+                ['BOLIVAR', 'ZAMORA CHINCHIPE'],
+                ['CARCHI', 'MORONA SANTIAGO'],
+                ['CARCHI', 'ORELLANA'],
+                ['CARCHI', 'ZAMORA CHINCHIPE'],
+                ['MORONA SANTIAGO', 'ORELLANA'],
+                ['MORONA SANTIAGO', 'ZAMORA CHINCHIPE'],
+                ['ORELLANA', 'ZAMORA CHINCHIPE']]
+
+    def _get_disrupted_canton_list(self) -> List:
         """Get the list of sector combinations to test."""
         # This would ideally be loaded from a config file
         # For now, keeping the original hardcoded list
