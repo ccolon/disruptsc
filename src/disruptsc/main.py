@@ -27,6 +27,7 @@ def parse_arguments():
     parser.add_argument("--duration", type=int, help="Disruption duration")
     parser.add_argument("--io_cutoff", type=float, help="IO cutoff")
     parser.add_argument("--simulation_type", type=str, help="Simulation type")
+    parser.add_argument("--cache_isolation", action="store_true", help="Isolate cache directory per process (for server runs)")
     parser.add_argument("--version", action="version", version=f"DisruptSC {__import__('disruptsc').__version__}")
     return parser.parse_args()
 
@@ -60,6 +61,10 @@ def export_results(simulation, model, parameters):
     if parameters.simulation_type in ["criticality", "initial_state_mc"]:
         return
     
+    # Skip exports for Monte Carlo runs (mc_repetitions >= 1)
+    if parameters.mc_repetitions and parameters.mc_repetitions >= 1:
+        return
+    
     # Handle list of simulations (from Monte Carlo)
     if isinstance(simulation, list):
         if len(simulation) > 0:
@@ -88,32 +93,46 @@ def main():
     args = parse_arguments()
     logging.info(f'Simulation starting for {args.scope}')
     
-    # Generate cache parameters
-    cache_parameters = generate_cache_parameters_from_command_line_argument(args.cache)
+    # Setup cache isolation if requested
+    if args.cache_isolation:
+        from disruptsc.paths import setup_cache_isolation
+        setup_cache_isolation(args.scope)
+        logging.info(f'Cache isolation enabled for scope: {args.scope}')
     
-    # Load and configure parameters
-    parameters = Parameters.load_parameters(paths.PARAMETER_FOLDER, args.scope)
-    if args.io_cutoff:
-        parameters.io_cutoff = args.io_cutoff
-    if args.duration:
-        parameters.criticality['duration'] = args.duration
-    
-    # Setup output folder and logging
-    parameters.initialize_exports()
-    parameters.adjust_logging_behavior()
-    
-    # Setup model
-    model = setup_model(parameters, cache_parameters)
-    
-    # Execute simulation using appropriate executor
-    executor = ExecutorFactory.create_executor(parameters.simulation_type, model, parameters)
-    simulation = executor.execute()
-    
-    # Export results
-    export_results(simulation, model, parameters)
-    
-    # Finish
-    logging.info(f"End of simulation, running time {time.time() - t0}")
+    try:
+        # Generate cache parameters
+        cache_parameters = generate_cache_parameters_from_command_line_argument(args.cache)
+        
+        # Load and configure parameters
+        parameters = Parameters.load_parameters(paths.PARAMETER_FOLDER, args.scope)
+        if args.io_cutoff:
+            parameters.io_cutoff = args.io_cutoff
+        if args.duration:
+            parameters.criticality['duration'] = args.duration
+        
+        # Setup output folder and logging
+        parameters.initialize_exports()
+        parameters.adjust_logging_behavior()
+        
+        # Setup model
+        model = setup_model(parameters, cache_parameters)
+        
+        # Execute simulation using appropriate executor
+        executor = ExecutorFactory.create_executor(parameters.simulation_type, model, parameters)
+        simulation = executor.execute()
+        
+        # Export results
+        export_results(simulation, model, parameters)
+        
+        # Finish
+        logging.info(f"End of simulation, running time {time.time() - t0}")
+        
+    finally:
+        # Clean up isolated cache if enabled
+        if args.cache_isolation:
+            from disruptsc.paths import cleanup_isolated_cache
+            cleanup_isolated_cache()
+            logging.info('Isolated cache cleaned up')
     
     profiler.disable()
     stats = pstats.Stats(profiler).sort_stats('cumtime')

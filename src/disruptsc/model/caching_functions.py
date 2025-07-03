@@ -3,7 +3,7 @@ import pickle
 import threading
 
 from disruptsc.network.mrio import Mrio
-from disruptsc.paths import TMP_FOLDER
+from disruptsc.paths import TMP_FOLDER, get_cache_dir
 
 
 def generate_cache_parameters_from_command_line_argument(argument: str):
@@ -66,39 +66,39 @@ def generate_cache_parameters_from_command_line_argument(argument: str):
 
 
 def cache_agent_data(data_dic):
-    pickle_filename = TMP_FOLDER / 'firms_households_countries_pickle'
+    pickle_filename = get_cache_dir() / 'firms_households_countries_pickle'
     pickle.dump(data_dic, open(pickle_filename, 'wb'))
-    logging.info(f'Firms, households, and countries saved in tmp folder: {pickle_filename}')
+    logging.info(f'Firms, households, and countries saved in cache folder: {pickle_filename}')
 
 
 def cache_model(model, suffix):
-    pickle_filename = TMP_FOLDER / f'model_{suffix}.pickle'
+    pickle_filename = get_cache_dir() / f'model_{suffix}.pickle'
     pickle.dump(model, open(pickle_filename, 'wb'))
-    logging.info(f'Model saved in tmp folder: {pickle_filename}')
+    logging.info(f'Model saved in cache folder: {pickle_filename}')
 
 
 def cache_transport_network(data_dic):
-    pickle_filename = TMP_FOLDER / 'transport_network_pickle'
+    pickle_filename = get_cache_dir() / 'transport_network_pickle'
     # data_dic['transport_network'].cost_heuristic = None
     # data_dic['transport_network'].lock = None
     pickle.dump(data_dic, open(pickle_filename, 'wb'))
-    logging.info(f'Transport network saved in tmp folder: {pickle_filename}')
+    logging.info(f'Transport network saved in cache folder: {pickle_filename}')
 
 
 def cache_sc_network(data_dic):
-    pickle_filename = TMP_FOLDER / 'supply_chain_pickle'
+    pickle_filename = get_cache_dir() / 'supply_chain_pickle'
     pickle.dump(data_dic, open(pickle_filename, 'wb'))
-    logging.info(f'Supply chain saved in tmp folder: {pickle_filename}')
+    logging.info(f'Supply chain saved in cache folder: {pickle_filename}')
 
 
 def cache_logistic_routes(data_dic):
-    pickle_filename = TMP_FOLDER / 'logistic_routes_pickle'
+    pickle_filename = get_cache_dir() / 'logistic_routes_pickle'
     pickle.dump(data_dic, open(pickle_filename, 'wb'))
-    logging.info(f'Logistics routes saved in tmp folder: {pickle_filename}')
+    logging.info(f'Logistics routes saved in cache folder: {pickle_filename}')
 
 
 def load_cached_agent_data():
-    pickle_filename = TMP_FOLDER / 'firms_households_countries_pickle'
+    pickle_filename = get_cache_dir() / 'firms_households_countries_pickle'
     tmp_data = pickle.load(open(pickle_filename, 'rb'))
     loaded_mrio = tmp_data['mrio']
     loaded_sector_table = tmp_data['sector_table']
@@ -118,21 +118,21 @@ def load_cached_agent_data():
 
 
 def load_cached_transaction_table():
-    pickle_filename = TMP_FOLDER / 'firms_households_countries_pickle'
+    pickle_filename = get_cache_dir() / 'firms_households_countries_pickle'
     tmp_data = pickle.load(open(pickle_filename, 'rb'))
     loaded_transaction_table = tmp_data['transaction_table']
     return loaded_transaction_table
 
 
 def load_cached_model(suffix):
-    pickle_filename = TMP_FOLDER / f'model_{suffix}.pickle'
+    pickle_filename = get_cache_dir() / f'model_{suffix}.pickle'
     model = pickle.load(open(pickle_filename, 'rb'))
     model.mrio = Mrio(model.mrio, monetary_units=model.parameters.monetary_units_in_data)
     return model
 
 
 def load_cached_transport_network():
-    pickle_filename = TMP_FOLDER / 'transport_network_pickle'
+    pickle_filename = get_cache_dir() / 'transport_network_pickle'
     tmp_data = pickle.load(open(pickle_filename, 'rb'))
     loaded_transport_network = tmp_data['transport_network']
     loaded_transport_nodes = tmp_data['transport_nodes']
@@ -144,7 +144,7 @@ def load_cached_transport_network():
 
 
 def load_cached_sc_network():
-    pickle_filename = TMP_FOLDER / 'supply_chain_pickle'
+    pickle_filename = get_cache_dir() / 'supply_chain_pickle'
     tmp_data = pickle.load(open(pickle_filename, 'rb'))
     loaded_sc_network = tmp_data['supply_chain_network']
     loaded_firms = tmp_data['firms']
@@ -155,7 +155,7 @@ def load_cached_sc_network():
 
 
 def load_cached_logistic_routes():
-    pickle_filename = TMP_FOLDER / 'logistic_routes_pickle'
+    pickle_filename = get_cache_dir() / 'logistic_routes_pickle'
     tmp_data = pickle.load(open(pickle_filename, 'rb'))
     loaded_sc_network = tmp_data['supply_chain_network']
     loaded_transport_network = tmp_data['transport_network']

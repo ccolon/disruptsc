@@ -1,12 +1,48 @@
 import pathlib
 import sys
 import os
+import time
+import shutil
 #logger = logging.getLogger(__name__)
 
 ROOT_FOLDER = pathlib.Path(__file__).parent.parent.parent
 PARAMETER_FOLDER = ROOT_FOLDER / "config" / "parameters"
 OUTPUT_FOLDER = ROOT_FOLDER / "output"
 TMP_FOLDER = ROOT_FOLDER / "tmp"
+
+# Global variable to store the isolated cache directory for this process
+_ISOLATED_CACHE_DIR = None
+_CACHE_ISOLATION_ENABLED = False
+
+def setup_cache_isolation(scope: str):
+    """Setup isolated cache directory for this process."""
+    global _ISOLATED_CACHE_DIR, _CACHE_ISOLATION_ENABLED
+    
+    if _CACHE_ISOLATION_ENABLED:
+        return  # Already setup
+    
+    process_id = os.getpid()
+    timestamp = round(time.time() * 1000)
+    dir_name = f"{scope}_pid_{process_id}_{timestamp}"
+    
+    _ISOLATED_CACHE_DIR = TMP_FOLDER / dir_name
+    _ISOLATED_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    _CACHE_ISOLATION_ENABLED = True
+
+def get_cache_dir() -> pathlib.Path:
+    """Get the cache directory (isolated or shared)."""
+    if _CACHE_ISOLATION_ENABLED and _ISOLATED_CACHE_DIR:
+        return _ISOLATED_CACHE_DIR
+    return TMP_FOLDER
+
+def cleanup_isolated_cache():
+    """Clean up isolated cache directory."""
+    global _ISOLATED_CACHE_DIR, _CACHE_ISOLATION_ENABLED
+    
+    if _CACHE_ISOLATION_ENABLED and _ISOLATED_CACHE_DIR and _ISOLATED_CACHE_DIR.exists():
+        shutil.rmtree(_ISOLATED_CACHE_DIR)
+        _ISOLATED_CACHE_DIR = None
+        _CACHE_ISOLATION_ENABLED = False
 
 # Support configurable data path for repository separation
 DATA_PATH = os.environ.get('DISRUPT_SC_DATA_PATH')
