@@ -51,9 +51,13 @@ class ExecutorFactory:
             results_writer = CSVResultsWriter.create_ad_hoc_writer(parameters)
             return AdHocExecutor(model, parameters, results_writer)
 
-        elif simulation_type == "ad_hoc_subregion":
+        elif simulation_type == "ad_hoc_province":
             results_writer = CSVResultsWriter.create_ad_hoc_writer(parameters)
-            return AdHocExecutorSubregion(model, parameters, results_writer)
+            return AdHocExecutorSubregion(model, parameters, "province", results_writer)
+
+        elif simulation_type == "ad_hoc_canton":
+            results_writer = CSVResultsWriter.create_ad_hoc_writer(parameters)
+            return AdHocExecutorSubregion(model, parameters, "canton", results_writer)
         
         else:
             raise ValueError(f'Unimplemented simulation type: {simulation_type}')

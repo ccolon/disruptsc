@@ -91,9 +91,10 @@ def _get_disrupted_subregion_list(which_subregion: str) -> List:
 class AdHocExecutorSubregion(SimulationExecutor):
     """Executes ad-hoc disruption analysis across multiple subregion"""
 
-    def __init__(self, model, parameters, results_writer=None):
+    def __init__(self, model, parameters, subregion, results_writer=None):
         super().__init__(model, parameters)
         self.results_writer = results_writer
+        self.subregion = subregion
 
     def execute(self) -> List["Simulation"]:
         """Execute ad-hoc analysis and return list of simulations."""
@@ -105,7 +106,7 @@ class AdHocExecutorSubregion(SimulationExecutor):
         self.model.save_pickle(suffix)
 
         # Get disrupted sector combinations
-        which_subregion = "province"
+        which_subregion = self.subregion
         disrupted_subregion_list = _get_disrupted_subregion_list(which_subregion)
         present_subregions = self.model.firms.get_properties('subregions', 'list')
         present_subregions = list(set([s[which_subregion] for s in present_subregions]))

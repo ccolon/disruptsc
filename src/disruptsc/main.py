@@ -57,8 +57,8 @@ def export_results(simulation, model, parameters):
     if not parameters.export_files:
         return
     
-    # Skip exports for certain simulation types
-    if parameters.simulation_type in ["criticality", "initial_state_mc"]:
+    # Skip exports for certain simulation types (CSV-only output)
+    if parameters.simulation_type in ["criticality", "initial_state_mc", "ad_hoc", "ad_hoc_province", "ad_hoc_canton"]:
         return
     
     # Skip exports for Monte Carlo runs (mc_repetitions >= 1)
