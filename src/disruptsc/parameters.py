@@ -166,7 +166,7 @@ class Parameters:
         os.mkdir(self.export_folder)
 
     def initialize_exports(self):
-        if self.export_files and self.simulation_type not in ["criticality", "ad_hoc", "ad_hoc_province", "ad_hoc_canton"]:
+        if self.export_files and self.simulation_type in SIMU_TYPE_WITH_EXPORT:
             self.create_export_folder()
             self.export()
             print(f'Output folder is {self.export_folder}')
