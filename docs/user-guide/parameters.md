@@ -48,6 +48,7 @@ epsilon_stop_condition: true      # Stop when equilibrium reached
 | `disruption` | Single disruption | Testing specific scenarios |
 | `disruption_mc` | Monte Carlo analysis | Statistical robustness |
 | `criticality` | Infrastructure assessment | Finding critical links |
+| `disruption-sensitivity` | Parameter sensitivity | Testing parameter robustness |
 | `flow_calibration` | Transport calibration | Matching observed data |
 
 ### Scope and Regions
@@ -247,6 +248,35 @@ mc_repetitions: 100             # Number of MC runs
 mc_seed: 42                     # Random seed for reproducibility
 mc_parallel: true              # Parallel MC execution
 mc_output_aggregation: "summary"  # "full", "summary", "minimal"
+```
+
+### Sensitivity Analysis Settings
+
+```yaml
+# Parameter sensitivity analysis
+simulation_type: "disruption-sensitivity"
+sensitivity:
+  io_cutoff: [0.01, 0.05, 0.1]                    # Economic threshold values
+  utilization: [0.8, 0.9, 1.0]                    # Transport capacity utilization
+  inventory_duration_targets.values.transport: [1, 3, 5]  # Inventory targets (nested)
+  price_increase_threshold: [0.05, 0.1, 0.15]     # Price shock thresholds
+```
+
+**Sensitivity Configuration:**
+
+- **Parameter specification:** List all values to test for each parameter
+- **Nested parameters:** Use dot notation (e.g., `parent.child.property`)
+- **Cartesian product:** All combinations are automatically generated
+- **Output:** Single CSV file with results for each combination
+- **No caching:** Each combination rebuilds the complete model
+
+**Example with 3×3×3×3 = 81 combinations:**
+```yaml
+sensitivity:
+  io_cutoff: [0.01, 0.05, 0.1]
+  utilization: [0.8, 0.9, 1.0] 
+  price_increase_threshold: [0.05, 0.1, 0.15]
+  inventory_duration_targets.values.transport: [1, 3, 5]
 ```
 
 ## Advanced Parameters

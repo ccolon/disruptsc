@@ -23,7 +23,8 @@ output/<scope>/<timestamp>/
 ├── Analysis Results
 │   ├── loss_per_country.csv
 │   ├── loss_per_region_sector_time.csv
-│   └── loss_summary.csv
+│   ├── loss_summary.csv
+│   └── sensitivity_*.csv          # Sensitivity analysis only
 └── Metadata
     ├── parameters.yaml
     └── exp.log
@@ -329,6 +330,61 @@ affected_firms,1250,count,Firms with production loss > 0
 total_consumption_loss,50000000,USD,Unmet household demand
 welfare_loss,75000000,USD,Consumer welfare impact
 recovery_time,45,days,Time to 95% recovery
+```
+
+### Sensitivity Analysis (`sensitivity_*.csv`)
+
+Parameter sensitivity results from `disruption-sensitivity` simulations.
+
+#### Structure
+```csv
+combination_id,io_cutoff,utilization,inventory_duration_targets.values.transport,household_loss,country_loss
+0,0.01,0.8,1,1250000.5,890000.2
+1,0.01,0.8,3,1180000.1,850000.8
+2,0.01,0.8,5,1120000.9,820000.4
+3,0.01,1.0,1,1180000.3,850000.1
+4,0.01,1.0,3,1100000.7,810000.5
+5,0.01,1.0,5,1050000.2,780000.3
+6,0.1,0.8,1,980000.1,720000.8
+7,0.1,0.8,3,920000.5,690000.2
+8,0.1,0.8,5,890000.3,670000.1
+9,0.1,1.0,1,950000.8,700000.4
+10,0.1,1.0,3,900000.2,680000.7
+11,0.1,1.0,5,870000.1,660000.2
+```
+
+#### Columns
+- **`combination_id`** - Sequential identifier for parameter combination
+- **Parameter columns** - One column per sensitivity parameter (dynamic)
+- **`household_loss`** - Final household economic loss (model currency)
+- **`country_loss`** - Final country trade loss (model currency)
+
+#### Analysis Example
+```python
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Load sensitivity results
+df = pd.read_csv('sensitivity_20240101_120000.csv')
+
+# Analyze io_cutoff impact
+cutoff_impact = df.groupby('io_cutoff')['household_loss'].mean()
+print("Average household loss by IO cutoff:")
+print(cutoff_impact)
+
+# Plot parameter sensitivity
+fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+# IO cutoff sensitivity
+df.boxplot(column='household_loss', by='io_cutoff', ax=axes[0])
+axes[0].set_title('Household Loss vs IO Cutoff')
+
+# Utilization sensitivity  
+df.boxplot(column='household_loss', by='utilization', ax=axes[1])
+axes[1].set_title('Household Loss vs Utilization')
+
+plt.tight_layout()
+plt.show()
 ```
 
 ### Regional Impacts (`loss_per_region_sector_time.csv`)

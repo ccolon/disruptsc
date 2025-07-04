@@ -83,6 +83,7 @@ class Parameters:
     capital_to_value_added_ratio: float
     mc_repetitions: int
     mc_caching: dict
+    sensitivity: dict | None
     
     # Configuration parameters
     filepaths: dict

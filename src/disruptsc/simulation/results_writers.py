@@ -53,6 +53,13 @@ class CSVResultsWriter:
         output_file = paths.OUTPUT_FOLDER / parameters.scope / f"disruption_{suffix}.csv"
         return AdHocWriter(output_file, parameters)
 
+    @classmethod
+    def create_sensitivity_writer(cls, parameters: "Parameters") -> "SensitivityWriter":
+        """Create writer for sensitivity analysis results."""
+        suffix = round(datetime.now().timestamp() * 1000)
+        output_file = paths.OUTPUT_FOLDER / parameters.scope / f"sensitivity_{suffix}.csv"
+        return SensitivityWriter(output_file, parameters)
+
 
 class DisruptionMCWriter(CSVResultsWriter):
     """Writer for disruption Monte Carlo simulation results."""
@@ -162,3 +169,24 @@ class AdHocWriter(CSVResultsWriter):
         """Write results for a single sector combination analysis."""
         self.write_row(["_".join(disruption), household_loss, country_loss] +
                        list(household_loss_per_periods.values()) + [country_loss])
+
+
+class SensitivityWriter(CSVResultsWriter):
+    """Writer for sensitivity analysis results."""
+
+    def __init__(self, output_file: Path, parameters: "Parameters"):
+        # Build headers dynamically based on sensitivity parameters
+        if not parameters.sensitivity:
+            raise ValueError("No sensitivity parameters defined")
+        
+        param_headers = list(parameters.sensitivity.keys())
+        headers = ["combination_id"] + param_headers + ["household_loss", "country_loss"]
+
+        super().__init__(output_file, headers)
+        self.parameters = parameters
+
+    def write_sensitivity_results(self, combination_id: int, combination: dict, 
+                                  household_loss: float, country_loss: float):
+        """Write results for a single parameter combination."""
+        param_values = [combination[param] for param in combination.keys()]
+        self.write_row([combination_id] + param_values + [household_loss, country_loss])

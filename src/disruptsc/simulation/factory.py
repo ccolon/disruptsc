@@ -5,6 +5,7 @@ from .executors.disruption_executor import DisruptionExecutor
 from .executors.monte_carlo_executor import MonteCarloExecutor, InitialStateMCExecutor
 from .executors.criticality_executor import CriticalityExecutor
 from .executors.ad_hoc_executor import AdHocExecutor
+from .executors.sensitivity_executor import SensitivityExecutor
 from .results_writers import CSVResultsWriter
 
 if TYPE_CHECKING:
@@ -66,6 +67,10 @@ class ExecutorFactory:
         elif simulation_type == "ad_hoc_canton_sectors":
             results_writer = CSVResultsWriter.create_ad_hoc_writer(parameters)
             return AdHocExecutor(model, parameters, disruption_type="subregion_sectors", subregion="canton", results_writer=results_writer)
+
+        elif simulation_type == "disruption-sensitivity":
+            results_writer = CSVResultsWriter.create_sensitivity_writer(parameters)
+            return SensitivityExecutor(model, parameters, results_writer=results_writer)
         
         else:
             raise ValueError(f'Unimplemented simulation type: {simulation_type}')

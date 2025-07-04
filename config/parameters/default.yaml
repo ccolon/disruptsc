@@ -325,6 +325,9 @@ mc_caching:
   sc_network: false       # Regenerate supply chain network (allows stochastic variation)
   logistic_routes: false  # Regenerate logistic routes (allows stochastic variation)
 
+# Sensitivity analysis parameters - specify parameter ranges for disruption-sensitivity simulation
+sensitivity: null
+
 # Determines the disruptive events to model TODO elaborate
 disruptions: null
 

@@ -242,6 +242,34 @@ simulation_type: "flow_calibration"
 **Purpose:** Match model outputs to empirical data
 **Output:** Calibrated parameters, goodness-of-fit metrics
 
+### Sensitivity Analysis
+
+Systematic parameter exploration across multiple parameter combinations:
+
+```yaml
+simulation_type: "disruption-sensitivity"
+sensitivity:
+  io_cutoff: [0.01, 0.1]
+  utilization: [0.8, 1.0]
+  inventory_duration_targets.values.transport: [1, 3, 5]
+```
+
+**Purpose:** Understand model sensitivity to parameter variations
+**Output:** CSV file with results for all parameter combinations
+
+**Configuration:**
+- **Parameter ranges:** List values for each parameter to vary
+- **Nested parameters:** Use dot notation for complex parameters
+- **Cartesian product:** All combinations automatically generated
+- **No caching:** Each combination rebuilds complete model
+
+**Example - 12 combinations (2×2×3):**
+```bash
+python disruptsc/main.py Ecuador --simulation_type disruption-sensitivity
+```
+
+**Output:** `sensitivity_TIMESTAMP.csv` with columns for each parameter plus final household/country losses
+
 ## Data Modes
 
 DisruptSC supports two data input modes:
