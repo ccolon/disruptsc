@@ -104,7 +104,7 @@ plugins:
   - autorefs
   - section-index
   - macros:
-      include_dir: docs
+      module_name: macros
 
 # Extra
 extra:

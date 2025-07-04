@@ -1,0 +1,241 @@
+name: Release and Documentation
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version-changed: ${{ steps.version-check.outputs.changed }}
+      current-version: ${{ steps.version-check.outputs.current-version }}
+      previous-version: ${{ steps.version-check.outputs.previous-version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch full history for version comparison
+      
+      - name: Get current version
+        id: current-version
+        run: |
+          VERSION=$(python -c "exec(open('src/disruptsc/_version.py').read()); print(__version__)")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+      
+      - name: Get previous version
+        id: previous-version
+        run: |
+          # Get the version from the previous commit
+          git checkout HEAD~1 2>/dev/null || true
+          if [ -f "src/disruptsc/_version.py" ]; then
+            PREV_VERSION=$(python -c "exec(open('src/disruptsc/_version.py').read()); print(__version__)" 2>/dev/null || echo "0.0.0")
+          else
+            PREV_VERSION="0.0.0"
+          fi
+          git checkout main
+          echo "version=$PREV_VERSION" >> $GITHUB_OUTPUT
+      
+      - name: Check if version changed
+        id: version-check
+        run: |
+          CURRENT="${{ steps.current-version.outputs.version }}"
+          PREVIOUS="${{ steps.previous-version.outputs.version }}"
+          echo "current-version=$CURRENT" >> $GITHUB_OUTPUT
+          echo "previous-version=$PREVIOUS" >> $GITHUB_OUTPUT
+          
+          if [ "$CURRENT" != "$PREVIOUS" ]; then
+            echo "Version changed from $PREVIOUS to $CURRENT"
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "Version unchanged: $CURRENT"
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+  create-release:
+    needs: check-version
+    if: needs.check-version.outputs.version-changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Generate release notes
+        id: release-notes
+        run: |
+          VERSION="${{ needs.check-version.outputs.current-version }}"
+          PREV_VERSION="${{ needs.check-version.outputs.previous-version }}"
+          
+          # Check if custom release notes exist
+          if [ -f "RELEASE_NOTES.md" ]; then
+            echo "Using custom release notes from RELEASE_NOTES.md"
+            cp RELEASE_NOTES.md release_notes.md
+            
+            # Replace version placeholder if it exists
+            sed -i "s/{{VERSION}}/$VERSION/g" release_notes.md
+            
+          else
+            echo "Generating automatic release notes"
+            echo "# Release Notes for v$VERSION" > release_notes.md
+            echo "" >> release_notes.md
+            
+            # Get commits since last version tag or if no tags exist, since beginning
+            LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+            if [ -n "$LAST_TAG" ]; then
+              echo "## Changes since $LAST_TAG" >> release_notes.md
+              echo "" >> release_notes.md
+              
+              # Better commit formatting with categories
+              echo "### ✨ New Features" >> release_notes.md
+              git log ${LAST_TAG}..HEAD --pretty=format:"- %s" --no-merges --grep="^feat" >> release_notes.md || echo "- None" >> release_notes.md
+              echo "" >> release_notes.md
+              
+              echo "### 🐛 Bug Fixes" >> release_notes.md  
+              git log ${LAST_TAG}..HEAD --pretty=format:"- %s" --no-merges --grep="^fix" >> release_notes.md || echo "- None" >> release_notes.md
+              echo "" >> release_notes.md
+              
+              echo "### 📚 Documentation" >> release_notes.md
+              git log ${LAST_TAG}..HEAD --pretty=format:"- %s" --no-merges --grep="^docs" >> release_notes.md || echo "- None" >> release_notes.md
+              echo "" >> release_notes.md
+              
+              echo "### 🔧 Other Changes" >> release_notes.md
+              git log ${LAST_TAG}..HEAD --pretty=format:"- %s" --no-merges --invert-grep --grep="^feat" --grep="^fix" --grep="^docs" >> release_notes.md || echo "- None" >> release_notes.md
+              echo "" >> release_notes.md
+              
+            else
+              echo "## 🎉 Initial Release" >> release_notes.md
+              echo "" >> release_notes.md
+              echo "- First release of DisruptSC" >> release_notes.md
+              echo "" >> release_notes.md
+            fi
+          fi
+          
+          # Always append installation instructions
+          echo "" >> release_notes.md
+          echo "## 📦 Installation" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "\`\`\`bash" >> release_notes.md
+          echo "# Clone the repository" >> release_notes.md
+          echo "git clone https://github.com/ccolon/disrupt-sc.git" >> release_notes.md
+          echo "cd disrupt-sc" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "# Checkout this version" >> release_notes.md
+          echo "git checkout v$VERSION" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "# Install" >> release_notes.md
+          echo "conda env create -f dsc-environment.yml" >> release_notes.md
+          echo "conda activate dsc" >> release_notes.md
+          echo "\`\`\`" >> release_notes.md
+          
+          # Clean up custom release notes file if it exists
+          if [ -f "RELEASE_NOTES.md" ]; then
+            rm RELEASE_NOTES.md
+            git add RELEASE_NOTES.md || true
+            git commit -m "chore: remove processed release notes [skip ci]" || true
+            git push || true
+          fi
+      
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ needs.check-version.outputs.current-version }}
+          release_name: Release v${{ needs.check-version.outputs.current-version }}
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
+
+  update-documentation:
+    needs: [check-version, create-release]
+    if: needs.check-version.outputs.version-changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install documentation dependencies
+        run: |
+          pip install -r docs-requirements.txt
+          pip install mike  # For versioned documentation
+      
+      - name: Configure git
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+      
+      - name: Update version in MkDocs
+        run: |
+          VERSION="${{ needs.check-version.outputs.current-version }}"
+          
+          # Update site_description to include version
+          sed -i "s/site_description: .*/site_description: Spatial agent-based model for supply chain disruption analysis (v$VERSION)/" mkdocs.yml
+      
+      - name: Deploy documentation with mike
+        run: |
+          VERSION="${{ needs.check-version.outputs.current-version }}"
+          
+          # Deploy this version and update 'latest' alias
+          mike deploy --push --update-aliases $VERSION latest
+          
+          # Set this version as default
+          mike set-default --push latest
+      
+      - name: Update README with version badge
+        run: |
+          VERSION="${{ needs.check-version.outputs.current-version }}"
+          
+          # Create version badge
+          VERSION_BADGE="[![Version](https://img.shields.io/badge/version-$VERSION-blue)](https://github.com/ccolon/disrupt-sc/releases/tag/v$VERSION)"
+          
+          # Add version badge after the existing badges if not already present
+          if ! grep -q "img.shields.io/badge/version-" README.md; then
+            sed -i "/^[![Python]/i $VERSION_BADGE" README.md
+          else
+            # Update existing version badge
+            sed -i "s|!\[Version\](https://img.shields.io/badge/version-[^)]*)|$VERSION_BADGE|" README.md
+          fi
+          
+          # Commit and push README changes
+          git add README.md mkdocs.yml
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "docs: update version to v$VERSION [skip ci]"
+            git push
+          fi
+
+  # Always deploy docs on main push (for non-version changes)
+  deploy-docs:
+    needs: check-version
+    if: needs.check-version.outputs.version-changed == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install documentation dependencies
+        run: |
+          pip install -r docs-requirements.txt
+          pip install mike
+      
+      - name: Configure git
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+      
+      - name: Deploy latest documentation
+        run: |
+          # Deploy to 'latest' without creating a new version
+          mike deploy --push latest

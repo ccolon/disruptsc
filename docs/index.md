@@ -1,8 +1,14 @@
 # DisruptSC
 
+{% if version_badge is defined %}
 {{ version_badge() }}
 
 **Version {{ version() }}**
+{% else %}
+[![Version](https://img.shields.io/badge/version-1.1.5-blue)](https://github.com/ccolon/disrupt-sc/releases/tag/v1.1.5)
+
+**Version 1.1.5**
+{% endif %}
 
 DisruptSC is a **spatial agent-based model** for simulating supply chain disruptions. It models economic agents (firms, households, countries) connected through transport networks and supply chains to analyze the impact of disruptions on economic systems.
 
