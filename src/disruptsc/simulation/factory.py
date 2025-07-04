@@ -32,7 +32,7 @@ class ExecutorFactory:
         elif simulation_type == "stationary_test":
             return StationaryTestExecutor(model, parameters)
         
-        elif simulation_type in ["event", "disruption"]:
+        elif simulation_type == "disruption":
             if is_monte_carlo:
                 results_writer = CSVResultsWriter.create_disruption_mc_writer(parameters)
                 return MonteCarloExecutor(model, parameters, DisruptionExecutor, results_writer)
