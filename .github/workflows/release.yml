@@ -148,7 +148,7 @@ jobs:
           prerelease: false
 
   update-documentation:
-    needs: [check-version, create-release]
+    needs: check-version
     if: needs.check-version.outputs.version-changed == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -212,6 +212,43 @@ jobs:
             git push
           fi
 
-  # Deploy docs for non-version changes (skip this - let manual workflow handle it)
-  # We skip automatic doc deployment for non-version changes to avoid conflicts
-  # Use the manual "Deploy Documentation" workflow instead
+  # Deploy docs for non-version changes
+  deploy-docs-no-version:
+    needs: check-version
+    if: needs.check-version.outputs.version-changed == 'false'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install documentation dependencies
+        run: |
+          pip install -r docs-requirements.txt
+      
+      - name: Setup Pages
+        id: pages
+        uses: actions/configure-pages@v4
+        
+      - name: Build documentation
+        run: |
+          mkdocs build --clean
+          
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./site
+          
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
