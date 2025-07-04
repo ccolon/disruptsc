@@ -103,7 +103,7 @@ class AdHocExecutor(SimulationExecutor):
             
             # Set disruption parameters based on type
             if self.disruption_type == "sectors":
-                model.parameters.disruptions[0]['filter']['region_sectors'] = disrupted_targets
+                model.parameters.disruptions[0]['filter']['region_sector'] = disrupted_targets
             elif self.disruption_type == "subregions":
                 model.parameters.disruptions[0]['filter']['subregion_'+self.subregion] = disrupted_targets
             elif self.disruption_type == "subregion_sectors":
