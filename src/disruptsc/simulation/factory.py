@@ -47,17 +47,25 @@ class ExecutorFactory:
             results_writer = CSVResultsWriter.create_criticality_writer(parameters)
             return CriticalityExecutor(model, parameters, results_writer)
         
-        elif simulation_type == "ad_hoc":
+        elif simulation_type == "ad_hoc_sectors":
             results_writer = CSVResultsWriter.create_ad_hoc_writer(parameters)
             return AdHocExecutor(model, parameters, disruption_type="sectors", results_writer=results_writer)
 
-        elif simulation_type == "ad_hoc_province":
+        elif simulation_type == "ad_hoc_provinces":
             results_writer = CSVResultsWriter.create_ad_hoc_writer(parameters)
             return AdHocExecutor(model, parameters, disruption_type="subregions", subregion="province", results_writer=results_writer)
 
-        elif simulation_type == "ad_hoc_canton":
+        elif simulation_type == "ad_hoc_cantons":
             results_writer = CSVResultsWriter.create_ad_hoc_writer(parameters)
             return AdHocExecutor(model, parameters, disruption_type="subregions", subregion="canton", results_writer=results_writer)
+
+        elif simulation_type == "ad_hoc_province_sectors":
+            results_writer = CSVResultsWriter.create_ad_hoc_writer(parameters)
+            return AdHocExecutor(model, parameters, disruption_type="subregion_sectors", subregion="province", results_writer=results_writer)
+
+        elif simulation_type == "ad_hoc_canton_sectors":
+            results_writer = CSVResultsWriter.create_ad_hoc_writer(parameters)
+            return AdHocExecutor(model, parameters, disruption_type="subregion_sectors", subregion="canton", results_writer=results_writer)
         
         else:
             raise ValueError(f'Unimplemented simulation type: {simulation_type}')
