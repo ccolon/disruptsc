@@ -20,12 +20,6 @@
 
 *Writing in progress.*
 
-## 🚀 Release Management
-
-For contributors working on releases and documentation:
-
-- **[Release Workflow](releases.md)** - Automated release system and versioning
-
 
 ## 🏛️ Funders
 
