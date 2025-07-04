@@ -57,18 +57,20 @@ class AdHocExecutor(SimulationExecutor):
             # Handle different target formats based on disruption type
             if self.disruption_type == "subregion_sectors":
                 # disrupted_targets is a tuple (subregion, sector)
-                subregion, sector = disrupted_targets
-                
+                print(disrupted_targets)
+                subregions = list(set([d[0] for d in disrupted_targets]))
+                sectors = list(set([d[1] for d in disrupted_targets]))
+
                 # Validate both subregion and sector presence
-                if subregion not in present_subregions_list:
-                    logging.info(f"Skipping {subregion} - not present in model")
+                if len(set(subregions) - set(present_subregions_list)) > 0:
+                    logging.info(f"Skipping {subregions} - not present in model")
                     continue
-                if 'ECU_' + sector not in present_sectors:
-                    logging.info(f"Skipping ECU_{sector} - not present in model")
+                if len(set(['ECU_' + s for s in sectors]) - set(present_sectors)):
+                    logging.info(f"Skipping ECU_{sectors} - not present in model")
                     continue
                 
                 logging.info(f"")
-                logging.info(f"=============== Disrupting {self.subregion}:sector #{subregion}:{sector} ===============")
+                logging.info(f"=============== Disrupting {self.subregion}-sector #{disrupted_targets} ===============")
                 
             else:
                 # Handle existing logic for sectors and subregions
@@ -106,9 +108,9 @@ class AdHocExecutor(SimulationExecutor):
                 model.parameters.disruptions[0]['filter']['subregion_'+self.subregion] = disrupted_targets
             elif self.disruption_type == "subregion_sectors":
                 # Set both subregion and sector filters for combined disruption
-                model.parameters.disruptions[0]['filter']['region_sectors'] = ['ECU_' + sector]
-                model.parameters.disruptions[0]['filter']['subregion_'+self.subregion] = [subregion]
-
+                model.parameters.disruptions[0]['filter']['region_sector'] = ['ECU_' + s for s in sectors]
+                model.parameters.disruptions[0]['filter']['subregion_'+self.subregion] = subregions
+                logging.info(model.parameters.disruptions[0])
             # Run simulation
             simulation = model.run_disruption(t_final=periods[-1])
 
@@ -126,10 +128,7 @@ class AdHocExecutor(SimulationExecutor):
             # Write results if writer provided
             if self.results_writer:
                 # Format results identifier based on disruption type
-                if self.disruption_type == "subregion_sectors":
-                    results_identifier = f"{subregion}_{sector}"
-                else:
-                    results_identifier = disrupted_targets
+                results_identifier = disrupted_targets
                     
                 self.results_writer.write_ad_hoc_results(results_identifier, household_loss, country_loss,
                                                          household_loss_per_periods)
