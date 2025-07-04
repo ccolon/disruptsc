@@ -1,4 +1,6 @@
+import gc
 import logging
+from datetime import datetime
 from typing import TYPE_CHECKING, List
 from .base_executor import SimulationExecutor
 
@@ -14,45 +16,69 @@ def _get_disrupted_sector_list() -> List:
 
 
 class AdHocExecutor(SimulationExecutor):
-    """Executes ad-hoc disruption analysis across multiple sectors."""
+    """Executes ad-hoc disruption analysis across multiple sectors or subregions."""
 
-    def __init__(self, model, parameters, results_writer=None):
+    def __init__(self, model, parameters, disruption_type="sectors", subregion=None, results_writer=None):
         super().__init__(model, parameters)
         self.results_writer = results_writer
+        self.disruption_type = disruption_type
+        self.subregion = subregion
 
     def execute(self) -> List["Simulation"]:
         """Execute ad-hoc analysis and return list of simulations."""
-        from datetime import datetime
         from disruptsc.model.caching_functions import load_cached_model
 
         # Save model state
         suffix = round(datetime.now().timestamp() * 1000)
         self.model.save_pickle(suffix)
 
-        # Get disrupted sector combinations
-        disrupted_sector_list = _get_disrupted_sector_list()
-        present_sectors = list(set(self.model.firms.get_properties('region_sector', 'list')))
+        # Get disrupted combinations and present values based on type
+        if self.disruption_type == "sectors":
+            disrupted_list = _get_disrupted_sector_list()
+            present_values = list(set(self.model.firms.get_properties('region_sector', 'list')))
+            logging.info(f"{len(disrupted_list)} sector combinations to test")
+        else:  # subregions
+            disrupted_list = _get_disrupted_subregion_list(self.subregion)
+            present_subregions = self.model.firms.get_properties('subregions', 'list')
+            present_values = list(set([s[self.subregion] for s in present_subregions]))
+            logging.info(f"{len(disrupted_list)} {self.subregion} combinations to test")
+        
         periods = [30, 90, 180]
-
-        logging.info(f"{len(disrupted_sector_list)} sector combinations to test")
-
         results = []
-        for disrupted_sectors in disrupted_sector_list:
-            if disrupted_sectors == 'all':
-                disrupted_sectors = present_sectors
+        
+        for disrupted_targets in disrupted_list:
+            if disrupted_targets == 'all':
+                disrupted_targets = present_values
 
-            disrupted_sectors = ['ECU_' + sector for sector in disrupted_sectors]
+            # Add prefix for sectors and check against prefixed present values
+            if self.disruption_type == "sectors":
+                disrupted_targets = ['ECU_' + sector for sector in disrupted_targets]
+                # For sectors, present_values already has ECU_ prefix
+                check_values = present_values
+            else:
+                # For subregions, no prefix needed
+                check_values = present_values
 
-            # Skip if sectors not present
-            if any([sector not in present_sectors for sector in disrupted_sectors]):
+            # Skip if targets not present
+            if any([target not in check_values for target in disrupted_targets]):
                 continue
 
-            logging.info(f"")
-            logging.info(f"=============== Disrupting sector #{disrupted_sectors} ===============")
+            # Log disruption type
+            if self.disruption_type == "sectors":
+                logging.info(f"")
+                logging.info(f"=============== Disrupting sector #{disrupted_targets} ===============")
+            else:
+                logging.info(f"")
+                logging.info(f"=============== Disrupting {self.subregion} #{disrupted_targets} ===============")
 
             # Load fresh model state
             model = load_cached_model(suffix)
-            model.parameters.events[0]['region_sectors'] = disrupted_sectors
+            
+            # Set disruption parameters based on type
+            if self.disruption_type == "sectors":
+                model.parameters.events[0]['region_sectors'] = disrupted_targets
+            else:
+                model.parameters.disruptions[0]['filter']['subregion_'+self.subregion] = disrupted_targets
 
             # Run simulation
             simulation = model.run_disruption(t_final=periods[-1])
@@ -70,10 +96,16 @@ class AdHocExecutor(SimulationExecutor):
 
             # Write results if writer provided
             if self.results_writer:
-                self.results_writer.write_ad_hoc_results(disrupted_sectors, household_loss, country_loss,
+                self.results_writer.write_ad_hoc_results(disrupted_targets, household_loss, country_loss,
                                                          household_loss_per_periods)
 
-            results.append(simulation)
+            # Clear simulation from memory immediately after processing
+            del simulation
+            del model
+            gc.collect()
+            
+            # Don't accumulate simulation objects to prevent memory leaks
+            # results.append(simulation)
 
         return results
 
@@ -87,70 +119,5 @@ def _get_disrupted_subregion_list(which_subregion: str) -> List:
     if which_subregion == "canton":
         return [['AZUAY - CUENCA'], ['CAÑAR - AZOGUES'], ['COTOPAXI - LATACUNGA'], ['EL ORO - MACHALA'], ['ESMERALDAS - RIO VERDE'], ['GUAYAS - DURAN'], ['GUAYAS - GUAYAQUIL'], ['GUAYAS - SAMBORONDON'], ['LOJA - LOJA'], ['LOS RIOS - QUEVEDO'], ['MANABI - JARAMIJO'], ['MANABI - MANTA'], ['MANABI - PORTOVIEJO'], ['PICHINCHA - QUITO'], ['PICHINCHA - SANTO DOMINGO'], ['TUNGURAHUA - AMBATO'], ['BOLIVAR - GUARANDA', 'CHIMBORAZO - RIOBAMBA'], ['CHIMBORAZO - GUANO', 'CHIMBORAZO - PENIPE'], ['CHIMBORAZO - GUANO', 'CHIMBORAZO - RIOBAMBA'], ['CHIMBORAZO - GUANO', 'TUNGURAHUA - QUERO'], ['CHIMBORAZO - GUANO', 'TUNGURAHUA - SAN PEDRO DE PELILEO'], ['EL ORO - PASAJE', 'EL ORO - SANTA ROSA'], ['ESMERALDAS - ESMERALDAS', 'ESMERALDAS - QUININDE'], ['GUAYAS - EL TRIUNFO', 'GUAYAS - SAN JACINTO DE YAGUACHI'], ['GUAYAS - MILAGRO', 'GUAYAS - SAN JACINTO DE YAGUACHI'], ['IMBABURA - IBARRA', 'PICHINCHA - CAYAMBE'], ['PICHINCHA - MEJIA', 'PICHINCHA - RUMIÑAHUI'], ['GUAYAS - DAULE', 'GUAYAS - PEDRO CARBO', 'GUAYAS - SANTA LUCIA'], ['GUAYAS - DAULE', 'GUAYAS - SALITRE', 'LOS RIOS - BABAHOYO'], ['ESMERALDAS - LA CONCORDIA', 'MANABI - CHONE', 'MANABI - ROCAFUERTE', 'MANABI - TOSAGUA'], ['MANABI - CHONE', 'MANABI - EL CARMEN', 'MANABI - ROCAFUERTE', 'MANABI - SUCRE'], ['MANABI - CHONE', 'MANABI - EL CARMEN', 'MANABI - ROCAFUERTE', 'MANABI - TOSAGUA'], ['MANABI - CHONE', 'MANABI - JUNIN', 'MANABI - ROCAFUERTE', 'MANABI - TOSAGUA'], ['MANABI - CHONE', 'MANABI - PICHINCHA', 'MANABI - ROCAFUERTE', 'MANABI - TOSAGUA'], ['MANABI - JIPIJAPA', 'MANABI - MONTECRISTI', 'MANABI - PICHINCHA', 'MANABI - SANTA ANA']]
 
-
-class AdHocExecutorSubregion(SimulationExecutor):
-    """Executes ad-hoc disruption analysis across multiple subregion"""
-
-    def __init__(self, model, parameters, subregion, results_writer=None):
-        super().__init__(model, parameters)
-        self.results_writer = results_writer
-        self.subregion = subregion
-
-    def execute(self) -> List["Simulation"]:
-        """Execute ad-hoc analysis and return list of simulations."""
-        from datetime import datetime
-        from disruptsc.model.caching_functions import load_cached_model
-
-        # Save model state
-        suffix = round(datetime.now().timestamp() * 1000)
-        self.model.save_pickle(suffix)
-
-        # Get disrupted sector combinations
-        which_subregion = self.subregion
-        disrupted_subregion_list = _get_disrupted_subregion_list(which_subregion)
-        present_subregions = self.model.firms.get_properties('subregions', 'list')
-        present_subregions = list(set([s[which_subregion] for s in present_subregions]))
-        periods = [30, 90, 180]
-
-        logging.info(f"{len(disrupted_subregion_list)} sector combinations to test")
-
-        results = []
-        for disrupted_subregion in disrupted_subregion_list:
-            if disrupted_subregion == 'all':
-                disrupted_subregion = present_subregions
-
-            # Skip if sectors not present
-            if any([sector not in present_subregions for sector in disrupted_subregion]):
-                continue
-
-            logging.info(f"")
-            logging.info(f"=============== Disrupting {which_subregion} #{disrupted_subregion} ===============")
-
-            # Load fresh model state
-            model = load_cached_model(suffix)
-            model.parameters.disruptions[0]['filter']['subregion_'+which_subregion] = disrupted_subregion
-
-            # Run simulation
-            simulation = model.run_disruption(t_final=periods[-1])
-
-            # Calculate losses
-            household_loss_per_periods = simulation.calculate_household_loss(
-                model.household_table, periods=periods
-            )
-            household_loss = household_loss_per_periods[periods[-1]]
-            country_loss = simulation.calculate_country_loss()
-
-            logging.info(f"Simulation terminated. "
-                         f"Household loss: {household_loss_per_periods}. "
-                         f"Country loss: {int(country_loss)} {self.parameters.monetary_units_in_model}.")
-
-            # Write results if writer provided
-            if self.results_writer:
-                self.results_writer.write_ad_hoc_results(disrupted_subregion, household_loss, country_loss,
-                                                         household_loss_per_periods)
-
-            results.append(simulation)
-
-        return results
 
 

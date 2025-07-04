@@ -4,7 +4,7 @@ from .executors.initial_state_executor import InitialStateExecutor, StationaryTe
 from .executors.disruption_executor import DisruptionExecutor
 from .executors.monte_carlo_executor import MonteCarloExecutor, InitialStateMCExecutor
 from .executors.criticality_executor import CriticalityExecutor
-from .executors.ad_hoc_executor import AdHocExecutor, AdHocExecutorSubregion
+from .executors.ad_hoc_executor import AdHocExecutor
 from .results_writers import CSVResultsWriter
 
 if TYPE_CHECKING:
@@ -49,15 +49,15 @@ class ExecutorFactory:
         
         elif simulation_type == "ad_hoc":
             results_writer = CSVResultsWriter.create_ad_hoc_writer(parameters)
-            return AdHocExecutor(model, parameters, results_writer)
+            return AdHocExecutor(model, parameters, disruption_type="sectors", results_writer=results_writer)
 
         elif simulation_type == "ad_hoc_province":
             results_writer = CSVResultsWriter.create_ad_hoc_writer(parameters)
-            return AdHocExecutorSubregion(model, parameters, "province", results_writer)
+            return AdHocExecutor(model, parameters, disruption_type="subregions", subregion="province", results_writer=results_writer)
 
         elif simulation_type == "ad_hoc_canton":
             results_writer = CSVResultsWriter.create_ad_hoc_writer(parameters)
-            return AdHocExecutorSubregion(model, parameters, "canton", results_writer)
+            return AdHocExecutor(model, parameters, disruption_type="subregions", subregion="canton", results_writer=results_writer)
         
         else:
             raise ValueError(f'Unimplemented simulation type: {simulation_type}')
