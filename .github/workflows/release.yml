@@ -212,36 +212,6 @@ jobs:
             git push
           fi
 
-  # Always deploy docs on main push (for non-version changes)
-  deploy-docs:
-    needs: check-version
-    if: needs.check-version.outputs.version-changed == 'false'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pages: write
-      id-token: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      
-      - name: Install documentation dependencies
-        run: |
-          pip install -r docs-requirements.txt
-          pip install mike
-      
-      - name: Configure git
-        run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-      
-      - name: Deploy latest documentation
-        run: |
-          # Deploy to 'latest' without creating a new version
-          mike deploy --push latest
+  # Deploy docs for non-version changes (skip this - let manual workflow handle it)
+  # We skip automatic doc deployment for non-version changes to avoid conflicts
+  # Use the manual "Deploy Documentation" workflow instead
