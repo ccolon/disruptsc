@@ -4,6 +4,7 @@ mkdocs-material>=9.4.0
 mkdocstrings[python]>=0.23.0
 mkdocs-autorefs>=0.5.0
 mkdocs-section-index>=0.3.0
+mkdocs-macros-plugin>=1.0.0
 mike>=1.1.0
 
 # Python documentation

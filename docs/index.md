@@ -1,5 +1,9 @@
 # DisruptSC
 
+{{ version_badge() }}
+
+**Version {{ version() }}**
+
 DisruptSC is a **spatial agent-based model** for simulating supply chain disruptions. It models economic agents (firms, households, countries) connected through transport networks and supply chains to analyze the impact of disruptions on economic systems.
 
 ## Key Features
@@ -37,14 +41,15 @@ conda env create -f dsc-environment.yml
 conda activate dsc
 
 # Set up data (choose one option)
-mkdir DISRUPT_SC_DATA_PATH=/path/to/data  # Option 1: create your set of input data
+cd disrupt-sc
+mkdir input  # Option 1: create your set of input data
 git submodule add <data-repo-url> data     # Option 2: Git disrupt-sc-data submodule (invitation-only)
 
 # Validate inputs
-python validate_inputs.py Cambodia
+python validate_inputs.py Testkistan
 
 # Run a simulation
-python disruptsc/main.py Cambodia
+python disruptsc/main.py Testkistan
 ```
 
 ## Use Cases
@@ -107,7 +112,7 @@ Colon, C., Hallegatte, S., & Rozenberg, J. (2021). Criticality analysis of a cou
 ### 🔖 BibTeX
 
 ```bibtex
-@article{colon2020disruptsc,
+@article{colon2021disruptsc,
   author  = {Celian Colon and Stephane Hallegatte and Julie Rozenberg},
   title   = {Criticality analysis of a country’s transport network via an agent-based supply chain model},
   journal = {Nature Sustainability},
@@ -119,10 +124,10 @@ Colon, C., Hallegatte, S., & Rozenberg, J. (2021). Criticality analysis of a cou
 }
 ```
 ```bibtex
-@software{disruptsc2024,
+@software{disruptsc2025,
   title={DisruptSC: Spatial Agent-Based Model for Supply Chain Disruption Analysis},
   author={Celian Colon},
-  year={2024},
+  year={2025},
   url={https://github.com/ccolon/disrupt-sc}
 }
 ```

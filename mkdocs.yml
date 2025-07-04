@@ -103,6 +103,8 @@ plugins:
             show_category_heading: true
   - autorefs
   - section-index
+  - macros:
+      include_dir: docs
 
 # Extra
 extra:
@@ -146,5 +148,6 @@ nav:
     - research/index.md
   - Contributors:
     - contributors/index.md
+    - Release Management: contributors/releases.md
   - Get involved:
     - contact/index.md
