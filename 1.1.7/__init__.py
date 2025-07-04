@@ -1,0 +1,1 @@
+# Make docs a Python package for macros import
