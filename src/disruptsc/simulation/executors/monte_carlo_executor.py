@@ -1,3 +1,4 @@
+import gc
 import logging
 from typing import TYPE_CHECKING, Type, List
 from .base_executor import SimulationExecutor
@@ -35,7 +36,13 @@ class MonteCarloExecutor(SimulationExecutor):
             if self.results_writer:
                 self.results_writer.write_iteration_results(i, simulation, self.model)
             
-            results.append(simulation)
+            # Clear simulation from memory immediately after processing
+            del simulation
+            del executor
+            gc.collect()
+            
+            # Don't accumulate simulation objects to prevent memory leaks
+            # results.append(simulation)
         
         return results
     
@@ -51,7 +58,7 @@ class MonteCarloExecutor(SimulationExecutor):
         self.model.setup_logistic_routes(cached=caching_config['logistic_routes'])
 
 
-class InitialStateMCExecutor(MonteCarloExecutor):
+class InitialStateMCExecutor(SimulationExecutor):
     """Specialized Monte Carlo executor for initial state simulations."""
     
     def execute(self) -> List["Simulation"]:
@@ -83,13 +90,27 @@ class InitialStateMCExecutor(MonteCarloExecutor):
             # Process flow data
             flow_df = pd.DataFrame(simulation.transport_network_data)
             flow_df = flow_df[(flow_df['flow_total'] > 0) & (flow_df['time_step'] == 0)]
-            flow_dfs[i] = flow_df
+            
+            # Save flow data to disk immediately
             flow_df.to_csv(self.parameters.export_folder / f"flow_df_{i}.csv")
+            
+            # Store only minimal data for aggregation
+            flow_dfs[i] = flow_df[['id', 'flow_total']].copy()  # Keep only essential columns
+            
+            # Clear simulation and model from memory immediately
+            del simulation
+            del model
+            del flow_df
+            gc.collect()
         
         # Aggregate results
         self._aggregate_flow_results(flow_dfs)
         
-        return list(flow_dfs.values())  # Return list for consistency
+        # Clear flow data from memory after aggregation
+        del flow_dfs
+        gc.collect()
+        
+        return []  # Return empty list - results are written to disk
     
     def _aggregate_flow_results(self, flow_dfs):
         """Aggregate flow results across Monte Carlo iterations."""
