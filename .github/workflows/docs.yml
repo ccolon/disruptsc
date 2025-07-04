@@ -1,17 +1,14 @@
-name: Deploy Documentation
+name: Deploy Documentation (Docs-only changes)
 
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'docs/**'
-      - 'mkdocs.yml'
-      - '.github/workflows/docs.yml'
+  # Only run on documentation changes, not on version changes
   pull_request:
     branches: [ main ]
     paths:
       - 'docs/**'
       - 'mkdocs.yml'
+  # Manual trigger for documentation-only deployments
+  workflow_dispatch:
 
 permissions:
   contents: read
