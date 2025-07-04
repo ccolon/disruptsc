@@ -1,0 +1,2534 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Spatial agent-based model for supply chain disruption analysis (v1.1.6)">
+      
+      
+        <meta name="author" content="Celian Colon">
+      
+      
+        <link rel="canonical" href="https://ccolon.github.io/disrupt-sc/1.1.6/user-guide/data-modes/">
+      
+      
+        <link rel="prev" href="../parameters/">
+      
+      
+        <link rel="next" href="../input-data/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>Data Modes - DisruptSC Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-orange">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#data-modes" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="DisruptSC Documentation" class="md-header__button md-logo" aria-label="DisruptSC Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            DisruptSC Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Data Modes
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-orange"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="deep-orange"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ccolon/disrupt-sc" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    ccolon/disrupt-sc
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../getting-started/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Getting Started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  User Guide
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../applications/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Use Cases
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../research/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Research & Policy
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../contributors/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Contributors
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../contact/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Get involved
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="DisruptSC Documentation" class="md-nav__button md-logo" aria-label="DisruptSC Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    DisruptSC Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ccolon/disrupt-sc" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    ccolon/disrupt-sc
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../getting-started/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Getting Started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/data-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quick-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Input Validation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    User Guide
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            User Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../basic-usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Basic Usage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../parameters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Parameters
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Data Modes
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Modes
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mrio-mode-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      MRIO Mode (Default)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MRIO Mode (Default)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Requirements
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Requirements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#required-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      Required Files
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mrio-table-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      MRIO Table Structure
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sector-table-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sector Table Structure
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-mrio-mode-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      How MRIO Mode Works
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How MRIO Mode Works">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-firm-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Firm Creation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-household-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Household Creation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-country-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Country Creation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-supply-chain-formation" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Supply Chain Formation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advantages" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advantages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Limitations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#best-use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Use Cases
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#supplier-buyer-network-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Supplier-Buyer Network Mode
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Supplier-Buyer Network Mode">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configuration_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#additional-data-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Additional Data Requirements
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Additional Data Requirements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#firm-table-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Firm Table Structure
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#location-table-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Location Table Structure
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transaction-table-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Transaction Table Structure
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-network-mode-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      How Network Mode Works
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How Network Mode Works">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-firm-creation_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Firm Creation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-supply-chain-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Supply Chain Creation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-householdcountry-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Household/Country Creation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advantages_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advantages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limitations_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Limitations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#best-use-cases_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Use Cases
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mode-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      Mode Comparison
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Mode Comparison">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#data-requirements_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model-characteristics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Model Characteristics
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computational-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Computational Performance
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#choosing-the-right-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Choosing the Right Mode
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Choosing the Right Mode">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#decision-framework" class="md-nav__link">
+    <span class="md-ellipsis">
+      Decision Framework
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-mrio-mode-when" class="md-nav__link">
+    <span class="md-ellipsis">
+      Use MRIO Mode When:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-network-mode-when" class="md-nav__link">
+    <span class="md-ellipsis">
+      Use Network Mode When:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-between-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration Between Modes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Migration Between Modes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#from-mrio-to-network" class="md-nav__link">
+    <span class="md-ellipsis">
+      From MRIO to Network
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-network-to-mrio" class="md-nav__link">
+    <span class="md-ellipsis">
+      From Network to MRIO
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation-and-quality-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Validation and Quality Checks
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Validation and Quality Checks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mrio-mode-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      MRIO Mode Validation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#network-mode-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Network Mode Validation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cross-mode-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cross-Mode Comparison
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#data-preparation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Preparation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      Model Development
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#production-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      Production Use
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../input-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Input Data
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../output-files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Output Files
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tutorials
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Use Cases
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Research & Policy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../contributors/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Contributors
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Contributors
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributors/releases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Release Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contact/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Get involved
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mrio-mode-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      MRIO Mode (Default)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MRIO Mode (Default)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Requirements
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Requirements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#required-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      Required Files
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mrio-table-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      MRIO Table Structure
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sector-table-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sector Table Structure
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-mrio-mode-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      How MRIO Mode Works
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How MRIO Mode Works">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-firm-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Firm Creation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-household-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Household Creation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-country-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Country Creation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-supply-chain-formation" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Supply Chain Formation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advantages" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advantages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Limitations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#best-use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Use Cases
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#supplier-buyer-network-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Supplier-Buyer Network Mode
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Supplier-Buyer Network Mode">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configuration_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#additional-data-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Additional Data Requirements
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Additional Data Requirements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#firm-table-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Firm Table Structure
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#location-table-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Location Table Structure
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transaction-table-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Transaction Table Structure
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-network-mode-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      How Network Mode Works
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How Network Mode Works">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-firm-creation_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Firm Creation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-supply-chain-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Supply Chain Creation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-householdcountry-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Household/Country Creation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advantages_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advantages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limitations_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Limitations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#best-use-cases_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Use Cases
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mode-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      Mode Comparison
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Mode Comparison">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#data-requirements_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model-characteristics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Model Characteristics
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computational-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Computational Performance
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#choosing-the-right-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Choosing the Right Mode
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Choosing the Right Mode">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#decision-framework" class="md-nav__link">
+    <span class="md-ellipsis">
+      Decision Framework
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-mrio-mode-when" class="md-nav__link">
+    <span class="md-ellipsis">
+      Use MRIO Mode When:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-network-mode-when" class="md-nav__link">
+    <span class="md-ellipsis">
+      Use Network Mode When:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-between-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration Between Modes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Migration Between Modes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#from-mrio-to-network" class="md-nav__link">
+    <span class="md-ellipsis">
+      From MRIO to Network
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-network-to-mrio" class="md-nav__link">
+    <span class="md-ellipsis">
+      From Network to MRIO
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation-and-quality-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Validation and Quality Checks
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Validation and Quality Checks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mrio-mode-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      MRIO Mode Validation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#network-mode-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Network Mode Validation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cross-mode-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cross-Mode Comparison
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#data-preparation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Preparation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      Model Development
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#production-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      Production Use
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="data-modes">Data Modes<a class="headerlink" href="#data-modes" title="Permanent link">&para;</a></h1>
+<p>DisruptSC supports two data input modes for creating economic agents and supply chains. This guide explains when and how to use each mode.</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Data Source</th>
+<th>Use Case</th>
+<th>Complexity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>MRIO</strong></td>
+<td>Input-Output tables</td>
+<td>Regional/national studies</td>
+<td>Simple</td>
+</tr>
+<tr>
+<td><strong>Supplier-Buyer Network</strong></td>
+<td>Transaction data</td>
+<td>Supply chain studies</td>
+<td>Advanced</td>
+</tr>
+</tbody>
+</table>
+<h2 id="mrio-mode-default">MRIO Mode (Default)<a class="headerlink" href="#mrio-mode-default" title="Permanent link">&para;</a></h2>
+<p>Multi-Regional Input-Output (MRIO) mode uses standard economic accounts data to generate agents and supply chains.</p>
+<h3 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h3>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Default - can be omitted</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">firm_data_type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;mrio&quot;</span>
+</span></code></pre></div>
+<h3 id="data-requirements">Data Requirements<a class="headerlink" href="#data-requirements" title="Permanent link">&para;</a></h3>
+<h4 id="required-files">Required Files<a class="headerlink" href="#required-files" title="Permanent link">&para;</a></h4>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>data/&lt;scope&gt;/
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>├── Economic/
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>│   ├── mrio.csv            # Multi-regional input-output table
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>│   └── sector_table.csv    # Sector definitions and parameters
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>└── Spatial/
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    ├── households.geojson  # Household spatial distribution
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    ├── countries.geojson   # Country/import entry points
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    └── firms.geojson       # Firm spatial disaggregation
+</span></code></pre></div>
+<h4 id="mrio-table-structure">MRIO Table Structure<a class="headerlink" href="#mrio-table-structure" title="Permanent link">&para;</a></h4>
+<p>The <code>mrio.csv</code> file contains input-output flows:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>region_sector,AGR_Region1,MAN_Region1,SER_Region1,HH_Region1,Export_CHN,...
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>AGR_Region1,150.5,75.2,25.0,500.0,100.0,...
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>MAN_Region1,50.0,200.0,150.0,800.0,150.0,...
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>SER_Region1,25.0,100.0,300.0,600.0,50.0,...
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>Import_CHN,10.0,50.0,20.0,100.0,0.0,...
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>...
+</span></code></pre></div>
+<p><strong>Key features:</strong>
+- Rows = selling sectors, Columns = buying sectors
+- Final demand columns (households, exports)
+- Import rows for international trade
+- Monetary values in consistent units</p>
+<h4 id="sector-table-structure">Sector Table Structure<a class="headerlink" href="#sector-table-structure" title="Permanent link">&para;</a></h4>
+<p>The <code>sector_table.csv</code> defines sector characteristics:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>sector,type,output,final_demand,usd_per_ton,share_exporting_firms,supply_data,cutoff
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>AGR_Region1,agriculture,2000000,500000,950,0.16,ag_prod,3500000
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>MAN_Region1,manufacturing,5000000,800000,2864,0.45,man_prod,5000000
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>SER_Region1,service,3000000,600000,0,0.10,ser_emp,2000000
+</span></code></pre></div>
+<p><strong>Required columns:</strong>
+- <code>sector</code> - Region_sector identifier
+- <code>type</code> - Sector category (agriculture, manufacturing, etc.)
+- <code>output</code> - Total yearly output (model currency)
+- <code>final_demand</code> - Total yearly final demand
+- <code>usd_per_ton</code> - USD value per ton (0 for services)
+- <code>share_exporting_firms</code> - Fraction of firms that export
+- <code>supply_data</code> - Spatial disaggregation attribute
+- <code>cutoff</code> - Minimum threshold for firm creation</p>
+<h3 id="how-mrio-mode-works">How MRIO Mode Works<a class="headerlink" href="#how-mrio-mode-works" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>graph TD
+    A[MRIO Table] --&gt; B[Extract Output Data]
+    A --&gt; C[Extract Technical Coefficients]
+    A --&gt; D[Extract Final Demand]
+
+    B --&gt; E[Create Firms]
+    C --&gt; F[Define Supply Chains]
+    D --&gt; G[Create Households]
+    A --&gt; H[Create Countries]
+
+    I[Spatial Data] --&gt; E
+    I --&gt; G
+    I --&gt; H</code></pre>
+<h4 id="1-firm-creation">1. Firm Creation<a class="headerlink" href="#1-firm-creation" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>One firm per region-sector</strong> with non-zero output</li>
+<li><strong>Spatial disaggregation</strong> based on <code>firms.geojson</code> attributes</li>
+<li><strong>Production capacity</strong> from MRIO output data</li>
+<li><strong>Input requirements</strong> from technical coefficients</li>
+</ul>
+<h4 id="2-household-creation">2. Household Creation<a class="headerlink" href="#2-household-creation" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Spatial distribution</strong> from <code>households.geojson</code></li>
+<li><strong>Consumption patterns</strong> from MRIO final demand</li>
+<li><strong>Population weighting</strong> for disaggregation</li>
+</ul>
+<h4 id="3-country-creation">3. Country Creation<a class="headerlink" href="#3-country-creation" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Trade partners</strong> from MRIO import/export data  </li>
+<li><strong>Entry points</strong> from <code>countries.geojson</code></li>
+<li><strong>Trade volumes</strong> from international flows</li>
+</ul>
+<h4 id="4-supply-chain-formation">4. Supply Chain Formation<a class="headerlink" href="#4-supply-chain-formation" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Technical coefficients</strong> define input requirements</li>
+<li><strong>Supplier selection</strong> based on spatial proximity and importance</li>
+<li><strong>Import/export links</strong> for international trade</li>
+</ul>
+<h3 id="advantages">Advantages<a class="headerlink" href="#advantages" title="Permanent link">&para;</a></h3>
+<p>✅ <strong>Comprehensive coverage</strong> - All economic sectors included
+✅ <strong>Data availability</strong> - Standard economic accounts exist globally<br />
+✅ <strong>Consistent framework</strong> - Based on economic theory
+✅ <strong>Regional detail</strong> - Sub-national disaggregation possible
+✅ <strong>Simple setup</strong> - Minimal data requirements</p>
+<h3 id="limitations">Limitations<a class="headerlink" href="#limitations" title="Permanent link">&para;</a></h3>
+<p>❌ <strong>Aggregated view</strong> - Less firm-level detail
+❌ <strong>Synthetic supply chains</strong> - Generated, not observed
+❌ <strong>Homogeneous firms</strong> - Single firm per region-sector
+❌ <strong>Static relationships</strong> - No firm dynamics</p>
+<h3 id="best-use-cases">Best Use Cases<a class="headerlink" href="#best-use-cases" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Regional impact analysis</strong> - Natural disasters, trade shocks</li>
+<li><strong>Policy evaluation</strong> - Infrastructure investments, regulations</li>
+<li><strong>Academic research</strong> - Theoretical model applications</li>
+<li><strong>Baseline studies</strong> - Understanding economic structure</li>
+</ul>
+<h2 id="supplier-buyer-network-mode">Supplier-Buyer Network Mode<a class="headerlink" href="#supplier-buyer-network-mode" title="Permanent link">&para;</a></h2>
+<p>This mode uses detailed firm-level transaction data to create explicit supply chain networks.</p>
+<h3 id="configuration_1">Configuration<a class="headerlink" href="#configuration_1" title="Permanent link">&para;</a></h3>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">firm_data_type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;supplier-buyer</span><span class="nv"> </span><span class="s">network&quot;</span>
+</span></code></pre></div>
+<h3 id="additional-data-requirements">Additional Data Requirements<a class="headerlink" href="#additional-data-requirements" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>data/&lt;scope&gt;/
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>├── Economic/
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>│   ├── mrio.csv            # Still required for households/countries
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>│   ├── sector_table.csv    # Still required for sectors
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>│   ├── firm_table.csv      # Firm-level data
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>│   ├── location_table.csv  # Firm locations
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>│   └── transaction_table.csv  # Supplier-buyer transactions
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>└── Spatial/
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>    ├── households.geojson  # Still required
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>    └── countries.geojson   # Still required
+</span></code></pre></div>
+<h4 id="firm-table-structure">Firm Table Structure<a class="headerlink" href="#firm-table-structure" title="Permanent link">&para;</a></h4>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>id,sector,region,output,employees,importance
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>1001,AGR_Region1,Region1,500000,50,0.15
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>1002,AGR_Region1,Region1,750000,75,0.25
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>1003,MAN_Region1,Region1,2000000,200,0.45
+</span></code></pre></div>
+<h4 id="location-table-structure">Location Table Structure<a class="headerlink" href="#location-table-structure" title="Permanent link">&para;</a></h4>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>firm_id,long,lat,transport_node,admin_level1
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>1001,-104.532,40.123,node_456,State1
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>1002,-104.445,40.234,node_789,State1
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>1003,-104.612,40.087,node_234,State2
+</span></code></pre></div>
+<h4 id="transaction-table-structure">Transaction Table Structure<a class="headerlink" href="#transaction-table-structure" title="Permanent link">&para;</a></h4>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>supplier_id,buyer_id,product_sector,transaction,is_essential
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>1001,1003,AGR_Region1,150000,true
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>1002,1003,AGR_Region1,200000,false
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>1004,1003,MAN_Region2,500000,true
+</span></code></pre></div>
+<h3 id="how-network-mode-works">How Network Mode Works<a class="headerlink" href="#how-network-mode-works" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>graph TD
+    A[Firm Table] --&gt; B[Create Individual Firms]
+    C[Location Table] --&gt; B
+    D[Transaction Table] --&gt; E[Define Explicit Links]
+    F[MRIO Table] --&gt; G[Create Households/Countries]
+
+    B --&gt; H[Firm Agents]
+    E --&gt; I[Supply Chain Network]
+    G --&gt; J[Household/Country Agents]</code></pre>
+<h4 id="1-firm-creation_1">1. Firm Creation<a class="headerlink" href="#1-firm-creation_1" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Individual firms</strong> from firm table records</li>
+<li><strong>Heterogeneous characteristics</strong> - size, productivity, location</li>
+<li><strong>Spatial placement</strong> from location table</li>
+<li><strong>Realistic firm distribution</strong></li>
+</ul>
+<h4 id="2-supply-chain-creation">2. Supply Chain Creation<a class="headerlink" href="#2-supply-chain-creation" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Explicit transactions</strong> from transaction table</li>
+<li><strong>Observed relationships</strong> - actual supplier-buyer pairs</li>
+<li><strong>Transaction volumes</strong> - real economic flows</li>
+<li><strong>Essential vs. substitutable</strong> suppliers</li>
+</ul>
+<h4 id="3-householdcountry-creation">3. Household/Country Creation<a class="headerlink" href="#3-householdcountry-creation" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Still uses MRIO</strong> for households and countries</li>
+<li><strong>Ensures completeness</strong> of economic system</li>
+<li><strong>Maintains consistency</strong> with national accounts</li>
+</ul>
+<h3 id="advantages_1">Advantages<a class="headerlink" href="#advantages_1" title="Permanent link">&para;</a></h3>
+<p>✅ <strong>Firm-level detail</strong> - Individual heterogeneous firms
+✅ <strong>Observed relationships</strong> - Real supplier-buyer networks
+✅ <strong>Realistic behavior</strong> - Based on actual transactions
+✅ <strong>Supply chain accuracy</strong> - Explicit network structure
+✅ <strong>Firm dynamics</strong> - Can model firm entry/exit</p>
+<h3 id="limitations_1">Limitations<a class="headerlink" href="#limitations_1" title="Permanent link">&para;</a></h3>
+<p>❌ <strong>Data intensive</strong> - Requires detailed firm databases
+❌ <strong>Limited availability</strong> - Few countries have this data
+❌ <strong>Confidentiality</strong> - Firm data often sensitive
+❌ <strong>Complexity</strong> - More difficult to set up and validate
+❌ <strong>Partial coverage</strong> - May miss informal sectors</p>
+<h3 id="best-use-cases_1">Best Use Cases<a class="headerlink" href="#best-use-cases_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Supply chain resilience</strong> - Critical supplier identification</li>
+<li><strong>Firm-level analysis</strong> - Individual company impacts  </li>
+<li><strong>Network studies</strong> - Supply chain structure analysis</li>
+<li><strong>Policy targeting</strong> - Firm-specific interventions</li>
+</ul>
+<h2 id="mode-comparison">Mode Comparison<a class="headerlink" href="#mode-comparison" title="Permanent link">&para;</a></h2>
+<h3 id="data-requirements_1">Data Requirements<a class="headerlink" href="#data-requirements_1" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>MRIO Mode</th>
+<th>Network Mode</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Setup complexity</strong></td>
+<td>Simple</td>
+<td>Complex</td>
+</tr>
+<tr>
+<td><strong>Data availability</strong></td>
+<td>High</td>
+<td>Low</td>
+</tr>
+<tr>
+<td><strong>Data sensitivity</strong></td>
+<td>Low</td>
+<td>High</td>
+</tr>
+<tr>
+<td><strong>Preprocessing</strong></td>
+<td>Minimal</td>
+<td>Extensive</td>
+</tr>
+</tbody>
+</table>
+<h3 id="model-characteristics">Model Characteristics<a class="headerlink" href="#model-characteristics" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>MRIO Mode</th>
+<th>Network Mode</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Firm representation</strong></td>
+<td>Aggregate</td>
+<td>Individual</td>
+</tr>
+<tr>
+<td><strong>Supply chains</strong></td>
+<td>Generated</td>
+<td>Observed</td>
+</tr>
+<tr>
+<td><strong>Heterogeneity</strong></td>
+<td>Low</td>
+<td>High</td>
+</tr>
+<tr>
+<td><strong>Validation</strong></td>
+<td>Economic accounts</td>
+<td>Firm surveys</td>
+</tr>
+</tbody>
+</table>
+<h3 id="computational-performance">Computational Performance<a class="headerlink" href="#computational-performance" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>MRIO Mode</th>
+<th>Network Mode</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Model size</strong></td>
+<td>Smaller</td>
+<td>Larger</td>
+</tr>
+<tr>
+<td><strong>Memory usage</strong></td>
+<td>Lower</td>
+<td>Higher</td>
+</tr>
+<tr>
+<td><strong>Runtime</strong></td>
+<td>Faster</td>
+<td>Slower</td>
+</tr>
+<tr>
+<td><strong>Scalability</strong></td>
+<td>Better</td>
+<td>Limited</td>
+</tr>
+</tbody>
+</table>
+<h2 id="choosing-the-right-mode">Choosing the Right Mode<a class="headerlink" href="#choosing-the-right-mode" title="Permanent link">&para;</a></h2>
+<h3 id="decision-framework">Decision Framework<a class="headerlink" href="#decision-framework" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>graph TD
+    A[Start] --&gt; B{Do you have firm-level transaction data?}
+    B --&gt;|No| C[Use MRIO Mode]
+    B --&gt;|Yes| D{Is data quality high?}
+    D --&gt;|No| C
+    D --&gt;|Yes| E{Is coverage complete?}
+    E --&gt;|No| F{Can you supplement missing data?}
+    F --&gt;|No| C
+    F --&gt;|Yes| G[Use Network Mode]
+    E --&gt;|Yes| G</code></pre>
+<h3 id="use-mrio-mode-when">Use MRIO Mode When:<a class="headerlink" href="#use-mrio-mode-when" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Standard analysis</strong> - Regional impact assessment</li>
+<li><strong>Data constraints</strong> - Limited access to firm data</li>
+<li><strong>Academic research</strong> - Theoretical model applications</li>
+<li><strong>Policy analysis</strong> - Broad economic impacts</li>
+<li><strong>Initial exploration</strong> - Understanding system structure</li>
+</ul>
+<h3 id="use-network-mode-when">Use Network Mode When:<a class="headerlink" href="#use-network-mode-when" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Supply chain focus</strong> - Detailed network analysis</li>
+<li><strong>Firm-level questions</strong> - Individual company impacts</li>
+<li><strong>Available data</strong> - Access to transaction databases</li>
+<li><strong>Validation needs</strong> - Match observed supply chains</li>
+<li><strong>Advanced analysis</strong> - Network topology studies</li>
+</ul>
+<h2 id="migration-between-modes">Migration Between Modes<a class="headerlink" href="#migration-between-modes" title="Permanent link">&para;</a></h2>
+<h3 id="from-mrio-to-network">From MRIO to Network<a class="headerlink" href="#from-mrio-to-network" title="Permanent link">&para;</a></h3>
+<p>If you start with MRIO and later obtain firm data:</p>
+<ol>
+<li><strong>Keep MRIO files</strong> - Still needed for households/countries</li>
+<li><strong>Add firm tables</strong> - Supplement with detailed data</li>
+<li><strong>Update configuration</strong> - Change <code>firm_data_type</code></li>
+<li><strong>Validate consistency</strong> - Check aggregate matches</li>
+</ol>
+<h3 id="from-network-to-mrio">From Network to MRIO<a class="headerlink" href="#from-network-to-mrio" title="Permanent link">&para;</a></h3>
+<p>If network data becomes unavailable:</p>
+<ol>
+<li><strong>Aggregate firm data</strong> - Create MRIO equivalent</li>
+<li><strong>Remove firm tables</strong> - Keep only aggregated data</li>
+<li><strong>Update configuration</strong> - Revert to MRIO mode</li>
+<li><strong>Verify results</strong> - Compare with network version</li>
+</ol>
+<h2 id="validation-and-quality-checks">Validation and Quality Checks<a class="headerlink" href="#validation-and-quality-checks" title="Permanent link">&para;</a></h2>
+<h3 id="mrio-mode-validation">MRIO Mode Validation<a class="headerlink" href="#mrio-mode-validation" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Check MRIO balance</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>python<span class="w"> </span>validate_inputs.py<span class="w"> </span>Cambodia<span class="w"> </span>--check-mrio-balance
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1"># Verify sector consistency  </span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>python<span class="w"> </span>validate_inputs.py<span class="w"> </span>Cambodia<span class="w"> </span>--check-sectors
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="c1"># Spatial consistency</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>python<span class="w"> </span>validate_inputs.py<span class="w"> </span>Cambodia<span class="w"> </span>--check-spatial
+</span></code></pre></div>
+<h3 id="network-mode-validation">Network Mode Validation<a class="headerlink" href="#network-mode-validation" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Firm data consistency</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>python<span class="w"> </span>validate_inputs.py<span class="w"> </span>Cambodia<span class="w"> </span>--check-firms
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1"># Transaction completeness</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>python<span class="w"> </span>validate_inputs.py<span class="w"> </span>Cambodia<span class="w"> </span>--check-transactions
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="c1"># Network connectivity</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>python<span class="w"> </span>validate_inputs.py<span class="w"> </span>Cambodia<span class="w"> </span>--check-network
+</span></code></pre></div>
+<h3 id="cross-mode-comparison">Cross-Mode Comparison<a class="headerlink" href="#cross-mode-comparison" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Compare aggregate results</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">disruptsc.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">compare_modes</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="n">results</span> <span class="o">=</span> <span class="n">compare_modes</span><span class="p">(</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>    <span class="n">mrio_results</span><span class="o">=</span><span class="s1">&#39;output/Cambodia_mrio/&#39;</span><span class="p">,</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>    <span class="n">network_results</span><span class="o">=</span><span class="s1">&#39;output/Cambodia_network/&#39;</span>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="p">)</span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">summary</span><span class="p">())</span>
+</span></code></pre></div>
+<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<h3 id="data-preparation">Data Preparation<a class="headerlink" href="#data-preparation" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Start with validation</strong> - Always validate before simulation</li>
+<li><strong>Check aggregation</strong> - Ensure consistency between levels</li>
+<li><strong>Document sources</strong> - Track data provenance</li>
+<li><strong>Version control</strong> - Manage data updates</li>
+</ol>
+<h3 id="model-development">Model Development<a class="headerlink" href="#model-development" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Begin with MRIO</strong> - Start simple, add complexity</li>
+<li><strong>Validate incrementally</strong> - Test each data addition</li>
+<li><strong>Compare modes</strong> - Cross-validate when possible</li>
+<li><strong>Document assumptions</strong> - Record modeling choices</li>
+</ol>
+<h3 id="production-use">Production Use<a class="headerlink" href="#production-use" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Choose appropriate mode</strong> - Match to research question</li>
+<li><strong>Validate results</strong> - Check against known benchmarks</li>
+<li><strong>Sensitivity analysis</strong> - Test parameter variations</li>
+<li><strong>Archive configurations</strong> - Preserve reproducibility</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2024 Celian Colon
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/ccolon/disrupt-sc" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/disruptsc/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 404c11.1 0 20.1 9.1 20.1 20.3 0 11.3-9 20.4-20.1 20.4-11 0-20.1-9.2-20.1-20.4.1-11.3 9.1-20.3 20.1-20.3M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.7-142.6c-11.1 0-20.1-9.1-20.1-20.3.1-11.3 9-20.4 20.1-20.4 11 0 20.1 9.2 20.1 20.4s-9 20.3-20.1 20.3"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.indexes", "search.highlight", "search.share", "search.suggest", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
