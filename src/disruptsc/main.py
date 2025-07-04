@@ -118,6 +118,8 @@ def main():
         model = setup_model(parameters, cache_parameters)
         
         # Execute simulation using appropriate executor
+        if args.simulation_type:
+            parameters.simulation_type = args.simulation_type
         executor = ExecutorFactory.create_executor(parameters.simulation_type, model, parameters)
         simulation = executor.execute()
         

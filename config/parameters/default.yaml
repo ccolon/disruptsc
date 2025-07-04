@@ -352,9 +352,6 @@ epsilon_stop_condition: 1e-3
 # - cost_per_ton
 route_optimization_weight: "cost_per_ton"
 
-# How to translate an increase in transport cost into increase in prices
-cost_repercussion_mode: "type1"
-
 # If the relative increase in transport cost is larger than this value, then the firm chooses not to deliver
 # the product
 price_increase_threshold: 2

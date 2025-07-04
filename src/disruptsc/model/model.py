@@ -343,7 +343,7 @@ class Model(object):
     def setup_sc_network(self, cached: bool = False):
         if cached:
             self.sc_network, self.firms, self.households, self.countries = load_cached_sc_network()
-            
+
             # Build network topology cache for cached network
             logging.info('Building network topology cache for cached supply chain network...')
             topology_cache = NetworkTopologyCache(self.sc_network)
@@ -417,22 +417,23 @@ class Model(object):
                     logging.info(f"Converged after {iteration + 1} iterations")
                     break
                 total_removed += removed_count
-                
+
                 # Remove firms from model collections that were removed from sc_network
-                current_firm_pids_in_network = {node.pid for node in self.sc_network.nodes() 
-                                              if hasattr(node, 'agent_type') and node.agent_type == "firm"}
+                current_firm_pids_in_network = {node.pid for node in self.sc_network.nodes()
+                                                if hasattr(node, 'agent_type') and node.agent_type == "firm"}
                 firms_to_remove = set(self.firms.keys()) - current_firm_pids_in_network
                 for firm_id in firms_to_remove:
                     del self.firms[firm_id]
             else:
                 logging.warning(f"Reached maximum iterations ({max_iterations}) without convergence")
-            
+
             logging.info(f"Total firms removed in cleanup: {total_removed}")
-            
+
             # Final validation: Check for any remaining firms without clients
             remaining_firms_without_clients = self.sc_network.identify_firms_without_clients()
             if remaining_firms_without_clients:
-                logging.warning(f"Warning: {len(remaining_firms_without_clients)} firms still without clients after cleanup")
+                logging.warning(
+                    f"Warning: {len(remaining_firms_without_clients)} firms still without clients after cleanup")
             else:
                 logging.info("Cleanup successful: All remaining firms have clients")
 
@@ -445,7 +446,7 @@ class Model(object):
             #     del self.countries[unconnected_country]
 
             logging.info('The nodes and edges of the supplier--buyer have been created')
-            
+
             # Build network topology cache for performance optimization
             logging.info('Building network topology cache for optimized agent operations...')
             topology_cache = NetworkTopologyCache(self.sc_network)
@@ -488,7 +489,7 @@ class Model(object):
         else:
             self.countries.assign_cost_profile(self.parameters.logistics['nb_cost_profiles'])
             self.firms.assign_cost_profile(self.parameters.logistics['nb_cost_profiles'])
-            
+
             # Assign modal switching cost parameter to agents
             modal_switching_cost = self.parameters.logistics.get('modal_switching_cost_percentage', 0)
             for agent in list(self.countries.values()) + list(self.firms.values()):
@@ -701,13 +702,84 @@ class Model(object):
         simulation = Simulation("stationary_test")
         nb_time_steps = 5
         logging.info(f"Simulating {nb_time_steps} time steps without disruption")
+
+        # Reset to initial equilibrium conditions before starting the test
+        self.set_initial_conditions()
+
         # print("self.production_capacity", self.firms[0].production_capacity)
         for i in range(nb_time_steps):
             self.run_one_time_step(time_step=i, current_simulation=simulation)
+
+            # Check for order/delivery mismatches in stationary test
+            self._check_stationary_equilibrium(time_step=i)
+
         simulation.calculate_and_export_summary_result(self.sc_network, self.household_table,
                                                        self.parameters.monetary_units_in_model,
                                                        None)
         return simulation
+
+    def _check_stationary_equilibrium(self, time_step: int):
+        """Check for order/delivery mismatches and diagnose delivery issues."""
+        tolerance = 1e-6  # Small tolerance for floating point comparisons
+        
+        # Count delivery issues for statistics
+        total_links = 0
+        links_with_qty_issues = 0
+        links_with_deliveries_no_order = 0
+        links_with_order_no_delivery = 0
+
+        for (supplier, buyer) in self.sc_network.edges():
+            commercial_link = self.sc_network[supplier][buyer]['object']
+            
+            # Get current order and delivery
+            order_qty = getattr(commercial_link, 'order', 0)
+            delivery_qty = getattr(commercial_link, 'delivery', 0)
+            total_links += 1
+
+            # Collect statistics and check for issues
+            if abs(delivery_qty - order_qty) > tolerance:
+                links_with_qty_issues += 1
+
+                if abs(order_qty) < tolerance:
+                    links_with_deliveries_no_order += 1
+                    logging.warning(f"Agent {supplier.pid} supplied but client {buyer.pid} did not order")
+
+                elif abs(delivery_qty) < tolerance:
+                    links_with_order_no_delivery += 1
+                    if hasattr(supplier, 'product_stock'):  # It's a firm
+                        logging.warning(f"Stationary test time step {time_step}: "
+                                        f"Firm {supplier.pid} -> {buyer.pid}: "
+                                        f"ordered={order_qty:.6f}, delivered={delivery_qty:.6f}, "
+                                        f"product_stock={supplier.product_stock:.6f}, "
+                                        f"production={supplier.production:.6f}, "
+                                        f"total_order={supplier.total_order:.6f}")
+                    else:
+                        # Non-firm supplier (country) with delivery issue
+                        logging.warning(f"Stationary test time step {time_step}: "
+                                        f"Country {supplier.pid} -> {buyer.pid}: "
+                                        f"ordered={order_qty:.6f}, delivered={delivery_qty:.6f}")
+
+        # Summary statistics
+        success_rate = (total_links - links_with_qty_issues) / total_links * 100
+        logging.info(f"Stationary test time step {time_step} summary")
+        logging.info(f"Commercial links: Success rate {success_rate:.1f}%")
+        if links_with_qty_issues > 0:
+            links_with_other_issues = links_with_qty_issues - links_with_order_no_delivery - links_with_deliveries_no_order
+            logging.info(f"{links_with_deliveries_no_order} links with no order but delivery, "
+                         f"{links_with_order_no_delivery} links with order but no delivery, "
+                         f"{links_with_other_issues} links with order but unmatching delivery")
+
+        households_consumption_loss = 0
+        for household in self.households.values():
+            if household.consumption_loss > tolerance:
+                households_consumption_loss += 1
+        logging.info(f"Households: Success rate {100 - households_consumption_loss / len(self.households)*100:.1f}%")
+
+        countries_consumption_loss = 0
+        for country in self.countries.values():
+            if country.consumption_loss > tolerance:
+                countries_consumption_loss += 1
+        logging.info(f"Countries: Success rate {100 - countries_consumption_loss / len(self.households)*100:.1f}%")
 
     def save_pickle(self, suffix):
         cache_model(self, suffix)
@@ -785,6 +857,11 @@ class Model(object):
 
     def run_one_time_step(self, time_step: int, current_simulation: Simulation):
         logging.info(f"Running time step {time_step}")
+        
+        # # Reset commercial link variables for new time step
+        # for (supplier, buyer) in self.sc_network.edges():
+        #     self.sc_network[supplier][buyer]['object'].reset_variables()
+        #
         # print("self.production_capacity", self.firms[0].production_capacity)
         # self.transport_network.reset_current_loads(self.parameters.route_optimization_weight)
 
@@ -815,9 +892,10 @@ class Model(object):
         self.countries.deliver(self.sc_network, self.transport_network, available_transport_network,
                                self.parameters.sectors_no_transport_network,
                                self.parameters.rationing_mode, self.parameters.with_transport,
-                               self.parameters.transport_to_households, self.parameters.get_capacity_constraint_enabled(),
+                               self.parameters.transport_to_households,
+                               self.parameters.get_capacity_constraint_enabled(),
                                self.parameters.get_capacity_constraint_mode(),
-                               self.parameters.monetary_units_in_model, self.parameters.cost_repercussion_mode,
+                               self.parameters.monetary_units_in_model,
                                self.parameters.price_increase_threshold,
                                self.parameters.use_route_cache)
         self.firms.deliver(self.sc_network, self.transport_network, available_transport_network,
@@ -825,7 +903,7 @@ class Model(object):
                            self.parameters.rationing_mode, self.parameters.with_transport,
                            self.parameters.transport_to_households, self.parameters.get_capacity_constraint_enabled(),
                            self.parameters.get_capacity_constraint_mode(),
-                           self.parameters.monetary_units_in_model, self.parameters.cost_repercussion_mode,
+                           self.parameters.monetary_units_in_model,
                            self.parameters.price_increase_threshold,
                            self.parameters.use_route_cache)
         # print(self.firms[0].rationing)
@@ -858,9 +936,11 @@ class Model(object):
                                          self.parameters.sectors_no_transport_network,
                                          self.parameters.transport_to_households)
         self.countries.receive_products(self.sc_network, self.transport_network,
-                                        self.parameters.sectors_no_transport_network)
+                                        self.parameters.sectors_no_transport_network,
+                                         self.parameters.transport_to_households)
         self.firms.receive_products(self.sc_network, self.transport_network,
-                                    self.parameters.sectors_no_transport_network)
+                                    self.parameters.sectors_no_transport_network,
+                                    self.parameters.transport_to_households)
         self.transport_network.check_no_uncollected_shipment()
         self.transport_network.reset_loads()
         self.firms.evaluate_profit(self.sc_network)
@@ -977,15 +1057,15 @@ class Model(object):
         cost_per_ton_attrs = self.transport_network._get_cost_per_ton_attributes(with_capacity=False)
         cost_dataframes = []
         for attr in cost_per_ton_attrs:
-            df = pd.DataFrame(nx.get_edge_attributes(self.transport_network, attr), 
-                             index=[attr]).transpose()
+            df = pd.DataFrame(nx.get_edge_attributes(self.transport_network, attr),
+                              index=[attr]).transpose()
             cost_dataframes.append(df)
-        
+
         # Add edge ID for merging
-        id_df = pd.DataFrame(nx.get_edge_attributes(self.transport_network, "id"), 
-                           index=["id"]).transpose()
+        id_df = pd.DataFrame(nx.get_edge_attributes(self.transport_network, "id"),
+                             index=["id"]).transpose()
         cost_dataframes.append(id_df)
-        
+
         cost_columns = pd.concat(cost_dataframes, axis=1).set_index("id", drop=True)
         self.transport_edges = pd.concat([self.transport_edges, cost_columns], axis=1)
         self.transport_edges.drop(columns=['node_tuple']).to_file(

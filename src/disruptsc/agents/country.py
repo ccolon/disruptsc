@@ -180,14 +180,13 @@ class Country(BaseAgent, TransportCapable):
                          available_transport_network: "TransportNetwork",
                          sectors_no_transport_network: list[str], rationing_mode: str, with_transport: bool,
                          transport_to_households: bool,
-                         monetary_units_in_model: str, cost_repercussion_mode: str, price_increase_threshold: float,
+                         monetary_units_in_model: str, price_increase_threshold: float,
                          capacity_constraint: bool, capacity_constraint_mode: str, use_route_cache: bool):
         """ The quantity to be delivered is the quantity that was ordered (no rationing takes place)
 
         Parameters
         ----------
         explicit_service_firm
-        cost_repercussion_mode
         capacity_constraint
         monetary_units_in_model
         sectors_no_transport_network

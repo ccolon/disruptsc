@@ -1,13 +1,9 @@
 # Indicate the subfolder of the input folder that contains the input files
 logging_level: info
-#admin: [province]
 transport_modes: [roads, maritime, waterways, airways]
-#transport_cost_data:
-#  roads: surface-specific  # edge_attr-specific for TR2 (Ximena's data), surface-specific for TR1 (OSM data)
 monetary_units_in_model: mUSD
 monetary_units_in_data: kUSD
 time_resolution: day
-#inventory_duration_target: 2  # inputed
 with_transport: False
 inventory_duration_targets:
   definition: per_input_type
@@ -21,7 +17,6 @@ inventory_duration_targets:
     transport: 5
     default: 30
   unit: day
-#sectors_no_transport_network: ['utility', 'transport', 'trade', 'service']  # remove trade for mrio
 io_cutoff: 0.01  # 0.01
 cutoff_sector_output:
   'type': absolute
@@ -31,13 +26,13 @@ cutoff_sector_demand:
   'type': absolute
   'value': 100
   'unit': kUSD
-utilization_rate: 0.1
+utilization_rate: 1
 adaptive_inventories: True
 inventory_restoration_time: 90
 nb_suppliers_per_input: 1
 adaptive_supplier_weight: False
 price_increase_threshold: 2
-simulation_type: disruption-sensitivity  # initial_state, disruption
+simulation_type: stationary_test  # initial_state, disruption
 sensitivity:
   utilization_rate: [0.2, 1]
   adaptive_supplier_weight: [True, False]

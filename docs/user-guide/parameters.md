@@ -168,7 +168,6 @@ congestion: false               # Enable congestion modeling
 
 ```yaml
 # Cost parameters
-cost_repercussion_mode: "type1"  # Cost pass-through method
 price_increase_threshold: 0.5    # Maximum price increase tolerance
 
 # Logistics parameters

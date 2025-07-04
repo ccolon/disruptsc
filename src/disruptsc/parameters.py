@@ -76,7 +76,6 @@ class Parameters:
     time_resolution: str
     epsilon_stop_condition: float
     route_optimization_weight: str
-    cost_repercussion_mode: str
     price_increase_threshold: float
     adaptive_inventories: bool
     adaptive_supplier_weight: bool

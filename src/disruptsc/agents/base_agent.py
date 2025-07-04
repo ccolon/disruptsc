@@ -333,7 +333,7 @@ class BaseAgents(dict):
                 agent.send_purchase_orders(sc_network)
 
     def receive_products(self, sc_network: "ScNetwork", transport_network: "TransportNetwork",
-                         sectors_no_transport_network: list, transport_to_households: bool = False, 
+                         sectors_no_transport_network: list, transport_to_households: bool,
                          use_vectorized: bool = False):
         """All agents receive products from their suppliers."""
         if use_vectorized and len(self) > 5:  # Use vectorized approach for larger agent collections
@@ -402,7 +402,7 @@ class BaseAgents(dict):
                 available_transport_network: "TransportNetwork",
                 sectors_no_transport_network: list, rationing_mode: str, with_transport: bool,
                 transport_to_households: bool, capacity_constraint: bool, capacity_constraint_mode: str,
-                monetary_units_in_model: str, cost_repercussion_mode: str, price_increase_threshold: float,
+                monetary_units_in_model: str, price_increase_threshold: float,
                 use_route_cache: bool):
         """Deliver products for all agents that have delivery capabilities."""
         for agent in tqdm(self.values(), total=len(self), desc=f"{self.agents_type.capitalize()} delivering"):
@@ -414,7 +414,6 @@ class BaseAgents(dict):
                     with_transport=with_transport,
                     transport_to_households=transport_to_households,
                     monetary_units_in_model=monetary_units_in_model,
-                    cost_repercussion_mode=cost_repercussion_mode,
                     price_increase_threshold=price_increase_threshold,
                     capacity_constraint=capacity_constraint,
                     capacity_constraint_mode=capacity_constraint_mode,

@@ -43,14 +43,14 @@ class Simulation(object):
 
     def calculate_and_export_summary_result(self, sc_network: ScNetwork, household_table: pd.DataFrame,
                                             monetary_unit_in_model: str, export_folder: Path):
-        if self.type == "initial_state":
-            # export io matrix
+        if self.type in ["initial_state"]:
+            # export io matrix for equilibrium simulations
             logging.info(f'Exporting resulting IO matrix to {export_folder}')
             sc_network.calculate_io_matrix().to_csv(export_folder / "io_table.csv")
             logging.info(f'Exporting edgelist to {export_folder}')
             sc_network.generate_edge_list().to_csv(export_folder / "sc_network_edgelist.csv")
 
-        else:# self.type == "event":
+        else:# self.type == "event" or other disruption types:
             # export loss time series for households
             household_result_table = pd.DataFrame(self.household_data)
             loss_per_region_sector_time = household_result_table.groupby('household').apply(

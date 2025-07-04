@@ -563,7 +563,7 @@ class Firm(BaseAgent, TransportCapable):
                          sectors_no_transport_network: list, rationing_mode: str, with_transport: bool,
                          transport_to_households: bool,
                          monetary_units_in_model: str,
-                         cost_repercussion_mode: str, price_increase_threshold: float, capacity_constraint: bool,
+                         price_increase_threshold: float, capacity_constraint: bool,
                          capacity_constraint_mode: str, use_route_cache: bool):
 
         quantities_to_deliver = self.evaluate_quantities_to_deliver(rationing_mode)
@@ -814,7 +814,7 @@ class Firms(BaseAgents):
                 firm.calculate_price(sc_network)
 
     def plan_purchase(self, adaptive_inventories: bool, adapt_weight_based_on_satisfaction: bool,
-                     use_vectorized: bool = True):
+                     use_vectorized: bool = False):
         if use_vectorized and len(self) > 10:  # Use vectorized approach for larger firm collections
             from disruptsc.agents.vectorized_operations import vectorized_updater
             
@@ -851,7 +851,7 @@ class Firms(BaseAgents):
             # Fallback to sequential processing
             for firm in self.values():
                 firm.evaluate_input_needs()
-                firm.decide_purchase_plan(adaptive_inventories, adapt_weight_based_on_satisfaction)  # mode="reactive"
+                firm.decide_purchase_plan(adaptive_inventories, adapt_weight_based_on_satisfaction)
 
     def produce(self):
         for firm in self.values():
