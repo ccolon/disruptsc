@@ -270,6 +270,45 @@ python disruptsc/main.py Ecuador --simulation_type disruption-sensitivity
 
 **Output:** `sensitivity_TIMESTAMP.csv` with columns for each parameter plus final household/country losses
 
+### Ad Hoc Analysis
+
+Systematic testing of sector or geographic vulnerability:
+
+#### Sector Analysis
+```yaml
+simulation_type: "ad_hoc_sectors"
+```
+
+**Purpose:** Test disruption impact on each sector individually
+**Output:** Comparative sector vulnerability assessment
+
+#### Geographic Analysis
+```yaml
+simulation_type: "ad_hoc_provinces"  # or "ad_hoc_cantons"
+```
+
+**Purpose:** Test disruption impact on each geographic region individually
+**Output:** Spatial vulnerability mapping
+
+#### Combined Analysis
+```yaml
+simulation_type: "ad_hoc_province_sectors"  # or "ad_hoc_canton_sectors"
+```
+
+**Purpose:** Test disruption impact on all (region, sector) combinations
+**Output:** Detailed spatial-sectoral vulnerability matrix
+
+### Stationary Test
+
+Model stability and equilibrium validation:
+
+```yaml
+simulation_type: "stationary_test"
+```
+
+**Purpose:** Verify model reaches stable equilibrium without disruptions
+**Output:** Equilibrium validation metrics and convergence analysis
+
 ## Data Modes
 
 DisruptSC supports two data input modes:

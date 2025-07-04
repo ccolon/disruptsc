@@ -43,27 +43,7 @@ git submodule update --remote data
 - Automatic updates with git
 - Collaborative data management
 
-### Option 2: Environment Variable (Flexible)
-
-Point to a custom data directory location:
-
-```bash
-# Set environment variable (Linux/macOS)
-export DISRUPT_SC_DATA_PATH=/path/to/your/data/folder
-
-# Set environment variable (Windows)
-set DISRUPT_SC_DATA_PATH=C:\path\to\your\data\folder
-
-# Make permanent (add to ~/.bashrc, ~/.zshrc, etc.)
-echo 'export DISRUPT_SC_DATA_PATH=/path/to/data' >> ~/.bashrc
-```
-
-**Advantages:**
-- Flexible data location
-- Multiple data sources
-- Development-friendly
-
-### Option 3: Local Input Folder (Simple)
+### Option 2: Local Input Folder (Simple)
 
 Create a local `input/` folder:
 
@@ -86,9 +66,8 @@ mkdir input
 
 DisruptSC automatically detects data location in this order:
 
-1. **`DISRUPT_SC_DATA_PATH`** environment variable (highest priority)
-2. **`data/`** folder (git submodule)
-3. **`input/`** folder (local fallback)
+1. **`data/`** folder (git submodule, highest priority)
+2. **`input/`** folder (local fallback)
 
 ## Required Data Structure
 
@@ -183,9 +162,6 @@ python disruptsc/main.py Cambodia --help
 ??? failure "Data path not found"
     
     ```bash
-    # Check if environment variable is set
-    echo $DISRUPT_SC_DATA_PATH
-    
     # Verify folder exists
     ls -la data/Cambodia/
     ls -la input/Cambodia/

@@ -12,13 +12,13 @@ with_transport: False
 inventory_duration_targets:
   definition: per_input_type
   values:
-    utility: 1
+    utility: 3
     agriculture: 15
     manufacturing: 30
     service: 90
     trade: 30
     construction: 30
-    transport: 3
+    transport: 5
     default: 30
   unit: day
 #sectors_no_transport_network: ['utility', 'transport', 'trade', 'service']  # remove trade for mrio
@@ -31,23 +31,25 @@ cutoff_sector_demand:
   'type': absolute
   'value': 100
   'unit': kUSD
-utilization_rate: 1
+utilization_rate: 0.1
 adaptive_inventories: True
 inventory_restoration_time: 90
 nb_suppliers_per_input: 1
-adaptive_supplier_weight: True
+adaptive_supplier_weight: False
 price_increase_threshold: 2
-simulation_type: ad_hoc_subregion  # initial_state, disruption
-mc_repetitions: 5
+simulation_type: disruption-sensitivity  # initial_state, disruption
+sensitivity:
+  utilization_rate: [0.2, 1]
+  adaptive_supplier_weight: [True, False]
+  adaptive_inventories: [True, False]
+  nb_suppliers_per_input: [1, 4]
+  inventory_duration_targets.values.utility: [3, 15]
+  inventory_duration_targets.values.transport: [3, 15]
+t_final: 30
+mc_repetitions: 0
 export_files: True
 capital_to_value_added_ratio: 3
 capacity_constraint: False
-duration_dic:
-  0: 10
-  1: 4
-  2: 8
-  3: 11
-  4: 14
 disruptions:
   - type: capital_destruction
     start_time: 1
@@ -55,7 +57,7 @@ disruptions:
     description_type: filter  # sectors_homogeneous
     filter:
       #region_sector: ['ECU_TRA', 'ECU_INM']
-      subregion_province: ['ESMERALDAS']
+      subregion_province: ['AZUAY']
     destroyed_capital: 2510.0
 #    region_sector_filepath: "Disruption/earthquake_capital_destruction.csv"
     unit: mUSD
