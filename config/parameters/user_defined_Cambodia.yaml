@@ -1,13 +1,15 @@
 # Indicate the subfolder of the input folder that contains the input files
+filepaths:
+  roads_edges: "Transport/roads_edges_with_disruptions.geojson"
 transport_modes: [roads, maritime, waterways, railways]
 monetary_units_in_model: mUSD
 monetary_units_inputed: USD
 time_resolution: day
-io_cutoff: 0.02
+io_cutoff: 0.1
 inventory_duration_targets:
   definition: per_input_type
   values:
-    utility: 1
+    utility: 3
     agriculture: 15
     manufacturing: 30
     service: 90
@@ -53,30 +55,30 @@ logistics:
     pipelines: 5
 
 countries_to_include: ['AFR', 'AME', 'ASI', 'EUR', 'OCE', 'THA', 'VNM']
-simulation_type: initial_state  # disruption
-capacity_constraint: none
+simulation_type: disruption  # disruption
+mc_repetitions: 5
+capacity_constraint: "gradual"
 transport_capacity_overrides:  # tons per day
   pp_sihanoukville: 1000
   pp_city_port: 4500
   pp_main_port: 15000
   bavet_border_crossing: 9000
 export_files: True
-t_final: 5
+t_final: 10
 disruptions:
   - type: transport_disruption
     description_type: edge_attributes
-    attribute: class
-    values: ["tertiary"]
+    attribute: flood_disruption
+    values: ["Siem Bok (Mekong)"]
     start_time: 1
-    duration: 1
+    duration: 7
 # Filter out sectors firms output is below that cutoff value
 cutoff_firm_output:
   'type': 'absolute'
   'value': 1000
   "unit": "kUSD"
-
 # Filter out region_sector to households links if purchase is below that cutoff value
 cutoff_household_demand:
   'type': 'absolute'  # only absolute works
-  'value': 100
+  'value': 1000
   "unit": "kUSD"
