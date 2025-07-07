@@ -5,7 +5,7 @@ transport_modes: [roads, maritime, waterways, railways]
 monetary_units_in_model: mUSD
 monetary_units_inputed: USD
 time_resolution: day
-io_cutoff: 0.1 #0.02
+io_cutoff: 0.02 #0.02
 inventory_duration_targets:
   definition: per_input_type
   values:
@@ -55,7 +55,7 @@ logistics:
     pipelines: 5
 countries_to_include: ['AFR', 'AME', 'ASI', 'EUR', 'OCE', 'THA', 'VNM']
 simulation_type: disruption  # disruption
-mc_repetitions: 3
+mc_repetitions: 100
 capacity_constraint: "gradual"
 transport_capacity_overrides:  # tons per day
   pp_sihanoukville: 1000
@@ -63,16 +63,16 @@ transport_capacity_overrides:  # tons per day
   pp_main_port: 15000
   bavet_border_crossing: 9000
 export_files: True
-t_final: 14
+t_final: 30
 # Filter out sectors firms output is below that cutoff value
 cutoff_firm_output:
   'type': 'absolute'
-  'value': 1000
+  'value': 100
   "unit": "kUSD"
 # Filter out region_sector to households links if purchase is below that cutoff value
 cutoff_household_demand:
   'type': 'absolute'  # only absolute works
-  'value': 1000
+  'value': 100
   "unit": "kUSD"
 
 epsilon_stop_condition: false
