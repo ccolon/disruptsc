@@ -26,18 +26,18 @@ class Parameters:
     logging_level: str
     simulation_type: str
     export_files: bool
-    
+
     # Transport and network parameters
     with_transport: bool
     use_route_cache: bool
     transport_modes: list
     transport_capacity_overrides: list
-    
+
     # Economic and monetary parameters
     monetary_units_in_model: str
     monetary_units_in_data: str
     firm_data_type: str
-    
+
     # Model behavior parameters
     congestion: bool
     propagate_input_price_change: bool
@@ -59,7 +59,7 @@ class Parameters:
     local_demand_cutoff: float
     countries_to_include: str | list
     explicit_service_firm: bool
-    
+
     # Economic model parameters
     inventory_duration_targets: dict
     inventory_restoration_time: float
@@ -69,7 +69,7 @@ class Parameters:
     nb_suppliers_per_input: float
     weight_localization_firm: float
     weight_localization_household: float
-    
+
     # Simulation control parameters  
     disruptions: list
     criticality: None | dict
@@ -83,13 +83,15 @@ class Parameters:
     mc_repetitions: int
     mc_caching: dict
     sensitivity: dict | None
-    
+
     # Configuration parameters
     filepaths: dict
     logistics: dict
-    
+
     # Parameters with defaults (must come last)
     export_folder: Path | str = ""
+    is_monte_carlo: bool = False
+    with_output_folder: bool = True
 
     @classmethod
     def load_default_parameters(cls, parameter_folder: Path, scope: str = "default"):
@@ -129,6 +131,11 @@ class Parameters:
         # Cast datatype
         parameters.epsilon_stop_condition = float(parameters.epsilon_stop_condition)
 
+        # Check whether MC
+        parameters.is_monte_carlo = parameters.mc_repetitions and parameters.mc_repetitions >= 1
+        parameters.with_output_folder = parameters.export_files \
+                                        and parameters.simulation_type in SIMU_TYPE_WITH_EXPORT \
+                                        and not parameters.is_monte_carlo
         return parameters
 
     @staticmethod
@@ -166,7 +173,7 @@ class Parameters:
         os.mkdir(self.export_folder)
 
     def initialize_exports(self):
-        if self.export_files and self.simulation_type in SIMU_TYPE_WITH_EXPORT:
+        if self.with_output_folder:
             self.create_export_folder()
             self.export()
             print(f'Output folder is {self.export_folder}')
@@ -227,11 +234,11 @@ class Parameters:
             mode = self.capacity_constraint.lower()
             if mode in ["gradual", "binary"]:
                 return mode
-        
+
         # Fallback to existing capacity_constraint_mode if available
         if hasattr(self, 'capacity_constraint_mode'):
             return self.capacity_constraint_mode
-        
+
         # Default to gradual
         return "gradual"
 

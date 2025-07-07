@@ -14,7 +14,7 @@ if str(src_path) not in sys.path:
 
 from disruptsc import paths
 from disruptsc.model.caching_functions import generate_cache_parameters_from_command_line_argument
-from disruptsc.parameters import Parameters, SIMU_TYPE_WITH_EXPORT
+from disruptsc.parameters import Parameters
 from disruptsc.model.model import Model
 from disruptsc.simulation.factory import ExecutorFactory
 
@@ -38,11 +38,11 @@ def setup_model(parameters, cache_parameters):
 
     # Setup model components
     model.setup_transport_network(cache_parameters['transport_network'], parameters.with_transport)
-    if parameters.export_files and parameters.simulation_type in SIMU_TYPE_WITH_EXPORT and parameters.with_transport:
+    if parameters.with_output_folder and parameters.with_transport:
         model.export_transport_nodes_edges()
     
     model.setup_agents(cache_parameters['agents'])
-    if parameters.export_files and parameters.simulation_type in SIMU_TYPE_WITH_EXPORT:
+    if parameters.with_output_folder:
         model.export_agent_tables()
     
     model.setup_sc_network(cache_parameters['sc_network'])
@@ -58,11 +58,7 @@ def export_results(simulation, model, parameters):
         return
     
     # Skip exports for certain simulation types (CSV-only output)
-    if parameters.simulation_type not in SIMU_TYPE_WITH_EXPORT:
-        return
-    
-    # Skip exports for Monte Carlo runs (mc_repetitions >= 1)
-    if parameters.mc_repetitions and parameters.mc_repetitions >= 1:
+    if not parameters.with_output_folder:
         return
     
     # Handle list of simulations (from Monte Carlo)
@@ -115,7 +111,10 @@ def main():
         parameters.adjust_logging_behavior()
         
         # Setup model
-        model = setup_model(parameters, cache_parameters)
+        if parameters.is_monte_carlo:
+            model = Model(parameters)
+        else:
+            model = setup_model(parameters, cache_parameters)
         
         # Execute simulation using appropriate executor
         if args.simulation_type:

@@ -1,5 +1,6 @@
 import csv
 import logging
+import os
 from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -10,6 +11,10 @@ if TYPE_CHECKING:
     from disruptsc.simulation.simulation import Simulation
     from disruptsc.model.model import Model
     from disruptsc.parameters import Parameters
+
+
+def get_simplified_timestamp(last_n_digits: int = 10):
+    return str(round(datetime.now().timestamp()*1e5))[-last_n_digits:]
 
 
 class CSVResultsWriter:
@@ -35,28 +40,29 @@ class CSVResultsWriter:
     @classmethod
     def create_disruption_mc_writer(cls, parameters: "Parameters") -> "DisruptionMCWriter":
         """Create writer for disruption Monte Carlo results."""
-        suffix = round(datetime.now().timestamp() * 1000)
-        output_file = paths.OUTPUT_FOLDER / parameters.scope / f"disruption_{suffix}.csv"
+        process_pid = os.getpid()
+        suffix = get_simplified_timestamp()
+        output_file = paths.OUTPUT_FOLDER / parameters.scope / f"disruption_{suffix}_{process_pid}.csv"
         return DisruptionMCWriter(output_file, parameters)
 
     @classmethod
     def create_criticality_writer(cls, parameters: "Parameters") -> "CriticalityWriter":
         """Create writer for criticality analysis results."""
-        suffix = round(datetime.now().timestamp() * 1000)
+        suffix = get_simplified_timestamp()
         output_file = paths.OUTPUT_FOLDER / parameters.scope / f"criticality_{suffix}.csv"
         return CriticalityWriter(output_file, parameters)
 
     @classmethod
     def create_ad_hoc_writer(cls, parameters: "Parameters") -> "AdHocWriter":
         """Create writer for ad-hoc analysis results."""
-        suffix = round(datetime.now().timestamp() * 1000)
+        suffix = get_simplified_timestamp()
         output_file = paths.OUTPUT_FOLDER / parameters.scope / f"disruption_{suffix}.csv"
         return AdHocWriter(output_file, parameters)
 
     @classmethod
     def create_sensitivity_writer(cls, parameters: "Parameters") -> "SensitivityWriter":
         """Create writer for sensitivity analysis results."""
-        suffix = round(datetime.now().timestamp() * 1000)
+        suffix = get_simplified_timestamp()
         output_file = paths.OUTPUT_FOLDER / parameters.scope / f"sensitivity_{suffix}.csv"
         return SensitivityWriter(output_file, parameters)
 
@@ -73,7 +79,7 @@ class DisruptionMCWriter(CSVResultsWriter):
         region_household_loss_labels = ['household_loss_' + region for region in temp_model.mrio.regions]
         country_loss_labels = ['country_loss_' + country for country in temp_model.mrio.external_buying_countries]
 
-        headers = ["mc_repetition", "duration", "household_loss", "country_loss"] + \
+        headers = ["mc_repetition", "household_loss", "country_loss"] + \
                   region_household_loss_labels + country_loss_labels
 
         super().__init__(output_file, headers)
@@ -159,7 +165,7 @@ class AdHocWriter(CSVResultsWriter):
     def __init__(self, output_file: Path, parameters: "Parameters"):
         periods = [30, 90, 180]
         household_loss_labels = ['household_loss_' + str(period) for period in periods]
-        headers = ["sectors", "duration", "household_loss"] + household_loss_labels + ["country_loss"]
+        headers = ["sectors", "household_loss", 'country_loss'] + household_loss_labels
 
         super().__init__(output_file, headers)
         self.parameters = parameters
@@ -168,7 +174,7 @@ class AdHocWriter(CSVResultsWriter):
                              household_loss_per_periods: dict):
         """Write results for a single sector combination analysis."""
         self.write_row(["_".join(disruption), household_loss, country_loss] +
-                       list(household_loss_per_periods.values()) + [country_loss])
+                       list(household_loss_per_periods.values()))
 
 
 class SensitivityWriter(CSVResultsWriter):

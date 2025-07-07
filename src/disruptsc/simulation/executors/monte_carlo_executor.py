@@ -46,16 +46,22 @@ class MonteCarloExecutor(SimulationExecutor):
         
         return results
     
-    def _reset_model_state(self):
+    def _reset_model_state(self, full_reset: bool = False):
         """Reset model state for each Monte Carlo iteration using configured caching."""
         # Use the mc_caching configuration from parameters
-        caching_config = self.parameters.mc_caching
-        
-        self.model.setup_transport_network(cached=caching_config['transport_network'])
-        self.model.setup_agents(cached=caching_config['agents'])
-        self.model.setup_sc_network(cached=caching_config['sc_network'])
-        self.model.set_initial_conditions()
-        self.model.setup_logistic_routes(cached=caching_config['logistic_routes'])
+        if full_reset:
+            self.model.setup_transport_network(False, self.parameters.with_transport)
+            self.model.setup_agents(False)
+            self.model.setup_sc_network(False)
+            self.model.set_initial_conditions()
+            self.model.setup_logistic_routes(False)
+        else:
+            caching_config = self.parameters.mc_caching
+            self.model.setup_transport_network(caching_config['transport_network'], self.parameters.with_transport)
+            self.model.setup_agents(caching_config['agents'])
+            self.model.setup_sc_network(caching_config['sc_network'])
+            self.model.set_initial_conditions()
+            self.model.setup_logistic_routes(caching_config['logistic_routes'])
 
 
 class InitialStateMCExecutor(SimulationExecutor):

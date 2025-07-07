@@ -26,7 +26,7 @@ class ExecutorFactory:
         # Base simulation types
         if simulation_type == "initial_state":
             if is_monte_carlo:
-                return InitialStateMCExecutor(model, parameters, InitialStateExecutor)
+                return InitialStateMCExecutor(model, parameters)
             else:
                 return InitialStateExecutor(model, parameters)
         

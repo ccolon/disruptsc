@@ -316,7 +316,7 @@ weight_localization_household: 4
 simulation_type: initial_state
 
 # Nb of Monte Carlo simulations to run
-mc_repetitions: 5
+mc_repetitions: 0
 
 # Monte Carlo caching configuration - specifies which model components to reuse between iterations
 mc_caching:
