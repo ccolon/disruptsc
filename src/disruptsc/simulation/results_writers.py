@@ -79,7 +79,11 @@ class DisruptionMCWriter(CSVResultsWriter):
         region_household_loss_labels = ['household_loss_' + region for region in temp_model.mrio.regions]
         country_loss_labels = ['country_loss_' + country for country in temp_model.mrio.external_buying_countries]
 
-        headers = ["mc_repetition", "household_loss", "country_loss"] + \
+        # Filter out household_loss for the current simulation scope as it's redundant with household_loss column
+        simulation_scope = parameters.scope.upper()
+        region_household_loss_labels = [label for label in region_household_loss_labels if label != f'household_loss_{simulation_scope}']
+
+        headers = ["mc_repetition", "simulation_name", "duration", "household_loss", "country_loss"] + \
                   region_household_loss_labels + country_loss_labels
 
         super().__init__(output_file, headers)
@@ -114,7 +118,11 @@ class DisruptionMCWriter(CSVResultsWriter):
                 country_loss_per_country.get(country, 0.0) for country in model.mrio.external_buying_countries
             ]
 
-        self.write_row([iteration, household_loss, country_loss] +
+        # Get simulation_name and duration from parameters
+        simulation_name = getattr(self.parameters, 'simulation_name', 'default')
+        duration = self.parameters.criticality.get('duration', 0) if self.parameters.criticality else 0
+        
+        self.write_row([iteration, simulation_name, duration, household_loss, country_loss] +
                        household_loss_per_region_values + country_loss_per_region_values)
 
 

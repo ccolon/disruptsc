@@ -330,6 +330,7 @@ sensitivity: null
 
 # Determines the disruptive events to model TODO elaborate
 disruptions: null
+simulation_name: "default"
 
 # What time interval does a time step represents
 # Possible values are: 'day', 'week', 'month', 'year'

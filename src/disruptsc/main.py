@@ -27,6 +27,7 @@ def parse_arguments():
     parser.add_argument("--duration", type=int, help="Disruption duration")
     parser.add_argument("--io_cutoff", type=float, help="IO cutoff")
     parser.add_argument("--simulation_type", type=str, help="Simulation type")
+    parser.add_argument("--simulation_name", type=str, help="Simulation scenario name")
     parser.add_argument("--cache_isolation", action="store_true", help="Isolate cache directory per process (for server runs)")
     parser.add_argument("--version", action="version", version=f"DisruptSC {__import__('disruptsc').__version__}")
     return parser.parse_args()
@@ -100,11 +101,14 @@ def main():
         cache_parameters = generate_cache_parameters_from_command_line_argument(args.cache)
         
         # Load and configure parameters
-        parameters = Parameters.load_parameters(paths.PARAMETER_FOLDER, args.scope)
+        parameters = Parameters.load_parameters(paths.PARAMETER_FOLDER, args.scope, args.simulation_name)
         if args.io_cutoff:
             parameters.io_cutoff = args.io_cutoff
         if args.duration:
             parameters.criticality['duration'] = args.duration
+        
+        # Store simulation_name in parameters for later use
+        parameters.simulation_name = args.simulation_name if args.simulation_name else "default"
         
         # Setup output folder and logging
         parameters.initialize_exports()

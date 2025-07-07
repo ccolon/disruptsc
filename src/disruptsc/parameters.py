@@ -92,6 +92,7 @@ class Parameters:
     export_folder: Path | str = ""
     is_monte_carlo: bool = False
     with_output_folder: bool = True
+    simulation_name: str = "default"
 
     @classmethod
     def load_default_parameters(cls, parameter_folder: Path, scope: str = "default"):
@@ -101,7 +102,7 @@ class Parameters:
         return cls(**default_parameters)
 
     @classmethod
-    def load_parameters(cls, parameter_folder: Path, scope: str):
+    def load_parameters(cls, parameter_folder: Path, scope: str, simulation_name: str = None):
         # Load default and user_defined parameters
         with open(parameter_folder / "default.yaml", 'r') as f:
             parameters = yaml.safe_load(f)
@@ -110,6 +111,16 @@ class Parameters:
             logging.info(f'User defined parameter file found for {scope}')
             with open(parameter_folder / f"user_defined_{scope}.yaml", 'r') as f:
                 overriding_parameters = yaml.safe_load(f)
+            
+            # If simulation_name is provided, extract scenario-specific parameters
+            if simulation_name:
+                scenario_params = cls.extract_simulation_scenario(overriding_parameters, simulation_name)
+                if scenario_params:
+                    overriding_parameters = scenario_params
+                    logging.info(f'Loaded simulation scenario: {simulation_name}')
+                else:
+                    logging.warning(f'Simulation scenario "{simulation_name}" not found, using full parameters')
+            
             # Merge both
             for key, val in parameters.items():
                 if key in overriding_parameters:
@@ -151,6 +162,88 @@ class Parameters:
             else:
                 # Replace or add the value
                 default_dict[key] = val
+
+    @staticmethod
+    def extract_simulation_scenario(overriding_parameters: dict, simulation_name: str) -> dict:
+        """
+        Extract scenario-specific parameters from the user-defined configuration.
+        
+        Parameters
+        ----------
+        overriding_parameters : dict
+            The full configuration dictionary
+        simulation_name : str
+            The name of the simulation scenario to extract
+            
+        Returns
+        -------
+        dict
+            Dictionary containing base parameters plus scenario-specific disruptions
+        """
+        # Convert to string for parsing
+        yaml_content = yaml.dump(overriding_parameters)
+        lines = yaml_content.split('\n')
+        
+        # Find the scenario section
+        scenario_start = None
+        for i, line in enumerate(lines):
+            if f"simulation_name: {simulation_name}" in line:
+                scenario_start = i
+                break
+        
+        if scenario_start is None:
+            return None
+        
+        # Extract base parameters (everything before first simulation_name)
+        base_params = {}
+        first_simulation_line = None
+        for i, line in enumerate(lines):
+            if "simulation_name:" in line:
+                first_simulation_line = i
+                break
+        
+        if first_simulation_line is not None:
+            base_yaml = '\n'.join(lines[:first_simulation_line])
+            if base_yaml.strip():
+                base_params = yaml.safe_load(base_yaml) or {}
+        
+        # Extract scenario-specific parameters
+        scenario_lines = []
+        current_indent = None
+        
+        for i in range(scenario_start, len(lines)):
+            line = lines[i]
+            
+            # Skip empty lines
+            if not line.strip():
+                continue
+                
+            # Check if this is another simulation_name (end of current scenario)
+            if "simulation_name:" in line and i != scenario_start:
+                break
+                
+            # Determine indentation level
+            if current_indent is None and line.strip():
+                current_indent = len(line) - len(line.lstrip())
+            
+            # Add lines that belong to this scenario
+            if line.strip() and (len(line) - len(line.lstrip())) >= current_indent:
+                scenario_lines.append(line)
+        
+        # Parse scenario-specific parameters
+        scenario_yaml = '\n'.join(scenario_lines)
+        scenario_params = yaml.safe_load(scenario_yaml) if scenario_yaml.strip() else {}
+        
+        # Merge base parameters with scenario parameters
+        result = base_params.copy()
+        if scenario_params:
+            for key, val in scenario_params.items():
+                if key in result and isinstance(result[key], dict) and isinstance(val, dict):
+                    Parameters.merge_dict_with_priority(result[key], val)
+                else:
+                    result[key] = val
+        
+        return result
 
     def get_full_filepath(self, filepath):
         return paths.INPUT_FOLDER / self.scope / filepath
