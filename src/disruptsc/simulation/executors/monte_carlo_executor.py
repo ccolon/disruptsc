@@ -24,10 +24,13 @@ class MonteCarloExecutor(SimulationExecutor):
         for i in range(self.parameters.mc_repetitions):
             logging.info(f"")
             logging.info(f"=============== Starting repetition #{i} ===============")
-            
-            # Reset model state for each iteration
-            self._reset_model_state()
-            
+
+            if i == 0:
+                self._reset_model_state(full_reset=True)
+            else:
+                # Reset model state for each iteration
+                self._reset_model_state()
+
             # Execute base simulation
             executor = self.base_executor_class(self.model, self.parameters)
             simulation = executor.execute()
