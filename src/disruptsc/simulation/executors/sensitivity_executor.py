@@ -47,7 +47,7 @@ class SensitivityExecutor(SimulationExecutor):
             simulation = model.run_disruption(t_final=model.parameters.t_final)
 
             # Calculate final losses only
-            household_loss = simulation.calculate_household_loss(model.household_table, periods=[180])[180]
+            household_loss = simulation.calculate_household_loss(model.household_table)
             country_loss = simulation.calculate_country_loss()
             
             logging.info(f"Combination #{i} completed. "
