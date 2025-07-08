@@ -109,17 +109,22 @@ class Parameters:
         user_defined_parameter_filepath = parameter_folder / f"user_defined_{scope}.yaml"
         if os.path.exists(user_defined_parameter_filepath):
             logging.info(f'User defined parameter file found for {scope}')
-            with open(parameter_folder / f"user_defined_{scope}.yaml", 'r') as f:
-                overriding_parameters = yaml.safe_load(f)
             
             # If simulation_name is provided, extract scenario-specific parameters
             if simulation_name:
-                scenario_params = cls.extract_simulation_scenario(overriding_parameters, simulation_name)
+                with open(parameter_folder / f"user_defined_{scope}.yaml", 'r') as f:
+                    yaml_content = f.read()
+                scenario_params = cls.extract_simulation_scenario(yaml_content, simulation_name)
                 if scenario_params:
                     overriding_parameters = scenario_params
                     logging.info(f'Loaded simulation scenario: {simulation_name}')
                 else:
                     logging.warning(f'Simulation scenario "{simulation_name}" not found, using full parameters')
+                    with open(parameter_folder / f"user_defined_{scope}.yaml", 'r') as f:
+                        overriding_parameters = yaml.safe_load(f)
+            else:
+                with open(parameter_folder / f"user_defined_{scope}.yaml", 'r') as f:
+                    overriding_parameters = yaml.safe_load(f)
             
             # Merge both
             for key, val in parameters.items():
@@ -164,14 +169,14 @@ class Parameters:
                 default_dict[key] = val
 
     @staticmethod
-    def extract_simulation_scenario(overriding_parameters: dict, simulation_name: str) -> dict:
+    def extract_simulation_scenario(yaml_content: str, simulation_name: str) -> dict:
         """
-        Extract scenario-specific parameters from the user-defined configuration.
+        Extract scenario-specific disruptions from raw YAML content.
         
         Parameters
         ----------
-        overriding_parameters : dict
-            The full configuration dictionary
+        yaml_content : str
+            Raw YAML file content
         simulation_name : str
             The name of the simulation scenario to extract
             
@@ -180,108 +185,49 @@ class Parameters:
         dict
             Dictionary containing base parameters plus scenario-specific disruptions
         """
-        # Convert to string for parsing
-        yaml_content = yaml.dump(overriding_parameters)
         lines = yaml_content.split('\n')
         
-        # Find all simulation_name lines to identify scenario boundaries
-        simulation_name_lines = []
-        for i, line in enumerate(lines):
-            if line.strip().startswith("simulation_name:"):
-                simulation_name_lines.append(i)
-        
-        if not simulation_name_lines:
-            return None
-        
-        # Find the target scenario
+        # Find the target scenario line
         target_scenario_start = None
-        for i, line_idx in enumerate(simulation_name_lines):
-            line = lines[line_idx]
-            if f"simulation_name: {simulation_name}" in line:
-                target_scenario_start = line_idx
+        for i, line in enumerate(lines):
+            if line.strip() == f"simulation_name: {simulation_name}":
+                target_scenario_start = i
                 break
         
         if target_scenario_start is None:
             return None
         
-        # Extract base parameters (everything before first simulation_name)
-        base_params = {}
-        first_simulation_line = simulation_name_lines[0]
-        if first_simulation_line > 0:
-            base_yaml = '\n'.join(lines[:first_simulation_line])
-            if base_yaml.strip():
-                base_params = yaml.safe_load(base_yaml) or {}
-        
-        # Find the end of the target scenario
+        # Find the end of this scenario (next simulation_name or end of file)
         target_scenario_end = len(lines)
-        for line_idx in simulation_name_lines:
-            if line_idx > target_scenario_start:
-                target_scenario_end = line_idx
+        for i in range(target_scenario_start + 1, len(lines)):
+            if lines[i].strip().startswith("simulation_name:"):
+                target_scenario_end = i
                 break
         
-        # Extract scenario-specific parameters
-        scenario_lines = []
-        scenario_disruptions = []
+        # Extract the scenario block and parse it
+        scenario_lines = lines[target_scenario_start:target_scenario_end]
+        scenario_yaml = '\n'.join(scenario_lines)
         
-        i = target_scenario_start
-        while i < target_scenario_end:
-            line = lines[i]
-            
-            # Skip empty lines
-            if not line.strip():
-                i += 1
-                continue
-            
-            # If we hit disruptions:, collect all disruption entries
-            if line.strip() == "disruptions:":
-                i += 1
-                while i < target_scenario_end and lines[i].strip():
-                    if lines[i].startswith("  - "):
-                        # Start of a new disruption
-                        disruption_lines = [lines[i]]
-                        i += 1
-                        # Collect all lines for this disruption
-                        while i < target_scenario_end and lines[i].strip() and not lines[i].startswith("  - "):
-                            disruption_lines.append(lines[i])
-                            i += 1
-                        # Parse this disruption
-                        disruption_yaml = '\n'.join(disruption_lines)
-                        try:
-                            disruption_dict = yaml.safe_load(disruption_yaml)
-                            if disruption_dict:
-                                scenario_disruptions.append(disruption_dict)
-                        except:
-                            pass
-                    else:
-                        i += 1
-                break
-            else:
-                scenario_lines.append(line)
-                i += 1
+        try:
+            scenario_data = yaml.safe_load(scenario_yaml)
+            if scenario_data and 'disruptions' in scenario_data:
+                # Load base parameters from the beginning of the file
+                base_lines = []
+                for line in lines:
+                    if line.strip().startswith("simulation_name:"):
+                        break
+                    base_lines.append(line)
+                
+                base_yaml = '\n'.join(base_lines)
+                base_params = yaml.safe_load(base_yaml) or {}
+                
+                # Replace disruptions with scenario-specific ones
+                base_params['disruptions'] = scenario_data['disruptions']
+                return base_params
+        except:
+            pass
         
-        # Parse scenario-specific parameters (excluding disruptions)
-        scenario_params = {}
-        if scenario_lines:
-            scenario_yaml = '\n'.join(scenario_lines)
-            try:
-                scenario_params = yaml.safe_load(scenario_yaml) or {}
-            except:
-                scenario_params = {}
-        
-        # Add disruptions to scenario parameters
-        if scenario_disruptions:
-            scenario_params['disruptions'] = scenario_disruptions
-        
-        # Merge base parameters with scenario parameters
-        result = base_params.copy()
-        if scenario_params:
-            for key, val in scenario_params.items():
-                if key in result and isinstance(result[key], dict) and isinstance(val, dict):
-                    Parameters.merge_dict_with_priority(result[key], val)
-                else:
-                    result[key] = val
-        
-        return result
+        return None
 
     def get_full_filepath(self, filepath):
         return paths.INPUT_FOLDER / self.scope / filepath
