@@ -59,6 +59,17 @@ class Route(list):
                 total_indicator += transport_network[u][v][indicator]
             return total_indicator
 
+    def get_maritime_multimodal_edges(self, transport_network: "TransportNetwork"):
+        """Get set of maritime multimodal edges from this route."""
+        maritime_edges = set()
+        for u, v in self.transport_edges:
+            edge_data = transport_network[u][v]
+            if (edge_data.get('type') == 'multimodal' and 
+                edge_data.get('multimodes') and 
+                'maritime' in edge_data['multimodes']):
+                maritime_edges.add((u, v))
+        return maritime_edges
+
     def revert(self):
         """
         Reverse the route in place. This method reverses the order

@@ -491,9 +491,9 @@ class Model(object):
             self.firms.assign_cost_profile(self.parameters.logistics['nb_cost_profiles'])
 
             # Assign modal switching cost parameter to agents
-            modal_switching_cost = self.parameters.logistics.get('modal_switching_cost_percentage', 0)
+            switching_costs = self.parameters.logistics.get('switching_costs', 0)
             for agent in list(self.countries.values()) + list(self.firms.values()):
-                agent.modal_switching_cost_percentage = modal_switching_cost
+                agent.switching_costs = switching_costs
 
             logging.info('The supplier--buyer graph is being connected to the transport network')
             logging.info('Each B2B and transit edge_attr is being linked to a route of the transport network')
