@@ -75,8 +75,6 @@ cutoff_household_demand:
   'value': 100
   "unit": "kUSD"
 
-epsilon_stop_condition: false
-
 # SIMULTANEOUS DISRUPTIONS
 simulation_name: simultaneous_disruptions
 disruptions:
@@ -151,7 +149,6 @@ disruptions:
     start_time: 3
     duration: 1
 
-
 simulation_name: cascading_hazards_time_lag_short
 disruptions:
   - type: transport_disruption
@@ -195,6 +192,7 @@ disruptions:
     duration: 1
 
 # CASCADING AND COMPOUND HAZARDS
+
 simulation_name: cascading_and_compound_hazards_consecutive
 disruptions:
   - type: transport_disruption
