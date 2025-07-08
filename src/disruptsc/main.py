@@ -106,6 +106,11 @@ def main():
             parameters.io_cutoff = args.io_cutoff
         if args.duration:
             parameters.criticality['duration'] = args.duration
+            # Override duration in disruptions configuration for disruption simulations
+            if hasattr(parameters, 'disruptions') and parameters.disruptions:
+                for disruption in parameters.disruptions:
+                    if 'duration' in disruption:
+                        disruption['duration'] = args.duration
         
         # Store simulation_name in parameters for later use
         parameters.simulation_name = args.simulation_name if args.simulation_name else "default"
