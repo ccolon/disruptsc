@@ -133,12 +133,12 @@ class CommercialLink(object):
                 len(alt_maritime_edges) > 0 and 
                 main_maritime_edges != alt_maritime_edges)
 
-    def calculate_switching_cost(self, switching_costs, transport_network):
+    def calculate_switching_cost(self, switching_costs: dict, transport_network):
         """Calculate additional percentage cost penalty for switching transportation modes."""
         if self.has_modal_switch():
             return switching_costs['modal_switch']
         elif self.has_port_switch(transport_network):
-            return switching_costs['modal_switch']
+            return switching_costs['port_switch']
         return 0
 
     def store_route_information(self, route: Route, main_or_alternative: str, cost_per_ton: float):

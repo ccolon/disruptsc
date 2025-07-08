@@ -111,7 +111,7 @@ def main():
         parameters.adjust_logging_behavior()
         
         # Setup model
-        if parameters.is_monte_carlo:
+        if parameters.is_monte_carlo or (parameters.simulation_type == "disruption-sensitivity"):
             model = Model(parameters)
         else:
             model = setup_model(parameters, cache_parameters)

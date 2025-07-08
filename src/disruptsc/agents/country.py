@@ -181,7 +181,8 @@ class Country(BaseAgent, TransportCapable):
                          sectors_no_transport_network: list[str], rationing_mode: str, with_transport: bool,
                          transport_to_households: bool,
                          monetary_units_in_model: str, price_increase_threshold: float,
-                         capacity_constraint: bool, capacity_constraint_mode: str, use_route_cache: bool):
+                         capacity_constraint: bool, capacity_constraint_mode: str, use_route_cache: bool,
+                         switching_costs: dict):
         """ The quantity to be delivered is the quantity that was ordered (no rationing takes place)
 
         Parameters
@@ -220,7 +221,7 @@ class Country(BaseAgent, TransportCapable):
             else:
                 self.send_shipment(commercial_link, transport_network, available_transport_network,
                                    price_increase_threshold, capacity_constraint, capacity_constraint_mode,
-                                   use_route_cache)
+                                   use_route_cache, switching_costs)
             # else:
             #     if buyer.agent_type == 'firm':
             #         if buyer.sector_type == "service":

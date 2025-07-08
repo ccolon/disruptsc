@@ -490,11 +490,6 @@ class Model(object):
             self.countries.assign_cost_profile(self.parameters.logistics['nb_cost_profiles'])
             self.firms.assign_cost_profile(self.parameters.logistics['nb_cost_profiles'])
 
-            # Assign modal switching cost parameter to agents
-            switching_costs = self.parameters.logistics.get('switching_costs', 0)
-            for agent in list(self.countries.values()) + list(self.firms.values()):
-                agent.switching_costs = switching_costs
-
             logging.info('The supplier--buyer graph is being connected to the transport network')
             logging.info('Each B2B and transit edge_attr is being linked to a route of the transport network')
             logging.info('Routes for transit and import flows are being selected by trading countries')
@@ -897,7 +892,8 @@ class Model(object):
                                self.parameters.get_capacity_constraint_mode(),
                                self.parameters.monetary_units_in_model,
                                self.parameters.price_increase_threshold,
-                               self.parameters.use_route_cache)
+                               self.parameters.use_route_cache,
+                               self.parameters.logistics['switching_costs'])
         self.firms.deliver(self.sc_network, self.transport_network, available_transport_network,
                            self.parameters.sectors_no_transport_network,
                            self.parameters.rationing_mode, self.parameters.with_transport,
@@ -905,7 +901,8 @@ class Model(object):
                            self.parameters.get_capacity_constraint_mode(),
                            self.parameters.monetary_units_in_model,
                            self.parameters.price_increase_threshold,
-                           self.parameters.use_route_cache)
+                           self.parameters.use_route_cache,
+                           self.parameters.logistics['switching_costs'])
         # print(self.firms[0].rationing)
         # print(com.delivery)
         # if time_step == 1:

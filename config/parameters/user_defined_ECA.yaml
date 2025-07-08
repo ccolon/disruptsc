@@ -8,7 +8,7 @@ transport_modes: ["roads", "maritime", "railways", "pipelines"] #, waterways, ai
 monetary_units_in_model: mUSD
 monetary_units_in_data: mUSD
 time_resolution: day
-io_cutoff: 0.1
+io_cutoff: 0.2
 cutoff_sector_demand:
   'type': 'absolute'
   'value': 1000
@@ -99,32 +99,42 @@ logistics:  # Sources: TRACECA Corridor Studies, ADB CAREC Logistics Costing, Wo
     turkmenbashi: 100.0
 
 use_route_cache: True
-simulation_type: initial_state
+simulation_type: disruption
+sensitivity:
+  io_cutoff: [0.01, 0.1]
+  utilization_rate: [0.8, 1.0]
+  nb_suppliers_per_input: [1, 2]
 mc_repetitions: 0
 mc_caching:
   transport_network: true  # Reuse transport network
   agents: true             # Reuse agents 
   sc_network: true        # Regenerate for stochastic variation
   logistic_routes: true   # Regenerate for stochastic variation
-t_final: 1
+t_final: 10
 epsilon_stop_condition: False
-criticality:
-  attribute: top_flow
-  edges: [aktau, baku, turkmenbashi, railways-GEO, railways-AZE, railways-KAZ]
-  duration: 1
+#criticality:
+#  attribute: top_flow
+#  edges: [aktau, baku, turkmenbashi, railways-GEO, railways-AZE, railways-KAZ]
+#  duration: 1
 disruptions:
-  - type: transport_disruption_probability
+  - type: transport_disruption
     description_type: edge_attributes
     attribute: name
-    values: [railways-GEO-intervention]
-    probability_duration_pairs: [
-      [0.000548, 1],
-      [0.000274, 1], 
-      [0.000137, 2],
-      [0.000055, 4],
-      [0.000027, 7],
-      [0.000055, 13],
-      [0.000005, 30],
-      [0.000003, 60]
-    ]
-    scenario_duration: 365
+    values: [aktau]
+    start_time: 1
+    duration: 5
+#  - type: transport_disruption_probability
+#    description_type: edge_attributes
+#    attribute: name
+#    values: [railways-GEO-intervention]
+#    probability_duration_pairs: [
+#      [0.000548, 1],
+#      [0.000274, 1],
+#      [0.000137, 2],
+#      [0.000055, 4],
+#      [0.000027, 7],
+#      [0.000055, 13],
+#      [0.000005, 30],
+#      [0.000003, 60]
+#    ]
+#    scenario_duration: 365

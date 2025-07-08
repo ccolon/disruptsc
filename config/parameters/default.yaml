@@ -65,7 +65,7 @@ logistics:
     multimodal: 0.01
   nb_cost_profiles: 1
   basic_cost_random: False  # deactivate all randomness
-  switching_cost:
+  switching_costs:
     modal_switch: 0.15  # Additional cost percentage when switching transport modes (e.g., rail to road)
     port_switch: 0.05
   basic_cost_variability: # coefficient of variation
@@ -264,7 +264,7 @@ inventory_duration_targets:
     manufacturing: 30
     service: 90
     trade: 30
-    transport: 3
+    transport: 5
   unit: day
 
 # Determines the speed at which firms try to reach their inventory duration target
