@@ -26,7 +26,7 @@ class AdHocExecutor(SimulationExecutor):
 
     def execute(self) -> List["Simulation"]:
         """Execute ad-hoc analysis and return list of simulations."""
-        from disruptsc.model.caching_functions import load_cached_model
+        from disruptsc.model.utils.caching import load_cached_model
 
         # Save model state
         suffix = round(datetime.now().timestamp() * 1000)

@@ -11,7 +11,7 @@ from typing import Dict, List, Any, Tuple, Union
 import logging
 from collections import defaultdict
 
-from disruptsc.model.profiling_utils import profile_function
+from disruptsc.model.utils.profiling import profile_function
 from disruptsc.network.topology_cache import get_topology_cache
 
 

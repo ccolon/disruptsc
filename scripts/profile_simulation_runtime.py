@@ -23,10 +23,10 @@ if str(src_path) not in sys.path:
     sys.path.insert(0, str(src_path))
 
 from disruptsc import paths
-from disruptsc.model.caching_functions import generate_cache_parameters_from_command_line_argument
+from disruptsc.model.utils.caching import generate_cache_parameters_from_command_line_argument
 from disruptsc.parameters import Parameters
 from disruptsc.model.model import Model
-from disruptsc.model.profiling_utils import ModelProfiler, ProfiledModel
+from disruptsc.model.utils.profiling import ModelProfiler, ProfiledModel
 
 
 class SimulationRuntimeProfiler:

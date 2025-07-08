@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from disruptsc.model.basic_functions import calculate_distance_between_agents, add_or_increment_dict_key
+from disruptsc.model.utils.functions import calculate_distance_between_agents, add_or_increment_dict_key
 
 import logging
 

@@ -9,7 +9,7 @@ import pandas as pd
 from shapely import wkt
 from shapely.geometry import Point
 
-from disruptsc.model.basic_functions import find_min_in_nested_dict
+from disruptsc.model.utils.functions import find_min_in_nested_dict
 from disruptsc.network.transport_network import TransportNetwork
 
 if TYPE_CHECKING:

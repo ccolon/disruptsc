@@ -7,7 +7,7 @@ import networkx
 import numpy as np
 from shapely.geometry import Point
 
-from disruptsc.model.basic_functions import generate_weights, \
+from disruptsc.model.utils.functions import generate_weights, \
     compute_distance_from_arcmin, rescale_values, rescale_monetary_values, generate_weights_from_list
 
 from disruptsc.agents.base_agent import BaseAgent, BaseAgents

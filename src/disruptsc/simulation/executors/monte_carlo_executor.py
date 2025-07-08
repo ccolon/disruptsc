@@ -73,7 +73,7 @@ class InitialStateMCExecutor(SimulationExecutor):
     def execute(self) -> List["Simulation"]:
         """Execute initial state Monte Carlo with flow aggregation."""
         import pandas as pd
-        from disruptsc.model.caching_functions import load_cached_model
+        from disruptsc.model.utils.caching import load_cached_model
         
         flow_dfs = {}
         

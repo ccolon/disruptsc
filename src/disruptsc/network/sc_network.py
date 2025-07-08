@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 import networkx as nx
 import pandas as pd
 
-from disruptsc.model.basic_functions import add_or_append_to_dict
+from disruptsc.model.utils.functions import add_or_append_to_dict
 
 if TYPE_CHECKING:
     from disruptsc.agents.firm import Firms

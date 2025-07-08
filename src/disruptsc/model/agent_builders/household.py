@@ -6,8 +6,7 @@ import pandas as pd
 import geopandas as gpd
 
 from disruptsc.agents.household import Household, Households
-from disruptsc.model.builder_functions import get_long_lat
-from disruptsc.model.basic_functions import rescale_monetary_values, find_nearest_node_id
+from disruptsc.model.utils.functions import get_long_lat, rescale_monetary_values, find_nearest_node_id
 from disruptsc.network.mrio import Mrio
 
 

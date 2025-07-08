@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 from tqdm import tqdm
 
-from disruptsc.model.basic_functions import rescale_values, calculate_distance_between_agents
+from disruptsc.model.utils.functions import rescale_values, calculate_distance_between_agents
 
 if TYPE_CHECKING:
     from disruptsc.agents.firm import Firms

@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 
 from disruptsc.agents.country import Country, Countries
-from disruptsc.model.basic_functions import rescale_monetary_values, find_nearest_node_id
+from disruptsc.model.utils.functions import rescale_monetary_values, find_nearest_node_id
 from disruptsc.network.mrio import Mrio
 
 

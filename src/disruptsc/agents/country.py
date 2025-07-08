@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import logging
 
-from disruptsc.model.basic_functions import calculate_distance_between_agents, rescale_values, \
+from disruptsc.model.utils.functions import calculate_distance_between_agents, rescale_values, \
     generate_weights_from_list
 from disruptsc.agents.base_agent import BaseAgent, BaseAgents
 from disruptsc.agents.transport_mixin import TransportCapable

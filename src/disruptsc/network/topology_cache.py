@@ -10,7 +10,7 @@ from typing import Dict, List, Set, Tuple, Any, Optional
 from collections import defaultdict
 import time
 
-from disruptsc.model.profiling_utils import profile_function, profile_method
+from disruptsc.model.utils.profiling import profile_function, profile_method
 
 
 class NetworkTopologyCache:

@@ -20,7 +20,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from disruptsc.parameters import Parameters
 from disruptsc import paths
-from disruptsc.model.input_validation import validate_inputs
+from disruptsc.model.validation.inputs import validate_inputs
 
 def main():
     if len(sys.argv) != 2:

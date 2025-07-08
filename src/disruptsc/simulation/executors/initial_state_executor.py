@@ -23,7 +23,7 @@ class FlowCalibrationExecutor(SimulationExecutor):
     """Executes flow calibration simulation."""
     
     def execute(self) -> "Simulation":
-        from disruptsc.model.basic_functions import mean_squared_distance
+        from disruptsc.model.utils.functions import mean_squared_distance
         
         simulation = self.model.run_static()
         calibration_flows = simulation.report_annual_flow_specific_edges(

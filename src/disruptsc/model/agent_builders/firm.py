@@ -6,8 +6,7 @@ import geopandas as gpd
 import pandas as pd
 
 from disruptsc.agents.firm import Firm, Firms
-from disruptsc.model.basic_functions import find_nearest_node_id
-from disruptsc.model.builder_functions import get_index_closest_point, get_long_lat, get_absolute_cutoff_value
+from disruptsc.model.utils.functions import find_nearest_node_id, get_index_closest_point, get_long_lat, get_absolute_cutoff_value
 from disruptsc.network.mrio import Mrio
 
 
