@@ -8,7 +8,7 @@ import yaml
 from dataclasses import dataclass
 
 from disruptsc import paths
-from disruptsc.model.basic_functions import rescale_monetary_values, draw_lognormal_samples
+from disruptsc.model.utils.functions import rescale_monetary_values, draw_lognormal_samples
 
 EPSILON = 1e-6
 SIMU_TYPE_WITH_EXPORT = ["initial_state", "disruption"]

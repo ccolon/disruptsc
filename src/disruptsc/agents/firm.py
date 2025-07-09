@@ -7,7 +7,7 @@ import networkx
 import numpy as np
 from shapely.geometry import Point
 
-from disruptsc.model.basic_functions import generate_weights, \
+from disruptsc.model.utils.functions import generate_weights, \
     compute_distance_from_arcmin, rescale_values, rescale_monetary_values, generate_weights_from_list
 
 from disruptsc.agents.base_agent import BaseAgent, BaseAgents
@@ -564,7 +564,7 @@ class Firm(BaseAgent, TransportCapable):
                          transport_to_households: bool,
                          monetary_units_in_model: str,
                          price_increase_threshold: float, capacity_constraint: bool,
-                         capacity_constraint_mode: str, use_route_cache: bool):
+                         capacity_constraint_mode: str, use_route_cache: bool, switching_costs: dict):
 
         quantities_to_deliver = self.evaluate_quantities_to_deliver(rationing_mode)
 
@@ -597,7 +597,7 @@ class Firm(BaseAgent, TransportCapable):
             else:
                 self.send_shipment(commercial_link, transport_network, available_transport_network,
                                    price_increase_threshold, capacity_constraint, capacity_constraint_mode,
-                                   use_route_cache)
+                                   use_route_cache, switching_costs)
 
         # For reconstruction orders, we register it
         if isinstance(quantities_to_deliver, int):

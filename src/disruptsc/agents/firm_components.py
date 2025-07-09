@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Dict, Any
 
 import numpy as np
 
-from disruptsc.model.basic_functions import rescale_monetary_values
+from disruptsc.model.utils.functions import rescale_monetary_values
 
 if TYPE_CHECKING:
     from disruptsc.network.sc_network import ScNetwork
@@ -190,7 +190,7 @@ class InventoryManager:
 
     def _adapt_weights_based_on_satisfaction(self, suppliers: Dict):
         """Adapt supplier weights based on satisfaction levels."""
-        from disruptsc.model.basic_functions import generate_weights_from_list
+        from disruptsc.model.utils.functions import generate_weights_from_list
         
         for sector, need in self.purchase_plan_per_input.items():
             suppliers_from_this_sector = [pid for pid, supplier_info in suppliers.items()

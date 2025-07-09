@@ -13,7 +13,7 @@ if str(src_path) not in sys.path:
     sys.path.insert(0, str(src_path))
 
 from disruptsc import paths
-from disruptsc.model.caching_functions import generate_cache_parameters_from_command_line_argument
+from disruptsc.model.utils.caching import generate_cache_parameters_from_command_line_argument
 from disruptsc.parameters import Parameters
 from disruptsc.model.model import Model
 from disruptsc.simulation.factory import ExecutorFactory
@@ -120,7 +120,7 @@ def main():
         parameters.adjust_logging_behavior()
         
         # Setup model
-        if parameters.is_monte_carlo:
+        if parameters.is_monte_carlo or (parameters.simulation_type == "disruption-sensitivity"):
             model = Model(parameters)
         else:
             model = setup_model(parameters, cache_parameters)

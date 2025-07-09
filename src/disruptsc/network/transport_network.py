@@ -518,24 +518,26 @@ class TransportNetwork(nx.Graph):
                 raise ValueError(f"There are uncollected shipments: {list(edge_data['shipments'].keys())}")
 
 def _get_speed(edge_attr: dict, speed_dict: dict) -> float:
-    if edge_attr['type'] == "roads":
-        # if edge_attr['class'] == 'primary':
-        #     return speed_dict['roads']['primary']
-        # elif edge_attr['class'] == 'secondary':
-        #     return speed_dict['roads']['primary']
-        # elif edge_attr['class'] == 'tertiary':
-        #     return speed_dict['roads']['primary']
-        # else:
-        if edge_attr['surface'] == 'paved':
-            return speed_dict['roads']['paved']
-        elif edge_attr['surface'] == 'unpaved':
-            return speed_dict['roads']['unpaved']
-        else:
-            return speed_dict['roads']['paved']
-    elif edge_attr['type'] in ['railways', 'waterways', 'maritime', 'airways', "pipelines"]:
+    # if edge_attr['type'] == "roads":
+    #     # if edge_attr['class'] == 'primary':
+    #     #     return speed_dict['roads']['primary']
+    #     # elif edge_attr['class'] == 'secondary':
+    #     #     return speed_dict['roads']['primary']
+    #     # elif edge_attr['class'] == 'tertiary':
+    #     #     return speed_dict['roads']['primary']
+    #     # else:
+    #     if isinstance(speed_dict['roads'], float) or isinstance(speed_dict['roads'], int):
+    #         return speed_dict['roads']
+    #     elif isinstance(speed_dict['roads'], dict):
+    #         if ("paved" in speed_dict['roads'].keys()) and ("unpaved" in speed_dict['roads'].keys()):
+    #             if edge_attr['surface'] == 'unpaved':
+    #                 return speed_dict['roads']['unpaved']
+    #             else:
+    #                 return speed_dict['roads']['paved']
+    if edge_attr['type'] in ['railways', 'waterways', 'maritime', 'airways', "pipelines", "roads"]:
         return speed_dict[edge_attr['type']]
     elif edge_attr['type'] == "multimodal":
-        return speed_dict['roads']['paved']  # these are very small links, so we assume paved roads
+        return speed_dict['roads']  # these are very small links, so we assume paved roads
 
 
 def _get_dwell_time_and_fee(edge_attr: dict, dwell_times: dict, loading_fees: dict) -> (float, float):

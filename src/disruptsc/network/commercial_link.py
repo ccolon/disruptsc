@@ -9,7 +9,7 @@ class CommercialLink(object):
     def __init__(self, pid=None, supplier_id=None, buyer_id=None, product=None,
                  origin_node=None, destination_node = None,
                  product_type=None, category=None, order=0, delivery=0, payment=0, essential=True,
-                 route=None):
+                 route: "Route" = None):
         # Parameter
         self.pid = pid
         self.product = product  # sector of producing firm
@@ -37,7 +37,7 @@ class CommercialLink(object):
         self.delivery_in_tons = delivery  # flows downstream. What is supposed to be delivered (if no transport pb)
         self.realized_delivery = delivery
         self.payment = payment  # flows upstream
-        self.alternative_route = []
+        self.alternative_route = None
         self.alternative_route_length = 1
         self.alternative_route_cost_per_ton = 0
         self.price = 1
@@ -120,10 +120,25 @@ class CommercialLink(object):
         alt_modes = set(self.alternative_route.transport_modes)
         return main_modes != alt_modes
 
-    def calculate_modal_switching_cost(self, modal_switching_cost_percentage):
+    def has_port_switch(self, transport_network):
+        """Check if alternative route uses different maritime multimodal edges than main route."""
+        if not self.alternative_found:
+            return False
+        
+        main_maritime_edges = self.route.get_maritime_multimodal_edges(transport_network)
+        alt_maritime_edges = self.alternative_route.get_maritime_multimodal_edges(transport_network)
+        
+        # Return True if both routes use maritime multimodal edges but different ones
+        return (len(main_maritime_edges) > 0 and 
+                len(alt_maritime_edges) > 0 and 
+                main_maritime_edges != alt_maritime_edges)
+
+    def calculate_switching_cost(self, switching_costs: dict, transport_network):
         """Calculate additional percentage cost penalty for switching transportation modes."""
         if self.has_modal_switch():
-            return modal_switching_cost_percentage
+            return switching_costs['modal_switch']
+        elif self.has_port_switch(transport_network):
+            return switching_costs['port_switch']
         return 0
 
     def store_route_information(self, route: Route, main_or_alternative: str, cost_per_ton: float):

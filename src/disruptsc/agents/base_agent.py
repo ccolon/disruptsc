@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 from tqdm import tqdm
 
-from disruptsc.model.basic_functions import rescale_values, calculate_distance_between_agents
+from disruptsc.model.utils.functions import rescale_values, calculate_distance_between_agents
 
 if TYPE_CHECKING:
     from disruptsc.agents.firm import Firms
@@ -403,7 +403,7 @@ class BaseAgents(dict):
                 sectors_no_transport_network: list, rationing_mode: str, with_transport: bool,
                 transport_to_households: bool, capacity_constraint: bool, capacity_constraint_mode: str,
                 monetary_units_in_model: str, price_increase_threshold: float,
-                use_route_cache: bool):
+                use_route_cache: bool, switching_costs: dict):
         """Deliver products for all agents that have delivery capabilities."""
         for agent in tqdm(self.values(), total=len(self), desc=f"{self.agents_type.capitalize()} delivering"):
             if hasattr(agent, 'deliver_products'):
@@ -417,7 +417,8 @@ class BaseAgents(dict):
                     price_increase_threshold=price_increase_threshold,
                     capacity_constraint=capacity_constraint,
                     capacity_constraint_mode=capacity_constraint_mode,
-                    use_route_cache=use_route_cache
+                    use_route_cache=use_route_cache,
+                    switching_costs=switching_costs
                 )
 
 

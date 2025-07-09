@@ -4,7 +4,7 @@ import logging
 
 import pandas as pd
 
-from disruptsc.model.basic_functions import rescale_monetary_values
+from disruptsc.model.utils.functions import rescale_monetary_values
 
 if TYPE_CHECKING:
     from pathlib import Path

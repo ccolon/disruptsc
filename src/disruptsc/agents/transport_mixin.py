@@ -85,7 +85,8 @@ class TransportCapable:
 
     def send_shipment(self, commercial_link: "CommercialLink", transport_network: "TransportNetwork",
                       available_transport_network: "TransportNetwork", price_increase_threshold: float,
-                      capacity_constraint: bool, capacity_constraint_mode: str, use_route_cache: bool):
+                      capacity_constraint: bool, capacity_constraint_mode: str, use_route_cache: bool,
+                      switching_costs: dict):
         """
         Send shipment using transport network, with fallback to alternative routes.
         
@@ -125,9 +126,8 @@ class TransportCapable:
 
         if usable_alternative:
             relative_transport_cost_change = commercial_link.calculate_relative_increase_in_transport_cost()
-            modal_switching_cost = commercial_link.calculate_modal_switching_cost(
-                getattr(self, 'modal_switching_cost_percentage', 0))
-            total_transport_cost_change = relative_transport_cost_change + modal_switching_cost
+            switching_cost = commercial_link.calculate_switching_cost(switching_costs, transport_network)
+            total_transport_cost_change = relative_transport_cost_change + switching_cost
             relative_price_change_transport = self.calculate_relative_price_change_transport(
                 total_transport_cost_change)
             

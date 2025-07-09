@@ -8,25 +8,23 @@ import logging
 import pandas as pd
 from tqdm import tqdm
 
-from .basic_functions import load_sector_table
-from .profiling_utils import profile_method
-from .caching_functions import \
+from .utils.functions import load_sector_table, filter_sector
+from .utils.profiling import profile_method
+from .utils.caching import \
     load_cached_transport_network, \
     load_cached_agent_data, \
     load_cached_transaction_table, \
     cache_transport_network, \
     cache_agent_data, load_cached_sc_network, cache_sc_network, load_cached_logistic_routes, cache_logistic_routes, \
     cache_model
-from disruptsc.model.check_functions import compare_production_purchase_plans
-from disruptsc.model.country_builder_functions import create_countries_from_mrio
-from disruptsc.model.firm_builder_functions import \
+from .validation.runtime import compare_production_purchase_plans
+from .agent_builders.country import create_countries_from_mrio
+from .agent_builders.firm import \
     define_firms_from_network_data, \
     define_firms_from_mrio, create_firms, calibrate_input_mix, load_mrio_tech_coefs, \
     load_inventories
-from disruptsc.model.household_builder_functions import define_households_from_mrio, create_households
-from disruptsc.model.transport_network_builder_functions import \
-    create_transport_network
-from disruptsc.model.builder_functions import filter_sector
+from .agent_builders.household import define_households_from_mrio, create_households
+from .network_builders.transport import create_transport_network
 from disruptsc.parameters import Parameters
 from disruptsc.disruption.disruption import DisruptionList, TransportDisruption, CapitalDestruction, Recovery
 from disruptsc.simulation.simulation import Simulation
@@ -490,11 +488,6 @@ class Model(object):
             self.countries.assign_cost_profile(self.parameters.logistics['nb_cost_profiles'])
             self.firms.assign_cost_profile(self.parameters.logistics['nb_cost_profiles'])
 
-            # Assign modal switching cost parameter to agents
-            modal_switching_cost = self.parameters.logistics.get('modal_switching_cost_percentage', 0)
-            for agent in list(self.countries.values()) + list(self.firms.values()):
-                agent.modal_switching_cost_percentage = modal_switching_cost
-
             logging.info('The supplier--buyer graph is being connected to the transport network')
             logging.info('Each B2B and transit edge_attr is being linked to a route of the transport network')
             logging.info('Routes for transit and import flows are being selected by trading countries')
@@ -897,7 +890,8 @@ class Model(object):
                                self.parameters.get_capacity_constraint_mode(),
                                self.parameters.monetary_units_in_model,
                                self.parameters.price_increase_threshold,
-                               self.parameters.use_route_cache)
+                               self.parameters.use_route_cache,
+                               self.parameters.logistics['switching_costs'])
         self.firms.deliver(self.sc_network, self.transport_network, available_transport_network,
                            self.parameters.sectors_no_transport_network,
                            self.parameters.rationing_mode, self.parameters.with_transport,
@@ -905,7 +899,8 @@ class Model(object):
                            self.parameters.get_capacity_constraint_mode(),
                            self.parameters.monetary_units_in_model,
                            self.parameters.price_increase_threshold,
-                           self.parameters.use_route_cache)
+                           self.parameters.use_route_cache,
+                           self.parameters.logistics['switching_costs'])
         # print(self.firms[0].rationing)
         # print(com.delivery)
         # if time_step == 1:
