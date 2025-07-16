@@ -113,7 +113,7 @@ def flatten_to_str(x):
     if isinstance(x, str):
         return x
     elif isinstance(x, (list, tuple)):
-        return ''.join(flatten_to_str(i) for i in x)
+        return '_'.join(flatten_to_str(i) for i in x)
     else:
         return str(x)
 
