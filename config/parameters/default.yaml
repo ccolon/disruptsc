@@ -47,9 +47,7 @@ logistics:
     oil_and_gas: "liquid_bulk"
     default: "container"
   speeds:  # km/hour
-    roads:
-      paved: 50
-      unpaved: 15
+    roads: 50
     maritime: 35
     airways: 800
     railways: 50

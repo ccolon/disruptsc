@@ -296,6 +296,38 @@ class BaseAgents(dict):
         else:
             raise ValueError(f"Output type '{output_type}' not recognized.")
 
+    def get_subregions(self, subregion_level: str, output_type='dict'):
+        subregion_dict = self.get_properties("subregions", "dict")
+        subregion_dict = {agent_id: subregions[subregion_level] for agent_id, subregions in subregion_dict.items()}
+        if output_type == 'dict':
+            return subregion_dict
+        elif output_type == 'list':
+            return list(subregion_dict.values())
+        elif output_type == 'set':
+            return set(subregion_dict.values())
+        else:
+            raise ValueError(f"Output type '{output_type}' not recognized.")
+
+    def get_subregion_sectors(self, subregion_level: str, output_type='dict'):
+        subregion_dict = self.get_subregions(subregion_level, "dict")
+        sector_dict = self.get_properties("sector", "dict")
+        subregion_sectors = {agent_id: (subregion_dict[agent_id], sector_dict[agent_id])
+                             for agent_id in self.keys()}
+        if output_type == 'dict':
+            return subregion_sectors
+        elif output_type == 'list':
+            return list(subregion_sectors.values())
+        elif output_type == 'set':
+            return set(subregion_sectors.values())
+        else:
+            raise ValueError(f"Output type '{output_type}' not recognized.")
+
+    def select_by_subregion_sectors(self, subregion_level: str, subregion_sectors: list[tuple]):
+        subregion_sector_dict = self.get_subregion_sectors(subregion_level, output_type='dict')
+        selected_ids = [agent_id for agent_id, (subregion, sector) in subregion_sector_dict.items()
+                        if (subregion, sector) in subregion_sectors]
+        return self.__class__([self[agent_id] for agent_id in selected_ids])
+
     def select_by_properties(self, filters: dict):
         """
         Select agents where the property values match any of the given values in each filter.
@@ -304,12 +336,9 @@ class BaseAgents(dict):
         """
         selected = self.values()
         for prop, values in filters.items():
-            if prop.startswith('subregion_') and len(prop) > 10:  # subregion_* properties
-                subregion_level = prop[10:]  # Remove 'subregion_' prefix
-                selected = [agent for agent in selected 
-                           if hasattr(agent, 'subregions') and 
-                           isinstance(agent.subregions, dict) and
-                           agent.subregions.get(subregion_level) in values]
+            if prop in ["province_sector", "canton_sector"]:
+                subregion_level = prop[:-len('_sector')]
+                selected = self.select_by_subregion_sectors(subregion_level, values)
             else:
                 selected = [agent for agent in selected if getattr(agent, prop, None) in values]
         return self.__class__(selected)

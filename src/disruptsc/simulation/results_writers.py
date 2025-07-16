@@ -53,11 +53,11 @@ class CSVResultsWriter:
         return CriticalityWriter(output_file, parameters)
 
     @classmethod
-    def create_ad_hoc_writer(cls, parameters: "Parameters") -> "AdHocWriter":
+    def create_destruction_writer(cls, parameters: "Parameters") -> "DestructionWriter":
         """Create writer for ad-hoc analysis results."""
         suffix = get_simplified_timestamp()
-        output_file = paths.OUTPUT_FOLDER / parameters.scope / f"disruption_{suffix}.csv"
-        return AdHocWriter(output_file, parameters)
+        output_file = paths.OUTPUT_FOLDER / parameters.scope / f"destruction_{suffix}.csv"
+        return DestructionWriter(output_file, parameters)
 
     @classmethod
     def create_sensitivity_writer(cls, parameters: "Parameters") -> "SensitivityWriter":
@@ -84,6 +84,7 @@ class DisruptionMCWriter(CSVResultsWriter):
 
         super().__init__(output_file, headers)
         self.parameters = parameters
+
 
     def write_iteration_results(self, iteration: int, simulation: "Simulation", model: "Model"):
         """Write results for a single Monte Carlo iteration."""
@@ -159,7 +160,7 @@ class CriticalityWriter(CSVResultsWriter):
                        household_loss_per_region_values + country_loss_per_region_values + [geometry])
 
 
-class AdHocWriter(CSVResultsWriter):
+class DestructionWriter(CSVResultsWriter):
     """Writer for ad-hoc analysis results."""
 
     def __init__(self, output_file: Path, parameters: "Parameters"):
@@ -170,8 +171,8 @@ class AdHocWriter(CSVResultsWriter):
         super().__init__(output_file, headers)
         self.parameters = parameters
 
-    def write_ad_hoc_results(self, disruption: list, household_loss: float, country_loss: float,
-                             household_loss_per_periods: dict):
+    def write_destruction_results(self, disruption: list, household_loss: float, country_loss: float,
+                                  household_loss_per_periods: dict):
         """Write results for a single sector combination analysis."""
         self.write_row(["_".join(disruption), household_loss, country_loss] +
                        list(household_loss_per_periods.values()))

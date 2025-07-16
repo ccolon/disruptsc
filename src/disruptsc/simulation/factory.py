@@ -4,7 +4,7 @@ from .executors.initial_state_executor import InitialStateExecutor, StationaryTe
 from .executors.disruption_executor import DisruptionExecutor
 from .executors.monte_carlo_executor import MonteCarloExecutor, InitialStateMCExecutor
 from .executors.criticality_executor import CriticalityExecutor
-from .executors.ad_hoc_executor import AdHocExecutor
+from .executors.destruction_executor import DestructionExecutor
 from .executors.sensitivity_executor import SensitivityExecutor
 from .results_writers import CSVResultsWriter
 
@@ -48,25 +48,25 @@ class ExecutorFactory:
             results_writer = CSVResultsWriter.create_criticality_writer(parameters)
             return CriticalityExecutor(model, parameters, results_writer)
         
-        elif simulation_type == "ad_hoc_sectors":
-            results_writer = CSVResultsWriter.create_ad_hoc_writer(parameters)
-            return AdHocExecutor(model, parameters, disruption_type="sectors", results_writer=results_writer)
+        elif simulation_type == "destruction_sectors":
+            results_writer = CSVResultsWriter.create_destruction_writer(parameters)
+            return DestructionExecutor(model, parameters, target_types="sectors", results_writer=results_writer)
 
-        elif simulation_type == "ad_hoc_provinces":
-            results_writer = CSVResultsWriter.create_ad_hoc_writer(parameters)
-            return AdHocExecutor(model, parameters, disruption_type="subregions", subregion="province", results_writer=results_writer)
+        elif simulation_type == "destruction_provinces":
+            results_writer = CSVResultsWriter.create_destruction_writer(parameters)
+            return DestructionExecutor(model, parameters, target_types="subregions", subregion="province", results_writer=results_writer)
 
-        elif simulation_type == "ad_hoc_cantons":
-            results_writer = CSVResultsWriter.create_ad_hoc_writer(parameters)
-            return AdHocExecutor(model, parameters, disruption_type="subregions", subregion="canton", results_writer=results_writer)
+        elif simulation_type == "destruction_cantons":
+            results_writer = CSVResultsWriter.create_destruction_writer(parameters)
+            return DestructionExecutor(model, parameters, target_types="subregions", subregion="canton", results_writer=results_writer)
 
-        elif simulation_type == "ad_hoc_province_sectors":
-            results_writer = CSVResultsWriter.create_ad_hoc_writer(parameters)
-            return AdHocExecutor(model, parameters, disruption_type="subregion_sectors", subregion="province", results_writer=results_writer)
+        elif simulation_type == "destruction_province_sectors":
+            results_writer = CSVResultsWriter.create_destruction_writer(parameters)
+            return DestructionExecutor(model, parameters, target_types="subregion_sectors", subregion="province", results_writer=results_writer)
 
-        elif simulation_type == "ad_hoc_canton_sectors":
-            results_writer = CSVResultsWriter.create_ad_hoc_writer(parameters)
-            return AdHocExecutor(model, parameters, disruption_type="subregion_sectors", subregion="canton", results_writer=results_writer)
+        elif simulation_type == "destruction_canton_sectors":
+            results_writer = CSVResultsWriter.create_destruction_writer(parameters)
+            return DestructionExecutor(model, parameters, target_types="subregion_sectors", subregion="canton", results_writer=results_writer)
 
         elif simulation_type == "disruption-sensitivity":
             results_writer = CSVResultsWriter.create_sensitivity_writer(parameters)

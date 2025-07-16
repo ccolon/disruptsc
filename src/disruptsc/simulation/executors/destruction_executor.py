@@ -15,13 +15,13 @@ def _get_disrupted_sector_list() -> List:
     return ['all', ['ADM'], ['ADP'], ['ALD'], ['ASO'], ['AYG'], ['BAL'], ['CAR'], ['CIN'], ['COM'], ['CON'], ['DEM'], ['EDU'], ['ELE'], ['FIN'], ['FRT'], ['FRV'], ['GAN'], ['INM'], ['LAC'], ['MAQ'], ['MIP'], ['MOL'], ['MUE'], ['PAN'], ['PES'], ['PPR'], ['QU2'], ['REF'], ['RES'], ['SAL'], ['SEG'], ['TEL'], ['TRA'], ['AGU', 'BNA'], ['AGU', 'CHO'], ['AGU', 'HIL'], ['AGU', 'MET'], ['AGU', 'SIL'], ['AGU', 'VES'], ['AZU', 'BNA'], ['AZU', 'CHO'], ['AZU', 'DOM'], ['AZU', 'HIL'], ['AZU', 'MAD'], ['AZU', 'MET'], ['AZU', 'SIL'], ['AZU', 'VES'], ['BNA', 'CAN'], ['BNA', 'CAU'], ['BNA', 'CER'], ['BNA', 'CHO'], ['BNA', 'CUE'], ['BNA', 'DOM'], ['BNA', 'FID'], ['BNA', 'HIL'], ['BNA', 'HOT'], ['BNA', 'MAD'], ['BNA', 'MAN'], ['BNA', 'MET'], ['BNA', 'PAP'], ['BNA', 'PLS'], ['BNA', 'POS'], ['BNA', 'REP'], ['BNA', 'SIL'], ['BNA', 'TAB'], ['BNA', 'VES'], ['CAN', 'CHO'], ['CAN', 'MET'], ['CAN', 'SIL'], ['CAN', 'VES'], ['CAU', 'CHO'], ['CAU', 'VES'], ['CER', 'CHO'], ['CER', 'DOM'], ['CER', 'HIL'], ['CER', 'MAD'], ['CER', 'MET'], ['CER', 'REP'], ['CER', 'SIL'], ['CER', 'VES'], ['CHO', 'CUE'], ['CHO', 'DOM'], ['CHO', 'FID'], ['CHO', 'HIL'], ['CHO', 'HOT'], ['CHO', 'MAD'], ['CHO', 'MAN'], ['CHO', 'MET'], ['CHO', 'PAP'], ['CHO', 'PLS'], ['CHO', 'POS'], ['CHO', 'REP'], ['CHO', 'SIL'], ['CHO', 'VES'], ['CUE', 'HIL'], ['CUE', 'MAD'], ['CUE', 'MET'], ['CUE', 'SIL'], ['CUE', 'VES'], ['DOM', 'HIL'], ['DOM', 'HOT'], ['DOM', 'MAD'], ['DOM', 'MET'], ['DOM', 'PAP'], ['DOM', 'REP'], ['DOM', 'SIL'], ['DOM', 'VES'], ['FID', 'VES'], ['HIL', 'HOT'], ['HIL', 'MAD'], ['HIL', 'MET'], ['HIL', 'PAP'], ['HIL', 'PLS'], ['HIL', 'REP'], ['HIL', 'SIL'], ['HIL', 'VES'], ['HOT', 'MAD'], ['HOT', 'MET'], ['HOT', 'SIL'], ['HOT', 'VES'], ['MAD', 'MET'], ['MAD', 'PAP'], ['MAD', 'REP'], ['MAD', 'SIL'], ['MAD', 'VES'], ['MAN', 'VES'], ['MET', 'PAP'], ['MET', 'PLS'], ['MET', 'REP'], ['MET', 'SIL'], ['MET', 'VES'], ['PAP', 'REP'], ['PAP', 'SIL'], ['PAP', 'VES'], ['PLS', 'SIL'], ['PLS', 'VES'], ['POS', 'SIL'], ['POS', 'VES'], ['REP', 'SIL'], ['REP', 'VES'], ['SIL', 'VES'], ['TAB', 'VES']]
 
 
-class AdHocExecutor(SimulationExecutor):
+class DestructionExecutor(SimulationExecutor):
     """Executes ad-hoc disruption analysis across multiple sectors or subregions."""
 
-    def __init__(self, model, parameters, disruption_type="sectors", subregion=None, results_writer=None):
+    def __init__(self, model, parameters, target_types="sectors", subregion=None, results_writer=None):
         super().__init__(model, parameters)
         self.results_writer = results_writer
-        self.disruption_type = disruption_type
+        self.target_types = target_types
         self.subregion = subregion
 
     def execute(self) -> List["Simulation"]:
@@ -33,92 +33,58 @@ class AdHocExecutor(SimulationExecutor):
         self.model.save_pickle(suffix)
 
         # Get disrupted combinations and present values based on type
-        if self.disruption_type == "sectors":
-            disrupted_list = _get_disrupted_sector_list()
-            present_values = list(set(self.model.firms.get_properties('region_sector', 'list')))
-            logging.info(f"{len(disrupted_list)} sector combinations to test")
-        elif self.disruption_type == "subregions":
-            disrupted_list = _get_disrupted_subregion_list(self.subregion)
-            present_subregions = self.model.firms.get_properties('subregions', 'list')
-            present_values = list(set([s[self.subregion] for s in present_subregions]))
-            logging.info(f"{len(disrupted_list)} {self.subregion} combinations to test")
-        elif self.disruption_type == "subregion_sectors":
-            disrupted_list = _get_disrupted_subregion_sector_list(self.subregion)
-            # Get both present subregions and sectors for validation
-            present_subregions = self.model.firms.get_properties('subregions', 'list')
-            present_subregions_list = list(set([s[self.subregion] for s in present_subregions]))
-            present_sectors = list(set(self.model.firms.get_properties('region_sector', 'list')))
-            logging.info(f"{len(disrupted_list)} {self.subregion}-sector combinations to test")
-        
+        if self.target_types == "sectors":
+            disrupted_targets_list = _get_disrupted_sector_list()
+            targets_in_model = self.model.firms.get_properties('sector', 'set')
+            logging.info(f"{len(disrupted_targets_list)} sector combinations to test")
+        elif self.target_types == "subregions":
+            disrupted_targets_list = _get_disrupted_subregion_list(self.subregion)
+            targets_in_model = self.model.firms.get_subregions(self.subregion, 'set')
+            logging.info(f"{len(disrupted_targets_list)} {self.subregion} combinations to test")
+        elif self.target_types == "subregion_sectors":
+            disrupted_targets_list = _get_disrupted_subregion_sector_list(self.subregion)
+            targets_in_model = self.model.firms.get_subregion_sectors(self.subregion, 'list')
+            logging.info(f"{len(disrupted_targets_list)} {self.subregion}-sector combinations to test")
+
+
         periods = [30, 90, 180]
         results = []
         
-        for disrupted_targets in disrupted_list:
-            # Handle different target formats based on disruption type
-            if self.disruption_type == "subregion_sectors":
-                # disrupted_targets is a tuple (subregion, sector)
-                print(disrupted_targets)
-                subregions = list(set([d[0] for d in disrupted_targets]))
-                sectors = list(set([d[1] for d in disrupted_targets]))
+        for disrupted_targets in disrupted_targets_list:
+            # Handle existing logic for sectors and subregions
+            if disrupted_targets == 'all':
+                disrupted_targets = targets_in_model
 
-                # Validate both subregion and sector presence
-                if len(set(subregions) - set(present_subregions_list)) > 0:
-                    logging.info(f"Skipping {subregions} - not present in model")
-                    continue
-                if len(set(['ECU_' + s for s in sectors]) - set(present_sectors)):
-                    logging.info(f"Skipping ECU_{sectors} - not present in model")
-                    continue
-                
-                logging.info(f"")
-                logging.info(f"=============== Disrupting {self.subregion}-sector #{disrupted_targets} ===============")
-                
-            else:
-                # Handle existing logic for sectors and subregions
-                if disrupted_targets == 'all':
-                    disrupted_targets = present_values
+            # Skip if targets not present
+            if all([target not in targets_in_model for target in disrupted_targets]):
+                logging.info(f"No targets is present in model: {disrupted_targets}")
+                continue
 
-                # Add prefix for sectors and check against prefixed present values
-                if self.disruption_type == "sectors":
-                    disrupted_targets = ['ECU_' + sector for sector in disrupted_targets]
-                    # For sectors, present_values already has ECU_ prefix
-                    check_values = present_values
-                else:
-                    # For subregions, no prefix needed
-                    check_values = present_values
+            disrupted_targets_not_in_model = set(disrupted_targets) - set(targets_in_model)
+            if len(disrupted_targets_not_in_model) > 0:
+                logging.info(f"Skipping {disrupted_targets_not_in_model} - not present in model")
+                disrupted_targets = list(set(disrupted_targets) & set(targets_in_model))
 
-                # Skip if targets not present
-                if any([target not in check_values for target in disrupted_targets]):
-                    continue
-
-                # Log disruption type
-                if self.disruption_type == "sectors":
-                    logging.info(f"")
-                    logging.info(f"=============== Disrupting sector #{disrupted_targets} ===============")
-                else:
-                    logging.info(f"")
-                    logging.info(f"=============== Disrupting {self.subregion} #{disrupted_targets} ===============")
+            # Log disruption type
+            logging.info(f"")
+            logging.info(f"=============== Disrupting {self.target_types} #{disrupted_targets} ===============")
 
             # Load fresh model state
             model = load_cached_model(suffix)
             
             # Set disruption parameters based on type
-            if self.disruption_type == "sectors":
-                model.parameters.disruptions[0]['filter']['region_sector'] = disrupted_targets
-            elif self.disruption_type == "subregions":
-                model.parameters.disruptions[0]['filter']['subregion_'+self.subregion] = disrupted_targets
-            elif self.disruption_type == "subregion_sectors":
-                # Set both subregion and sector filters for combined disruption
-                model.parameters.disruptions[0]['filter']['region_sector'] = ['ECU_' + s for s in sectors]
-                model.parameters.disruptions[0]['filter']['subregion_'+self.subregion] = subregions
-                logging.info(model.parameters.disruptions[0])
+            model.parameters.disruptions[0]['filter'] = {}
+            model.parameters.disruptions[0]['filter'][self.target_types] = disrupted_targets
+            logging.info(model.parameters.disruptions[0])
+
             # Run simulation
             simulation = model.run_disruption(t_final=periods[-1])
 
             # Calculate losses
+            household_loss = simulation.calculate_household_loss(model.household_table)
             household_loss_per_periods = simulation.calculate_household_loss(
                 model.household_table, periods=periods
             )
-            household_loss = household_loss_per_periods[periods[-1]]
             country_loss = simulation.calculate_country_loss()
 
             logging.info(f"Simulation terminated. "
@@ -130,8 +96,8 @@ class AdHocExecutor(SimulationExecutor):
                 # Format results identifier based on disruption type
                 results_identifier = disrupted_targets
                     
-                self.results_writer.write_ad_hoc_results(results_identifier, household_loss, country_loss,
-                                                         household_loss_per_periods)
+                self.results_writer.write_destruction_results(results_identifier, household_loss, country_loss,
+                                                              household_loss_per_periods)
 
             # Clear simulation from memory immediately after processing
             del simulation
