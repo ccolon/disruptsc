@@ -825,7 +825,6 @@ class Model(object):
             return simulation
         logging.info(f"{len(self.disruption_list)} disruption(s) will occur")
         self.disruption_list.log_info()
-        exit()
         logging.info("Starting time loop")
         for t in range(1, t_final + 1):
             self.run_one_time_step(time_step=t, current_simulation=simulation)

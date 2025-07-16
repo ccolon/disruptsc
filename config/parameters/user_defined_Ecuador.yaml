@@ -17,14 +17,14 @@ inventory_duration_targets:
     transport: 5
     default: 30
   unit: day
-io_cutoff: 0.01  # 0.01
+io_cutoff: 0.1  # 0.01
 cutoff_sector_output:
   'type': absolute
-  'value': 1.0
-  'unit': mUSD
+  'value': 1000
+  'unit': kUSD
 cutoff_sector_demand:
   'type': absolute
-  'value': 100
+  'value': 1000
   'unit': kUSD
 utilization_rate: 1
 adaptive_inventories: True
@@ -32,7 +32,7 @@ inventory_restoration_time: 90
 nb_suppliers_per_input: 1
 adaptive_supplier_weight: False
 price_increase_threshold: 2
-simulation_type: ad_hoc_province_sectors  # initial_state, disruption
+simulation_type: destruction_province_sectors  # initial_state, disruption
 sensitivity:
   utilization_rate: [0.2, 1]
   adaptive_supplier_weight: [True, False]
@@ -52,7 +52,8 @@ disruptions:
     description_type: filter  # sectors_homogeneous
     filter:
       #region_sector: ['ECU_TRA', 'ECU_INM']
-      subregion_province: ['AZUAY']
+      #subregion_province: ['AZUAY']
+      province_sector: ['AZUAY_TRA', 'AZUAY_INM']
     destroyed_capital: 2510.0
 #    region_sector_filepath: "Disruption/earthquake_capital_destruction.csv"
     unit: mUSD

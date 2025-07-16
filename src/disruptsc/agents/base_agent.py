@@ -308,6 +308,12 @@ class BaseAgents(dict):
         else:
             raise ValueError(f"Output type '{output_type}' not recognized.")
 
+    def select_by_subregions(self, subregion_level: str, selected_subregions: list[str]):
+        subregions_dict = self.get_subregions(subregion_level, output_type='dict')
+        selected_ids = [agent_id for agent_id, subregion in subregions_dict.items()
+                        if subregion in selected_subregions]
+        return self.__class__([self[agent_id] for agent_id in selected_ids])
+
     def get_subregion_sectors(self, subregion_level: str, output_type='dict'):
         subregion_dict = self.get_subregions(subregion_level, "dict")
         sector_dict = self.get_properties("sector", "dict")
@@ -334,14 +340,18 @@ class BaseAgents(dict):
         Example: filters = {'region_sector': [...], 'province': [...]}
         Supports nested subregion properties: filters = {'subregion_province': [...]}
         """
-        selected = self.values()
-        for prop, values in filters.items():
-            if prop in ["province_sector", "canton_sector"]:
-                subregion_level = prop[:-len('_sector')]
-                selected = self.select_by_subregion_sectors(subregion_level, values)
+        selected_pids = set(self.keys())
+        for attribute, target_values in filters.items():
+            if attribute in ['province', 'canton']:
+                selected_pids = selected_pids & set(self.select_by_subregions(attribute, target_values).keys())
+            elif attribute in ["province_sector", "canton_sector"]:
+                subregion_level = attribute[:-len('_sector')]
+                selected_pids = selected_pids & set(self.select_by_subregion_sectors(subregion_level, target_values).keys())
             else:
-                selected = [agent for agent in selected if getattr(agent, prop, None) in values]
-        return self.__class__(selected)
+                selected_pids = selected_pids & set([pid for pid, agent in self.items()
+                                           if getattr(agent, attribute, None) in target_values])
+        selected_agents = [self[pid] for pid in selected_pids]
+        return self.__class__(selected_agents)
 
     def group_agent_ids_by_property(self, property_name: str):
         """Group agent IDs by a property value."""

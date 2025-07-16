@@ -94,7 +94,7 @@ class DestructionExecutor(SimulationExecutor):
             # Write results if writer provided
             if self.results_writer:
                 # Format results identifier based on disruption type
-                results_identifier = disrupted_targets
+                results_identifier = flatten_to_str(disrupted_targets)
                     
                 self.results_writer.write_destruction_results(results_identifier, household_loss, country_loss,
                                                               household_loss_per_periods)
@@ -108,6 +108,15 @@ class DestructionExecutor(SimulationExecutor):
             # results.append(simulation)
 
         return results
+
+
+def flatten_to_str(x):
+    if isinstance(x, str):
+        return x
+    elif isinstance(x, (list, tuple)):
+        return ''.join(flatten_to_str(i) for i in x)
+    else:
+        return str(x)
 
 
 def _get_disrupted_subregion_list(which_subregion: str) -> List:
