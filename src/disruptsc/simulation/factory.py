@@ -50,23 +50,23 @@ class ExecutorFactory:
         
         elif simulation_type == "destruction_sectors":
             results_writer = CSVResultsWriter.create_destruction_writer(parameters)
-            return DestructionExecutor(model, parameters, target_types="sectors", results_writer=results_writer)
+            return DestructionExecutor(model, parameters, target_types="sector", results_writer=results_writer)
 
         elif simulation_type == "destruction_provinces":
             results_writer = CSVResultsWriter.create_destruction_writer(parameters)
-            return DestructionExecutor(model, parameters, target_types="subregions", subregion="province", results_writer=results_writer)
+            return DestructionExecutor(model, parameters, target_types="province", subregion="province", results_writer=results_writer)
 
         elif simulation_type == "destruction_cantons":
             results_writer = CSVResultsWriter.create_destruction_writer(parameters)
-            return DestructionExecutor(model, parameters, target_types="subregions", subregion="canton", results_writer=results_writer)
+            return DestructionExecutor(model, parameters, target_types="canton", subregion="canton", results_writer=results_writer)
 
         elif simulation_type == "destruction_province_sectors":
             results_writer = CSVResultsWriter.create_destruction_writer(parameters)
-            return DestructionExecutor(model, parameters, target_types="subregion_sectors", subregion="province", results_writer=results_writer)
+            return DestructionExecutor(model, parameters, target_types="province_sector", subregion="province", results_writer=results_writer)
 
         elif simulation_type == "destruction_canton_sectors":
             results_writer = CSVResultsWriter.create_destruction_writer(parameters)
-            return DestructionExecutor(model, parameters, target_types="subregion_sectors", subregion="canton", results_writer=results_writer)
+            return DestructionExecutor(model, parameters, target_types="canton_sector", subregion="canton", results_writer=results_writer)
 
         elif simulation_type == "disruption-sensitivity":
             results_writer = CSVResultsWriter.create_sensitivity_writer(parameters)

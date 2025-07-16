@@ -33,19 +33,18 @@ class DestructionExecutor(SimulationExecutor):
         self.model.save_pickle(suffix)
 
         # Get disrupted combinations and present values based on type
-        if self.target_types == "sectors":
+        if self.target_types == "sector":
             disrupted_targets_list = _get_disrupted_sector_list()
             targets_in_model = self.model.firms.get_properties('sector', 'set')
             logging.info(f"{len(disrupted_targets_list)} sector combinations to test")
-        elif self.target_types == "subregions":
+        elif self.target_types in ["canton", "province"]:
             disrupted_targets_list = _get_disrupted_subregion_list(self.subregion)
             targets_in_model = self.model.firms.get_subregions(self.subregion, 'set')
             logging.info(f"{len(disrupted_targets_list)} {self.subregion} combinations to test")
-        elif self.target_types == "subregion_sectors":
+        elif self.target_types in ["canton_sector", "province_sector"]:
             disrupted_targets_list = _get_disrupted_subregion_sector_list(self.subregion)
             targets_in_model = self.model.firms.get_subregion_sectors(self.subregion, 'list')
             logging.info(f"{len(disrupted_targets_list)} {self.subregion}-sector combinations to test")
-
 
         periods = [30, 90, 180]
         results = []
