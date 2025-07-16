@@ -171,10 +171,12 @@ class DestructionWriter(CSVResultsWriter):
         super().__init__(output_file, headers)
         self.parameters = parameters
 
-    def write_destruction_results(self, disruption: list, household_loss: float, country_loss: float,
+    def write_destruction_results(self, disruption_identifier: list | str, household_loss: float, country_loss: float,
                                   household_loss_per_periods: dict):
         """Write results for a single sector combination analysis."""
-        self.write_row(["_".join(disruption), household_loss, country_loss] +
+        if isinstance(disruption_identifier, list):
+            disruption_identifier = "_".join(disruption_identifier)
+        self.write_row([disruption_identifier, household_loss, country_loss] +
                        list(household_loss_per_periods.values()))
 
 
