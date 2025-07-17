@@ -100,29 +100,46 @@ logistics:  # Sources: TRACECA Corridor Studies, ADB CAREC Logistics Costing, Wo
 
 use_route_cache: True
 simulation_type: disruption
+mc_repetitions: 50
 sensitivity:
-  io_cutoff: [0.01, 0.1]
-  utilization_rate: [0.8, 1.0]
-  nb_suppliers_per_input: [1, 2]
-mc_repetitions: 0
+  duration: [1,5,10,15,30,60,120,180,270,365]
+  logistics.speeds.roads: [50,60]
 mc_caching:
   transport_network: true  # Reuse transport network
   agents: true             # Reuse agents 
   sc_network: true        # Regenerate for stochastic variation
   logistic_routes: true   # Regenerate for stochastic variation
-t_final: 10
-epsilon_stop_condition: False
+t_final: 365
+epsilon_stop_condition: 1e-3
 #criticality:
 #  attribute: top_flow
 #  edges: [aktau, baku, turkmenbashi, railways-GEO, railways-AZE, railways-KAZ]
 #  duration: 1
 disruptions:
-  - type: transport_disruption
+#  - type: transport_disruption
+#    description_type: edge_attributes
+#    attribute: name
+#    values: [railways-GEO-intervention]
+#    start_time: 1
+#    duration: 5
+  - type: transport_disruption_probability
     description_type: edge_attributes
     attribute: name
-    values: [aktau]
+    values: [railways-KAZ-S1]
     start_time: 1
-    duration: 5
+    probability_duration_pairs: [
+      [0.1, 5],
+    ]
+    scenario_duration: 10
+  - type: transport_disruption_probability
+    description_type: edge_attributes
+    attribute: name
+    values: [railways-KAZ-N1]
+    start_time: 1
+    probability_duration_pairs: [
+      [0.05, 5],
+    ]
+    scenario_duration: 10
 #  - type: transport_disruption_probability
 #    description_type: edge_attributes
 #    attribute: name
