@@ -294,3 +294,157 @@ disruptions:
     values: ["St. Sen (Tonlè Sap)"]
     start_time: 15
     duration: 1
+
+simulation_name: cascading_hazards_8d
+time_lag: 7
+disruptions:
+  - type: transport_disruption
+    description_type: edge_attributes
+    attribute: flood_disruption
+    values: ["Saigon"]
+    start_time: 1
+    duration: 1
+  - type: transport_disruption
+    description_type: edge_attributes
+    attribute: flood_disruption
+    values: ["Siem Bok (Mekong)"]
+    start_time: 9
+    duration: 1
+  - type: transport_disruption
+    description_type: edge_attributes
+    attribute: flood_disruption
+    values: ["St. Sen (Tonlè Sap)"]
+    start_time: 17
+    duration: 1
+
+simulation_name: cascading_hazards_9d
+time_lag: 9
+disruptions:
+  - type: transport_disruption
+    description_type: edge_attributes
+    attribute: flood_disruption
+    values: ["Saigon"]
+    start_time: 1
+    duration: 1
+  - type: transport_disruption
+    description_type: edge_attributes
+    attribute: flood_disruption
+    values: ["Siem Bok (Mekong)"]
+    start_time: 10
+    duration: 1
+  - type: transport_disruption
+    description_type: edge_attributes
+    attribute: flood_disruption
+    values: ["St. Sen (Tonlè Sap)"]
+    start_time: 19
+    duration: 1
+  
+simulation_name: cascading_hazards_10d
+time_lag: 10
+disruptions:
+  - type: transport_disruption
+    description_type: edge_attributes
+    attribute: flood_disruption
+    values: ["Saigon"]
+    start_time: 1
+    duration: 1
+  - type: transport_disruption
+    description_type: edge_attributes
+    attribute: flood_disruption
+    values: ["Siem Bok (Mekong)"]
+    start_time: 11
+    duration: 1
+  - type: transport_disruption
+    description_type: edge_attributes
+    attribute: flood_disruption
+    values: ["St. Sen (Tonlè Sap)"]
+    start_time: 21
+    duration: 1
+
+simulation_name: cascading_hazards_11d
+time_lag: 11
+disruptions:
+  - type: transport_disruption
+    description_type: edge_attributes
+    attribute: flood_disruption
+    values: ["Saigon"]
+    start_time: 1
+    duration: 1
+  - type: transport_disruption
+    description_type: edge_attributes
+    attribute: flood_disruption
+    values: ["Siem Bok (Mekong)"]
+    start_time: 12
+    duration: 1
+  - type: transport_disruption
+    description_type: edge_attributes
+    attribute: flood_disruption
+    values: ["St. Sen (Tonlè Sap)"]
+    start_time: 23
+    duration: 1
+
+simulation_name: cascading_hazards_12d
+time_lag: 12
+disruptions:
+  - type: transport_disruption
+    description_type: edge_attributes
+    attribute: flood_disruption
+    values: ["Saigon"]
+    start_time: 1
+    duration: 1
+  - type: transport_disruption
+    description_type: edge_attributes
+    attribute: flood_disruption
+    values: ["Siem Bok (Mekong)"]
+    start_time: 13
+    duration: 1
+  - type: transport_disruption
+    description_type: edge_attributes
+    attribute: flood_disruption
+    values: ["St. Sen (Tonlè Sap)"]
+    start_time: 25
+    duration: 1
+
+simulation_name: cascading_hazards_13d
+time_lag: 13
+disruptions:
+  - type: transport_disruption
+    description_type: edge_attributes
+    attribute: flood_disruption
+    values: ["Saigon"]
+    start_time: 1
+    duration: 1
+  - type: transport_disruption
+    description_type: edge_attributes
+    attribute: flood_disruption
+    values: ["Siem Bok (Mekong)"]
+    start_time: 14
+    duration: 1
+  - type: transport_disruption
+    description_type: edge_attributes
+    attribute: flood_disruption
+    values: ["St. Sen (Tonlè Sap)"]
+    start_time: 27
+    duration: 1
+
+simulation_name: cascading_hazards_14d
+time_lag: 14
+disruptions:
+  - type: transport_disruption
+    description_type: edge_attributes
+    attribute: flood_disruption
+    values: ["Saigon"]
+    start_time: 1
+    duration: 1
+  - type: transport_disruption
+    description_type: edge_attributes
+    attribute: flood_disruption
+    values: ["Siem Bok (Mekong)"]
+    start_time: 15
+    duration: 1
+  - type: transport_disruption
+    description_type: edge_attributes
+    attribute: flood_disruption
+    values: ["St. Sen (Tonlè Sap)"]
+    start_time: 29
+    duration: 1
