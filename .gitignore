@@ -4,7 +4,9 @@ output/*
 tmp/*
 !tmp/.gitkeep
 research/dataprep/
-analysis/cambodia_simulations_results.csv
+analysis/*
+!analysis/process-results.ipynb
+simulation_outputs.err
 
 # Exclude input folder - data is now in separate repository
 input/*

@@ -370,8 +370,5 @@ adaptive_inventories: False
 #   "binary": Traditional on/off penalty when capacity exceeded (1e10x cost penalty)
 capacity_constraint: "off"
 
-
-
-
 # Define how much built capital firms have given their level of output
 capital_to_value_added_ratio: 3
